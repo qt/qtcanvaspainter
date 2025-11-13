@@ -1,0 +1,430 @@
+// Copyright (C) 2025 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
+
+// Frame capture needs qtbase built with the graphicsframecapture feature
+// enabled. The feature flag is private, so cannot test for it in an
+// application. Just enable it manually, when this is wanted.
+// May cause warnings and some test cases failing, that is as expected.
+//#define FRAME_CAPTURE
+
+#include <QTest>
+#include <memory>
+#include <rhi/qrhi.h>
+
+#ifdef FRAME_CAPTURE
+#include <QtGui/private/qgraphicsframecapture_p.h>
+#endif
+
+#include "qcpainter.h"
+#include "qcpainterfactory.h"
+#include "qcrhipaintdriver.h"
+
+#if QT_CONFIG(opengl)
+#include <QOffscreenSurface>
+#include <QtGui/private/qguiapplication_p.h>
+#include <qpa/qplatformintegration.h>
+#define TST_GL
+#endif
+
+#if QT_CONFIG(vulkan)
+#include <QVulkanInstance>
+#define TST_VK
+#endif
+
+#ifdef Q_OS_WIN
+#define TST_D3D11
+#define TST_D3D12
+#endif
+
+#if QT_CONFIG(metal)
+#define TST_MTL
+#endif
+
+Q_DECLARE_METATYPE(QRhi::Implementation)
+Q_DECLARE_METATYPE(QRhiInitParams *)
+
+class tst_CanvasRhiRendering : public QObject
+{
+    Q_OBJECT
+
+private slots:
+    void initTestCase();
+    void cleanupTestCase();
+
+    void rhiTestData();
+    void create_data();
+    void create();
+    void createShared_data();
+    void createShared();
+    void render_data();
+    void render();
+
+private:
+    void setWindowType(QWindow *window, QRhi::Implementation impl);
+
+    struct RenderTarget
+    {
+        QRhiTexture *tex = nullptr;
+        QRhiRenderBuffer *ds = nullptr;
+        QRhiTextureRenderTarget *rt = nullptr;
+        QRhiRenderPassDescriptor *rp = nullptr;
+        static void deleter(RenderTarget *rt) {
+            delete rt->tex;
+            delete rt->ds;
+            delete rt->rt;
+            delete rt->rp;
+        }
+    };
+    using RenderTargetPtr = std::unique_ptr<RenderTarget, decltype(&RenderTarget::deleter)>;
+    RenderTargetPtr createRenderTarget(QRhi *rhi);
+
+    struct {
+        QRhiNullInitParams null;
+#ifdef TST_GL
+        QRhiGles2InitParams gl;
+#endif
+#ifdef TST_VK
+        QRhiVulkanInitParams vk;
+#endif
+#ifdef TST_D3D11
+        QRhiD3D11InitParams d3d11;
+#endif
+#ifdef TST_D3D12
+        QRhiD3D12InitParams d3d12;
+#endif
+#ifdef TST_MTL
+        QRhiMetalInitParams mtl;
+#endif
+    } initParams;
+
+#ifdef TST_VK
+    QVulkanInstance vulkanInstance;
+#endif
+#ifdef TST_GL
+    QOffscreenSurface *fallbackSurface = nullptr;
+#endif
+#ifdef FRAME_CAPTURE
+    std::unique_ptr<QGraphicsFrameCapture> m_cap;
+#endif
+};
+
+#ifdef FRAME_CAPTURE
+// must be done very early, before any QRhi is ever created (RenderDoc hooking limitations etc.)
+static std::unique_ptr<QGraphicsFrameCapture> createFrameCapture()
+{
+    std::unique_ptr<QGraphicsFrameCapture> cap(new QGraphicsFrameCapture);
+    return cap;
+}
+
+static void configureFrameCapture(QGraphicsFrameCapture *cap, QRhi *rhi)
+{
+    if (rhi->backend() == QRhi::Null)
+        return;
+
+    cap->setRhi(rhi);
+}
+
+static void startFrameCapture(QGraphicsFrameCapture *cap, QRhi *rhi, const char *filePrefix)
+{
+    if (!cap->isLoaded())
+        return;
+
+    const QString capPrefix = QString::asprintf("%s_%s", filePrefix, rhi->backendName());
+    cap->setCapturePrefix(capPrefix);
+    cap->setCapturePath(QLatin1String("."));
+    cap->startCaptureFrame();
+}
+
+static void endFrameCapture(QGraphicsFrameCapture *cap)
+{
+    if (cap->isLoaded() && cap->isCapturing()) {
+        cap->endCaptureFrame();
+        qDebug() << "Frame capture saved to" << cap->capturedFileName();
+    }
+}
+#endif
+
+void tst_CanvasRhiRendering::initTestCase()
+{
+#ifdef FRAME_CAPTURE
+    m_cap = createFrameCapture();
+#endif
+
+#ifdef TST_GL
+    QSurfaceFormat fmt;
+    fmt.setDepthBufferSize(24);
+    fmt.setStencilBufferSize(8);
+    QSurfaceFormat::setDefaultFormat(fmt);
+
+    initParams.gl.format = QSurfaceFormat::defaultFormat();
+    fallbackSurface = QRhiGles2InitParams::newFallbackSurface();
+    initParams.gl.fallbackSurface = fallbackSurface;
+#endif
+
+#ifdef TST_VK
+    const QVersionNumber supportedVersion = vulkanInstance.supportedApiVersion();
+    if (supportedVersion >= QVersionNumber(1, 2))
+        vulkanInstance.setApiVersion(QVersionNumber(1, 2));
+    else if (supportedVersion >= QVersionNumber(1, 1))
+        vulkanInstance.setApiVersion(QVersionNumber(1, 1));
+    vulkanInstance.setLayers({ "VK_LAYER_KHRONOS_validation" });
+    vulkanInstance.setExtensions(QRhiVulkanInitParams::preferredInstanceExtensions());
+    vulkanInstance.create();
+    initParams.vk.inst = &vulkanInstance;
+#endif
+
+#ifdef TST_D3D11
+    initParams.d3d11.enableDebugLayer = true;
+#endif
+#ifdef TST_D3D12
+    initParams.d3d12.enableDebugLayer = true;
+#endif
+}
+
+void tst_CanvasRhiRendering::cleanupTestCase()
+{
+#ifdef TST_VK
+    vulkanInstance.destroy();
+#endif
+
+#ifdef TST_GL
+    delete fallbackSurface;
+#endif
+}
+
+void tst_CanvasRhiRendering::rhiTestData()
+{
+    QTest::addColumn<QRhi::Implementation>("impl");
+    QTest::addColumn<QRhiInitParams *>("initParams");
+
+#ifndef Q_OS_WEBOS
+    QTest::newRow("Null") << QRhi::Null << static_cast<QRhiInitParams *>(&initParams.null);
+#endif
+#ifdef TST_GL
+    if (QGuiApplicationPrivate::platformIntegration()->hasCapability(QPlatformIntegration::OpenGL))
+        QTest::newRow("OpenGL") << QRhi::OpenGLES2 << static_cast<QRhiInitParams *>(&initParams.gl);
+#endif
+#ifdef TST_VK
+    if (vulkanInstance.isValid())
+        QTest::newRow("Vulkan") << QRhi::Vulkan << static_cast<QRhiInitParams *>(&initParams.vk);
+#endif
+#ifdef TST_D3D11
+    QTest::newRow("Direct3D 11") << QRhi::D3D11 << static_cast<QRhiInitParams *>(&initParams.d3d11);
+#endif
+#ifdef TST_D3D12
+    QTest::newRow("Direct3D 12") << QRhi::D3D12 << static_cast<QRhiInitParams *>(&initParams.d3d12);
+#endif
+#ifdef TST_MTL
+    QTest::newRow("Metal") << QRhi::Metal << static_cast<QRhiInitParams *>(&initParams.mtl);
+#endif
+}
+
+static constexpr int RT_WIDTH = 1280;
+static constexpr int RT_HEIGHT = 720;
+
+tst_CanvasRhiRendering::RenderTargetPtr tst_CanvasRhiRendering::createRenderTarget(QRhi *rhi)
+{
+    RenderTargetPtr result(nullptr, &RenderTarget::deleter);
+    std::unique_ptr<QRhiTexture> tex(rhi->newTexture(QRhiTexture::RGBA8,
+                                                     QSize(RT_WIDTH, RT_HEIGHT),
+                                                     1,
+                                                     QRhiTexture::RenderTarget | QRhiTexture::UsedAsTransferSource));
+    if (!tex->create())
+        return result;
+
+    std::unique_ptr<QRhiRenderBuffer> ds(rhi->newRenderBuffer(QRhiRenderBuffer::DepthStencil, tex->pixelSize()));
+    if (!ds->create())
+        return result;
+
+    QRhiTextureRenderTargetDescription rtDesc;
+    rtDesc.setColorAttachments({ tex.get() });
+    rtDesc.setDepthStencilBuffer(ds.get());
+    std::unique_ptr<QRhiTextureRenderTarget> rt(rhi->newTextureRenderTarget(rtDesc));
+    std::unique_ptr<QRhiRenderPassDescriptor> rp(rt->newCompatibleRenderPassDescriptor());
+    rt->setRenderPassDescriptor(rp.get());
+    if (!rt->create())
+        return result;
+
+    result.reset(new RenderTarget);
+    *result = { tex.release(), ds.release(), rt.release(), rp.release() };
+    return result;
+}
+
+void tst_CanvasRhiRendering::create_data()
+{
+    rhiTestData();
+}
+
+void tst_CanvasRhiRendering::create()
+{
+    QFETCH(QRhi::Implementation, impl);
+    QFETCH(QRhiInitParams *, initParams);
+
+    std::unique_ptr<QRhi> rhi(QRhi::create(impl, initParams));
+    if (!rhi)
+        QSKIP("Failed to create QRhi, skip");
+
+    RenderTargetPtr rt = createRenderTarget(rhi.get());
+    QVERIFY(rt);
+
+    std::unique_ptr<QCPainterFactory> factory(new QCPainterFactory);
+    QCPainter *painter = factory->create(rhi.get());
+    QVERIFY(painter);
+    QCOMPARE(painter, factory->painter());
+    QVERIFY(factory->isValid());
+    QCRhiPaintDriver *pd = factory->paintDriver();
+    QVERIFY(pd);
+
+    factory->destroy();
+    painter = factory->create(rhi.get());
+    QVERIFY(painter);
+}
+
+void tst_CanvasRhiRendering::createShared_data()
+{
+    rhiTestData();
+}
+
+void tst_CanvasRhiRendering::createShared()
+{
+    QFETCH(QRhi::Implementation, impl);
+    QFETCH(QRhiInitParams *, initParams);
+
+    std::unique_ptr<QRhi> rhi(QRhi::create(impl, initParams));
+    if (!rhi)
+        QSKIP("Failed to create QRhi, skip");
+
+    RenderTargetPtr rt = createRenderTarget(rhi.get());
+    QVERIFY(rt);
+
+    QCPainterFactory *factory1 = QCPainterFactory::sharedInstance(rhi.get());
+    QVERIFY(factory1);
+    QVERIFY(factory1->isValid());
+    QCPainter *painter1 = factory1->painter();
+    QVERIFY(painter1);
+    QCRhiPaintDriver *pd1 = factory1->paintDriver();
+    QVERIFY(pd1);
+
+    QCPainterFactory *factory2 = QCPainterFactory::sharedInstance(rhi.get());
+    QVERIFY(factory2);
+    QVERIFY(factory2->isValid());
+    QCOMPARE(factory1, factory2);
+    QCPainter *painter2 = factory2->painter();
+    QCOMPARE(painter1, painter2);
+    QCRhiPaintDriver *pd2 = factory2->paintDriver();
+    QCOMPARE(pd1, pd2);
+
+    // sharedInstance with another QRhi should give a different factory
+    std::unique_ptr<QRhi> anotherRhi(QRhi::create(impl, initParams));
+    QVERIFY(anotherRhi);
+    QCPainterFactory *factory3 = QCPainterFactory::sharedInstance(anotherRhi.get());
+    QVERIFY(factory3);
+    QVERIFY(factory3->isValid());
+    QCOMPARE_NE(factory1, factory3);
+    QCPainter *painter3 = factory3->painter();
+    QCOMPARE_NE(painter1, painter3);
+    QCRhiPaintDriver *pd3 = factory3->paintDriver();
+    QCOMPARE_NE(pd1, pd3);
+}
+
+static void drawCircleInCenter(QCPainter *painter)
+{
+    painter->beginPath();
+    painter->circle(RT_WIDTH / 2, RT_HEIGHT / 2, std::min(RT_WIDTH, RT_HEIGHT) / 2);
+    painter->setStrokeStyle(Qt::green);
+    painter->setLineWidth(4);
+    painter->stroke();
+    painter->setFillStyle("#ff0000");
+    painter->fill();
+}
+
+static bool testColor(const QImage &image, int x, int y, const QColor &expected)
+{
+    const int maxFuzz = 1;
+    QRgb c1 = image.pixel(x, y);
+    QRgb c2 = expected.rgba();
+    bool result = qAbs(qRed(c1) - qRed(c2)) <= maxFuzz
+                  && qAbs(qGreen(c1) - qGreen(c2)) <= maxFuzz
+                  && qAbs(qBlue(c1) - qBlue(c2)) <= maxFuzz
+                  && qAbs(qAlpha(c1) - qAlpha(c2)) <= maxFuzz;
+    if (!result) {
+        qWarning() << "Color mismatch at" << x << "," << y << ": got" << QColor(c1) << "expected" << QColor(c2);
+    }
+    return result;
+}
+
+static QImage imageFromReadback(QRhi *rhi, const QRhiReadbackResult &readbackResult)
+{
+    QImage image(reinterpret_cast<const uchar *>(readbackResult.data.constData()),
+                 readbackResult.pixelSize.width(),
+                 readbackResult.pixelSize.height(),
+                 QImage::Format_RGBA8888);
+
+    if (rhi->isYUpInFramebuffer())
+        return image.flipped();
+
+    return image.copy();
+}
+
+void tst_CanvasRhiRendering::render_data()
+{
+    rhiTestData();
+}
+
+void tst_CanvasRhiRendering::render()
+{
+    QFETCH(QRhi::Implementation, impl);
+    QFETCH(QRhiInitParams *, initParams);
+
+    std::unique_ptr<QRhi> rhi(QRhi::create(impl, initParams, QRhi::EnableDebugMarkers));
+    if (!rhi)
+        QSKIP("Failed to create QRhi, skip");
+
+#ifdef FRAME_CAPTURE
+    configureFrameCapture(m_cap.get(), rhi.get());
+    startFrameCapture(m_cap.get(), rhi.get(), "render");
+#endif
+
+    RenderTargetPtr rt = createRenderTarget(rhi.get());
+    QVERIFY(rt);
+
+    std::unique_ptr<QCPainterFactory> factory(new QCPainterFactory);
+    QCPainter *painter = factory->create(rhi.get());
+    QVERIFY(painter);
+    QCRhiPaintDriver *pd = factory->paintDriver();
+    QVERIFY(pd);
+
+    QRhiReadbackResult readbackResult;
+    QRhiCommandBuffer *cb;
+    rhi->beginOffscreenFrame(&cb);
+
+    pd->resetForNewFrame();
+
+    pd->beginPaint(cb, rt->rt);
+    drawCircleInCenter(painter);
+    pd->endPaint(QCRhiPaintDriver::EndPaintFlag::DoNotRecordRenderPass);
+
+    cb->beginPass(rt->rt, Qt::black, { 1.0f, 0 });
+    pd->renderPaint();
+    QRhiResourceUpdateBatch *u = rhi->nextResourceUpdateBatch();
+    u->readBackTexture({ rt->tex }, &readbackResult);
+    cb->endPass(u);
+
+    rhi->endOffscreenFrame();
+
+#ifdef FRAME_CAPTURE
+    endFrameCapture(m_cap.get());
+#endif
+
+    // cannot check rendering results with Null, because there is no rendering there
+    if (impl == QRhi::Null)
+        return;
+
+    QImage image = imageFromReadback(rhi.get(), readbackResult);
+
+    QVERIFY(testColor(image, 1, 1, Qt::black));
+    QVERIFY(testColor(image, RT_WIDTH / 2, RT_HEIGHT / 2, Qt::red));
+}
+
+#include <tst_qcrhiplumbing.moc>
+QTEST_MAIN(tst_CanvasRhiRendering)

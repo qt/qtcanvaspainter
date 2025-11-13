@@ -1,0 +1,263 @@
+// Copyright (C) 2025 The Qt Company Ltd.
+// Copyright (C) 2015 QUIt Coding <info@quitcoding.com>
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
+
+#ifndef QCPAINTER_H
+#define QCPAINTER_H
+
+#include <QtCanvasPainter/qtcanvaspainterglobal.h>
+#include <QtGui/qcolor.h>
+#include <QtCore/qobject.h>
+#include <QtCore/qrect.h>
+#include <QtGui/qtransform.h>
+#include <QtGui/qfont.h>
+
+#include <QtCanvasPainter/qcimage.h>
+#include <QtCanvasPainter/qccanvas.h>
+
+QT_BEGIN_NAMESPACE
+
+class QCBrush;
+class QCImage;
+class QCPainterPath;
+class QCText;
+class QCBoxShadow;
+class QRhiTexture;
+class QCPainterPrivate;
+
+class Q_CANVASPAINTER_EXPORT QCPainter : public QObject
+{
+public:
+    QCPainter(QObject *parent = nullptr);
+    ~QCPainter();
+
+    enum class PathWinding { CounterClockWise, ClockWise };
+    enum class LineCap { Butt, Round, Square };
+    enum class LineJoin { Round, Bevel, Miter };
+    enum class TextAlign { Left, Right, Center, Start, End };
+    enum class TextBaseline { Top, Hanging, Middle, Alphabetic, Bottom };
+    enum class TextDirection { LeftToRight, RightToLeft, Inherit, Auto };
+
+    enum class CompositeOperation {
+        SourceOver,
+        SourceAtop,
+        DestinationOut,
+    };
+
+    enum class WrapMode {
+        NoWrap,
+        Wrap,
+        WordWrap,
+        WrapAnywhere,
+    };
+
+    // TODO: NativeTexture is used internally, so remove from this public API?
+    enum class ImageFlag {
+        GenerateMipmaps = 1 << 0,
+        RepeatX = 1 << 1,
+        RepeatY = 1 << 2,
+        Repeat = RepeatX | RepeatY,
+        FlipY = 1 << 3,
+        Premultiplied = 1 << 4,
+        Nearest = 1 << 5,
+        NativeTexture = 1 << 6,
+    };
+    Q_DECLARE_FLAGS(ImageFlags, ImageFlag)
+
+    enum class RenderHint {
+        Antialiasing = 1 << 0,
+        HighQualityStroking = 1 << 1,
+    };
+    Q_DECLARE_FLAGS(RenderHints, RenderHint)
+
+    // *** State Handling ***
+
+    void save();
+    void restore();
+    void reset();
+
+    // *** Render styles ***
+
+    void setStrokeStyle(const QColor &color);
+    void setStrokeStyle(const QCBrush &brush);
+    void setFillStyle(const QColor &color);
+    void setFillStyle(const QCBrush &brush);
+    void setMiterLimit(float limit);
+    void setLineWidth(float width);
+    void setLineCap(LineCap cap);
+    void setLineJoin(LineJoin join);
+    void setGlobalAlpha(float alpha);
+    void setGlobalCompositeOperation(CompositeOperation operation);
+    void setGlobalBrightness(float value);
+    void setGlobalContrast(float value);
+    void setGlobalSaturate(float value);
+
+    // *** Transforms ***
+
+    void resetTransform();
+    void setTransform(const QTransform &transform);
+    void transform(const QTransform &transform);
+    void translate(float x, float y);
+    void translate(const QPointF &point);
+    void rotate(float angle);
+    void skew(float angleX, float angleY = 0.0f);
+    void scale(float scale);
+    void scale(float scaleX, float scaleY);
+    const QTransform getTransform() const;
+
+    // *** Clipping ***
+
+    void setClipRect(float x, float y, float width, float height);
+    void setClipRect(const QRectF &rect);
+    void resetClipping();
+
+    //  *** Paths ***
+
+    void beginPath();
+    // These should match to path methods of QCPainterPath for consistency.
+    void closePath();
+    void moveTo(float x, float y);
+    void moveTo(const QPointF &point);
+    void lineTo(float x, float y);
+    void lineTo(const QPointF &point);
+    void bezierCurveTo(float cp1X, float cp1Y, float cp2X, float cp2Y, float x, float y);
+    void bezierCurveTo(
+        const QPointF &controlPoint1, const QPointF &controlPoint2, const QPointF &endPoint);
+    void quadraticCurveTo(float cpX, float cpY, float x, float y);
+    void quadraticCurveTo(const QPointF &controlPoint, const QPointF &endPoint);
+    void arcTo(float x1, float y1, float x2, float y2, float radius);
+    void arcTo(const QPointF &controlPoint1, const QPointF &controlPoint2, float radius);
+
+    void arc(
+        float centerX,
+        float centerY,
+        float radius,
+        float a0,
+        float a1,
+        PathWinding direction = PathWinding::ClockWise,
+        bool isConnected = true);
+    void arc(
+        const QPointF &centerPoint,
+        float radius,
+        float a0,
+        float a1,
+        PathWinding direction = PathWinding::ClockWise,
+        bool isConnected = true);
+    void rect(float x, float y, float width, float height);
+    void rect(const QRectF &rect);
+    void roundRect(float x, float y, float width, float height, float radius);
+    void roundRect(const QRectF &rect, float radius);
+    void roundRect(
+        float x,
+        float y,
+        float width,
+        float height,
+        float radiusTopLeft,
+        float radiusTopRight,
+        float radiusBottomRight,
+        float radiusBottomLeft);
+    void roundRect(
+        const QRectF &rect,
+        float radiusTopLeft,
+        float radiusTopRight,
+        float radiusBottomRight,
+        float radiusBottomLeft);
+    void ellipse(float centerX, float centerY, float radiusX, float radiusY);
+    void ellipse(const QPointF &centerPoint, float radiusX, float radiusY);
+    void ellipse(const QRectF &rect);
+    void circle(float centerX, float centerY, float radius);
+    void circle(const QPointF &centerPoint, float radius);
+
+    // TODO: Consider if we want to have this as functionality
+    // doesn't fully cover QPainterPath (like fillRule).
+    void path(const QPainterPath &path);
+    // TODO: If above, should we also have similar for QCPainterPath?
+    //void path(const QCPainterPath &path, const QTransform &transform = QTransform());
+
+    void setPathWinding(PathWinding winding);
+    void beginSolidSubPath();
+    void beginHoleSubPath();
+
+    void fill();
+    void stroke();
+
+    void fill(const QCPainterPath &path, int pathGroup = 0, const QTransform &transform = QTransform());
+    void stroke(const QCPainterPath &path, int pathGroup = 0, const QTransform &transform = QTransform());
+
+    // *** Direct drawing ***
+
+    void fillRect(float x, float y, float width, float height);
+    void fillRect(const QRectF &rect);
+    void strokeRect(float x, float y, float width, float height);
+    void strokeRect(const QRectF &rect);
+
+    // *** Shadows ***
+
+    void drawBoxShadow(const QCBoxShadow &shadow);
+
+    // *** Images ***
+
+    void drawImage(const QCImage &image, float x, float y);
+    void drawImage(const QCImage &image, float x, float y, float width, float height);
+    void drawImage(const QCImage &image, const QRectF destinationRect);
+    void drawImage(const QCImage &image, const QRectF sourceRect, const QRectF destinationRect);
+
+    // *** Text ***
+
+    void setFont(const QFont &font);
+    void setTextAlign(QCPainter::TextAlign align);
+    void setTextBaseline(QCPainter::TextBaseline baseline);
+    void setTextDirection(QCPainter::TextDirection direction);
+    void setTextWrapMode(QCPainter::WrapMode wrapMode);
+    void setTextLineHeight(float height);
+    void setTextAntialias(float antialias);
+
+    void prepareText(const QCText &text);
+    void fillText(const QString &text, float x, float y, float maxWidth = -1, int cacheIndex = -1);
+    void fillText(const QString &text, const QPointF &point, float maxWidth = -1, int cacheIndex = -1);
+    void fillText(const QString &text, const QRectF &rect, int cacheIndex = -1);
+    void fillText(const QCText &text);
+
+    QRectF textBoundingBox(const QString &text, float x, float y, float maxWidth = -1);
+    QRectF textBoundingBox(const QString &text, const QPointF &point, float maxWidth = -1);
+    QRectF textBoundingBox(const QString &text, const QRectF &rect);
+    QRectF textBoundingBox(const QCText &text);
+
+    // *** Other ***
+
+    void setAntialias(float antialias);
+    float devicePixelRatio() const;
+    void setRenderHint(RenderHint hint, bool on = true);
+    void setRenderHints(RenderHints hints, bool on = true);
+    RenderHints renderHints() const;
+
+    // *** Static methods ***
+
+    static float mmToPx(float mm);
+    static float ptToPx(float pt);
+
+    // *** Image & path cache handling ***
+
+    QCImage addImage(const QImage &image, QCPainter::ImageFlags flags = {});
+    QCImage addImage(QRhiTexture *texture, QCPainter::ImageFlags flags = {});
+    QCImage addImage(const QCCanvas &canvas, QCPainter::ImageFlags flags = {});
+    void removeImage(int imageId);
+    void cleanupResources();
+    qsizetype cacheMemoryUsage() const;
+    qsizetype cacheTextureAmount() const;
+    void removePathGroup(int pathGroup);
+
+    QCCanvas createCanvas(const QSize &pixelSize, int sampleCount = 1, QCCanvas::Flags flags = {});
+    void destroyCanvas(QCCanvas &canvas);
+    void grabCanvas(const QCCanvas &canvas, std::function<void(const QImage &)> callback);
+
+private:
+    Q_DECLARE_PRIVATE(QCPainter)
+};
+
+Q_DECLARE_OPERATORS_FOR_FLAGS(QCPainter::ImageFlags)
+Q_DECLARE_OPERATORS_FOR_FLAGS(QCPainter::RenderHints)
+
+QT_END_NAMESPACE
+
+#endif // QCPAINTER_H

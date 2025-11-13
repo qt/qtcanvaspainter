@@ -1,0 +1,40 @@
+include($QT_INSTALL_DOCS/global/qt-module-defaults.qdocconf)
+
+project                 = QtCanvasPainter
+description             = Qt Canvas Painter Reference Documentation
+version                 = $QT_VERSION
+
+qhp.projects            = QtCanvasPainter
+
+qhp.QtCanvasPainter.file                = qtcanvaspainter.qhp
+qhp.QtCanvasPainter.namespace           = org.qt-project.qtcanvaspainter.$QT_VERSION_TAG
+qhp.QtCanvasPainter.virtualFolder       = qtcanvaspainter
+qhp.QtCanvasPainter.indexTitle          = Qt Canvas Painter
+qhp.QtCanvasPainter.indexRoot           =
+
+qhp.QtCanvasPainter.subprojects = manual
+qhp.QtCanvasPainter.subprojects.manual.title = Qt Canvas Painter
+qhp.QtCanvasPainter.subprojects.manual.indexTitle = Qt Canvas Painter module topics
+qhp.QtCanvasPainter.subprojects.manual.type = manual
+
+tagfile                 = ../../../doc/qtcanvaspainter/qtcanvaspainter.tags
+
+depends += qtdoc qtcmake qmake qtcore qtgui qtwidgets qtquick
+
+headerdirs  += ..
+
+sourcedirs  += ..
+
+exampledirs += snippets
+
+imagedirs   += images
+
+navigation.landingpage = "Qt Canvas Painter"
+# Autogenerate navigation linking based on "Qt Canvas Painter module topics":
+navigation.toctitles = "Qt Canvas Painter module topics"
+navigation.toctitles.inclusive = false
+
+macro.cmakeoptionsince = "\n\nThis option was introduced in Qt \1.\n\n"
+
+# Allow zero warnings when testing documentation in CI
+warninglimit = 0

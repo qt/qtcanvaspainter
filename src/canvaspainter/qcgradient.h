@@ -1,0 +1,67 @@
+// Copyright (C) 2025 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
+
+#ifndef QCGRADIENT_H
+#define QCGRADIENT_H
+
+#include <QtCanvasPainter/qtcanvaspainterglobal.h>
+#include <QtCanvasPainter/qcbrush.h>
+#include <QtGui/qcolor.h>
+#include <QtCore/qshareddata.h>
+#include <QtGui/qtguiglobal.h>
+
+QT_BEGIN_NAMESPACE
+
+class QCGradientPrivate;
+class QCGradient;
+
+typedef std::pair<float, QColor> QCGradientStop;
+typedef QList<QCGradientStop> QCGradientStops;
+
+#ifndef QT_NO_DATASTREAM
+Q_CANVASPAINTER_EXPORT QDataStream &operator<<(QDataStream &, const QCGradient &);
+Q_CANVASPAINTER_EXPORT QDataStream &operator>>(QDataStream &, QCGradient &);
+#endif
+
+QT_DECLARE_QESDP_SPECIALIZATION_DTOR(QCGradientPrivate)
+
+class Q_CANVASPAINTER_EXPORT QCGradient : public QCBrush
+{
+public:
+    QCGradient(QCBrush::BrushType type);
+    QCGradient(const QCGradient &gradient) noexcept;
+    ~QCGradient();
+
+    QCGradient &operator=(const QCGradient &gradient) noexcept;
+    QCGradient(QCGradient &&other) noexcept = default;
+    QT_MOVE_ASSIGNMENT_OPERATOR_IMPL_VIA_PURE_SWAP(QCGradient)
+    void swap(QCGradient &other) noexcept { d.swap(other.d); }
+
+    bool operator==(const QCGradient &gradient) const;
+    inline bool operator!=(const QCGradient &gradient) const { return !(operator==(gradient)); }
+    operator QVariant() const;
+
+    void detach();
+    BrushType type() const override;
+
+    QColor startColor() const;
+    void setStartColor(const QColor &color);
+    QColor endColor() const;
+    void setEndColor(const QColor &color);
+    void setColorAt(float position, const QColor &color);
+    void setStops(const QCGradientStops &stops);
+    QCGradientStops stops() const;
+
+protected:
+    QExplicitlySharedDataPointer<QCGradientPrivate> d;
+};
+
+Q_DECLARE_SHARED(QCGradient)
+
+#ifndef QT_NO_DEBUG_STREAM
+Q_CANVASPAINTER_EXPORT QDebug operator<<(QDebug, const QCGradient &);
+#endif
+
+QT_END_NAMESPACE
+
+#endif // QCGRADIENT_H

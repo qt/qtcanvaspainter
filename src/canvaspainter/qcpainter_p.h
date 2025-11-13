@@ -1,0 +1,105 @@
+// Copyright (C) 2025 The Qt Company Ltd.
+// Copyright (C) 2015 QUIt Coding <info@quitcoding.com>
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
+
+//
+//  W A R N I N G
+//  -------------
+//
+// This file is not part of the Qt API.  It exists purely as an
+// implementation detail.  This header file may change from version to
+// version without notice, or even be removed.
+//
+// We mean it.
+//
+
+#ifndef QCPAINTER_P_H
+#define QCPAINTER_P_H
+
+#include "qcpainter.h"
+#include "qcimage.h"
+#include <QtGui/qfont.h>
+#include <QtCore/qstring.h>
+#include <QtCore/private/qobject_p.h>
+#include <QtCore/qhash.h>
+
+QT_BEGIN_NAMESPACE
+
+class QCPainterEngine;
+class QCPainterRhiRenderer;
+
+// Keeps count of the texture id's and the total size of textures.
+// This doesn't cache the actual texture data.
+class QCDataCache
+{
+public:
+    inline bool contains(qint64 key) const { return m_data.contains(key); }
+    inline QCImage image(qint64 key) const { return m_data.value(key); }
+    inline int textureId(qint64 key) const { return m_data.value(key).id(); }
+    inline void insert(qint64 key, const QCImage &image)
+    {
+        m_dataAmount += image.size();
+        m_data.insert(key, image);
+    }
+    inline qsizetype dataAmount() const { return m_dataAmount; }
+    inline qsizetype size() const { return m_data.size(); }
+    void removeTemporaryResources();
+    void removeTextureId(int imageId);
+    void handleRemoveTextures();
+    void markTextureIdUsed(int imageId);
+    void clear();
+
+private:
+    friend class QCPainterPrivate;
+    QCPainterPrivate *m_painterPrivate = nullptr;
+    QHash<qint64, QCImage> m_data;
+    QList<QCImage> m_cleanupTextures;
+    QList<int> m_usedTextureIDs;
+    qsizetype m_dataAmount = 0;
+    bool m_doingResourcesRemoval = false;
+};
+
+class QRhi;
+
+class QCPainterPrivate : public QObjectPrivate
+{
+    Q_DECLARE_PUBLIC(QCPainter)
+public:
+    QCPainterPrivate();
+    ~QCPainterPrivate();
+    QCPainterEngine *engine() const;
+
+    static QCPainterPrivate *get(QCPainter *painter) { return painter->d_func(); }
+    static const QCPainterPrivate *get(const QCPainter *painter) { return painter->d_func(); }
+
+    qint64 generateImageKey(const QImage &image, QCPainter::ImageFlags flags) const;
+    QCImage getQCImage(const QImage &image, QCPainter::ImageFlags flags, qint64 imageKey = 0);
+    QCImage getQCImage(QRhiTexture *texture, QCPainter::ImageFlags flags);
+    QCImage getQCImage(const QCCanvas &canvas, QCPainter::ImageFlags flags);
+    void drawImageId(int imageId, float x, float y, float width, float height, const QColor &tintColor);
+    void handleCleanupTextures();
+    void clearTextureCache();
+    void markTextureIdUsed(int imageId);
+
+    void updateBackendName(QRhi *rhi);
+
+    void setFont(const QFont &font);
+    void prepareText(const QCText &text);
+    void fillText(const QString &text, float x, float y, float maxWidth = -1, int cacheIndex = -1);
+    void fillText(const QString &text, const QRectF &rect, int cacheIndex = -1);
+    void fillText(const QCText &text);
+    QRectF textBoundingBox(const QCText &text);
+    QRectF textBoundingBox(const QString &text, float x, float y, float maxWidth = -1);
+    QRectF textBoundingBox(const QString &text, const QRectF &rect);
+
+    QCDataCache m_dataCache;
+    QHash<quint64, QCImage> m_nativeTextureCache;
+    QString m_rhiBackendName;
+    float m_devicePixelRatio = 1.0f;
+    QCPainterRhiRenderer *m_renderer = nullptr;
+    QCPainterEngine *m_e = nullptr;
+};
+
+QT_END_NAMESPACE
+
+#endif // QCPAINTER_P_H

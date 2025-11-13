@@ -1,0 +1,68 @@
+// Copyright (C) 2025 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
+
+#ifndef QCCUSTOMBRUSH_P_H
+#define QCCUSTOMBRUSH_P_H
+
+//
+//  W A R N I N G
+//  -------------
+//
+// This file is not part of the Qt API.  It exists purely as an
+// implementation detail.  This header file may change from version to
+// version without notice, or even be removed.
+//
+// We mean it.
+//
+
+#include "qccustombrush.h"
+#include <QtCore/qshareddata.h>
+#include <qvectornd.h>
+#include <rhi/qshader.h>
+
+QT_BEGIN_NAMESPACE
+
+class QCCustomBrushPrivate : public QSharedData
+{
+public:
+    static QCCustomBrushPrivate *get(QCCustomBrush *brush) { return brush->d.get(); }
+    static const QCCustomBrushPrivate *get(const QCCustomBrush *brush) { return brush->d.get(); }
+
+    struct CommonUniforms {
+        // Total size 112 + 112 = 224 bytes.
+        // Built-in variables size is 112 bytes
+        float scissorMat[12]; // matrices are actually 3 vec4s
+        float scissorExt[2];
+        float scissorScale[2];
+        float alphaMult;
+        float strokeThr;
+        float fontAlphaMin;
+        float fontAlphaMax;
+        float colorEffects[4];
+        int texType;
+        int type;
+        int unusedInt[2];
+        // Custom input size is 112 bytes.
+        float globalAlpha;
+        float iTime;
+        int alphaIsRed;
+        // Take into use when needed
+        int unusedInt1;
+        QVector4D data[4];
+        // Take these into use when needed
+        float unused2[8];
+    };
+
+    // TODO: Should we store only shader filename strings here
+    // and QShaders on the renderer side?
+    QShader fragmentShader;
+    QShader vertexShader;
+    bool timeRunning = false;
+    float time = 0;
+    float globalAlpha;
+    QVector4D data[4];
+};
+
+QT_END_NAMESPACE
+
+#endif // QCCUSTOMBRUSH_P_H
