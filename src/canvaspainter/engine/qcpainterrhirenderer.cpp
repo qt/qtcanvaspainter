@@ -506,7 +506,7 @@ QRhiGraphicsPipeline *QCPainterRhiRenderer::pipeline(const QCRHIPipelineStateKey
 
     QCRHIShaders *shaders = QCPAINTER_RHI_SHADERS();
 
-    static const bool isTextRed = rhiCtx->rhi->isFeatureSupported(QRhi::RedOrAlpha8IsRed);
+    const bool isTextRed = rhiCtx->rhi->isFeatureSupported(QRhi::RedOrAlpha8IsRed);
     QShader const *fs = nullptr;
     QShader const *vs = nullptr;
 
@@ -1308,7 +1308,7 @@ void QCPainterRhiRenderer::prepareCustomPaint(QCCustomBrushPrivate::CommonUnifor
 
     frag->globalAlpha = privBrush->globalAlpha;
 
-    static const bool isTextRed = rhiCtx->rhi->isFeatureSupported(QRhi::RedOrAlpha8IsRed);
+    const bool isTextRed = rhiCtx->rhi->isFeatureSupported(QRhi::RedOrAlpha8IsRed);
     frag->alphaIsRed = isTextRed;
 
     aa = std::max(aa, 0.01f);
@@ -1986,7 +1986,7 @@ void QCPainterRhiRenderer::endPrepare()
         constexpr int sizeOfYDown = sizeof(qint32);
         ensureBufferCapacity(&ppd->vsUniformBuffer, sizeOfViewRect + sizeOfYDown);
         u->updateDynamicBuffer(ppd->vsUniformBuffer, 0, sizeOfViewRect, rhiCtx->viewRect);
-        static const qint32 ndcIsYDown = !rhiCtx->rhi->isYUpInNDC();
+        const qint32 ndcIsYDown = !rhiCtx->rhi->isYUpInNDC();
         u->updateDynamicBuffer(ppd->vsUniformBuffer, sizeOfViewRect, sizeOfYDown, &ndcIsYDown);
         // Dynamic vs uniform buffer
         const quint32 sizeOfVUBuf = rhiCtx->vertUniformsCount * rhiCtx->oneVertUniformBufferSize;
