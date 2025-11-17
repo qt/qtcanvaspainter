@@ -62,151 +62,149 @@ qt_internal_add_docs(CanvasPainter
     doc/qtcanvaspainter.qdocconf
 )
 
-# TODO re-enable this when submodule update with qtshadertools is done
+qc_internal_add_shaders(CanvasPainter "qcshaders"
+    PREFIX
+        "/qcshaders"
+    BASE
+        engine
+    OUTPUTS
+        qcpainter.vert.qsb
+        qcpainter.frag.qsb
+    FILES
+        engine/qcpainter.vert
+        engine/qcpainter.frag
+)
 
-# qc_add_shaders(CanvasPainter "qcshaders"
-#     PREFIX
-#         "/qcshaders"
-#     BASE
-#         engine
-#     OUTPUTS
-#         qcpainter.vert.qsb
-#         qcpainter.frag.qsb
-#     FILES
-#         engine/qcpainter.vert
-#         engine/qcpainter.frag
-# )
+qc_internal_add_shaders(CanvasPainter "qcshaders_t"
+    PREFIX
+        "/qcshaders"
+    FILES
+        engine/qcpainter.frag
+    OUTPUTS
+        qcpainter_t.frag.qsb
+    DEFINES
+        TEXT_A
+)
 
-# qc_add_shaders(CanvasPainter "qcshaders_t"
-#     PREFIX
-#         "/qcshaders"
-#     FILES
-#         engine/qcpainter.frag
-#     OUTPUTS
-#         qcpainter_t.frag.qsb
-#     DEFINES
-#         TEXT_A
-# )
+qc_internal_add_shaders(CanvasPainter "qcshaders_aa"
+    PREFIX
+        "/qcshaders"
+    FILES
+        engine/qcpainter.frag
+    OUTPUTS
+        qcpainter_aa.frag.qsb
+    DEFINES
+        EDGE_AA
+)
 
-# qc_add_shaders(CanvasPainter "qcshaders_aa"
-#     PREFIX
-#         "/qcshaders"
-#     FILES
-#         engine/qcpainter.frag
-#     OUTPUTS
-#         qcpainter_aa.frag.qsb
-#     DEFINES
-#         EDGE_AA
-# )
+qc_internal_add_shaders(CanvasPainter "qcshaders_aat"
+    PREFIX
+        "/qcshaders"
+    FILES
+        engine/qcpainter.frag
+    OUTPUTS
+        qcpainter_aat.frag.qsb
+    DEFINES
+        EDGE_AA
+        TEXT_A
+)
 
-# qc_add_shaders(CanvasPainter "qcshaders_aat"
-#     PREFIX
-#         "/qcshaders"
-#     FILES
-#         engine/qcpainter.frag
-#     OUTPUTS
-#         qcpainter_aat.frag.qsb
-#     DEFINES
-#         EDGE_AA
-#         TEXT_A
-# )
+qc_internal_add_shaders(CanvasPainter "qcshaders_sc"
+    PREFIX
+        "/qcshaders"
+    FILES
+        engine/qcpainter.frag
+    OUTPUTS
+        qcpainter_sc.frag.qsb
+    DEFINES
+        SCISSORING
+)
 
-# qc_add_shaders(CanvasPainter "qcshaders_sc"
-#     PREFIX
-#         "/qcshaders"
-#     FILES
-#         engine/qcpainter.frag
-#     OUTPUTS
-#         qcpainter_sc.frag.qsb
-#     DEFINES
-#         SCISSORING
-# )
+qc_internal_add_shaders(CanvasPainter "qcshaders_sct"
+    PREFIX
+        "/qcshaders"
+    FILES
+        engine/qcpainter.frag
+    OUTPUTS
+        qcpainter_sct.frag.qsb
+    DEFINES
+        SCISSORING
+        TEXT_A
+)
 
-# qc_add_shaders(CanvasPainter "qcshaders_sct"
-#     PREFIX
-#         "/qcshaders"
-#     FILES
-#         engine/qcpainter.frag
-#     OUTPUTS
-#         qcpainter_sct.frag.qsb
-#     DEFINES
-#         SCISSORING
-#         TEXT_A
-# )
+qc_internal_add_shaders(CanvasPainter "qcshaders_aass"
+    PREFIX
+        "/qcshaders"
+    FILES
+        engine/qcpainter.frag
+    OUTPUTS
+        qcpainter_aa_ss.frag.qsb
+    DEFINES
+        EDGE_AA
+        STENCIL_STROKES
+)
 
-# qc_add_shaders(CanvasPainter "qcshaders_aass"
-#     PREFIX
-#         "/qcshaders"
-#     FILES
-#         engine/qcpainter.frag
-#     OUTPUTS
-#         qcpainter_aa_ss.frag.qsb
-#     DEFINES
-#         EDGE_AA
-#         STENCIL_STROKES
-# )
+qc_internal_add_shaders(CanvasPainter "qcshaders_aasst"
+    PREFIX
+        "/qcshaders"
+    FILES
+        engine/qcpainter.frag
+    OUTPUTS
+        qcpainter_aa_sst.frag.qsb
+    DEFINES
+        EDGE_AA
+        STENCIL_STROKES
+        TEXT_A
+)
 
-# qc_add_shaders(CanvasPainter "qcshaders_aasst"
-#     PREFIX
-#         "/qcshaders"
-#     FILES
-#         engine/qcpainter.frag
-#     OUTPUTS
-#         qcpainter_aa_sst.frag.qsb
-#     DEFINES
-#         EDGE_AA
-#         STENCIL_STROKES
-#         TEXT_A
-# )
+qc_internal_add_shaders(CanvasPainter "qcshaders_aasc"
+    PREFIX
+        "/qcshaders"
+    FILES
+        engine/qcpainter.frag
+    OUTPUTS
+        qcpainter_aa_sc.frag.qsb
+    DEFINES
+        EDGE_AA
+        SCISSORING
+)
 
-# qc_add_shaders(CanvasPainter "qcshaders_aasc"
-#     PREFIX
-#         "/qcshaders"
-#     FILES
-#         engine/qcpainter.frag
-#     OUTPUTS
-#         qcpainter_aa_sc.frag.qsb
-#     DEFINES
-#         EDGE_AA
-#         SCISSORING
-# )
+qc_internal_add_shaders(CanvasPainter "qcshaders_aasct"
+    PREFIX
+        "/qcshaders"
+    FILES
+        engine/qcpainter.frag
+    OUTPUTS
+        qcpainter_aa_sct.frag.qsb
+    DEFINES
+        EDGE_AA
+        SCISSORING
+        TEXT_A
+)
 
-# qc_add_shaders(CanvasPainter "qcshaders_aasct"
-#     PREFIX
-#         "/qcshaders"
-#     FILES
-#         engine/qcpainter.frag
-#     OUTPUTS
-#         qcpainter_aa_sct.frag.qsb
-#     DEFINES
-#         EDGE_AA
-#         SCISSORING
-#         TEXT_A
-# )
+qc_internal_add_shaders(CanvasPainter "qcshaders_aasssc"
+    PREFIX
+        "/qcshaders"
+    FILES
+        engine/qcpainter.frag
+    OUTPUTS
+        qcpainter_aa_ss_sc.frag.qsb
+    DEFINES
+        EDGE_AA
+        SCISSORING
+        STENCIL_STROKES
+)
 
-# qc_add_shaders(CanvasPainter "qcshaders_aasssc"
-#     PREFIX
-#         "/qcshaders"
-#     FILES
-#         engine/qcpainter.frag
-#     OUTPUTS
-#         qcpainter_aa_ss_sc.frag.qsb
-#     DEFINES
-#         EDGE_AA
-#         SCISSORING
-#         STENCIL_STROKES
-# )
-
-# qc_add_shaders(CanvasPainter "qcshaders_aasssct"
-#     PREFIX
-#         "/qcshaders"
-#     FILES
-#         engine/qcpainter.frag
-#     OUTPUTS
-#         qcpainter_aa_ss_sct.frag.qsb
-#     DEFINES
-#         EDGE_AA
-#         SCISSORING
-#         STENCIL_STROKES
-#         TEXT_A
-# )
+qc_internal_add_shaders(CanvasPainter "qcshaders_aasssct"
+    PREFIX
+        "/qcshaders"
+    FILES
+        engine/qcpainter.frag
+    OUTPUTS
+        qcpainter_aa_ss_sct.frag.qsb
+    DEFINES
+        EDGE_AA
+        SCISSORING
+        STENCIL_STROKES
+        TEXT_A
+)
