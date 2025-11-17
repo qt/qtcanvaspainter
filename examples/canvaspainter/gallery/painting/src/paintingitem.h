@@ -8,7 +8,7 @@
 #include "qquickcpainteritem.h"
 #include <QVector>
 
-class QQuickCPainterRenderer;
+QT_FORWARD_DECLARE_CLASS(QQuickCPainterRenderer)
 
 class PaintingItem: public QQuickCPainterItem
 {
