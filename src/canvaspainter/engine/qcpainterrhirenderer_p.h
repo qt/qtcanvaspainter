@@ -174,10 +174,10 @@ public:
     bool isPathCached(QCPainterPath *path, int pathGroup) const;
     void removePathGroup(int pathGroup);
 
-    static void textureFormatInfo(QRhiTexture::Format format, const QSize &size,
+    static void textureFormatInfo(QRhiTexture::Format format, QSize size,
                                   quint32 *bpl, quint32 *byteSize, quint32 *bytesPerPixel);
 
-    QCCanvas createCanvas(const QSize &pixelSize, int sampleCount, QCCanvas::Flags flags);
+    QCCanvas createCanvas(QSize pixelSize, int sampleCount, QCCanvas::Flags flags);
     void destroyCanvas(QCCanvas &canvas);
     QRhiRenderTarget *canvasRenderTarget(const QCCanvas &canvas);
     void recordCanvasRenderPass(QRhiCommandBuffer *cb, const QCCanvas &canvas);

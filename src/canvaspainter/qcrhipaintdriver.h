@@ -29,7 +29,7 @@ public:
     ~QCRhiPaintDriver();
 
     void resetForNewFrame();
-    void beginPaint(QRhiCommandBuffer *cb, QRhiRenderTarget *rt, const QColor &fillColor = Qt::black, const QSize &logicalSize = QSize(), float dpr = 1.0f);
+    void beginPaint(QRhiCommandBuffer *cb, QRhiRenderTarget *rt, const QColor &fillColor = Qt::black, QSize logicalSize = QSize(), float dpr = 1.0f);
     void beginPaint(QCCanvas &canvas, QRhiCommandBuffer *cb);
     void endPaint(EndPaintFlags flags = {});
     void renderPaint();

@@ -199,8 +199,8 @@ public:
 
     void drawImage(const QCImage &image, float x, float y);
     void drawImage(const QCImage &image, float x, float y, float width, float height);
-    void drawImage(const QCImage &image, const QRectF destinationRect);
-    void drawImage(const QCImage &image, const QRectF sourceRect, const QRectF destinationRect);
+    void drawImage(const QCImage &image, const QRectF &destinationRect);
+    void drawImage(const QCImage &image, const QRectF &sourceRect, const QRectF &destinationRect);
 
     // *** Text ***
 
@@ -247,7 +247,7 @@ public:
     qsizetype cacheTextureAmount() const;
     void removePathGroup(int pathGroup);
 
-    QCCanvas createCanvas(const QSize &pixelSize, int sampleCount = 1, QCCanvas::Flags flags = {});
+    QCCanvas createCanvas(QSize pixelSize, int sampleCount = 1, QCCanvas::Flags flags = {});
     void destroyCanvas(QCCanvas &canvas);
     void grabCanvas(const QCCanvas &canvas, std::function<void(const QImage &)> callback);
 

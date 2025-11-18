@@ -268,7 +268,7 @@ bool QCRhiDistanceFieldGlyphCache::useTextureResizeWorkaround() const
 }
 
 void QCRhiDistanceFieldGlyphCache::updateRhiTexture(
-    QRhiTexture *oldTex, QRhiTexture *newTex, const QSize &newTexSize)
+    QRhiTexture *oldTex, QRhiTexture *newTex, QSize newTexSize)
 {
     int count = m_textures.size();
     for (int i = 0; i < count; ++i) {

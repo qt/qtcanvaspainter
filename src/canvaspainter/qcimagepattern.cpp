@@ -350,7 +350,7 @@ void QCImagePattern::setImageSize(float width, float height)
     Sets the size of a single image in pattern to \a size.
 */
 
-void QCImagePattern::setImageSize(const QSizeF &size)
+void QCImagePattern::setImageSize(QSizeF size)
 {
     setImageSize(float(size.width()),
                  float(size.height()));

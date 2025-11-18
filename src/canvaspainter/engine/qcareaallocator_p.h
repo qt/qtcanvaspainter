@@ -28,18 +28,18 @@ class Qpoint;
 class QCAreaAllocator
 {
 public:
-    QCAreaAllocator(const QSize &size);
+    QCAreaAllocator(QSize size);
     ~QCAreaAllocator();
 
-    QRect allocate(const QSize &size);
-    bool deallocate(const QRect &rect);
+    QRect allocate(QSize size);
+    bool deallocate(QRect rect);
     bool isEmpty() const { return m_root == nullptr; }
     QSize size() const { return m_size; }
 
 private:
     bool allocateInNode(
-        const QSize &size, QPoint &result, const QRect &currentRect, QCAreaAllocatorNode *node);
-    bool deallocateInNode(const QPoint &pos, QCAreaAllocatorNode *node);
+        QSize size, QPoint &result, QRect currentRect, QCAreaAllocatorNode *node);
+    bool deallocateInNode(QPoint pos, QCAreaAllocatorNode *node);
     void mergeNodeWithNeighbors(QCAreaAllocatorNode *node);
 
     QCAreaAllocatorNode *m_root = nullptr;

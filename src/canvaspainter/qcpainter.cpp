@@ -1251,7 +1251,7 @@ void QCPainter::drawImage(const QCImage &image, float x, float y, float width, f
     Draw \a image into position and size of \a destinationRect.
 */
 
-void QCPainter::drawImage(const QCImage &image, const QRectF destinationRect)
+void QCPainter::drawImage(const QCImage &image, const QRectF &destinationRect)
 {
     drawImage(image,
               float(destinationRect.x()),
@@ -1266,7 +1266,7 @@ void QCPainter::drawImage(const QCImage &image, const QRectF destinationRect)
     Draw \a image into position and size of \a destinationRect, from \a sourceRect area of image.
 */
 
-void QCPainter::drawImage(const QCImage &image, const QRectF sourceRect, const QRectF destinationRect)
+void QCPainter::drawImage(const QCImage &image, const QRectF &sourceRect, const QRectF &destinationRect)
 {
     Q_D(QCPainter);
     float sx = float(sourceRect.x());
@@ -1988,7 +1988,8 @@ QRectF QCPainterPrivate::textBoundingBox(const QString &text, const QRectF &rect
     return m_e->textBoundingBox(text, rect);
 }
 
-QCCanvas QCPainter::createCanvas(const QSize &pixelSize, int sampleCount, QCCanvas::Flags flags)
+// TODO: API docs
+QCCanvas QCPainter::createCanvas(QSize pixelSize, int sampleCount, QCCanvas::Flags flags)
 {
     Q_D(QCPainter);
     if (!d->m_renderer || !d->m_renderer->ctx) {
@@ -1998,6 +1999,7 @@ QCCanvas QCPainter::createCanvas(const QSize &pixelSize, int sampleCount, QCCanv
     return d->m_renderer->createCanvas(pixelSize, sampleCount, flags);
 }
 
+// TODO: API docs
 // optional, the renderer destroys all canvases automatically
 void QCPainter::destroyCanvas(QCCanvas &canvas)
 {

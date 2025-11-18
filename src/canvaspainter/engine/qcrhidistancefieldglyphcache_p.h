@@ -153,7 +153,7 @@ private:
     int maxTextureSize() const;
     void markGlyphsToRender(const QList<glyph_t> &glyphs);
     bool useTextureResizeWorkaround() const;
-    void updateRhiTexture(QRhiTexture *oldTex, QRhiTexture *newTex, const QSize &newTexSize);
+    void updateRhiTexture(QRhiTexture *oldTex, QRhiTexture *newTex, QSize newTexSize);
     Metrics glyphMetrics(glyph_t glyph, qreal pixelSize);
 
     qreal fontScale(qreal pixelSize) const;

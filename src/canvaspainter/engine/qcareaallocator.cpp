@@ -37,7 +37,7 @@ bool QCAreaAllocatorNode::isLeaf()
     return !left;
 }
 
-QCAreaAllocator::QCAreaAllocator(const QSize &size)
+QCAreaAllocator::QCAreaAllocator(QSize size)
     : m_size(size)
 {
     m_root = new QCAreaAllocatorNode(nullptr);
@@ -48,20 +48,20 @@ QCAreaAllocator::~QCAreaAllocator()
     delete m_root;
 }
 
-QRect QCAreaAllocator::allocate(const QSize &size)
+QRect QCAreaAllocator::allocate(QSize size)
 {
     QPoint point;
     bool result = allocateInNode(size, point, QRect(QPoint(0, 0), m_size), m_root);
     return result ? QRect(point, size) : QRect();
 }
 
-bool QCAreaAllocator::deallocate(const QRect &rect)
+bool QCAreaAllocator::deallocate(QRect rect)
 {
     return deallocateInNode(rect.topLeft(), m_root);
 }
 
 bool QCAreaAllocator::allocateInNode(
-    const QSize &size, QPoint &result, const QRect &currentRect, QCAreaAllocatorNode *node)
+    QSize size, QPoint &result, QRect currentRect, QCAreaAllocatorNode *node)
 {
     if (size.width() > currentRect.width() || size.height() > currentRect.height())
         return false;
@@ -113,7 +113,7 @@ bool QCAreaAllocator::allocateInNode(
     }
 }
 
-bool QCAreaAllocator::deallocateInNode(const QPoint &pos, QCAreaAllocatorNode *node)
+bool QCAreaAllocator::deallocateInNode(QPoint pos, QCAreaAllocatorNode *node)
 {
     while (!node->isLeaf()) {
         //  has been split.

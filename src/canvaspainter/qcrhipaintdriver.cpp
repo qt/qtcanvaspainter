@@ -29,7 +29,7 @@ void QCRhiPaintDriver::resetForNewFrame()
     d->renderer->resetForNewFrame();
 }
 
-void QCRhiPaintDriver::beginPaint(QRhiCommandBuffer *cb, QRhiRenderTarget *rt, const QColor &fillColor, const QSize &logicalSize, float dpr)
+void QCRhiPaintDriver::beginPaint(QRhiCommandBuffer *cb, QRhiRenderTarget *rt, const QColor &fillColor, QSize logicalSize, float dpr)
 {
     if (d->currentCb) {
         qWarning("Attempted to begin painting without ending the previous one first");

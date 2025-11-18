@@ -52,7 +52,7 @@ public:
     void setStartPosition(QPointF point);
     QSizeF imageSize() const;
     void setImageSize(float width, float height);
-    void setImageSize(const QSizeF &size);
+    void setImageSize(QSizeF size);
     QCImage image() const;
     void setImage(const QCImage &image);
     float rotation() const;

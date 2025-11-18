@@ -2837,7 +2837,7 @@ static inline bool isCompressedFormat(QRhiTexture::Format format)
             || (format >= QRhiTexture::ASTC_4x4 && format <= QRhiTexture::ASTC_12x12);
 }
 
-static void compressedFormatInfo(QRhiTexture::Format format, const QSize &size, quint32 *bpl, quint32 *byteSize, QSize *blockDim)
+static void compressedFormatInfo(QRhiTexture::Format format, QSize size, quint32 *bpl, quint32 *byteSize, QSize *blockDim)
 {
     int xdim = 4;
     int ydim = 4;
@@ -2955,7 +2955,7 @@ static void compressedFormatInfo(QRhiTexture::Format format, const QSize &size, 
         *blockDim = QSize(xdim, ydim);
 }
 
-void QCPainterRhiRenderer::textureFormatInfo(QRhiTexture::Format format, const QSize &size,
+void QCPainterRhiRenderer::textureFormatInfo(QRhiTexture::Format format, QSize size,
                                              quint32 *bpl, quint32 *byteSize, quint32 *bytesPerPixel)
 {
     if (isCompressedFormat(format)) {
@@ -3066,7 +3066,7 @@ bool operator!=(const QCRhiCanvas &a, const QCRhiCanvas &b) noexcept
     return !(a == b);
 }
 
-QCCanvas QCPainterRhiRenderer::createCanvas(const QSize &pixelSize, int sampleCount, QCCanvas::Flags flags)
+QCCanvas QCPainterRhiRenderer::createCanvas(QSize pixelSize, int sampleCount, QCCanvas::Flags flags)
 {
     QCCanvas canvas;
     if (!rhiCtx || !rhiCtx->rhi) {
