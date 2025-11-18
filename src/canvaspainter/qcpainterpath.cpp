@@ -539,12 +539,16 @@ void QCPainterPath::ellipse(float x, float y, float radiusX, float radiusY)
     Q_D(QCPainterPath);
     const float radYK = radiusY * KAPPA90;
     const float radXK = radiusX * KAPPA90;
+    const float ymRadY = y - radiusY;
+    const float ypRadY = y + radiusY;
+    const float xmRadX = x - radiusX;
+    const float xpRadX = x + radiusX;
     float data[] = {
-        x - radiusX, y,
-        x - radiusX, y + radYK, x - radXK, y + radiusY, x, y + radiusY,
-        x + radXK, y + radiusY, x + radiusX, y + radYK, x + radiusX, y,
-        x + radiusX, y - radYK, x + radXK, y - radiusY, x, y - radiusY,
-        x - radXK, y - radiusY, x - radiusX, y - radYK, x - radiusX, y,
+        xmRadX, y,
+        xmRadX, y + radYK, x - radXK, ypRadY, x, ypRadY,
+        x + radXK, ypRadY, xpRadX, y + radYK, xpRadX, y,
+        xpRadX, y - radYK, x + radXK, ymRadY, x, ymRadY,
+        x - radXK, ymRadY, xmRadX, y - radYK, xmRadX, y,
     };
     d->appendCommandsData(data, 26);
     static constexpr QCCommand commands[] = {
