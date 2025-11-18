@@ -11,6 +11,7 @@
 #include "qcboxgradient.h"
 #include "qcboxshadow.h"
 #include "qcimagepattern.h"
+#include "qcimage.h"
 
 class tst_QCBrush : public QObject
 {
@@ -18,12 +19,64 @@ class tst_QCBrush : public QObject
 
 private slots:
     // Brush autotests
+    void testEqual();
     void testDataStreams();
     void testDebugs();
     void testTypes();
     void testQVariantConversion();
     void testGradientStops();
 };
+
+void tst_QCBrush::testEqual()
+{
+    QCLinearGradient lg(10, 10, 100, 100);
+    QCLinearGradient lg2(10, 10, 100, 100);
+    QVERIFY(lg == lg2);
+    lg.setColorAt(0, Qt::red);
+    lg.setColorAt(0.5f, Qt::blue);
+    lg.setColorAt(1, Qt::green);
+    QVERIFY(lg != lg2);
+    lg2.setStops(lg.stops());
+    QVERIFY(lg == lg2);
+    auto lg3 = lg2;
+    QVERIFY(lg == lg3);
+
+    QCRadialGradient rg1;
+    QCRadialGradient rg2;
+    QVERIFY(rg1 == rg2);
+    rg2.setInnerRadius(12.3f);
+    QVERIFY(rg1 != rg2);
+    rg1.setInnerRadius(12.3f);
+    QVERIFY(rg1 == rg2);
+    rg2.setOuterRadius(32.4f);
+    QVERIFY(rg1 != rg2);
+    rg1.setOuterRadius(rg2.outerRadius());
+    QVERIFY(rg1 == rg2);
+    rg2.setColorAt(0.0f, Qt::red);
+    QVERIFY(rg1 != rg2);
+    rg2.setStops({});
+    QVERIFY(rg1 == rg2);
+
+    QCImagePattern ip1;
+    QCImagePattern ip2;
+    QVERIFY(ip1 == ip2);
+    ip2.setRotation(12.3f);
+    QVERIFY(ip1 != ip2);
+    ip1.setRotation(12.3f);
+    QVERIFY(ip1 == ip2);
+    QCImage img;
+    ip2.setImage(img);
+    // Still the same as the image is empty.
+    QVERIFY(ip1 == ip2);
+    ip2.setStartPosition(50, 60);
+    QVERIFY(ip1 != ip2);
+    ip1.setStartPosition(ip2.startPosition());
+    QVERIFY(ip1 == ip2);
+    ip2.setImageSize(64, 128);
+    QVERIFY(ip1 != ip2);
+    ip1.setImageSize(ip2.imageSize());
+    QVERIFY(ip1 == ip2);
+}
 
 void tst_QCBrush::testDataStreams()
 {
