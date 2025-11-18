@@ -9,7 +9,7 @@
 #include <QtWidgets/qrhiwidget.h>
 #include <QtGui/qcolor.h>
 #include <functional>
-#include <QtCanvasPainter/qccanvas.h>
+#include <QtCanvasPainter/qcoffscreencanvas.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -29,7 +29,7 @@ public:
     bool hasSharedPainter() const;
     void setSharedPainter(bool enable);
 
-    void grabCanvas(const QCCanvas &canvas, std::function<void(const QImage &)> callback);
+    void grabCanvas(const QCOffscreenCanvas &canvas, std::function<void(const QImage &)> callback);
 
 protected:
     virtual void prePaint(QCPainter *painter);
@@ -40,7 +40,7 @@ protected:
     void render(QRhiCommandBuffer *cb) override;
     void releaseResources() override;
 
-    void beginCanvasPainting(QCCanvas &canvas);
+    void beginCanvasPainting(QCOffscreenCanvas &canvas);
     void endCanvasPainting();
 
 private:

@@ -8,7 +8,7 @@
 #include <QtCanvasPainter/qtcanvaspainterglobal.h>
 #include <QtCore/qsize.h>
 #include <functional>
-#include <QtCanvasPainter/qccanvas.h>
+#include <QtCanvasPainter/qcoffscreencanvas.h>
 
 QT_BEGIN_NAMESPACE
 

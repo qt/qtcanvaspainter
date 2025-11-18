@@ -8,7 +8,7 @@
 #include <QtCanvasPainter/qtcanvaspainterglobal.h>
 #include <QtCore/qsize.h>
 #include <functional>
-#include <QtCanvasPainter/qccanvas.h>
+#include <QtCanvasPainter/qcoffscreencanvas.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -30,10 +30,10 @@ public:
 
     void resetForNewFrame();
     void beginPaint(QRhiCommandBuffer *cb, QRhiRenderTarget *rt, const QColor &fillColor = Qt::black, QSize logicalSize = QSize(), float dpr = 1.0f);
-    void beginPaint(QCCanvas &canvas, QRhiCommandBuffer *cb);
+    void beginPaint(QCOffscreenCanvas &canvas, QRhiCommandBuffer *cb);
     void endPaint(EndPaintFlags flags = {});
     void renderPaint();
-    void grabCanvas(const QCCanvas &canvas, std::function<void(const QImage &)> callback);
+    void grabCanvas(const QCOffscreenCanvas &canvas, std::function<void(const QImage &)> callback);
 
 private:
     Q_DISABLE_COPY(QCRhiPaintDriver)

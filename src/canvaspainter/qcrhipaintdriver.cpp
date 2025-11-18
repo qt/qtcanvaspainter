@@ -56,7 +56,7 @@ void QCRhiPaintDriver::beginPaint(QRhiCommandBuffer *cb, QRhiRenderTarget *rt, c
     d->renderer->beginPrepareAndPaint(d->currentCb, d->currentRt, d->mainLogicalWidth, d->mainLogicalHeight, d->mainDpr);
 }
 
-void QCRhiPaintDriver::beginPaint(QCCanvas &canvas, QRhiCommandBuffer *cb)
+void QCRhiPaintDriver::beginPaint(QCOffscreenCanvas &canvas, QRhiCommandBuffer *cb)
 {
     if (canvas.isNull()) {
         qWarning("Cannot paint on null canvas");
@@ -107,7 +107,7 @@ void QCRhiPaintDriver::renderPaint()
     d->renderer->render();
 }
 
-void QCRhiPaintDriver::grabCanvas(const QCCanvas &canvas, std::function<void(const QImage &)> callback)
+void QCRhiPaintDriver::grabCanvas(const QCOffscreenCanvas &canvas, std::function<void(const QImage &)> callback)
 {
     d->renderer->grabCanvas(canvas, callback, d->currentCb ? d->currentCb : nullptr);
 }

@@ -35,7 +35,7 @@ public:
     float mainLogicalHeight = 0.0f;
     float mainDpr = 1.0f;
     QColor mainFillColor;
-    QCCanvas currentCanvas;
+    QCOffscreenCanvas currentCanvas;
 };
 
 QT_END_NAMESPACE

@@ -10,7 +10,7 @@
 #include <QtGui/qcolor.h>
 #include <QtCore/qstring.h>
 #include <QtCore/qvariant.h>
-#include <QtCanvasPainter/qccanvas.h>
+#include <QtCanvasPainter/qcoffscreencanvas.h>
 
 QT_BEGIN_NAMESPACE
 

@@ -1,8 +1,8 @@
 // Copyright (C) 2025 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
 
-#ifndef QCCANVAS_P_H
-#define QCCANVAS_P_H
+#ifndef QCOFFSCREENCANVAS_P_H
+#define QCOFFSCREENCANVAS_P_H
 
 //
 //  W A R N I N G
@@ -17,16 +17,16 @@
 
 #include <QtCore/qshareddata.h>
 #include <QtCore/qsize.h>
-#include "qccanvas.h"
+#include "qcoffscreencanvas.h"
 #include "engine/qcpainterrhirenderer_p.h"
 
 QT_BEGIN_NAMESPACE
 
-class QCCanvasPrivate : public QSharedData
+class QCOffscreenCanvasPrivate : public QSharedData
 {
 public:
-    static QCCanvasPrivate *get(QCCanvas *canvas) { return canvas->d.get(); }
-    static const QCCanvasPrivate *get(const QCCanvas *canvas) { return canvas->d.get(); }
+    static QCOffscreenCanvasPrivate *get(QCOffscreenCanvas *canvas) { return canvas->d.get(); }
+    static const QCOffscreenCanvasPrivate *get(const QCOffscreenCanvas *canvas) { return canvas->d.get(); }
 
     QCRhiCanvas rhiCanvas;
     QColor fillColor = {0, 0, 0, 0};
@@ -34,4 +34,4 @@ public:
 
 QT_END_NAMESPACE
 
-#endif // QCCANVAS_P_H
+#endif // QCOFFSCREENCANVAS_P_H

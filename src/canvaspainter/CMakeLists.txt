@@ -17,7 +17,7 @@ qt_internal_add_module(CanvasPainter
         qccustombrush.cpp qccustombrush.h qccustombrush_p.h
         qcpainterpath.cpp qcpainterpath.h qcpainterpath_p.h
         qctext.cpp qctext.h
-        qccanvas.cpp qccanvas.h qccanvas_p.h
+        qcoffscreencanvas.cpp qcoffscreencanvas.h qcoffscreencanvas_p.h
         qcpainterfactory.cpp qcpainterfactory.h qcpainterfactory_p.h
         qcrhipaintdriver.cpp qcrhipaintdriver.h qcrhipaintdriver_p.h
 

@@ -12,7 +12,7 @@
 #include "qccustombrush.h"
 #include "qcpainterpath.h"
 #include "qctext.h"
-#include "qccanvas_p.h"
+#include "qcoffscreencanvas_p.h"
 
 #include <math.h>
 #include <stdio.h>
@@ -2374,7 +2374,7 @@ void QCPainterRhiRenderer::renderDelete()
     rhiCtx->indices.clear();
     rhiCtx->commonUniforms.clear();
 
-    for (QCCanvas &canvas : m_canvases)
+    for (QCOffscreenCanvas &canvas : m_canvases)
         destroyCanvas(canvas);
     m_canvases.clear();
 
@@ -3066,17 +3066,17 @@ bool operator!=(const QCRhiCanvas &a, const QCRhiCanvas &b) noexcept
     return !(a == b);
 }
 
-QCCanvas QCPainterRhiRenderer::createCanvas(QSize pixelSize, int sampleCount, QCCanvas::Flags flags)
+QCOffscreenCanvas QCPainterRhiRenderer::createCanvas(QSize pixelSize, int sampleCount, QCOffscreenCanvas::Flags flags)
 {
-    QCCanvas canvas;
+    QCOffscreenCanvas canvas;
     if (!rhiCtx || !rhiCtx->rhi) {
         qWarning("Cannot create a canvas without a QRhi");
         return canvas;
     }
 
-    if (flags.testFlag(QCCanvas::Flag::PreserveContents)) {
+    if (flags.testFlag(QCOffscreenCanvas::Flag::PreserveContents)) {
         qWarning("PreserveContents is not supported for multisample canvas");
-        flags.setFlag(QCCanvas::Flag::PreserveContents, false);
+        flags.setFlag(QCOffscreenCanvas::Flag::PreserveContents, false);
     }
 
     std::unique_ptr<QRhiTexture> tex(rhiCtx->rhi->newTexture(QRhiTexture::RGBA8, pixelSize, 1,
@@ -3106,7 +3106,7 @@ QCCanvas QCPainterRhiRenderer::createCanvas(QSize pixelSize, int sampleCount, QC
     rtDesc.setDepthStencilBuffer(ds.get());
 
     QRhiTextureRenderTarget::Flags rtFlags;
-    if (flags.testFlag(QCCanvas::Flag::PreserveContents)) {
+    if (flags.testFlag(QCOffscreenCanvas::Flag::PreserveContents)) {
         // See PreserveColorContents docs for the downsides. With tiled GPUs
         // this likely has a performance hit. And with MSAA it may not work at
         // all (like if the GLES extension is used so that msaaColorBuffer will
@@ -3120,7 +3120,7 @@ QCCanvas QCPainterRhiRenderer::createCanvas(QSize pixelSize, int sampleCount, QC
     if (!rt->create())
         return canvas;
 
-    QCCanvasPrivate *cd = QCCanvasPrivate::get(&canvas);
+    QCOffscreenCanvasPrivate *cd = QCOffscreenCanvasPrivate::get(&canvas);
     cd->rhiCanvas.tex = tex.release();
     cd->rhiCanvas.msaaColorBuffer = sampleCount > 1 ? msaaColorBuffer.release() : nullptr;
     cd->rhiCanvas.ds = ds.release();
@@ -3132,12 +3132,12 @@ QCCanvas QCPainterRhiRenderer::createCanvas(QSize pixelSize, int sampleCount, QC
     return canvas;
 }
 
-void QCPainterRhiRenderer::destroyCanvas(QCCanvas &canvas)
+void QCPainterRhiRenderer::destroyCanvas(QCOffscreenCanvas &canvas)
 {
     m_canvases.removeOne(canvas);
 
     // no detach!
-    QCCanvasPrivate *cd = QCCanvasPrivate::get(&canvas);
+    QCOffscreenCanvasPrivate *cd = QCOffscreenCanvasPrivate::get(&canvas);
     delete cd->rhiCanvas.rp;
     delete cd->rhiCanvas.rt;
     delete cd->rhiCanvas.ds;
@@ -3146,13 +3146,13 @@ void QCPainterRhiRenderer::destroyCanvas(QCCanvas &canvas)
     cd->rhiCanvas = {}; // canvas, incl. shared ones, becomes a null canvas
 }
 
-QRhiRenderTarget *QCPainterRhiRenderer::canvasRenderTarget(const QCCanvas &canvas)
+QRhiRenderTarget *QCPainterRhiRenderer::canvasRenderTarget(const QCOffscreenCanvas &canvas)
 {
-    const QCCanvasPrivate *cd = QCCanvasPrivate::get(&canvas);
+    const QCOffscreenCanvasPrivate *cd = QCOffscreenCanvasPrivate::get(&canvas);
     return cd->rhiCanvas.rt;
 }
 
-void QCPainterRhiRenderer::recordCanvasRenderPass(QRhiCommandBuffer *cb, const QCCanvas &canvas)
+void QCPainterRhiRenderer::recordCanvasRenderPass(QRhiCommandBuffer *cb, const QCOffscreenCanvas &canvas)
 {
     cb->debugMarkBegin("QC Canvas render pass"_ba);
     cb->beginPass(canvasRenderTarget(canvas), canvas.fillColor(), { 1.0f, 0 });
@@ -3161,7 +3161,7 @@ void QCPainterRhiRenderer::recordCanvasRenderPass(QRhiCommandBuffer *cb, const Q
     cb->debugMarkEnd();
 }
 
-void QCPainterRhiRenderer::grabCanvas(const QCCanvas &canvas, std::function<void(const QImage &)> callback, QRhiCommandBuffer *maybeCb)
+void QCPainterRhiRenderer::grabCanvas(const QCOffscreenCanvas &canvas, std::function<void(const QImage &)> callback, QRhiCommandBuffer *maybeCb)
 {
     if (canvas.isNull()) {
         qWarning("Cannot grab null canvas");

@@ -193,7 +193,7 @@ void QCPainterWidget::paint(QCPainter *painter)
     Otherwise, it is recommended to toggle a flag, or similar, and act
     accordingly in the next invocation of paint().
 
-    The same applies to QCCanvas objects returned from
+    The same applies to QCOffscreenCanvas objects returned from
     QCPainter::createCanvas(). When this function is called, the next invocation
     of paint() should create new canvases and redraw their contents.
 
@@ -203,7 +203,7 @@ void QCPainterWidget::graphicsResourcesInvalidated()
 {
 }
 
-void QCPainterWidget::beginCanvasPainting(QCCanvas &canvas)
+void QCPainterWidget::beginCanvasPainting(QCOffscreenCanvas &canvas)
 {
     Q_D(QCPainterWidget);
     if (!d->m_currentCb) {
@@ -223,7 +223,7 @@ void QCPainterWidget::endCanvasPainting()
     d->m_factory->paintDriver()->endPaint();
 }
 
-void QCPainterWidget::grabCanvas(const QCCanvas &canvas, std::function<void(const QImage &)> callback)
+void QCPainterWidget::grabCanvas(const QCOffscreenCanvas &canvas, std::function<void(const QImage &)> callback)
 {
     Q_D(QCPainterWidget);
     d->m_factory->paintDriver()->grabCanvas(canvas, callback);

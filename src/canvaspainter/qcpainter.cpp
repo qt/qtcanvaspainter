@@ -1650,7 +1650,7 @@ QCImage QCPainter::addImage(QRhiTexture *texture, QCPainter::ImageFlags flags)
     \sa removeImage
 */
 
-QCImage QCPainter::addImage(const QCCanvas &canvas, QCPainter::ImageFlags flags)
+QCImage QCPainter::addImage(const QCOffscreenCanvas &canvas, QCPainter::ImageFlags flags)
 {
     Q_D(QCPainter);
     return d->getQCImage(canvas, flags);
@@ -1924,7 +1924,7 @@ QCImage QCPainterPrivate::getQCImage(QRhiTexture *texture, QCPainter::ImageFlags
     return qcimage;
 }
 
-QCImage QCPainterPrivate::getQCImage(const QCCanvas &canvas, QCPainter::ImageFlags flags)
+QCImage QCPainterPrivate::getQCImage(const QCOffscreenCanvas &canvas, QCPainter::ImageFlags flags)
 {
     if (canvas.isNull())
         return {};
@@ -1989,7 +1989,7 @@ QRectF QCPainterPrivate::textBoundingBox(const QString &text, const QRectF &rect
 }
 
 // TODO: API docs
-QCCanvas QCPainter::createCanvas(QSize pixelSize, int sampleCount, QCCanvas::Flags flags)
+QCOffscreenCanvas QCPainter::createCanvas(QSize pixelSize, int sampleCount, QCOffscreenCanvas::Flags flags)
 {
     Q_D(QCPainter);
     if (!d->m_renderer || !d->m_renderer->ctx) {
@@ -2001,7 +2001,7 @@ QCCanvas QCPainter::createCanvas(QSize pixelSize, int sampleCount, QCCanvas::Fla
 
 // TODO: API docs
 // optional, the renderer destroys all canvases automatically
-void QCPainter::destroyCanvas(QCCanvas &canvas)
+void QCPainter::destroyCanvas(QCOffscreenCanvas &canvas)
 {
     Q_D(QCPainter);
     if (!d->m_renderer || !d->m_renderer->ctx) {

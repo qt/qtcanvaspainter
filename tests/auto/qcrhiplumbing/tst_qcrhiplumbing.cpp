@@ -18,6 +18,7 @@
 #include "qcpainter.h"
 #include "qcpainterfactory.h"
 #include "qcrhipaintdriver.h"
+#include "qcimagepattern.h"
 
 #if QT_CONFIG(opengl)
 #include <QOffscreenSurface>
@@ -58,6 +59,8 @@ private slots:
     void createShared();
     void render_data();
     void render();
+    void canvasRender_data();
+    void canvasRender();
 
 private:
     void setWindowType(QWindow *window, QRhi::Implementation impl);
@@ -149,6 +152,9 @@ void tst_CanvasRhiRendering::initTestCase()
 #ifdef FRAME_CAPTURE
     m_cap = createFrameCapture();
 #endif
+
+    // Have QRhi's own resource leak checking active in release builds too.
+    qputenv("QT_RHI_LEAK_CHECK", "1");
 
 #ifdef TST_GL
     QSurfaceFormat fmt;
@@ -275,7 +281,14 @@ void tst_CanvasRhiRendering::create()
     QCRhiPaintDriver *pd = factory->paintDriver();
     QVERIFY(pd);
 
+    QCPainter *samePainter = factory->create(rhi.get());
+    QCRhiPaintDriver *samePaintDriver = factory->paintDriver();
+    QCOMPARE(samePainter, painter);
+    QCOMPARE(samePaintDriver, pd);
+    QVERIFY(factory->isValid());
+
     factory->destroy();
+    QVERIFY(!factory->isValid());
     painter = factory->create(rhi.get());
     QVERIFY(painter);
 }
@@ -338,6 +351,18 @@ static void drawCircleInCenter(QCPainter *painter)
     painter->fill();
 }
 
+static void drawCircleInCenter(QCPainter *painter, const QCImage &imageForPattern)
+{
+    painter->beginPath();
+    painter->circle(RT_WIDTH / 2, RT_HEIGHT / 2, std::min(RT_WIDTH, RT_HEIGHT) / 2);
+    painter->setStrokeStyle(Qt::blue);
+    painter->setLineWidth(4);
+    painter->stroke();
+    QCImagePattern pattern(imageForPattern, 0, 0, 100, 100);
+    painter->setFillStyle(pattern);
+    painter->fill();
+}
+
 static bool testColor(const QImage &image, int x, int y, const QColor &expected)
 {
     const int maxFuzz = 1;
@@ -347,9 +372,8 @@ static bool testColor(const QImage &image, int x, int y, const QColor &expected)
                   && qAbs(qGreen(c1) - qGreen(c2)) <= maxFuzz
                   && qAbs(qBlue(c1) - qBlue(c2)) <= maxFuzz
                   && qAbs(qAlpha(c1) - qAlpha(c2)) <= maxFuzz;
-    if (!result) {
+    if (!result)
         qWarning() << "Color mismatch at" << x << "," << y << ": got" << QColor(c1) << "expected" << QColor(c2);
-    }
     return result;
 }
 
@@ -364,6 +388,18 @@ static QImage imageFromReadback(QRhi *rhi, const QRhiReadbackResult &readbackRes
         return image.flipped();
 
     return image.copy();
+}
+
+static QImage imageFromReadback(QRhi *rhi, QRhiTexture *texture)
+{
+    QRhiReadbackResult readbackResult;
+    QRhiCommandBuffer *cb;
+    rhi->beginOffscreenFrame(&cb);
+    QRhiResourceUpdateBatch *u = rhi->nextResourceUpdateBatch();
+    u->readBackTexture({ texture }, &readbackResult);
+    cb->resourceUpdate(u);
+    rhi->endOffscreenFrame();
+    return imageFromReadback(rhi, readbackResult);
 }
 
 void tst_CanvasRhiRendering::render_data()
@@ -424,6 +460,87 @@ void tst_CanvasRhiRendering::render()
 
     QVERIFY(testColor(image, 1, 1, Qt::black));
     QVERIFY(testColor(image, RT_WIDTH / 2, RT_HEIGHT / 2, Qt::red));
+}
+
+void tst_CanvasRhiRendering::canvasRender_data()
+{
+    rhiTestData();
+}
+
+void tst_CanvasRhiRendering::canvasRender()
+{
+    QFETCH(QRhi::Implementation, impl);
+    QFETCH(QRhiInitParams *, initParams);
+
+    std::unique_ptr<QRhi> rhi(QRhi::create(impl, initParams, QRhi::EnableDebugMarkers));
+    if (!rhi)
+        QSKIP("Failed to create QRhi, skip");
+
+#ifdef FRAME_CAPTURE
+    configureFrameCapture(m_cap.get(), rhi.get());
+    startFrameCapture(m_cap.get(), rhi.get(), "canvasRender");
+#endif
+
+    std::unique_ptr<QCPainterFactory> factory(new QCPainterFactory);
+    QCPainter *painter = factory->create(rhi.get());
+    QVERIFY(painter);
+    QCRhiPaintDriver *pd = factory->paintDriver();
+    QVERIFY(pd);
+
+    QCOffscreenCanvas canvas;
+    QVERIFY(canvas.isNull());
+    canvas = painter->createCanvas(QSize(RT_WIDTH, RT_HEIGHT));
+    QVERIFY(!canvas.isNull());
+    canvas.setFillColor(Qt::black);
+
+    QRhiCommandBuffer *cb;
+    rhi->beginOffscreenFrame(&cb);
+    pd->resetForNewFrame();
+    pd->beginPaint(canvas, cb);
+    drawCircleInCenter(painter);
+    pd->endPaint();
+    rhi->endOffscreenFrame();
+
+    QVERIFY(canvas.texture());
+    QCOMPARE(canvas.texture()->pixelSize().width(), RT_WIDTH);
+    QCOMPARE(canvas.texture()->pixelSize().height(), RT_HEIGHT);
+    if (impl != QRhi::Null) {
+        QImage image = imageFromReadback(rhi.get(), canvas.texture());
+        QVERIFY(testColor(image, 1, 1, Qt::black));
+        QVERIFY(testColor(image, RT_WIDTH / 2, RT_HEIGHT / 2, Qt::red));
+    }
+
+    RenderTargetPtr rt = createRenderTarget(rhi.get());
+    QVERIFY(rt);
+
+    rhi->beginOffscreenFrame(&cb);
+    pd->resetForNewFrame();
+    pd->beginPaint(cb, rt->rt);
+    QCImage canvasImage;
+    QVERIFY(canvasImage.isNull());
+    canvasImage = painter->addImage(canvas, QCPainter::ImageFlag::Repeat);
+    QVERIFY(!canvasImage.isNull());
+    QCImage secondRegistrationImage = painter->addImage(canvas, QCPainter::ImageFlag::Repeat);
+    QCOMPARE(canvasImage, secondRegistrationImage);
+    drawCircleInCenter(painter, canvasImage);
+    pd->endPaint();
+    rhi->endOffscreenFrame();
+
+    if (impl != QRhi::Null) {
+        QImage image = imageFromReadback(rhi.get(), rt->tex);
+        int x = RT_WIDTH / 2;
+        int y = RT_HEIGHT / 2;
+        // the distorted circle in the middle
+        QVERIFY(testColor(image, x, y, Qt::red));
+        // black between columns and rows
+        QVERIFY(testColor(image, x - 50, y, Qt::black));
+        // the distorted circle to the left
+        QVERIFY(testColor(image, x - 100, y, Qt::red));
+    }
+
+#ifdef FRAME_CAPTURE
+    endFrameCapture(m_cap.get());
+#endif
 }
 
 #include <tst_qcrhiplumbing.moc>

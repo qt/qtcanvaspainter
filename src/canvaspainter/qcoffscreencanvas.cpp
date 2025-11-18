@@ -1,14 +1,14 @@
 // Copyright (C) 2025 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
 
-#include "qccanvas_p.h"
+#include "qcoffscreencanvas_p.h"
 #include <rhi/qrhi.h>
 
 QT_BEGIN_NAMESPACE
 
 /*!
-    \class QCCanvas
-    \brief QCCanvas represents an offscreen canvas that QCPainter can target.
+    \class QCOffscreenCanvas
+    \brief QCOffscreenCanvas represents an offscreen canvas that QCPainter can target.
     \inmodule QtCanvasPainter
 
     An offscreen canvas is essentially a color buffer (a QRhiTexture), and
@@ -25,27 +25,27 @@ QT_BEGIN_NAMESPACE
     convenience widget and item implementations.
  */
 
-QCCanvas::QCCanvas()
-    : d(new QCCanvasPrivate)
+QCOffscreenCanvas::QCOffscreenCanvas()
+    : d(new QCOffscreenCanvasPrivate)
 {
 }
 
-QCCanvas::QCCanvas(const QCCanvas &canvas) noexcept
+QCOffscreenCanvas::QCOffscreenCanvas(const QCOffscreenCanvas &canvas) noexcept
     : d(canvas.d)
 {
 }
 
-QCCanvas::~QCCanvas() = default;
+QCOffscreenCanvas::~QCOffscreenCanvas() = default;
 
-QT_DEFINE_QESDP_SPECIALIZATION_DTOR(QCCanvasPrivate)
+QT_DEFINE_QESDP_SPECIALIZATION_DTOR(QCOffscreenCanvasPrivate)
 
-QCCanvas &QCCanvas::operator=(const QCCanvas &canvas) noexcept
+QCOffscreenCanvas &QCOffscreenCanvas::operator=(const QCOffscreenCanvas &canvas) noexcept
 {
-    QCCanvas(canvas).swap(*this);
+    QCOffscreenCanvas(canvas).swap(*this);
     return *this;
 }
 
-bool QCCanvas::operator==(const QCCanvas &i) const
+bool QCOffscreenCanvas::operator==(const QCOffscreenCanvas &i) const
 {
     if (i.d == d)
         return true;
@@ -59,30 +59,30 @@ bool QCCanvas::operator==(const QCCanvas &i) const
     return true;
 }
 
-void QCCanvas::detach()
+void QCOffscreenCanvas::detach()
 {
     if (d)
         d.detach();
     else
-        d = new QCCanvasPrivate;
+        d = new QCOffscreenCanvasPrivate;
 }
 
-bool QCCanvas::isNull() const
+bool QCOffscreenCanvas::isNull() const
 {
     return d->rhiCanvas.isNull();
 }
 
-QCCanvas::Flags QCCanvas::flags() const
+QCOffscreenCanvas::Flags QCOffscreenCanvas::flags() const
 {
     return d->rhiCanvas.flags;
 }
 
-QColor QCCanvas::fillColor() const
+QColor QCOffscreenCanvas::fillColor() const
 {
     return d->fillColor;
 }
 
-void QCCanvas::setFillColor(const QColor &color)
+void QCOffscreenCanvas::setFillColor(const QColor &color)
 {
     if (d->fillColor == color)
         return;
@@ -91,7 +91,7 @@ void QCCanvas::setFillColor(const QColor &color)
     d->fillColor = color;
 }
 
-QRhiTexture *QCCanvas::texture() const
+QRhiTexture *QCOffscreenCanvas::texture() const
 {
     return d->rhiCanvas.tex;
 }

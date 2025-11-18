@@ -13,7 +13,7 @@
 #include <QtGui/qfont.h>
 
 #include <QtCanvasPainter/qcimage.h>
-#include <QtCanvasPainter/qccanvas.h>
+#include <QtCanvasPainter/qcoffscreencanvas.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -240,16 +240,16 @@ public:
 
     QCImage addImage(const QImage &image, QCPainter::ImageFlags flags = {});
     QCImage addImage(QRhiTexture *texture, QCPainter::ImageFlags flags = {});
-    QCImage addImage(const QCCanvas &canvas, QCPainter::ImageFlags flags = {});
+    QCImage addImage(const QCOffscreenCanvas &canvas, QCPainter::ImageFlags flags = {});
     void removeImage(int imageId);
     void cleanupResources();
     qsizetype cacheMemoryUsage() const;
     qsizetype cacheTextureAmount() const;
     void removePathGroup(int pathGroup);
 
-    QCCanvas createCanvas(QSize pixelSize, int sampleCount = 1, QCCanvas::Flags flags = {});
-    void destroyCanvas(QCCanvas &canvas);
-    void grabCanvas(const QCCanvas &canvas, std::function<void(const QImage &)> callback);
+    QCOffscreenCanvas createCanvas(QSize pixelSize, int sampleCount = 1, QCOffscreenCanvas::Flags flags = {});
+    void destroyCanvas(QCOffscreenCanvas &canvas);
+    void grabCanvas(const QCOffscreenCanvas &canvas, std::function<void(const QImage &)> callback);
 
 private:
     Q_DECLARE_PRIVATE(QCPainter)

@@ -18,7 +18,7 @@
 #include <rhi/qrhi.h>
 #include "qcpainterengineutils_p.h"
 #include "qccustombrush_p.h"
-#include "qccanvas.h"
+#include "qcoffscreencanvas.h"
 #include <functional>
 
 QT_BEGIN_NAMESPACE
@@ -51,7 +51,7 @@ struct QCRhiCanvas
     QRhiRenderBuffer *ds = nullptr;
     QRhiTextureRenderTarget *rt = nullptr;
     QRhiRenderPassDescriptor *rp = nullptr;
-    QCCanvas::Flags flags;
+    QCOffscreenCanvas::Flags flags;
     bool isNull() const { return !tex; }
 };
 
@@ -177,11 +177,11 @@ public:
     static void textureFormatInfo(QRhiTexture::Format format, QSize size,
                                   quint32 *bpl, quint32 *byteSize, quint32 *bytesPerPixel);
 
-    QCCanvas createCanvas(QSize pixelSize, int sampleCount, QCCanvas::Flags flags);
-    void destroyCanvas(QCCanvas &canvas);
-    QRhiRenderTarget *canvasRenderTarget(const QCCanvas &canvas);
-    void recordCanvasRenderPass(QRhiCommandBuffer *cb, const QCCanvas &canvas);
-    void grabCanvas(const QCCanvas &canvas, std::function<void(const QImage &)> callback, QRhiCommandBuffer *maybeCb);
+    QCOffscreenCanvas createCanvas(QSize pixelSize, int sampleCount, QCOffscreenCanvas::Flags flags);
+    void destroyCanvas(QCOffscreenCanvas &canvas);
+    QRhiRenderTarget *canvasRenderTarget(const QCOffscreenCanvas &canvas);
+    void recordCanvasRenderPass(QRhiCommandBuffer *cb, const QCOffscreenCanvas &canvas);
+    void grabCanvas(const QCOffscreenCanvas &canvas, std::function<void(const QImage &)> callback, QRhiCommandBuffer *maybeCb);
 
     void recordRenderPass(QRhiCommandBuffer *cb, QRhiRenderTarget *rt, const QColor &clearColor);
 
@@ -230,7 +230,7 @@ private:
     QCRHIContext *rhiCtx = nullptr;
     QCPainter *m_painter = nullptr;
     QCPainterEngine *m_e = nullptr;
-    QVector<QCCanvas> m_canvases;
+    QVector<QCOffscreenCanvas> m_canvases;
 
     QVector<std::pair<QRhiReadbackResult, std::function<void(const QImage &)>>> m_canvasGrabs;
 

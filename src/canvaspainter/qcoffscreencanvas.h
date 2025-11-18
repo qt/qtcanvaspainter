@@ -1,8 +1,8 @@
 // Copyright (C) 2025 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
 
-#ifndef QCCANVAS_H
-#define QCCANVAS_H
+#ifndef QCOFFSCREENCANVAS_H
+#define QCOFFSCREENCANVAS_H
 
 #include <QtCanvasPainter/qtcanvaspainterglobal.h>
 #include <QtCore/qshareddata.h>
@@ -11,12 +11,12 @@
 
 QT_BEGIN_NAMESPACE
 
-class QCCanvasPrivate;
+class QCOffscreenCanvasPrivate;
 class QRhiTexture;
 
-QT_DECLARE_QESDP_SPECIALIZATION_DTOR(QCCanvasPrivate)
+QT_DECLARE_QESDP_SPECIALIZATION_DTOR(QCOffscreenCanvasPrivate)
 
-class Q_CANVASPAINTER_EXPORT QCCanvas
+class Q_CANVASPAINTER_EXPORT QCOffscreenCanvas
 {
     Q_GADGET
 
@@ -29,16 +29,16 @@ public:
     };
     Q_DECLARE_FLAGS(Flags, Flag)
 
-    QCCanvas();
-    QCCanvas(const QCCanvas &canvas) noexcept;
-    ~QCCanvas();
-    QCCanvas &operator=(const QCCanvas &canvas) noexcept;
-    QCCanvas(QCCanvas &&other) noexcept = default;
-    QT_MOVE_ASSIGNMENT_OPERATOR_IMPL_VIA_PURE_SWAP(QCCanvas)
-    void swap(QCCanvas &other) noexcept { d.swap(other.d); }
+    QCOffscreenCanvas();
+    QCOffscreenCanvas(const QCOffscreenCanvas &canvas) noexcept;
+    ~QCOffscreenCanvas();
+    QCOffscreenCanvas &operator=(const QCOffscreenCanvas &canvas) noexcept;
+    QCOffscreenCanvas(QCOffscreenCanvas &&other) noexcept = default;
+    QT_MOVE_ASSIGNMENT_OPERATOR_IMPL_VIA_PURE_SWAP(QCOffscreenCanvas)
+    void swap(QCOffscreenCanvas &other) noexcept { d.swap(other.d); }
 
-    bool operator==(const QCCanvas &canvas) const;
-    inline bool operator!=(const QCCanvas &canvas) const { return !(operator==(canvas)); }
+    bool operator==(const QCOffscreenCanvas &canvas) const;
+    inline bool operator!=(const QCOffscreenCanvas &canvas) const { return !(operator==(canvas)); }
 
     void detach();
 
@@ -55,14 +55,14 @@ public:
     QRhiTexture *texture() const;
 
 private:
-    QExplicitlySharedDataPointer<QCCanvasPrivate> d;
-    friend class QCCanvasPrivate;
+    QExplicitlySharedDataPointer<QCOffscreenCanvasPrivate> d;
+    friend class QCOffscreenCanvasPrivate;
     friend class QCPainterRhiRenderer;
 };
 
-Q_DECLARE_OPERATORS_FOR_FLAGS(QCCanvas::Flags)
-Q_DECLARE_SHARED(QCCanvas)
+Q_DECLARE_OPERATORS_FOR_FLAGS(QCOffscreenCanvas::Flags)
+Q_DECLARE_SHARED(QCOffscreenCanvas)
 
 QT_END_NAMESPACE
 
-#endif // QCCANVAS_H
+#endif // QCOFFSCREENCANVAS_H

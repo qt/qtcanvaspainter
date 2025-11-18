@@ -42,9 +42,9 @@ protected:
     void render(QRhiCommandBuffer *cb) override;
     void synchronize(QQuickRhiItem *item) override;
 
-    void grabCanvas(const QCCanvas &canvas, std::function<void(const QImage &)> callback);
+    void grabCanvas(const QCOffscreenCanvas &canvas, std::function<void(const QImage &)> callback);
 
-    void beginCanvasPainting(QCCanvas &canvas);
+    void beginCanvasPainting(QCOffscreenCanvas &canvas);
     void endCanvasPainting();
 
 private:

@@ -75,7 +75,7 @@ public:
     qint64 generateImageKey(const QImage &image, QCPainter::ImageFlags flags) const;
     QCImage getQCImage(const QImage &image, QCPainter::ImageFlags flags, qint64 imageKey = 0);
     QCImage getQCImage(QRhiTexture *texture, QCPainter::ImageFlags flags);
-    QCImage getQCImage(const QCCanvas &canvas, QCPainter::ImageFlags flags);
+    QCImage getQCImage(const QCOffscreenCanvas &canvas, QCPainter::ImageFlags flags);
     void drawImageId(int imageId, float x, float y, float width, float height, const QColor &tintColor);
     void handleCleanupTextures();
     void clearTextureCache();

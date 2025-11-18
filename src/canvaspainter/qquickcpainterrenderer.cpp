@@ -345,7 +345,7 @@ void QQuickCPainterRenderer::render(QRhiCommandBuffer *cb)
     }
 }
 
-void QQuickCPainterRenderer::beginCanvasPainting(QCCanvas &canvas)
+void QQuickCPainterRenderer::beginCanvasPainting(QCOffscreenCanvas &canvas)
 {
     Q_D(QQuickCPainterRenderer);
     if (!d->m_currentCb) {
@@ -365,7 +365,7 @@ void QQuickCPainterRenderer::endCanvasPainting()
     d->m_factory->paintDriver()->endPaint();
 }
 
-void QQuickCPainterRenderer::grabCanvas(const QCCanvas &canvas, std::function<void(const QImage &)> callback)
+void QQuickCPainterRenderer::grabCanvas(const QCOffscreenCanvas &canvas, std::function<void(const QImage &)> callback)
 {
     Q_D(QQuickCPainterRenderer);
     d->m_factory->paintDriver()->grabCanvas(canvas, callback);
