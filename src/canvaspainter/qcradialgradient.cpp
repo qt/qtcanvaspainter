@@ -76,7 +76,7 @@ QCRadialGradient::QCRadialGradient(float centerX, float centerY, float outerRadi
     transparent black (0, 0, 0, 0).
 */
 
-QCRadialGradient::QCRadialGradient(const QPointF &center, float outerRadius, float innerRadius)
+QCRadialGradient::QCRadialGradient(QPointF center, float outerRadius, float innerRadius)
     : QCGradient(BrushType::RadialGradient)
 {
     d->data.radial.cx = float(center.x());
@@ -115,7 +115,7 @@ void QCRadialGradient::setCenterPosition(float x, float y)
     Sets the center point of radial gradient to \a center.
 */
 
-void QCRadialGradient::setCenterPosition(const QPointF &center)
+void QCRadialGradient::setCenterPosition(QPointF center)
 {
     setCenterPosition(float(center.x()),
                       float(center.y()));

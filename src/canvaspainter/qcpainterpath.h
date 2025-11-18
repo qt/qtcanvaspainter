@@ -25,16 +25,16 @@ public:
     // These should match to path methods of QCPainter for consistency.
     void closePath();
     void moveTo(float x, float y);
-    void moveTo(const QPointF &point);
+    void moveTo(QPointF point);
     void lineTo(float x, float y);
-    void lineTo(const QPointF &point);
+    void lineTo(QPointF point);
     void bezierCurveTo(float c1x, float c1y, float c2x, float c2y, float x, float y);
     void bezierCurveTo(
-        const QPointF &controlPoint1, const QPointF &controlPoint2, const QPointF &endPoint);
+        QPointF controlPoint1, QPointF controlPoint2, QPointF endPoint);
     void quadraticCurveTo(float cx, float cy, float x, float y);
-    void quadraticCurveTo(const QPointF &controlPoint, const QPointF &endPoint);
+    void quadraticCurveTo(QPointF controlPoint, QPointF endPoint);
     void arcTo(float c1x, float c1y, float c2x, float c2y, float radius);
-    void arcTo(const QPointF &controlPoint1, const QPointF &controlPoint2, float radius);
+    void arcTo(QPointF controlPoint1, QPointF controlPoint2, float radius);
     void arc(
         float centerX,
         float centerY,
@@ -44,7 +44,7 @@ public:
         QCPainter::PathWinding direction = QCPainter::PathWinding::ClockWise,
         bool isConnected = true);
     void arc(
-        const QPointF &centerPoint,
+        QPointF centerPoint,
         float radius,
         float a0,
         float a1,
@@ -72,7 +72,7 @@ public:
     void ellipse(float x, float y, float radiusX, float radiusY);
     void ellipse(const QRectF &rect);
     void circle(float x, float y, float radius);
-    void circle(const QPointF &centerPoint, float radius);
+    void circle(QPointF centerPoint, float radius);
 
     void setPathWinding(QCPainter::PathWinding winding);
     void addPath(const QCPainterPath &path, const QTransform &transform = QTransform());

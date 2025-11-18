@@ -70,7 +70,7 @@ QCConicalGradient::QCConicalGradient(float centerX, float centerY, float startAn
     transparent black (0, 0, 0, 0).
 */
 
-QCConicalGradient::QCConicalGradient(const QPointF &center, float startAngle)
+QCConicalGradient::QCConicalGradient(QPointF center, float startAngle)
     : QCGradient(BrushType::ConicalGradient)
 {
     d->data.conical.cx = float(center.x());
@@ -108,7 +108,7 @@ void QCConicalGradient::setCenterPosition(float x, float y)
     Sets the center point of conical gradient to \a center.
 */
 
-void QCConicalGradient::setCenterPosition(const QPointF &center)
+void QCConicalGradient::setCenterPosition(QPointF center)
 {
     setCenterPosition(float(center.x()),
                       float(center.y()));

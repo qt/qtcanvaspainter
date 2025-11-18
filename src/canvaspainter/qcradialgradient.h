@@ -18,12 +18,12 @@ class Q_CANVASPAINTER_EXPORT QCRadialGradient : public QCGradient
 public:
     QCRadialGradient();
     QCRadialGradient(float centerX, float centerY, float outerRadius, float innerRadius = 0.0f);
-    QCRadialGradient(const QPointF &center, float outerRadius, float innerRadius = 0.0f);
+    QCRadialGradient(QPointF center, float outerRadius, float innerRadius = 0.0f);
     ~QCRadialGradient();
 
     QPointF centerPosition() const;
     void setCenterPosition(float x, float y);
-    void setCenterPosition(const QPointF &center);
+    void setCenterPosition(QPointF center);
     float outerRadius() const;
     void setOuterRadius(float radius);
     float innerRadius() const;

@@ -590,7 +590,7 @@ void QCPainter::translate(float x, float y)
     Translates current coordinate system by \a point.
 */
 
-void QCPainter::translate(const QPointF &point)
+void QCPainter::translate(QPointF point)
 {
     translate(float(point.x()),
               float(point.y()));
@@ -734,7 +734,7 @@ void QCPainter::moveTo(float x, float y)
     Starts new sub-path with \a point as first point.
 */
 
-void QCPainter::moveTo(const QPointF &point)
+void QCPainter::moveTo(QPointF point)
 {
     moveTo(float(point.x()),
            float(point.y()));
@@ -756,7 +756,7 @@ void QCPainter::lineTo(float x, float y)
     Adds line segment from the last point in the path to the \a point.
 */
 
-void QCPainter::lineTo(const QPointF &point)
+void QCPainter::lineTo(QPointF point)
 {
     lineTo(float(point.x()),
            float(point.y()));
@@ -780,7 +780,7 @@ void QCPainter::bezierCurveTo(float cp1X, float cp1Y, float cp2X, float cp2Y, fl
     control points (\a controlPoint1 and \a controlPoint2) to the specified point \a endPoint.
 */
 
-void QCPainter::bezierCurveTo(const QPointF &controlPoint1, const QPointF &controlPoint2, const QPointF &endPoint)
+void QCPainter::bezierCurveTo(QPointF controlPoint1, QPointF controlPoint2, QPointF endPoint)
 {
     bezierCurveTo(float(controlPoint1.x()),
                   float(controlPoint1.y()),
@@ -808,7 +808,7 @@ void QCPainter::quadraticCurveTo(float cpX, float cpY, float x, float y)
     a \a controlPoint to the specified \a endPoint.
 */
 
-void QCPainter::quadraticCurveTo(const QPointF &controlPoint, const QPointF &endPoint)
+void QCPainter::quadraticCurveTo(QPointF controlPoint, QPointF endPoint)
 {
     quadraticCurveTo(float(controlPoint.x()),
                      float(controlPoint.y()),
@@ -834,7 +834,7 @@ void QCPainter::arcTo(float x1, float y1, float x2, float y2, float radius)
     and two specified points (\a controlPoint1 and \a controlPoint2) with \a radius.
 */
 
-void QCPainter::arcTo(const QPointF &controlPoint1, const QPointF &controlPoint2, float radius)
+void QCPainter::arcTo(QPointF controlPoint1, QPointF controlPoint2, float radius)
 {
     arcTo(float(controlPoint1.x()),
           float(controlPoint1.y()),
@@ -869,7 +869,7 @@ void QCPainter::arc(float centerX, float centerY, float radius, float a0, float 
     Angles are specified in radians.
 */
 
-void QCPainter::arc(const QPointF &centerPoint, float radius, float a0, float a1, PathWinding direction, bool isConnected)
+void QCPainter::arc(QPointF centerPoint, float radius, float a0, float a1, PathWinding direction, bool isConnected)
 {
     arc(float(centerPoint.x()),
         float(centerPoint.y()),
@@ -977,7 +977,7 @@ void QCPainter::ellipse(float centerX, float centerY, float radiusX, float radiu
     Creates new ellipse shaped sub-path into \a centerPoint with \a radiusX and \a radiusY.
 */
 
-void QCPainter::ellipse(const QPointF &centerPoint, float radiusX, float radiusY)
+void QCPainter::ellipse(QPointF centerPoint, float radiusX, float radiusY)
 {
     ellipse(float(centerPoint.x()),
             float(centerPoint.y()),
@@ -1016,7 +1016,7 @@ void QCPainter::circle(float centerX, float centerY, float radius)
     Creates new circle shaped sub-path into \a centerPoint with \a radius.
 */
 
-void QCPainter::circle(const QPointF &centerPoint, float radius)
+void QCPainter::circle(QPointF centerPoint, float radius)
 {
     circle(float(centerPoint.x()),
            float(centerPoint.y()), radius);
@@ -1409,7 +1409,7 @@ void QCPainter::fillText(const QString &text, float x, float y, float maxWidth, 
     This is an overloaded method using QPointF.
 */
 
-void QCPainter::fillText(const QString &text, const QPointF &point, float maxWidth, int cacheIndex)
+void QCPainter::fillText(const QString &text, QPointF point, float maxWidth, int cacheIndex)
 {
     Q_D(QCPainter);
     d->fillText(text, point.x(), point.y(), maxWidth, cacheIndex);
@@ -1463,7 +1463,7 @@ QRectF QCPainter::textBoundingBox(const QString &text, float x, float y, float m
     Measured values are returned in local coordinate space.
 */
 
-QRectF QCPainter::textBoundingBox(const QString &text, const QPointF &point, float maxWidth)
+QRectF QCPainter::textBoundingBox(const QString &text, QPointF point, float maxWidth)
 {
     Q_D(QCPainter);
     return d->textBoundingBox(text, point.x(), point.y(), maxWidth);

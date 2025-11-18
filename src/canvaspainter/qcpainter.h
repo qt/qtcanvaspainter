@@ -98,7 +98,7 @@ public:
     void setTransform(const QTransform &transform);
     void transform(const QTransform &transform);
     void translate(float x, float y);
-    void translate(const QPointF &point);
+    void translate(QPointF point);
     void rotate(float angle);
     void skew(float angleX, float angleY = 0.0f);
     void scale(float scale);
@@ -117,16 +117,16 @@ public:
     // These should match to path methods of QCPainterPath for consistency.
     void closePath();
     void moveTo(float x, float y);
-    void moveTo(const QPointF &point);
+    void moveTo(QPointF point);
     void lineTo(float x, float y);
-    void lineTo(const QPointF &point);
+    void lineTo(QPointF point);
     void bezierCurveTo(float cp1X, float cp1Y, float cp2X, float cp2Y, float x, float y);
     void bezierCurveTo(
-        const QPointF &controlPoint1, const QPointF &controlPoint2, const QPointF &endPoint);
+        QPointF controlPoint1, QPointF controlPoint2, QPointF endPoint);
     void quadraticCurveTo(float cpX, float cpY, float x, float y);
-    void quadraticCurveTo(const QPointF &controlPoint, const QPointF &endPoint);
+    void quadraticCurveTo(QPointF controlPoint, QPointF endPoint);
     void arcTo(float x1, float y1, float x2, float y2, float radius);
-    void arcTo(const QPointF &controlPoint1, const QPointF &controlPoint2, float radius);
+    void arcTo(QPointF controlPoint1, QPointF controlPoint2, float radius);
 
     void arc(
         float centerX,
@@ -137,7 +137,7 @@ public:
         PathWinding direction = PathWinding::ClockWise,
         bool isConnected = true);
     void arc(
-        const QPointF &centerPoint,
+        QPointF centerPoint,
         float radius,
         float a0,
         float a1,
@@ -163,10 +163,10 @@ public:
         float radiusBottomRight,
         float radiusBottomLeft);
     void ellipse(float centerX, float centerY, float radiusX, float radiusY);
-    void ellipse(const QPointF &centerPoint, float radiusX, float radiusY);
+    void ellipse(QPointF centerPoint, float radiusX, float radiusY);
     void ellipse(const QRectF &rect);
     void circle(float centerX, float centerY, float radius);
-    void circle(const QPointF &centerPoint, float radius);
+    void circle(QPointF centerPoint, float radius);
 
     // TODO: Consider if we want to have this as functionality
     // doesn't fully cover QPainterPath (like fillRule).
@@ -214,12 +214,12 @@ public:
 
     void prepareText(const QCText &text);
     void fillText(const QString &text, float x, float y, float maxWidth = -1, int cacheIndex = -1);
-    void fillText(const QString &text, const QPointF &point, float maxWidth = -1, int cacheIndex = -1);
+    void fillText(const QString &text, QPointF point, float maxWidth = -1, int cacheIndex = -1);
     void fillText(const QString &text, const QRectF &rect, int cacheIndex = -1);
     void fillText(const QCText &text);
 
     QRectF textBoundingBox(const QString &text, float x, float y, float maxWidth = -1);
-    QRectF textBoundingBox(const QString &text, const QPointF &point, float maxWidth = -1);
+    QRectF textBoundingBox(const QString &text, QPointF point, float maxWidth = -1);
     QRectF textBoundingBox(const QString &text, const QRectF &rect);
     QRectF textBoundingBox(const QCText &text);
 

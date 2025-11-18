@@ -18,15 +18,15 @@ class Q_CANVASPAINTER_EXPORT QCLinearGradient : public QCGradient
 public:
     QCLinearGradient();
     QCLinearGradient(float startX, float startY, float endX, float endY);
-    QCLinearGradient(const QPointF &start, const QPointF &end);
+    QCLinearGradient(QPointF start, QPointF end);
     ~QCLinearGradient();
 
     QPointF startPosition() const;
     void setStartPosition(float x, float y);
-    void setStartPosition(const QPointF &start);
+    void setStartPosition(QPointF start);
     QPointF endPosition() const;
     void setEndPosition(float x, float y);
-    void setEndPosition(const QPointF &end);
+    void setEndPosition(QPointF end);
 
 private:
    QCPaint createPaint(QCPainter *painter) const final;

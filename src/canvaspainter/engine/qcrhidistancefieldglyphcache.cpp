@@ -29,7 +29,7 @@ QCRhiDistanceFieldGlyphCache::~QCRhiDistanceFieldGlyphCache()
 }
 
 bool QCRhiDistanceFieldGlyphCache::addGlyphs(
-    const QPointF &position, const QGlyphRun &glyphs)
+    QPointF position, const QGlyphRun &glyphs)
 {
     return setGlyphs(position + QPointF(0, glyphs.rawFont().ascent()), glyphs);
 }
@@ -91,7 +91,7 @@ void QCRhiDistanceFieldGlyphCache::resizeTexture(TextureInfo *texInfo, int width
     oldTexture->deleteLater();
 }
 
-bool QCRhiDistanceFieldGlyphCache::setGlyphs(const QPointF &position, const QGlyphRun &glyphs)
+bool QCRhiDistanceFieldGlyphCache::setGlyphs(QPointF position, const QGlyphRun &glyphs)
 {
     QRawFont font = glyphs.rawFont();
     m_position = QPointF(position.x(), position.y() - font.ascent());

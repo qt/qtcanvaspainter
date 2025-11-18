@@ -74,7 +74,7 @@ QCLinearGradient::QCLinearGradient(float startX, float startY, float endX, float
     transparent black (0, 0, 0, 0).
 */
 
-QCLinearGradient::QCLinearGradient(const QPointF &start, const QPointF &end)
+QCLinearGradient::QCLinearGradient(QPointF start, QPointF end)
     : QCGradient(BrushType::LinearGradient)
 {
     d->data.linear.sx = float(start.x());
@@ -113,7 +113,7 @@ void QCLinearGradient::setStartPosition(float x, float y)
     Sets the start point of linear gradient to \a start.
 */
 
-void QCLinearGradient::setStartPosition(const QPointF &start)
+void QCLinearGradient::setStartPosition(QPointF start)
 {
     setStartPosition(float(start.x()),
                      float(start.y()));
@@ -145,7 +145,7 @@ void QCLinearGradient::setEndPosition(float x, float y)
     Sets the end point of linear gradient to \a end.
 */
 
-void QCLinearGradient::setEndPosition(const QPointF &end)
+void QCLinearGradient::setEndPosition(QPointF end)
 {
     setEndPosition(float(end.x()),
                    float(end.y()));

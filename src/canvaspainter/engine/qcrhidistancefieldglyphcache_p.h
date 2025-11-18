@@ -20,6 +20,7 @@
 #include <QtGui/private/qdatabuffer_p.h>
 #include <rhi/qrhi.h>
 #include "qcareaallocator_p.h"
+#include <QtCore/qpoint.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -101,7 +102,7 @@ public:
     void update();
 
     void setRawFont(const QRawFont &font);
-    bool addGlyphs(const QPointF &position, const QGlyphRun &glyphs);
+    bool addGlyphs(QPointF position, const QGlyphRun &glyphs);
     void createTexture(TextureInfo *texInfo, int width, int height);
     void createTexture(TextureInfo *texInfo, int width, int height, const void *pixels);
     void resizeTexture(TextureInfo *texInfo, int width, int height);
@@ -112,7 +113,7 @@ public:
     void setGlyphsPosition(const QList<GlyphPosition> &glyphs);
     void referenceGlyphs(const QSet<glyph_t> &glyphs);
 
-    bool setGlyphs(const QPointF &position, const QGlyphRun &glyphs);
+    bool setGlyphs(QPointF position, const QGlyphRun &glyphs);
     void setGlyphTexture(const QList<glyph_t> &glyphs, const TextureInfo &tex);
 
     void generateVertices(

@@ -17,12 +17,12 @@ class Q_CANVASPAINTER_EXPORT QCConicalGradient : public QCGradient
 public:
     QCConicalGradient();
     QCConicalGradient(float centerX, float centerY, float startAngle);
-    QCConicalGradient(const QPointF &center, float startAngle);
+    QCConicalGradient(QPointF center, float startAngle);
     ~QCConicalGradient();
 
     QPointF centerPosition() const;
     void setCenterPosition(float x, float y);
-    void setCenterPosition(const QPointF &center);
+    void setCenterPosition(QPointF center);
     float angle() const;
     void setAngle(float angle);
 

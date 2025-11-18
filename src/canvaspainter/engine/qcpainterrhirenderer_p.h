@@ -19,7 +19,6 @@
 #include "qcpainterengineutils_p.h"
 #include "qccustombrush_p.h"
 #include "qccanvas.h"
-#include <QPointF>
 #include <functional>
 
 QT_BEGIN_NAMESPACE

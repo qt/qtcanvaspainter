@@ -317,7 +317,7 @@ void QCImagePattern::setStartPosition(float x, float y)
     (if image \c Repeat flag has been set).
 */
 
-void QCImagePattern::setStartPosition(const QPointF &point)
+void QCImagePattern::setStartPosition(QPointF point)
 {
     setStartPosition(float(point.x()),
                      float(point.y()));

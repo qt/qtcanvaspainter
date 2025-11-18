@@ -54,7 +54,7 @@ void QCPainterPath::moveTo(float x, float y)
 
 }
 
-void QCPainterPath::moveTo(const QPointF &point)
+void QCPainterPath::moveTo(QPointF point)
 {
     moveTo(float(point.x()), float(point.y()));
 }
@@ -67,7 +67,7 @@ void QCPainterPath::lineTo(float x, float y)
     d->appendCommand(QCCommand::LineTo);
 }
 
-void QCPainterPath::lineTo(const QPointF &point)
+void QCPainterPath::lineTo(QPointF point)
 {
     lineTo(float(point.x()), float(point.y()));
 }
@@ -81,7 +81,7 @@ void QCPainterPath::bezierCurveTo(float cp1X, float cp1Y, float cp2X, float cp2Y
 }
 
 void QCPainterPath::bezierCurveTo(
-    const QPointF &controlPoint1, const QPointF &controlPoint2, const QPointF &endPoint)
+    QPointF controlPoint1, QPointF controlPoint2, QPointF endPoint)
 {
     bezierCurveTo(float(controlPoint1.x()), float(controlPoint1.y()),
                   float(controlPoint2.x()), float(controlPoint2.y()),
@@ -105,7 +105,7 @@ void QCPainterPath::quadraticCurveTo(float cpX, float cpY, float x, float y)
     d->appendCommand(QCCommand::BezierTo);
 }
 
-void QCPainterPath::quadraticCurveTo(const QPointF &controlPoint, const QPointF &endPoint)
+void QCPainterPath::quadraticCurveTo(QPointF controlPoint, QPointF endPoint)
 {
     quadraticCurveTo(float(controlPoint.x()), float(controlPoint.y()),
                      float(endPoint.x()), float(endPoint.y()));
@@ -159,7 +159,7 @@ void QCPainterPath::arcTo(float x1, float y1, float x2, float y2, float radius)
     arc(cx, cy, radius, a0, a1, direction, true);
 }
 
-void QCPainterPath::arcTo(const QPointF &point1, const QPointF &point2, float radius)
+void QCPainterPath::arcTo(QPointF point1, QPointF point2, float radius)
 {
     arcTo(float(point1.x()), float(point1.y()),
           float(point2.x()), float(point2.y()),
@@ -241,7 +241,7 @@ void QCPainterPath::arc(
 }
 
 void QCPainterPath::arc(
-    const QPointF &centerPoint,
+    QPointF centerPoint,
     float radius,
     float a0,
     float a1,
@@ -473,7 +473,7 @@ void QCPainterPath::circle(float x, float y, float radius)
     d->appendCommands(commands, 5);
 }
 
-void QCPainterPath::circle(const QPointF &centerPoint, float radius)
+void QCPainterPath::circle(QPointF centerPoint, float radius)
 {
     circle(float(centerPoint.x()), float(centerPoint.y()), radius);
 }

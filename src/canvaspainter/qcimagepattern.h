@@ -49,7 +49,7 @@ public:
 
     QPointF startPosition() const;
     void setStartPosition(float x, float y);
-    void setStartPosition(const QPointF &point);
+    void setStartPosition(QPointF point);
     QSizeF imageSize() const;
     void setImageSize(float width, float height);
     void setImageSize(const QSizeF &size);
