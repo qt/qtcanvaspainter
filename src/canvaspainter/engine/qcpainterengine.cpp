@@ -994,7 +994,7 @@ void QCPainterEngine::resetClipRect()
 
 void QCPainterEngine::setClipRect(const QRectF &rect)
 {
-    if (rect.isNull()) {
+    if (rect.isEmpty()) {
         resetClipRect();
     } else {
         if (state.transform.isIdentity()) {
