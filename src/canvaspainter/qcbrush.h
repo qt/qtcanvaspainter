@@ -27,7 +27,9 @@ public:
         BoxGradient,
         BoxShadow,
         ImagePattern,
-        Custom
+        GridPattern,
+        // Add new brush types here
+        Custom = 1000
     };
     Q_ENUM(BrushType)
 

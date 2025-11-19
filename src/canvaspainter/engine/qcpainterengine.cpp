@@ -476,6 +476,28 @@ QCPaint QCPainterEngine::createBoxShadow(float x, float y, float width, float he
     return p;
 }
 
+QCPaint QCPainterEngine::createGridPattern(float x, float y, float width, float height,
+                                           float lineWidth, float angle, float feather,
+                                           const QColor &gridColor, const QColor &backgroundColor)
+{
+    QCPaint p;
+    p.brushType = BrushGrid;
+    p.transform = p.transform.translate(x, y);
+    if (!qFuzzyIsNull(angle))
+        p.transform = p.transform.rotateRadians(angle);
+
+    p.extent[0] = width;
+    p.extent[1] = height;
+
+    p.feather = feather;
+    p.radius = lineWidth;
+
+    p.innerColor = { gridColor.redF(), gridColor.greenF(), gridColor.blueF(), gridColor.alphaF() };
+    p.outerColor = { backgroundColor.redF(), backgroundColor.greenF(), backgroundColor.blueF(), backgroundColor.alphaF() };
+
+    return p;
+}
+
 // ***** Paths *****
 
 void QCPainterEngine::beginPath()

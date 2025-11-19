@@ -10,6 +10,7 @@
 #include "qcconicalgradient.h"
 #include "qcboxgradient.h"
 #include "qcboxshadow.h"
+#include "qcgridpattern.h"
 #include "qcimagepattern.h"
 #include "qcimage.h"
 
@@ -76,6 +77,23 @@ void tst_QCBrush::testEqual()
     QVERIFY(ip1 != ip2);
     ip1.setImageSize(ip2.imageSize());
     QVERIFY(ip1 == ip2);
+
+    QCGridPattern gp1;
+    QCGridPattern gp2;
+    QVERIFY(gp1 == gp2);
+    gp2.setRotation(12.3f);
+    QVERIFY(gp1 != gp2);
+    gp1.setRotation(12.3f);
+    QVERIFY(gp1 == gp2);
+    gp2.setStartPosition(50, 60);
+    QVERIFY(gp1 != gp2);
+    gp1.setStartPosition(gp2.startPosition());
+    QVERIFY(gp1 == gp2);
+    gp2.setLineColor(QColorConstants::Yellow);
+    QVERIFY(gp1 != gp2);
+    gp1.setLineColor(gp2.lineColor());
+    QVERIFY(gp1 == gp2);
+
 }
 
 void tst_QCBrush::testDataStreams()
@@ -186,6 +204,24 @@ void tst_QCBrush::testDataStreams()
         sr >> bsStreamed;
     }
     QCOMPARE(bs1, bsStreamed);
+
+    // QCGridPattern
+    QCGridPattern gp1(10, 20, 30, 40, QColorConstants::Red, QColorConstants::Blue);
+    gp1.setFeather(2.0f);
+    gp1.setRotation(0.5f);
+    gp1.setLineWidth(3.0f);
+    QCGridPattern gp2 = gp1;
+    QCOMPARE(gp1, gp2);
+    {
+        QDataStream sw(&data, QIODevice::WriteOnly);
+        sw << gp1;
+    }
+    QCGridPattern gpStreamed;
+    {
+        QDataStream sr(&data, QIODevice::ReadOnly);
+        sr >> gpStreamed;
+    }
+    QCOMPARE(gp1, gpStreamed);
 }
 
 void tst_QCBrush::testDebugs()
@@ -206,6 +242,8 @@ void tst_QCBrush::testDebugs()
     qDebug() << p1;
     QCBoxShadow bs1;
     qDebug() << bs1;
+    QCGridPattern gp1;
+    qDebug() << gp1;
 }
 
 void tst_QCBrush::testTypes()
@@ -219,9 +257,10 @@ void tst_QCBrush::testTypes()
     QCImage image;
     brushes << new QCImagePattern(image, 14, 24, 34, 44);
     brushes << new QCBoxShadow(51, 52, 53, 54, 21, 22, QColorConstants::Black);
+    brushes << new QCGridPattern(61, 62, 63, 64, QColorConstants::Green, QColorConstants::Yellow);
 
     int gradients = 0;
-    int imagePatterns = 0;
+    int patterns = 0;
     int shadows = 0;
     for (auto *brush : brushes) {
         if (brush->type() == QCBrush::BrushType::Brush) {
@@ -245,15 +284,19 @@ void tst_QCBrush::testTypes()
         } else if (brush->type() == QCBrush::BrushType::ImagePattern) {
             auto b = static_cast<QCImagePattern*>(brush);
             QCOMPARE(b->startPosition().x(), 14);
-            imagePatterns++;
+            patterns++;
         } else if (brush->type() == QCBrush::BrushType::BoxShadow) {
             auto b = static_cast<QCBoxShadow*>(brush);
             QCOMPARE(b->rect().x(), 51);
             shadows++;
+        } else if (brush->type() == QCBrush::BrushType::GridPattern) {
+            auto b = static_cast<QCGridPattern*>(brush);
+            QCOMPARE(b->startPosition().x(), 61);
+            patterns++;
         }
     }
     QCOMPARE(gradients, 4);
-    QCOMPARE(imagePatterns, 1);
+    QCOMPARE(patterns, 2);
     QCOMPARE(shadows, 1);
 }
 

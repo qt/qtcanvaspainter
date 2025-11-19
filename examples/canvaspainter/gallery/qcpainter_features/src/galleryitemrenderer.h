@@ -55,6 +55,9 @@ private:
     void drawCompositeItem3(float x, float y, float w, float h, QCPainter::CompositeOperation mode);
     void drawCompositeModes();
 
+    // View - Grid patterns
+    void drawGridPatterns();
+
     // View - Shadows
     void drawRectangularShadows();
 

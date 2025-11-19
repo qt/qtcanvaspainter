@@ -46,6 +46,7 @@ enum QCBrushType {
     BrushBoxGradient,
     BrushBoxShadow,
     BrushImage,
+    BrushGrid,
 };
 
 struct QCColor {

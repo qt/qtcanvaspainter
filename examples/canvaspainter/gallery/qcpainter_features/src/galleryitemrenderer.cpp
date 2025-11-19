@@ -10,6 +10,7 @@
 #include "qclineargradient.h"
 #include "qcimagepattern.h"
 #include "qcboxshadow.h"
+#include "qcgridpattern.h"
 #include "qcpainterpath.h"
 #include "qctext.h"
 #include <math.h>
@@ -99,27 +100,30 @@ void GalleryItemRenderer::paint(QCPainter *painter)
         drawCompositeModes();
         break;
     case 6:
-        drawRectangularShadows();
+        drawGridPatterns();
         break;
     case 7:
-        drawCustomBrushes();
+        drawRectangularShadows();
         break;
     case 8:
-        drawTextsFonts();
+        drawCustomBrushes();
         break;
     case 9:
-        drawTextsBrushes();
+        drawTextsFonts();
         break;
     case 10:
-        drawTextsAlignments();
+        drawTextsBrushes();
         break;
     case 11:
-        drawTextsWrapping();
+        drawTextsAlignments();
         break;
     case 12:
-        drawImages();
+        drawTextsWrapping();
         break;
     case 13:
+        drawImages();
+        break;
+    case 14:
         //drawFrameBuffers();
         break;
     default:
@@ -992,6 +996,83 @@ void GalleryItemRenderer::drawCompositeModes() {
     drawCompositeItem3(posX, posY, w, h, QCPainter::CompositeOperation::SourceAtop);
     posX += w + margin;
     drawCompositeItem3(posX, posY, w, h, QCPainter::CompositeOperation::DestinationOut);
+}
+
+void GalleryItemRenderer::drawGridPatterns() {
+    auto *p = painter();
+    int rects = 2;
+    float margin = width() * 0.05f;
+    float w = width() / rects - margin;
+    float h = height() * 0.25;
+    float posX = margin/2;
+    float posY = margin;
+
+    QRectF rect1(posX, posY, w, h);
+    float cellZoom = 1.0 + 0.95 * sin(0.5 * m_animationTime);
+    QPointF cp1 = rect1.center();
+    // Minor grid
+    QCGridPattern gp1(cp1.x(), cp1.y(), w * 0.1 * cellZoom, h * 0.1 * cellZoom);
+    gp1.setLineColor("#404040");
+    gp1.setBackgroundColor("#202020");
+    p->setFillStyle(gp1);
+    p->fillRect(rect1);
+    // Major grid
+    QCGridPattern gp2(cp1.x(), cp1.y(), w * cellZoom, h * cellZoom);
+    gp2.setLineColor("#d0d0d0");
+    gp2.setBackgroundColor(Qt::transparent);
+    p->setFillStyle(gp2);
+    p->fillRect(rect1);
+
+    posX += w + margin;
+    QRectF rect2(posX, posY, w, h);
+    QPointF cp2 = rect2.center();
+    float g1 = w * 0.1f;
+    QCGridPattern gp3(cp2.x(), cp2.y(), g1, g1);
+    QColor color1(m_animationSine * 150, 80, 40);
+    gp3.setLineColor(color1);
+    gp3.setBackgroundColor("#202020");
+    gp3.setLineWidth(g1 * 0.5f);
+    gp3.setFeather(g1 * 0.5f);
+    gp3.setRotation(m_animationTime);
+    p->setFillStyle(gp3);
+    p->fillRect(rect2);
+
+    posY += h + margin;
+    posX = margin/2;
+    QRectF rect3(posX, posY, w, h);
+    QCGridPattern gp4;
+    float bar = 20;
+    gp4.setStartPosition(15 * m_animationTime, 0);
+    gp4.setCellSize(bar, 0);
+    gp4.setLineWidth(bar * 0.5f);
+    gp4.setRotation(M_PI / 4);
+    QCGridPattern gp5;
+    gp5.setCellSize(0, 4);
+    gp5.setBackgroundColor("#202020");
+    gp5.setLineColor("#404040");
+    p->setStrokeStyle(gp4);
+    p->setFillStyle(gp5);
+    p->setLineWidth(10);
+    p->beginPath();
+    p->roundRect(rect3, 20);
+    p->fill();
+    p->stroke();
+
+    posX += w + margin;
+    QRectF rect4(posX, posY, w, h);
+    QPointF cp4 = rect4.center();
+    QCGridPattern gp6;
+    float strokeW = 10 * m_animationSine;
+    gp6.setLineColor(Qt::transparent);
+    gp6.setBackgroundColor(Qt::white);
+    gp6.setStartPosition(cp4.x(), cp4.y());
+    gp6.setCellSize(rect4.width() / 5, rect4.height() / 5);
+    gp6.setLineWidth(strokeW);
+    p->setStrokeStyle(gp6);
+    p->setLineWidth(4);
+    p->beginPath();
+    p->roundRect(rect4, 10);
+    p->stroke();
 }
 
 void GalleryItemRenderer::drawRectangularShadows() {

@@ -41,6 +41,15 @@ float roundedBox4R(vec2 pos, vec2 size, vec4 r) {
     return length(max(q, vec2(0.0))) - r[i];
 }
 
+float createBars(float coord, float spacing, float strokeWidth) {
+    float sbar = 1.0 / spacing;
+    float p = coord * sbar;
+    float barSmoothness = feather * sbar;
+    float barWidth = 1.0 - strokeWidth * sbar;
+    float bar = abs(2.0 * fract(p) - 1.0);
+    return smoothstep(barWidth - barSmoothness, barWidth + barSmoothness, bar);
+}
+
 #ifdef SCISSORING
 float clipMask() {
     vec2 sc = abs(scissorMat * vec3(fragCoord, 1.0)).xy - scissorExt;
@@ -123,12 +132,17 @@ void main()
             // Note: outerCol contains radius per-corner.
             float d = quadraticSmoothstep(0.0, feather, roundedBox4R(pt, extent, outerCol));
             color = (1.0 - d) * innerCol;
-        } else { // Image
+        } else if (type == 10) { // Image
             color = texture(tex, pt / extent);
             if (texType == 1) color = vec4(color.rgb * color.a, color.a);
             if (texType == 2) color = vec4(color.r);
             // Apply color tint and alpha.
             color *= innerCol;
+        } else { // Grid pattern
+            float hLines = extent.x > 0 ? createBars(pt.x, extent.x, radius) : 0;
+            float vLines = extent.y > 0 ? createBars(pt.y, extent.y, radius) : 0;
+            float lines = max(hLines, vLines);
+            color = mix(outerCol, innerCol, lines);
         }
         color *= aaAlpha * clip;
     }

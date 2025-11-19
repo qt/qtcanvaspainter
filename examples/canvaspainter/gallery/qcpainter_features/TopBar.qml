@@ -29,30 +29,33 @@ Item {
             title = "Antialiasing and Line Width";
             break;
         case 5:
-            title = "Composite modes";
+            title = "Composite Modes";
             break;
         case 6:
-            title = "Shadows";
+            title = "Grid Patterns";
             break;
         case 7:
-            title = "Custom Brushes";
+            title = "Shadows";
             break;
         case 8:
-            title = "Text: Fonts and Styles";
+            title = "Custom Brushes";
             break;
         case 9:
-            title = "Text: Brushes";
+            title = "Text: Fonts and Styles";
             break;
         case 10:
-            title = "Text: Alignment";
+            title = "Text: Brushes";
             break;
         case 11:
-            title = "Text: Wrapping";
+            title = "Text: Alignment";
             break;
         case 12:
-            title = "Images";
+            title = "Text: Wrapping";
             break;
         case 13:
+            title = "Images";
+            break;
+        case 14:
             title = "Frame Buffers";
             break;
         }

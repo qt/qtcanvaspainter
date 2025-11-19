@@ -102,6 +102,11 @@ public:
     QCPaint createBoxShadow(float x, float y, float width, float height,
                             const QVector4D &radius,
                             float blur, const QColor &color);
+    QCPaint createGridPattern(float x, float y,
+                              float width, float height,
+                              float lineWidth, float angle, float feather,
+                              const QColor &gridColor,
+                              const QColor &backgroundColor);
 
     // Paths
     void beginPath();

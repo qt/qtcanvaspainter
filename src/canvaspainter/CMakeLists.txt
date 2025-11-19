@@ -6,6 +6,7 @@ qt_internal_add_module(CanvasPainter
         qcpainter.cpp qcpainter.h qcpainter_p.h
         qclineargradient.cpp qclineargradient.h
         qcimagepattern.cpp qcimagepattern.h qcimagepattern_p.h
+        qcgridpattern.cpp qcgridpattern.h qcgridpattern_p.h
         qcradialgradient.cpp qcradialgradient.h
         qcboxgradient.cpp qcboxgradient.h
         qcboxshadow.cpp qcboxshadow.h qcboxshadow_p.h

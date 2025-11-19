@@ -42,6 +42,8 @@ QT_BEGIN_NAMESPACE
     \value ImagePattern - Creates a pattern using the specified image and
     repetition (QCImagePattern).
 
+    \value GridPattern - Creates a pattern using the specified grid (QCGridPattern).
+
     \value Custom - Creates a custom shader brush (QCCustomBrush).
 
     \sa type()
