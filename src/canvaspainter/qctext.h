@@ -10,6 +10,9 @@
 
 QT_BEGIN_NAMESPACE
 
+class QCTextPrivate;
+QT_DECLARE_QESDP_SPECIALIZATION_DTOR(QCTextPrivate)
+
 // A state object for texts that will be rendered
 class Q_CANVASPAINTER_EXPORT QCText
 {
@@ -17,6 +20,13 @@ public:
     QCText();
     QCText(float x, float y, float width, float height);
     QCText(const QRectF &rect);
+    QCText(const QCText &text) noexcept;
+    ~QCText();
+
+    QCText &operator=(const QCText &brush) noexcept;
+    QCText(QCText &&other) noexcept = default;
+    QT_MOVE_ASSIGNMENT_OPERATOR_IMPL_VIA_PURE_SWAP(QCText)
+    void swap(QCText &other) noexcept { d.swap(other.d); }
 
     void setX(float x);
     void setY(float y);
@@ -42,25 +52,11 @@ public:
     void setDirty();
 
 private:
-    friend class QCPainterEngine;
-    friend class QCPainterRhiRenderer;
-
-    // TODO: Make this a proper value class and
-    // move all these into a private class.
-    quint32 m_Id;
-    QString m_text;
-    float m_x = 0;
-    float m_y = 0;
-    float m_width = 0;
-    float m_height = 0;
-    float m_fontSize; // This is basically for state purposes
-    bool m_optimized = false;
-    bool m_isLayoutDirty = true;
-    bool m_isDirty = true;
-    bool m_isPrepared = false;
-
-    static quint32 nextId();
+    QExplicitlySharedDataPointer<QCTextPrivate> d;
+    friend class QCTextPrivate;
 };
+
+Q_DECLARE_SHARED(QCText)
 
 QT_END_NAMESPACE
 

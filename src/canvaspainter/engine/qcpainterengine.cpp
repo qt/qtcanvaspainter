@@ -8,6 +8,7 @@
 #include "qccustombrush_p.h"
 #include "qcpainterpath_p.h"
 #include "qctext.h"
+#include "qctext_p.h"
 #ifndef QCPAINTER_DISABLE_TEXT_SUPPORT
 #include "qctextlayout_p.h"
 #include <QtGui/private/qdistancefield_p.h>
@@ -1066,7 +1067,8 @@ void QCPainterEngine::prepareText(QCText &text)
     QCTextCache &ct = ctx.cachedTexts[text.getId()];
     // Font size/scaling can also be moved (and eventually will) into the non-rendering part
     // but involves a bit more work to scale with the baselines, offsets, etc
-    if (!text.m_isPrepared && (text.m_isLayoutDirty || text.fontSize() != font.pixelSize())) {
+    QCTextPrivate *textp = QCTextPrivate::get(&text);
+    if (!textp->isPrepared && (textp->isLayoutDirty || text.fontSize() != font.pixelSize())) {
         text.setFontSize(font.pixelSize());
         int width, height;
         //TODO: This should be a pointer if some other text updates the atlas
@@ -1076,7 +1078,7 @@ void QCPainterEngine::prepareText(QCText &text)
         ct.transformedVerts.resize(ct.verts.size());
         ct.sizeChange = int(ct.transformedVerts.size() - currentSize);
 
-        text.m_isPrepared = true;
+        textp->isPrepared = true;
     }
 
 #endif
@@ -1114,9 +1116,9 @@ void QCPainterEngine::fillText(QCText &text)
 {
 #ifndef QCPAINTER_DISABLE_TEXT_SUPPORT
     QCTextCache &ct = ctx.cachedTexts[text.getId()];
-
+    QCTextPrivate *textp = QCTextPrivate::get(&text);
     if (state.transform != ct.previousTransform)
-        text.m_isDirty = true;
+        textp->isDirty = true;
 
     prepareText(text);
 
@@ -1140,7 +1142,7 @@ void QCPainterEngine::fillText(QCText &text)
             ct.transformedVerts,
             ct.indices,
             text,
-            text.m_isDirty | text.m_isLayoutDirty);
+            textp->isDirty | textp->isLayoutDirty);
     } else {
         m_renderer->renderTextFillCustom(
             p,
@@ -1149,11 +1151,11 @@ void QCPainterEngine::fillText(QCText &text)
             ct.transformedVerts,
             ct.indices,
             text,
-            text.m_isDirty | text.m_isLayoutDirty);
+            textp->isDirty | textp->isLayoutDirty);
     }
 
-    text.m_isLayoutDirty = false;
-    text.m_isDirty = false;
+    textp->isLayoutDirty = false;
+    textp->isDirty = false;
 
     ct.previousTransform = state.transform;
 #endif
