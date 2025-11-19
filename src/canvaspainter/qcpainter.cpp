@@ -1434,7 +1434,11 @@ void QCPainter::fillText(const QString &text, const QRectF &rect, int cacheIndex
     d->fillText(text, rect, cacheIndex);
 }
 
-// TODO: API Docs
+/*!
+    \overload
+
+    Draws the text container \a text according to its specification.
+*/
 void QCPainter::fillText(const QCText &text)
 {
     Q_D(QCPainter);
