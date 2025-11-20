@@ -10,10 +10,14 @@ QT_BEGIN_NAMESPACE
 
 /*!
     \class QQuickCPainterItem
-    \brief The QQuickCPainterItem creates QtQuick item using QCPainter.
+    \brief The QQuickCPainterItem class provides a way to use the Qt Canvas Painter API in the
+    QML Scene Graph.
     \inmodule QtCanvasPainter
 
-    TODO: Write more documentation here.
+    To write your own painted item, you first create a subclass of
+    QQuickCPainterItem, and then start by implementing its only pure virtual
+    public function: createItemRenderer(), which returns an object that performs
+    the actual painting.
 */
 
 /*!
@@ -48,6 +52,11 @@ QT_BEGIN_NAMESPACE
     The default value is \c Qt.LeftButton.
 
     To accept all buttons use \c Qt.AllButtons.
+*/
+
+/*!
+    \property QQuickCPainterItem::debug
+    \internal
 */
 
 /*!
@@ -89,7 +98,7 @@ QQuickCPainterItem::~QQuickCPainterItem()
 /*!
     \fn QQuickCPainterRenderer* QQuickCPainterItem::createItemRenderer() const
 
-    Implement this method to (re)create painter for this item. The
+    Implement this method to (re)create a painter for this item. The
     painter class should be inherited from QQuickCPainterRenderer.
     QQuickCPainterItem takes the ownership of the created object and
     deletes it when needed.
@@ -259,6 +268,10 @@ void QQuickCPainterItem::setAcceptedButtons(Qt::MouseButtons buttons)
     }
     Q_EMIT acceptedButtonsChanged();
 }
+
+/*!
+   \internal
+ */
 
 QVariantMap QQuickCPainterItem::debug()
 {

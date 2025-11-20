@@ -34,17 +34,47 @@ QT_BEGIN_NAMESPACE
 #define QCPAINTER_MINIMUM_PATH_COMMANDS_DATA_SIZE 128
 #endif
 
+/*!
+    \class QCPainterPath
+    \brief QCPainterPath is the native path format of QCPainter.
+    \inmodule QtCanvasPainter
+
+    QCPainterPath provides a way to specify paths in the format that QCPainter
+    uses internally. This gives better performance than using QPainterPath.
+
+    QCPainterPath has limited functionality compared to QPainterPath. In particular:
+    \list
+    \li There are no methods for intersection or subtraction between two paths.
+    \li There is no method for translating the path.
+    \li There is no method for adding text.
+    \li The fillrule is always \c WindingFill (nonzero), \c OddEvenFill is not supported.
+    \endlist
+*/
+
+/*!
+    Constructs an empty path.
+*/
 QCPainterPath::QCPainterPath()
     : d_ptr(new QCPainterPathPrivate(this))
 {
 }
 
+/*!
+    Closes the current subpath by drawing a line to the beginning of
+    the subpath, automatically starting a new path.
+*/
 void QCPainterPath::closePath()
 {
     Q_D(QCPainterPath);
     d->appendCommand(QCCommand::Close);
 }
 
+/*!
+    \overload
+
+    Moves the current position to (\a{x}, \a{y}) and starts a new
+    subpath, implicitly closing the previous path.
+*/
 void QCPainterPath::moveTo(float x, float y)
 {
     Q_D(QCPainterPath);
@@ -54,11 +84,20 @@ void QCPainterPath::moveTo(float x, float y)
 
 }
 
+/*!
+    Moves the current point to the given \a point, implicitly starting
+    a new subpath and closing the previous one.
+*/
 void QCPainterPath::moveTo(QPointF point)
 {
     moveTo(float(point.x()), float(point.y()));
 }
 
+/*!
+   \overload
+    Draws a line from the current position to the point (\a{x},
+    \a{y}).
+*/
 void QCPainterPath::lineTo(float x, float y)
 {
     Q_D(QCPainterPath);
@@ -67,11 +106,18 @@ void QCPainterPath::lineTo(float x, float y)
     d->appendCommand(QCCommand::LineTo);
 }
 
+/*!
+    Adds a straight line from the current position to the given \a
+    point.  After the line is drawn, the current position is updated
+    to be at the end point of the line.
+*/
 void QCPainterPath::lineTo(QPointF point)
 {
     lineTo(float(point.x()), float(point.y()));
 }
 
+/*!
+*/
 void QCPainterPath::bezierCurveTo(float cp1X, float cp1Y, float cp2X, float cp2Y, float x, float y)
 {
     Q_D(QCPainterPath);
@@ -80,6 +126,14 @@ void QCPainterPath::bezierCurveTo(float cp1X, float cp1Y, float cp2X, float cp2Y
     d->appendCommand(QCCommand::BezierTo);
 }
 
+/*!
+    Adds a cubic Bezier curve between the current position and the
+    given \a endPoint using the control points specified by \a controlPoint1, and
+    \a controlPoint2.
+
+    After the curve is added, the current position is updated to be at
+    the end point of the curve.
+*/
 void QCPainterPath::bezierCurveTo(
     QPointF controlPoint1, QPointF controlPoint2, QPointF endPoint)
 {
@@ -88,6 +142,11 @@ void QCPainterPath::bezierCurveTo(
                   float(endPoint.x()), float(endPoint.y()));
 }
 
+/*!
+    Adds a quadratic Bezier curve between the current point and the endpoint
+    (\a{x}, \a{y}) with the control point specified by
+    (\a{cpX}, \a{cpY}).
+*/
 void QCPainterPath::quadraticCurveTo(float cpX, float cpY, float x, float y)
 {
     Q_D(QCPainterPath);
@@ -105,12 +164,20 @@ void QCPainterPath::quadraticCurveTo(float cpX, float cpY, float x, float y)
     d->appendCommand(QCCommand::BezierTo);
 }
 
+/*!
+    Adds a quadratic Bezier curve between the current position and the
+    given \a endPoint with the control point specified by \a controlPoint.
+*/
 void QCPainterPath::quadraticCurveTo(QPointF controlPoint, QPointF endPoint)
 {
     quadraticCurveTo(float(controlPoint.x()), float(controlPoint.y()),
                      float(endPoint.x()), float(endPoint.y()));
 }
 
+/*!
+    Creates an arc using the points QPointF(\a x1, \a y1) and QPointF(\a
+    x2, \a y2) with the given \a radius.
+*/
 void QCPainterPath::arcTo(float x1, float y1, float x2, float y2, float radius)
 {
     // Continue from previous point
@@ -159,6 +226,9 @@ void QCPainterPath::arcTo(float x1, float y1, float x2, float y2, float radius)
     arc(cx, cy, radius, a0, a1, direction, true);
 }
 
+/*!
+    Creates an arc using the points \a point1 and \a point2 with the given \a radius.
+*/
 void QCPainterPath::arcTo(QPointF point1, QPointF point2, float radius)
 {
     arcTo(float(point1.x()), float(point1.y()),
@@ -166,6 +236,12 @@ void QCPainterPath::arcTo(QPointF point1, QPointF point2, float radius)
           radius);
 }
 
+/*!
+    Creates an arc centered on QPointF(\a centerX, \a centerY) with the given \a radius,
+    starting at an angle of \a a0 radians and ending at \a a1 radians. The arc spans the
+    given \a direction. If \a isConnected is \c false, the previous path is closed and
+    a new sub-path is started.
+*/
 void QCPainterPath::arc(
     float centerX,
     float centerY,
@@ -240,6 +316,14 @@ void QCPainterPath::arc(
     d->appendCommands(commands.constData(), cCount);
 }
 
+/*!
+   \overload
+
+    Creates an arc centered on \a centerPoint with the given \a radius,
+    starting at an angle of \a a0 radians and ending at \a a1 radians. The arc spans the
+    given \a direction. If \a isConnected is \c false, the previous path is closed and
+    a new sub-path is started.
+*/
 void QCPainterPath::arc(
     QPointF centerPoint,
     float radius,
@@ -252,6 +336,9 @@ void QCPainterPath::arc(
         radius, a0, a1, direction, isConnected);
 }
 
+/*!
+   Creates a rectangle positioned at QPointF(\a x, \a y) with the given \a width and \a height.
+*/
 void QCPainterPath::rect(float x, float y, float width, float height)
 {
     Q_D(QCPainterPath);
@@ -272,6 +359,11 @@ void QCPainterPath::rect(float x, float y, float width, float height)
     d->appendCommands(commands, 5);
 }
 
+/*!
+   \overload
+
+    Creates a rectangle specified by \a rect
+*/
 void QCPainterPath::rect(const QRectF &rect)
 {
     this->rect(float(rect.x()),
@@ -280,6 +372,10 @@ void QCPainterPath::rect(const QRectF &rect)
                float(rect.height()));
 }
 
+/*!
+    Adds the given rectangle \a x, \a y, \a width, \a height with rounded corners to the path. The
+    corners are quarter circles with the given \a radius.
+*/
 void QCPainterPath::roundRect(float x, float y, float width, float height, float radius)
 {
     Q_D(QCPainterPath);
@@ -325,6 +421,11 @@ void QCPainterPath::roundRect(float x, float y, float width, float height, float
     }
 }
 
+/*!
+    \overload
+    Adds the given rectangle \a rect with rounded corners to the path. The
+    corners are quarter circles with the given \a radius.
+*/
 void QCPainterPath::roundRect(const QRectF &rect, float radius)
 {
     roundRect(float(rect.x()),
@@ -334,6 +435,11 @@ void QCPainterPath::roundRect(const QRectF &rect, float radius)
               radius);
 }
 
+/*!
+    Adds the rectangle \a x, \a y, \a width, \a height with rounded corners to the path. The
+    corners are quarter circles with radius \a radiusTopLeft, \a radiusTopRight
+    \a radiusBottomRight and \a radiusBottomLeft, respectively.
+*/
 void QCPainterPath::roundRect(
     float x,
     float y,
@@ -403,6 +509,12 @@ void QCPainterPath::roundRect(
     }
 }
 
+/*!
+    \overload
+    Adds the rectangle \a rect with rounded corners to the path. The
+    corners are quarter circles with radius \a radiusTopLeft, \a radiusTopRight
+    \a radiusBottomRight and \a radiusBottomLeft, respectively.
+*/
 void QCPainterPath::roundRect(
     const QRectF &rect,
     float radiusTopLeft,
@@ -418,6 +530,10 @@ void QCPainterPath::roundRect(
               radiusBottomRight, radiusBottomLeft);
 }
 
+/*!
+    Creates an ellipse centered at (\a x, \a y), with radii defined by \a radiusX, \a radiusY
+    and adds it to the path as a closed subpath.
+*/
 void QCPainterPath::ellipse(float x, float y, float radiusX, float radiusY)
 {
     Q_D(QCPainterPath);
@@ -441,6 +557,11 @@ void QCPainterPath::ellipse(float x, float y, float radiusX, float radiusY)
     d->appendCommands(commands, 5);
 }
 
+/*!
+    \overload
+    Creates an ellipse within the rectangle \a rect
+    and adds it to the path as a closed subpath.
+*/
 void QCPainterPath::ellipse(const QRectF &rect)
 {
     ellipse(float(rect.x() + rect.width() * 0.5),
@@ -449,6 +570,9 @@ void QCPainterPath::ellipse(const QRectF &rect)
             float(rect.height() * 0.5));
 }
 
+/*!
+   Adds a circle with center at QPointF(\a x, \a y) and the given \a radius to the path.
+*/
 void QCPainterPath::circle(float x, float y, float radius)
 {
     Q_D(QCPainterPath);
@@ -473,16 +597,19 @@ void QCPainterPath::circle(float x, float y, float radius)
     d->appendCommands(commands, 5);
 }
 
+/*!
+   \overload
+   Adds a circle with center at \a centerPoint and the given \a radius to the path.
+*/
 void QCPainterPath::circle(QPointF centerPoint, float radius)
 {
     circle(float(centerPoint.x()), float(centerPoint.y()), radius);
 }
 
 /*!
-    Sets the current sub-path \a winding to either \a QCPainter::CounterClockWise (default)
-    or \a QCPainter::ClockWise. CounterClockWise draws solid subpaths while ClockWise draws holes.
+    Sets the current sub-path \a winding to either \c QCPainter::CounterClockWise (default)
+    or \c QCPainter::ClockWise. CounterClockWise draws solid subpaths while ClockWise draws holes.
 */
-
 void QCPainterPath::setPathWinding(QCPainter::PathWinding winding)
 {
     Q_D(QCPainterPath);
@@ -494,7 +621,6 @@ void QCPainterPath::setPathWinding(QCPainter::PathWinding winding)
 /*!
     Adds \a path into this path, transformed with \a transform matrix.
 */
-
 void QCPainterPath::addPath(const QCPainterPath &path, const QTransform &transform)
 {
     if (path.isEmpty())
@@ -537,7 +663,6 @@ void QCPainterPath::addPath(const QCPainterPath &path, const QTransform &transfo
 
     \sa clear
 */
-
 bool QCPainterPath::isEmpty() const
 {
     Q_D(const QCPainterPath);
@@ -548,9 +673,9 @@ bool QCPainterPath::isEmpty() const
     Clears the path commands and data.
 
     Call this when the path commands change to recreate the path.
-    This does not affect the memory usage, use \a reserve and \a squeeze for that.
+    This does not affect the memory usage, use  reserveCommands(), reserveCommandsData() and squeeze() for that.
 
-    \sa reserve, squeeze
+    \sa reserveCommands, reserveCommandsData, squeeze
 */
 void QCPainterPath::clear()
 {
@@ -562,15 +687,15 @@ void QCPainterPath::clear()
 
 /*!
     Releases any memory not required to store the path commands and data.
-    This can be used to reduce the memory usage after calling the \a reserveCommands
-    and \a reserveData method.
+    This can be used to reduce the memory usage after calling the \l reserveCommands
+    and \l reserveCommandsData method.
 
     Normally this is not needed to be used, but it can be useful when the path size has
-    been big due to reserving or adding many elements (\a lineTo, \a bezierCurveTo etc.) and
-    then size is expected to be much smaller in future so calling first \a reserveCommands,
-    \a reserveData and then \a squeeze, will release some memory.
+    been big due to reserving or adding many elements (\l lineTo, \l bezierCurveTo etc.) and
+    then size is expected to be much smaller in future so calling first \c reserveCommands,
+    \c reserveCommandsData and then \c squeeze, will release some memory.
 
-    \sa reserveCommands, reserveData
+    \sa reserveCommands, reserveCommandsData
 */
 void QCPainterPath::squeeze()
 {
@@ -581,10 +706,9 @@ void QCPainterPath::squeeze()
 /*!
     Returns the amount of commands in the path.
 
-    \note Some path elements require several commands. For example \a moveTo and \a lineTo require
-    \c 1 command, \a bezierCurveTo require \c 6 commands and \a roundRect \c 10 commands.
+    \note Some path elements require several commands. For example \l moveTo and \l lineTo require
+    \c 1 command, \l bezierCurveTo requires \c 6 commands and \l roundRect \c 10 commands.
 */
-
 qsizetype QCPainterPath::commandsSize() const
 {
     Q_D(const QCPainterPath);
@@ -596,11 +720,10 @@ qsizetype QCPainterPath::commandsSize() const
 
     Commands data basically means the points required by the commands.
 
-    \note Some path elements require several data points. For example \a closePath require
-    \c 0, \a moveTo and \a lineTo require \c 2, \a bezierCurveTo require 6 and \a roundRect
-    require \c 34 data points.
+    \note Some path elements require several data points. For example \l closePath requires
+    \c 0, \l moveTo and \l lineTo require \c 2, \l bezierCurveTo requires 6 and \l roundRect
+    requires \c 34 data points.
 */
-
 qsizetype QCPainterPath::commandsDataSize() const
 {
     Q_D(const QCPainterPath);
@@ -612,7 +735,6 @@ qsizetype QCPainterPath::commandsDataSize() const
 
     \sa reserveCommands
 */
-
 qsizetype QCPainterPath::commandsCapacity() const
 {
     Q_D(const QCPainterPath);
@@ -624,7 +746,6 @@ qsizetype QCPainterPath::commandsCapacity() const
 
     \sa reserveCommandsData
 */
-
 qsizetype QCPainterPath::commandsDataCapacity() const
 {
     Q_D(const QCPainterPath);
@@ -635,11 +756,10 @@ qsizetype QCPainterPath::commandsDataCapacity() const
     Reserves a given amount of commands in QCPainterPath's internal memory.
 
     Attempts to allocate memory for at least \a size commands.
-    Some path elements require multiple commands, see \a commandsSize.
+    Some path elements require multiple commands, see \l commandsSize.
 
     \sa squeeze
 */
-
 void QCPainterPath::reserveCommands(qsizetype size)
 {
     Q_D(QCPainterPath);
@@ -650,11 +770,10 @@ void QCPainterPath::reserveCommands(qsizetype size)
     Reserves a given amount of commands data in QCPainterPath's internal memory.
 
     Attempts to allocate memory for at least \a size data points.
-    Some path elements require multiple data points, see \a commandsDataSize.
+    Some path elements require multiple data points, see \l commandsDataSize.
 
     \sa squeeze
 */
-
 void QCPainterPath::reserveCommandsData(qsizetype size)
 {
     Q_D(QCPainterPath);
@@ -664,10 +783,9 @@ void QCPainterPath::reserveCommandsData(qsizetype size)
 
 /*!
     Returns the current position of the path.
-    This means position where previous path command (\a moveTo, \a lineTo, \a bezierCurveTo etc.) has ended.
+    This means position where previous path command (\l moveTo, \l lineTo, \l bezierCurveTo etc.) has ended.
     When the path is empty, returns (0.0, 0.0).
 */
-
 QPointF QCPainterPath::currentPosition() const
 {
     Q_D(const QCPainterPath);

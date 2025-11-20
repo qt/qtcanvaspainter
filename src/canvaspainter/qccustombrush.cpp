@@ -20,6 +20,14 @@ static QShader getShader(const QString &name)
 }
 
 /*!
+    \class QCCustomBrush
+    \brief QCCustomBrush is a brush with custom shaders.
+    \inmodule QtCanvasPainter
+
+    QCCustomBrush is a stroke/fill brush with custom vertex and fragment shaders.
+*/
+
+/*!
     Constructs a default custom brush.
 */
 

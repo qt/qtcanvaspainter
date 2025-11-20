@@ -21,10 +21,10 @@ QAtomicInt QQuickCPainterRendererPrivate::m_rendered;
 
 /*!
     \class QQuickCPainterRenderer
-    \brief The QQuickCPainterRenderer handles all painting of a QQuickCPainterItem.
+    \brief The QQuickCPainterRenderer handles all painting for a QQuickCPainterItem.
     \inmodule QtCanvasPainter
 
-    TODO: Write more documentation here.
+    Implement the paint() method to perform the rendering.
 */
 
 
@@ -68,6 +68,10 @@ void QQuickCPainterRenderer::initializeResources(QCPainter *painter)
     Q_UNUSED(painter);
 }
 
+/*!
+    This function is called at the start of rendering using \a painter.
+    This function is called for every frame, before the paint engine is initialized.
+*/
 void QQuickCPainterRenderer::prePaint(QCPainter *painter)
 {
     Q_UNUSED(painter);

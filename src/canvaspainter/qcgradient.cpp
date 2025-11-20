@@ -401,7 +401,7 @@ void QCGradient::detach()
     \typedef QCGradientStop
     \relates QCGradient
 
-    Typedef for std::pair<\l float, QColor>.
+    Typedef for std::pair<\c float, QColor>.
 */
 
 /*!

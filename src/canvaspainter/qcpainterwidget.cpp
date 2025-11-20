@@ -15,11 +15,28 @@ QT_BEGIN_NAMESPACE
 // Does not really need to be atomic since widgets operate on gui thread, but for consistency with the Quick item.
 QAtomicInt QCPainterWidgetPrivate::m_rendered;
 
+
+/*!
+    \class QCPainterWidget
+    \brief QCPainterWidget is a widget for rendering using QCPainter.
+    \inmodule QtCanvasPainter
+
+    Implement the \l paint virtual function in a subclass to perform rendering
+    using a QCPainter.
+*/
+
+/*!
+   Constructs a QCPainterWidget with the given \a parent.
+ */
+
 QCPainterWidget::QCPainterWidget(QWidget *parent)
     : QRhiWidget(*new QCPainterWidgetPrivate, parent)
 {
 }
 
+/*!
+   Destroys the QCPainterWidget.
+ */
 QCPainterWidget::~QCPainterWidget()
 {
     Q_D(QCPainterWidget);
@@ -89,6 +106,11 @@ void QCPainterWidget::setFillColor(const QColor &color)
     update();
 }
 
+/*!
+    Returns \c true if this widget uses a shared painter.
+
+    \sa setSharedPainter
+ */
 bool QCPainterWidget::hasSharedPainter() const
 {
     Q_D(const QCPainterWidget);
@@ -102,6 +124,15 @@ bool QCPainterWidget::hasSharedPainter() const
 // drivers (painter/engine/renderer). Widgets with the same QRhi (in the same
 // window) will use the same painter, however. There are consequences and
 // pros/cons to both.
+/*!
+    Disable painter sharing if \a enable is \c false.
+
+    If painter sharing is enabled, all QCPainterWidget instances inside the same QWindow will use
+    the same QCPainter. This function must be early, e.g. from the derived class' constructor,
+    and must not be changed afterwards.
+
+    Painter sharing is enabled by default.
+ */
 void QCPainterWidget::setSharedPainter(bool enable)
 {
     Q_D(QCPainterWidget);
