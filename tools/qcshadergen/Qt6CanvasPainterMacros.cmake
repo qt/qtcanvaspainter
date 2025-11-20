@@ -49,14 +49,22 @@ function(_qc_internal_add_shaders_impl target resourcename)
 
         list(APPEND shadergen_args "${input_file_absolute}")
 
+        _qt_internal_get_tool_wrapper_script_path(tool_wrapper)
+        set(qcshadergen_executable "$<TARGET_FILE:${QT_CMAKE_EXPORT_NAMESPACE}::qcshadergen>")
+        if(CMAKE_GENERATOR STREQUAL "Ninja Multi-Config"
+                AND CMAKE_VERSION VERSION_GREATER_EQUAL "3.20")
+            set(qcshadergen_executable "$<COMMAND_CONFIG:${qcshadergen_executable}>")
+        endif()
         add_custom_command(
             OUTPUT
                 ${processed_file}
             COMMAND
-                ${QT_CMAKE_EXPORT_NAMESPACE}::qcshadergen ${shadergen_args}
+                ${tool_wrapper}
+                ${qcshadergen_executable}
+                ${shadergen_args}
             DEPENDS
+                ${qcshadergen_executable}
                 "${file}"
-                ${QT_CMAKE_EXPORT_NAMESPACE}::qcshadergen
             VERBATIM
         )
 
