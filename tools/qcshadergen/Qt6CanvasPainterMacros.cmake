@@ -77,7 +77,7 @@ function(_qc_internal_add_shaders_impl target resourcename)
     if (arg__QT_INTERNAL)
         qt_internal_add_shaders(${target} ${resourcename}
             GLSL
-                "300es,330"
+                "300es,150,120"
             PREFIX
                 ${arg_PREFIX}
             FILES
@@ -94,7 +94,7 @@ function(_qc_internal_add_shaders_impl target resourcename)
     else()
         qt_add_shaders(${target} ${resourcename}
             GLSL
-                "300es,330"
+                "300es,150,120"
             PREFIX
                 ${arg_PREFIX}
             FILES
