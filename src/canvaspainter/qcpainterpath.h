@@ -76,6 +76,7 @@ public:
 
     void setPathWinding(QCPainter::PathWinding winding);
     void addPath(const QCPainterPath &path, const QTransform &transform = QTransform());
+    void addPath(const QCPainterPath &path, qsizetype start, qsizetype count, const QTransform &transform = QTransform());
 
     // Memory and size management
     bool isEmpty() const;
@@ -90,6 +91,8 @@ public:
 
     // Other
     QPointF currentPosition() const;
+    QPointF positionAt(qsizetype index) const;
+    [[nodiscard]] QCPainterPath sliced(qsizetype start, qsizetype count, const QTransform &transform = QTransform()) const &;
 
 private:
     friend class QCPainterEngine;

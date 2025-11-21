@@ -170,9 +170,12 @@ public:
 
     // TODO: Consider if we want to have this as functionality
     // doesn't fully cover QPainterPath (like fillRule).
-    void path(const QPainterPath &path);
-    // TODO: If above, should we also have similar for QCPainterPath?
-    //void path(const QCPainterPath &path, const QTransform &transform = QTransform());
+    void addPath(const QPainterPath &path);
+    void addPath(const QCPainterPath &path,
+                 const QTransform &transform = QTransform());
+    void addPath(const QCPainterPath &path,
+                 qsizetype start, qsizetype count,
+                 const QTransform &transform = QTransform());
 
     void setPathWinding(PathWinding winding);
     void beginSolidSubPath();

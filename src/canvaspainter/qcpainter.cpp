@@ -1034,11 +1034,42 @@ void QCPainter::circle(QPointF centerPoint, float radius)
     the path directly with QCPainter methods.
 */
 
-void QCPainter::path(const QPainterPath &path)
+void QCPainter::addPath(const QPainterPath &path)
 {
     Q_D(QCPainter);
     d->m_e->addPath(path);
 }
+
+/*!
+    Adds \a path into the current path, optionally using \a transform to
+    alter the path points. When \a transform is not provided (or it is
+    identity matrix), this operation is very fast as it reuses the path data.
+*/
+
+void QCPainter::addPath(const QCPainterPath &path, const QTransform &transform)
+{
+    Q_D(QCPainter);
+    d->m_e->addPath(path, transform);
+}
+
+/*!
+    Adds \a path into the current path, starting from the command at \a start
+    and including \a count amount of commands. Optionally using \a transform to
+    alter the path points.
+    The range of \a start and \a count is checked, so that commands are not
+    accessed more than \l QCPainterPath::commandsSize().
+    In case the path shouldn't continue from the current path position, call
+    first \l moveTo() e.g. with \c{path.positionAt(start - 1)}.
+*/
+
+void QCPainter::addPath(const QCPainterPath &path,
+                        qsizetype start, qsizetype count,
+                        const QTransform &transform)
+{
+    Q_D(QCPainter);
+    d->m_e->addPath(path, start, count, transform);
+}
+
 
 /*!
     Sets the current sub-path \a winding to either CounterClockWise (default) or ClockWise.

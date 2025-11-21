@@ -873,6 +873,16 @@ void QCPainterEngine::addPath(const QPainterPath &path)
     }
 }
 
+void QCPainterEngine::addPath(const QCPainterPath &path, const QTransform &transform)
+{
+    appendPainterPath(path, transform);
+}
+
+void QCPainterEngine::addPath(const QCPainterPath &path, qsizetype start, qsizetype count, const QTransform &transform)
+{
+    appendPainterPath(path, start, count, transform);
+}
+
 void QCPainterEngine::setPathWinding(QCPainter::PathWinding winding)
 {
     QCCommand c = winding == QCPainter::PathWinding::ClockWise ?
@@ -2157,25 +2167,81 @@ void QCPainterEngine::ensureVertices(int count)
 }
 
 // Prepare current commands to match \a path before the fill/stroke.
-void QCPainterEngine::preparePainterPath(const QCPainterPath &path, const QTransform &transform)
+void QCPainterEngine::preparePainterPath(const QCPainterPath &path,
+                                         const QTransform &transform)
 {
     beginPath();
+    appendPainterPath(path, transform);
+    // Store currently prepared path so subsequential fill & stroke calls
+    // with same (unchanged) path & transform require preparing commands only once.
+    ctx.preparedPainterPath = &path;
+    ctx.preparedTransform = transform;
+}
+
+// Append \a path into current commands.
+void QCPainterEngine::appendPainterPath(const QCPainterPath &path,
+                                         const QTransform &transform)
+{
     QCPainterPathPrivate *pathd = path.d_ptr;
     if (transform.isIdentity()) {
         appendCommandsData(pathd->commandsData.constData(), pathd->commandsDataCount);
-        appendCommands(pathd->commands.constData(), pathd->commandsCount);
     } else {
         // Prepare path with the transform
         QTransform prevTransform = state.transform;
         state.transform *= transform;
         appendCommandsData(pathd->commandsData.constData(), pathd->commandsDataCount);
-        appendCommands(pathd->commands.constData(), pathd->commandsCount);
         state.transform = prevTransform;
     }
-    // Store currently prepared path so subsequential fill & stroke calls
-    // with same (unchanged) path & transform require preparing commands only once.
-    ctx.preparedPainterPath = &path;
-    ctx.preparedTransform = transform;
+    appendCommands(pathd->commands.constData(), pathd->commandsCount);
+}
+
+// Append \a path into current commands.
+// Including \a count amount of commands, starting from \a start.
+void QCPainterEngine::appendPainterPath(const QCPainterPath &path,
+                                         qsizetype start,
+                                         qsizetype count,
+                                         const QTransform &transform)
+{
+    QCPainterPathPrivate *pathd = path.d_ptr;
+
+    const auto commandsSize = pathd->commandsCount;
+    int commandsDataStart = 0;
+    int commandsDataCount = 0;
+    if (start == 0 && count == commandsSize) {
+        // Adding full path
+        commandsDataCount = pathd->commandsDataCount;
+    } else {
+        // Make sure start & count are inside valid range.
+        start = qBound(0, start, commandsSize);
+        count = qBound(0, count, commandsSize - start);
+        if (count == 0)
+            return;
+
+        // Calculate commands data amounts, based on the commands start & count.
+        const int endCommand = start + count;
+        for (int i = 0; i < endCommand; i++) {
+            auto dataSize = QCPainterPathPrivate::dataSizeOf(pathd->commands.at(i));
+            if (i < start) {
+                commandsDataStart += dataSize;
+            } else {
+                commandsDataCount += dataSize;
+            }
+        }
+    }
+    // Note: commandsDataStart and commandsDataCount don't need to be
+    // validated as they are always in range when we don't allow raw
+    // non-const access into QCPainterPath data.
+    const auto commandsData = &pathd->commandsData.at(commandsDataStart);
+    if (transform.isIdentity()) {
+        appendCommandsData(commandsData, commandsDataCount);
+    } else {
+        // Prepare path with the transform
+        QTransform prevTransform = state.transform;
+        state.transform *= transform;
+        appendCommandsData(commandsData, commandsDataCount);
+        state.transform = prevTransform;
+    }
+    appendCommands(&pathd->commands.at(start), int(count));
 }
 
 // Returns true if path has changed or some state property related

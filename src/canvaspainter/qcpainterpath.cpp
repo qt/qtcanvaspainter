@@ -623,30 +623,69 @@ void QCPainterPath::setPathWinding(QCPainter::PathWinding winding)
 }
 
 /*!
-    Adds \a path into this path, transformed with \a transform matrix.
+    Adds \a path into this path, optionally using \a transform to
+    alter the path points. When \a transform is not provided (or it is
+    identity matrix), this operation is very fast as it reuses the path data.
 */
+
 void QCPainterPath::addPath(const QCPainterPath &path, const QTransform &transform)
 {
-    if (path.isEmpty())
-        return;
+    addPath(path, qsizetype(0), path.commandsSize(), transform);
+}
 
+/*!
+    Adds \a path into the current path, starting from the command at \a start
+    and including \a count amount of commands. Optionally using \a transform to
+    alter the path points.
+    The range of \a start and \a count is checked, so that commands are not
+    accessed more than \l QCPainterPath::commandsSize().
+    In case the path shouldn't continue from the current path position, call
+    first \l moveTo() with \c{path.positionAt(start - 1)}.
+*/
+
+void QCPainterPath::addPath(const QCPainterPath &path, qsizetype start, qsizetype count, const QTransform &transform)
+{
     Q_D(QCPainterPath);
-    const int dCount = path.d_ptr->commandsDataCount;
+    auto *pathd = path.d_ptr;
+
+    const auto commandsSize = pathd->commandsCount;
+    int commandsDataStart = 0;
+    int commandsDataCount = 0;
+    if (start == 0 && count == commandsSize) {
+        // Adding full path
+        commandsDataCount = pathd->commandsDataCount;
+    } else {
+        // Make sure start & count are inside the valid range.
+        start = qBound(0, start, commandsSize);
+        count = qBound(0, count, commandsSize - start);
+        if (count == 0)
+            return;
+
+        // Calculate commands data amounts, based on the commands start & count.
+        const int endCommand = start + count;
+        for (int i = 0; i < endCommand; i++) {
+            auto dataSize = QCPainterPathPrivate::dataSizeOf(pathd->commands.at(i));
+            if (i < start) {
+                commandsDataStart += dataSize;
+            } else {
+                commandsDataCount += dataSize;
+            }
+        }
+    }
+
     // There are always even amount of data as they are (x, y) points.
-    Q_ASSERT(dCount % 2 == 0);
-    d->ensureCommandsData(dCount);
+    Q_ASSERT(commandsDataCount % 2 == 0);
+    d->ensureCommandsData(commandsDataCount);
     if (transform.isIdentity()) {
         // Add path data directly
-        for (int i = 0; i < dCount; i++)
-            d->commandsData[d->commandsDataCount++] = path.d_ptr->commandsData[i];
-        //memcpy(&d->commandsData[d->commandsDataCount], path.d_ptr->commandsData.constData(), sizeof(float) * dCount);
-        //d->commandsDataCount += dCount;
+        for (int i = 0; i < commandsDataCount; i++)
+            d->commandsData[d->commandsDataCount++] = pathd->commandsData[commandsDataStart + i];
     } else {
         // Apply transform to path data and add
         int i = 0;
-        while (i < dCount) {
-            qreal p1 = path.d_ptr->commandsData.at(i);
-            qreal p2 = path.d_ptr->commandsData.at(i + 1);
+        while (i < commandsDataCount) {
+            qreal p1 = pathd->commandsData.at(commandsDataStart + i);
+            qreal p2 = pathd->commandsData.at(commandsDataStart + i + 1);
             transform.map(p1, p2, &p1, &p2);
             d->commandsData[d->commandsDataCount++] = float(p1);
             d->commandsData[d->commandsDataCount++] = float(p2);
@@ -654,12 +693,9 @@ void QCPainterPath::addPath(const QCPainterPath &path, const QTransform &transfo
         }
     }
     // Add path commands
-    const int cCount = path.d_ptr->commandsCount;
-    d->ensureCommands(cCount);
-    for (int i = 0; i < cCount; i++)
-        d->commands[d->commandsCount++] = path.d_ptr->commands[i];
-    //memcpy(&d->commands[d->commandsCount], path.d_ptr->commands.data(), sizeof(QCCommand) * cCount);
-    //d->commandsCount += cCount;
+    d->ensureCommands(count);
+    for (int i = 0; i < count; i++)
+        d->commands[d->commandsCount++] = pathd->commands[start + i];
 }
 
 /*!
@@ -799,6 +835,55 @@ QPointF QCPainterPath::currentPosition() const
     const float prevX = d->commandsData.at(d->commandsDataCount - 2);
     const float prevY = d->commandsData.at(d->commandsDataCount - 1);
     return QPointF(prevX, prevY);
+}
+
+/*!
+    Returns the position of the path at \a index.
+    This means position where path command (\l moveTo, \l lineTo, \l bezierCurveTo etc.)
+    is at \a index.
+    The index need to be between \c 0 and \l commandsSize() - 1.
+    When the path is empty, returns (0.0, 0.0).
+*/
+
+QPointF QCPainterPath::positionAt(qsizetype index) const
+{
+    Q_D(const QCPainterPath);
+    if (d->commandsDataCount < 2)
+        return QPointF();
+    index = qBound(0, index, d->commands.size() - 1);
+    // Locate commandsData index matching to given commands index.
+    qsizetype dataIndex = 0;
+    for (int i = 0; i < (index + 1); i++)
+        dataIndex += QCPainterPathPrivate::dataSizeOf(d->commands.at(i));
+    const float posX = d->commandsData.at(dataIndex - 2);
+    const float posY = d->commandsData.at(dataIndex - 1);
+    return QPointF(posX, posY);
+}
+
+/*!
+    Return this path, starting from the command at \a start
+    and including \a count amount of commands. Optionally using \a transform to
+    alter the path points.
+    The range of \a start and \a count is checked, so that commands are not
+    accessed more than \l commandsSize().
+    In case the command at \a start is not \c MoveTo, the first command
+    will be replaced with \c MoveTo so that this slice is an individual path.
+*/
+
+QCPainterPath QCPainterPath::sliced(qsizetype start, qsizetype count, const QTransform &transform) const &
+{
+    Q_D(const QCPainterPath);
+    QCPainterPath path;
+    if (d->commands.size() > start) {
+        path.reserveCommands(count);
+        if (d->commands.at(start) != QCCommand::MoveTo) {
+            path.moveTo(positionAt(start));
+            path.addPath(*this, start + 1, count - 1, transform);
+        } else {
+            path.addPath(*this, start, count, transform);
+        }
+    }
+    return path;
 }
 
 // *** Private ***

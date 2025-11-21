@@ -21,6 +21,7 @@
 #include <QtCore/qrect.h>
 #include <QtCore/qlist.h>
 #include "qcpainter.h"
+#include "qcpainterpath.h"
 #include "qcpainterengineutils_p.h"
 
 QT_BEGIN_NAMESPACE
@@ -129,6 +130,8 @@ public:
     void addEllipse(float x, float y, float radiusX, float radiusY);
     void addCircle(float x, float y, float radius);
     void addPath(const QPainterPath &path);
+    void addPath(const QCPainterPath &path, const QTransform &transform = QTransform());
+    void addPath(const QCPainterPath &path, qsizetype start, qsizetype count, const QTransform &transform = QTransform());
     void setPathWinding(QCPainter::PathWinding winding);
     void fill();
     void stroke();
@@ -209,7 +212,14 @@ private:
                         float u0, float u1);
     inline void addVert(float x, float y, float u, float v) noexcept;
     void ensureVertices(int count);
-    void preparePainterPath(const QCPainterPath &path, const QTransform &transform = QTransform());
+    void preparePainterPath(const QCPainterPath &path,
+                            const QTransform &transform = QTransform());
+    void appendPainterPath(const QCPainterPath &path,
+                           const QTransform &transform = QTransform());
+    void appendPainterPath(const QCPainterPath &path,
+                           qsizetype start,
+                           qsizetype count,
+                           const QTransform &transform = QTransform());
     bool fillPathUpdateRequired(QCPainterPath *path, int pathGroup);
     bool strokePathUpdateRequired(QCPainterPath *path, int pathGroup);
     QCPainter::TextAlign effectiveTextAlign(QStringView text) const;

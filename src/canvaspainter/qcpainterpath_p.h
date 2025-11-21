@@ -27,6 +27,21 @@ public:
     QCPainterPathPrivate(QCPainterPath *q);
     QCPainterPath *q_ptr = nullptr;
 
+    static int dataSizeOf(QCCommand command) {
+        switch (command) {
+        case QCCommand::MoveTo:
+        case QCCommand::LineTo:
+            return 2;
+        case QCCommand::BezierTo:
+            return 6;
+        case QCCommand::Close:
+        case QCCommand::WindingCW:
+        case QCCommand::WindingCCW:
+        default:
+            return 0;
+        }
+    };
+
     void appendCommand(QCCommand command);
     void appendCommands(const QCCommand commands[], int cCount);
     void appendCommandsData(const float commandsData[], int dCount);
