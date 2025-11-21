@@ -2375,9 +2375,10 @@ void QCPainterRhiRenderer::renderDelete()
     rhiCtx->indices.clear();
     rhiCtx->commonUniforms.clear();
 
-    for (QCOffscreenCanvas &canvas : m_canvases)
-        destroyCanvas(canvas);
-    m_canvases.clear();
+    QVector<QCRhiCanvas> canvasesToDelete;
+    std::swap(m_canvases, canvasesToDelete);
+    for (QCRhiCanvas &canvas : canvasesToDelete)
+        canvas.destroy();
 
     delete rhiCtx;
 }
@@ -3055,7 +3056,8 @@ bool operator==(const QCRhiCanvas &a, const QCRhiCanvas &b) noexcept
         || a.ds != b.ds
         || a.rt != b.rt
         || a.rp != b.rp
-        || a.flags != b.flags)
+        || a.flags != b.flags
+        || (a.tex && b.tex && a.tex->globalResourceId() != b.tex->globalResourceId()))
     {
         return false;
     }
@@ -3129,21 +3131,27 @@ QCOffscreenCanvas QCPainterRhiRenderer::createCanvas(QSize pixelSize, int sample
     cd->rhiCanvas.rp = rp.release();
     cd->rhiCanvas.flags = flags;
 
-    m_canvases.append(canvas);
+    m_canvases.append(cd->rhiCanvas);
     return canvas;
+}
+
+void QCRhiCanvas::destroy()
+{
+    delete rp;
+    delete rt;
+    delete ds;
+    delete msaaColorBuffer;
+    delete tex;
 }
 
 void QCPainterRhiRenderer::destroyCanvas(QCOffscreenCanvas &canvas)
 {
-    m_canvases.removeOne(canvas);
-
     // no detach!
     QCOffscreenCanvasPrivate *cd = QCOffscreenCanvasPrivate::get(&canvas);
-    delete cd->rhiCanvas.rp;
-    delete cd->rhiCanvas.rt;
-    delete cd->rhiCanvas.ds;
-    delete cd->rhiCanvas.msaaColorBuffer;
-    delete cd->rhiCanvas.tex;
+
+    m_canvases.removeOne(cd->rhiCanvas);
+
+    cd->rhiCanvas.destroy();
     cd->rhiCanvas = {}; // canvas, incl. shared ones, becomes a null canvas
 }
 

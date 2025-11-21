@@ -160,6 +160,10 @@ void tst_CanvasRhiRendering::initTestCase()
     QSurfaceFormat fmt;
     fmt.setDepthBufferSize(24);
     fmt.setStencilBufferSize(8);
+#ifdef Q_OS_MACOS
+    fmt.setVersion(4, 1);
+    fmt.setProfile(QSurfaceFormat::CoreProfile);
+#endif
     QSurfaceFormat::setDefaultFormat(fmt);
 
     initParams.gl.format = QSurfaceFormat::defaultFormat();
@@ -537,6 +541,27 @@ void tst_CanvasRhiRendering::canvasRender()
         // the distorted circle to the left
         QVERIFY(testColor(image, x - 100, y, Qt::red));
     }
+
+    QCOffscreenCanvas canvas2 = canvas;
+    QCOMPARE(canvas, canvas2);
+    canvas2.setFillColor(Qt::red);
+    QCOMPARE_NE(canvas, canvas2);
+
+    QCOffscreenCanvas canvas3 = canvas;
+    painter->destroyCanvas(canvas);
+    QVERIFY(canvas.isNull());
+    QVERIFY(canvas3.isNull());
+    QCOMPARE(canvas, canvas3);
+    // This is evil, since destroyCanvas was used explicitly and canvas2 may still seem valid, but it is not.
+    // Should not happen in practice, though.
+    QVERIFY(!canvas2.isNull());
+    QCOMPARE_NE(canvas, canvas2);
+
+    canvas = painter->createCanvas(QSize(RT_WIDTH, RT_HEIGHT));
+    QVERIFY(!canvas.isNull());
+    QVERIFY(canvas.texture());
+
+    // let the painter destroy 'canvas' automatically
 
 #ifdef FRAME_CAPTURE
     endFrameCapture(m_cap.get());

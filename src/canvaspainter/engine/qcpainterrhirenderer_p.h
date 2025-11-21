@@ -53,6 +53,7 @@ struct QCRhiCanvas
     QRhiRenderPassDescriptor *rp = nullptr;
     QCOffscreenCanvas::Flags flags;
     bool isNull() const { return !tex; }
+    void destroy();
 };
 
 bool operator==(const QCRhiCanvas &a, const QCRhiCanvas &b) noexcept;
@@ -230,7 +231,7 @@ private:
     QCRHIContext *rhiCtx = nullptr;
     QCPainter *m_painter = nullptr;
     QCPainterEngine *m_e = nullptr;
-    QVector<QCOffscreenCanvas> m_canvases;
+    QVector<QCRhiCanvas> m_canvases;
 
     QVector<std::pair<QRhiReadbackResult, std::function<void(const QImage &)>>> m_canvasGrabs;
 

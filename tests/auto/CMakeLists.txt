@@ -7,5 +7,4 @@ if(IOS AND QT_BUILD_MINIMAL_STATIC_TESTS)
 endif()
 
 add_subdirectory(qcbrush)
-# TODO: enable this autotest once the various issues in CI are investigated
-# add_subdirectory(qcrhiplumbing)
+add_subdirectory(qcrhiplumbing)

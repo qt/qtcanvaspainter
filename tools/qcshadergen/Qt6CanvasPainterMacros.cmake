@@ -74,10 +74,15 @@ function(_qc_internal_add_shaders_impl target resourcename)
     add_custom_target(${target}_${resourcename}_qcpre DEPENDS "${processed_files}")
     add_dependencies(${target} ${target}_${resourcename}_qcpre)
 
+    # OpenGL ES 3.0 or newer, OpenGL 3.2 or newer. 130 (OpenGL 3.0) is the
+    # minimum (e.g. due to textureSize), it is here for old llvmpipe versions
+    # that some CI might still use.
+    set(opengl_glsl_versions "300es,150,130")
+
     if (arg__QT_INTERNAL)
         qt_internal_add_shaders(${target} ${resourcename}
             GLSL
-                "300es,150,120"
+                ${opengl_glsl_versions}
             PREFIX
                 ${arg_PREFIX}
             FILES
@@ -94,7 +99,7 @@ function(_qc_internal_add_shaders_impl target resourcename)
     else()
         qt_add_shaders(${target} ${resourcename}
             GLSL
-                "300es,150,120"
+                ${opengl_glsl_versions}
             PREFIX
                 ${arg_PREFIX}
             FILES
