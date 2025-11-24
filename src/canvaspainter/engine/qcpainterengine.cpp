@@ -2182,7 +2182,7 @@ void QCPainterEngine::preparePainterPath(const QCPainterPath &path,
 void QCPainterEngine::appendPainterPath(const QCPainterPath &path,
                                          const QTransform &transform)
 {
-    QCPainterPathPrivate *pathd = path.d_ptr;
+    const QCPainterPathPrivate *pathd = QCPainterPathPrivate::get(&path);
     if (transform.isIdentity()) {
         appendCommandsData(pathd->commandsData.constData(), pathd->commandsDataCount);
     } else {
@@ -2202,7 +2202,7 @@ void QCPainterEngine::appendPainterPath(const QCPainterPath &path,
                                          qsizetype count,
                                          const QTransform &transform)
 {
-    QCPainterPathPrivate *pathd = path.d_ptr;
+    const QCPainterPathPrivate *pathd = QCPainterPathPrivate::get(&path);
 
     const auto commandsSize = pathd->commandsCount;
     int commandsDataStart = 0;
@@ -2248,7 +2248,7 @@ void QCPainterEngine::appendPainterPath(const QCPainterPath &path,
 // to fill vertices generation has changed compared to cached path.
 bool QCPainterEngine::fillPathUpdateRequired(QCPainterPath *path, int pathGroup)
 {
-    QCPainterPathPrivate *pathd = path->d_ptr;
+    QCPainterPathPrivate *pathd = QCPainterPathPrivate::get(path);
     QCCachedPath &cp = ctx.cachedFillPaths[path];
     bool updateRequired = false;
     if (pathGroup != cp.pathGroup ||
@@ -2272,7 +2272,7 @@ bool QCPainterEngine::fillPathUpdateRequired(QCPainterPath *path, int pathGroup)
 // to stroke vertices generation has changed compared to cached path.
 bool QCPainterEngine::strokePathUpdateRequired(QCPainterPath *path, int pathGroup)
 {
-    QCPainterPathPrivate *pathd = path->d_ptr;
+    QCPainterPathPrivate *pathd = QCPainterPathPrivate::get(path);
     QCCachedPath &cp = ctx.cachedStrokePaths[path];
     bool updateRequired = false;
     if (pathGroup != cp.pathGroup ||

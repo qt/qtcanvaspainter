@@ -22,10 +22,9 @@ QT_BEGIN_NAMESPACE
 
 class QCPainterPathPrivate
 {
-    Q_DECLARE_PUBLIC(QCPainterPath)
 public:
-    QCPainterPathPrivate(QCPainterPath *q);
-    QCPainterPath *q_ptr = nullptr;
+    static QCPainterPathPrivate *get(QCPainterPath *path) { return path->d_ptr; }
+    static const QCPainterPathPrivate *get(const QCPainterPath *path) { return path->d_ptr; }
 
     static int dataSizeOf(QCCommand command) {
         switch (command) {
@@ -50,8 +49,8 @@ public:
 
     QCCommands commands;
     QCCommandsData commandsData;
-    int commandsCount = 0;
-    int commandsDataCount = 0;
+    qsizetype commandsCount = 0;
+    qsizetype commandsDataCount = 0;
     // Distance tolerance for consecutive points
     float distTol = 0.01f;
     // When this increases, path has been (re)created

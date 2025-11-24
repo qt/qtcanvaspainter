@@ -8,3 +8,4 @@ endif()
 
 add_subdirectory(qcbrush)
 add_subdirectory(qcrhiplumbing)
+add_subdirectory(qcpainterpath)

@@ -55,14 +55,110 @@ QT_BEGIN_NAMESPACE
     Constructs an empty path.
 */
 QCPainterPath::QCPainterPath()
-    : d_ptr(new QCPainterPathPrivate(this))
+    : d_ptr(new QCPainterPathPrivate)
 {
+}
+
+/*!
+    Constructs a path that is a copy of the given \a path.
+*/
+
+QCPainterPath::QCPainterPath(const QCPainterPath &path) noexcept
+    : d_ptr(new QCPainterPathPrivate(*path.d_ptr))
+{
+}
+
+/*!
+    Destroys the path.
+*/
+
+QCPainterPath::~QCPainterPath(){
+    delete d_ptr;
+}
+
+/*!
+    Assigns the given \a path to this path and returns a reference to
+    this path.
+*/
+
+QCPainterPath &QCPainterPath::operator=(const QCPainterPath &path) noexcept
+{
+    QCPainterPath(path).swap(*this);
+    return *this;
+}
+
+/*!
+    \fn QCPainterPath::QCPainterPath(QCPainterPath &&other) noexcept
+
+    Move-constructs a new QCPainterPath from \a other.
+*/
+
+/*!
+    \fn QCPainterPath &QCPainterPath::operator=(QCPainterPath &&other)
+
+    Move-assigns \a other to this QCPainterPath instance.
+*/
+
+/*!
+    \fn void QCPainterPath::swap(QCPainterPath &other)
+    \memberswap{path}
+*/
+
+/*!
+   Returns the path as a QVariant.
+*/
+
+QCPainterPath::operator QVariant() const
+{
+    return QVariant::fromValue(*this);
+}
+
+/*!
+    \fn bool QCPainterPath::operator!=(const QCPainterPath &path) const
+
+    Returns \c true if the path is different from the given \a path;
+    otherwise false.
+
+    \sa operator==()
+*/
+
+/*!
+    \fn bool QCPainterPath::operator==(const QCPainterPath &path) const
+
+    Returns \c true if the path is equal to the given \a path; otherwise
+    false.
+
+    \sa operator!=()
+*/
+
+bool QCPainterPath::operator==(const QCPainterPath &p) const
+{
+    if (p.d_ptr == d_ptr)
+        return true;
+
+    if (p.d_ptr->commandsCount != d_ptr->commandsCount ||
+        p.d_ptr->commandsDataCount != d_ptr->commandsDataCount)
+        return false;
+
+    // Note: Check commands and data up to their count, not
+    // to full size of the lists.
+    for (qsizetype i = 0; i < d_ptr->commandsCount; ++i) {
+        if (d_ptr->commands.at(i) != p.d_ptr->commands.at(i))
+            return false;
+    }
+    for (qsizetype i = 0; i < d_ptr->commandsDataCount; ++i) {
+        if (!qFuzzyCompare(d_ptr->commandsData.at(i), p.d_ptr->commandsData.at(i)))
+            return false;
+    }
+
+    return true;
 }
 
 /*!
     Closes the current subpath by drawing a line to the beginning of
     the subpath, automatically starting a new path.
 */
+
 void QCPainterPath::closePath()
 {
     Q_D(QCPainterPath);
@@ -378,12 +474,12 @@ void QCPainterPath::rect(const QRectF &rect)
 */
 void QCPainterPath::roundRect(float x, float y, float width, float height, float radius)
 {
-    Q_D(QCPainterPath);
     static const float MINR = 0.1f;
     const bool noRadius = (radius < MINR);
     if (noRadius) {
         rect(x, y, width, height);
     } else {
+        Q_D(QCPainterPath);
         const float halfSize = std::min(std::abs(width), std::abs(height)) * 0.5f;
         const float maxRad = std::min(radius, halfSize);
         const float rX = maxRad * sign(width);
@@ -450,13 +546,13 @@ void QCPainterPath::roundRect(
     float radiusBottomRight,
     float radiusBottomLeft)
 {
-    Q_D(QCPainterPath);
     static const float MINR = 0.1f;
     const bool noRadius = (radiusTopLeft < MINR) && (radiusTopRight < MINR) &&
                           (radiusBottomRight < MINR) && (radiusBottomLeft < MINR);
     if (noRadius) {
         rect(x, y, width, height);
     } else {
+        Q_D(QCPainterPath);
         const float top = std::max(MINR, radiusTopLeft + radiusTopRight);
         const float right = std::max(MINR, radiusTopRight + radiusBottomRight);
         const float bottom = std::max(MINR, radiusBottomRight + radiusBottomLeft);
@@ -646,14 +742,14 @@ void QCPainterPath::addPath(const QCPainterPath &path, const QTransform &transfo
 void QCPainterPath::addPath(const QCPainterPath &path, qsizetype start, qsizetype count, const QTransform &transform)
 {
     Q_D(QCPainterPath);
-    auto *pathd = path.d_ptr;
+    const auto *pathd = path.d_ptr;
 
     const auto commandsSize = pathd->commandsCount;
     int commandsDataStart = 0;
     int commandsDataCount = 0;
     if (start == 0 && count == commandsSize) {
         // Adding full path
-        commandsDataCount = pathd->commandsDataCount;
+        commandsDataCount = int(pathd->commandsDataCount);
     } else {
         // Make sure start & count are inside the valid range.
         start = qBound(0, start, commandsSize);
@@ -887,11 +983,6 @@ QCPainterPath QCPainterPath::sliced(qsizetype start, qsizetype count, const QTra
 }
 
 // *** Private ***
-
-QCPainterPathPrivate::QCPainterPathPrivate(QCPainterPath *q)
-    : q_ptr(q)
-{
-}
 
 // Append a single \a command.
 void QCPainterPathPrivate::appendCommand(QCCommand command)
