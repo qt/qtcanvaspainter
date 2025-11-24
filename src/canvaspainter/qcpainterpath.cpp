@@ -705,6 +705,7 @@ void QCPainterPath::squeeze()
 {
     Q_D(QCPainterPath);
     d->commands.squeeze();
+    d->commandsData.squeeze();
 }
 
 /*!
@@ -753,7 +754,7 @@ qsizetype QCPainterPath::commandsCapacity() const
 qsizetype QCPainterPath::commandsDataCapacity() const
 {
     Q_D(const QCPainterPath);
-    return d->commands.size();
+    return d->commandsData.size();
 }
 
 /*!
