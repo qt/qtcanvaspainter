@@ -575,7 +575,7 @@ void GalleryItemRenderer::drawPaths() {
 void GalleryItemRenderer::drawPainterPaths()
 {
     float w = width() * 0.8;
-    float h = height() * 0.25;
+    float h = height() * 0.2;
     float posX = width() * 0.5 - w * 0.5;
     float posY = h * 0.5;
     float margin = height()*0.02f;
@@ -681,6 +681,57 @@ void GalleryItemRenderer::drawPainterPaths()
     }
     painter()->translate(w * 0.4, h * 0.4);
     painter()->stroke(path4, StaticPath);
+
+    // Example of reusing parts of paths
+    posY += h + margin;
+    painter()->resetTransform();
+    painter()->save();
+    painter()->setRenderHint(QCPainter::RenderHint::HighQualityStroking, true);
+    static QCPainterPath pathGraphLine;
+    static QCPainterPath pathGraphArea;
+    if (pathGraphLine.isEmpty()) {
+        // Create linegraph path.
+        pathGraphLine.moveTo(posX, posY);
+        const int lines = 200;
+        for (int i = 0; i < lines; i++) {
+            float fl = float(i) / (lines - 1);
+            float lY = posY +
+                    sin(8 * fl) * h * 0.15 +
+                    sin(20 * fl) * h * 0.05;
+            pathGraphLine.lineTo(posX + fl * w, lY);
+        }
+        // Create fillpath, graph + 2 points.
+        pathGraphArea = pathGraphLine;
+        pathGraphArea.lineTo(posX + w, posY + h);
+        pathGraphArea.lineTo(posX, posY + h);
+    }
+    QCLinearGradient g1(0, posY, 0, posY + h);
+    g1.setStartColor(Qt::black);
+    g1.setEndColor(Qt::transparent);
+    painter()->setLineJoin(QCPainter::LineJoin::Round);
+    painter()->setLineCap(QCPainter::LineCap::Round);
+    painter()->setFillStyle(g1);
+    painter()->fill(pathGraphArea);
+    painter()->setStrokeStyle(Qt::white);
+    painter()->setLineWidth(1);
+    painter()->stroke(pathGraphLine);
+    // Selection is part of line graph.
+    int commands = pathGraphLine.commandsSize();
+    int startIndex = 0.5f * commands * std::max(sin(0.5f * m_animationTime), 0.0f);
+    int count = commands - 0.5f * commands * std::max(sin(-0.5f * m_animationTime), 0.0f);
+    QCPainterPath pathSelection = pathGraphLine.sliced(startIndex, count);
+    // Selection fill is selection + 2 points
+    QCPainterPath pathSelectionFill(pathSelection);
+    float selectionFirstX = pathSelection.positionAt(0).x();
+    float selectionLastX = pathSelection.positionAt(pathSelection.commandsSize() - 1).x();
+    pathSelectionFill.lineTo(selectionLastX, posY + h);
+    pathSelectionFill.lineTo(selectionFirstX, posY + h);
+    painter()->setFillStyle("#20ffff00");
+    painter()->fill(pathSelectionFill);
+    painter()->setStrokeStyle("#80f04020");
+    painter()->setLineWidth(16);
+    painter()->stroke(pathSelection);
+    painter()->restore();
 }
 
 void GalleryItemRenderer::drawTransforms() {

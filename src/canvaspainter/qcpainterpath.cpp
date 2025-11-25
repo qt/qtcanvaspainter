@@ -946,7 +946,7 @@ QPointF QCPainterPath::positionAt(qsizetype index) const
     Q_D(const QCPainterPath);
     if (d->commandsDataCount < 2)
         return QPointF();
-    index = qBound(0, index, d->commands.size() - 1);
+    index = qBound(0, index, d->commandsCount - 1);
     // Locate commandsData index matching to given commands index.
     qsizetype dataIndex = 0;
     for (int i = 0; i < (index + 1); i++)
@@ -970,7 +970,7 @@ QCPainterPath QCPainterPath::sliced(qsizetype start, qsizetype count, const QTra
 {
     Q_D(const QCPainterPath);
     QCPainterPath path;
-    if (d->commands.size() > start) {
+    if (d->commandsCount > start) {
         path.reserveCommands(count);
         if (d->commands.at(start) != QCCommand::MoveTo) {
             path.moveTo(positionAt(start));
