@@ -1933,6 +1933,9 @@ QCImage QCPainterPrivate::getQCImage(const QCOffscreenCanvas &canvas, QCPainter:
     if (canvas.isNull())
         return {};
 
+    if (m_renderer->isOffscreenCanvasYUp())
+        flags.setFlag(QCPainter::ImageFlag::FlipY, !flags.testFlag(QCPainter::ImageFlag::FlipY));
+
     return getQCImage(canvas.texture(), flags);
 }
 

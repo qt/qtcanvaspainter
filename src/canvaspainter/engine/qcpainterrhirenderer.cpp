@@ -922,6 +922,11 @@ bool QCPainterRhiRenderer::renderUpdateTexture(int image, int x, int y, int w, i
     return true;
 }
 
+bool QCPainterRhiRenderer::isOffscreenCanvasYUp() const
+{
+    return rhiCtx->rhi->isYUpInFramebuffer();
+}
+
 void QCPainterRhiRenderer::setViewport(float x, float y, float width, float height)
 {
     rhiCtx->viewRect[0] = x;

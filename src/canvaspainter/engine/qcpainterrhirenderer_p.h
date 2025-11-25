@@ -113,6 +113,7 @@ public:
 
     QCRHITexture *renderCreateNativeTexture(QRhiTexture *texture, QCPainter::ImageFlags flags = {});
     QCRHITexture *renderUpdateNativeTexture(QRhiTexture *oldTexture, QRhiTexture *texture);
+    bool isOffscreenCanvasYUp() const;
 
     int renderCreateTexture(QCTextureFormat type, int w, int h, QCPainter::ImageFlags imageFlags, const uchar* data);
     bool renderDeleteTexture(int image);
