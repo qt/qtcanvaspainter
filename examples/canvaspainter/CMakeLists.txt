@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: LicenseRef-Qt-Commercial OR BSD-3-Clause
 
 qt_internal_add_example(gallery)
+qt_internal_add_example(compacthealth)
 
 foreach(target IN LISTS reused_dir_targets)
     if(TARGET ${target})

@@ -1,0 +1,20 @@
+// Copyright (C) 2025 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \example compacthealth
+    \ingroup qtcanvaspainter-examples
+    \title Qt Canvas Painter - Compact Health Example
+    \examplecategory {Graphics}
+    \brief Demonstrates the use of QCPainter in a QWindow.
+
+    \image compacthealth-example.webp
+
+    This example demonstrates using Qt Canvas Painter in a pure QWindow
+    application. Qt Quick or QWidget are not used at all, and there is no
+    dependency on Qt modules other than Core, Gui, and Canvas Painter.
+
+    The application sets up accelerated 3D rendering using QRhi, and renders all
+    content in the window with QCPainter. The rendering and QCPainter's
+    integration with QRhi is managed via QCRhiPaintDriver.
+*/
