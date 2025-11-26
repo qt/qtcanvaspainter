@@ -13,15 +13,8 @@ qt_add_executable(qcgalleryexample
     MACOSX_BUNDLE
 
     main.cpp
-
-    painting/src/paintingitem.cpp painting/src/paintingitem.h
-    painting/src/paintingitemrenderer.cpp painting/src/paintingitemrenderer.h
-
-    mouse_events/src/eventitem.cpp mouse_events/src/eventitem.h
-    mouse_events/src/eventitemrenderer.cpp mouse_events/src/eventitemrenderer.h
-
-    qcpainter_features/src/galleryitem.cpp qcpainter_features/src/galleryitem.h
-    qcpainter_features/src/galleryitemrenderer.cpp qcpainter_features/src/galleryitemrenderer.h
+    src/galleryitem.cpp src/galleryitem.h
+    src/galleryitemrenderer.cpp src/galleryitemrenderer.h
 )
 
 qt_add_resources(qcgalleryexample
@@ -29,18 +22,13 @@ qt_add_resources(qcgalleryexample
         "/"
     FILES
         main.qml
-        back.png
-        painting/main.qml
-        mouse_events/main.qml
-        mouse_events/ToggleButton.qml
-        qcpainter_features/main.qml
-        qcpainter_features/TopBar.qml
-        qcpainter_features/images/pattern1.png
-        qcpainter_features/images/pattern2.png
-        qcpainter_features/fonts/Pacifico.ttf
-        qcpainter_features/images/pattern3.png
-        qcpainter_features/images/qt_development_white.png
-        qcpainter_features/images/face-smile-bw.png
+        TopBar.qml
+        images/pattern1.png
+        images/pattern2.png
+        fonts/Pacifico.ttf
+        images/pattern3.png
+        images/qt_development_white.png
+        images/face-smile-bw.png
 )
 
 target_link_libraries(qcgalleryexample PRIVATE
@@ -55,11 +43,11 @@ qc_add_shaders(qcgalleryexample "qcgallery_custombrush_shaders"
     PREFIX
         "/qcgalleryexample"
     FILES
-        qcpainter_features/brush1.frag
-        qcpainter_features/brush2.frag
-        qcpainter_features/brush3.frag
-        qcpainter_features/brush4.frag
-        qcpainter_features/brush3.vert
+        brush1.frag
+        brush2.frag
+        brush3.frag
+        brush4.frag
+        brush3.vert
 )
 
 install(TARGETS qcgalleryexample

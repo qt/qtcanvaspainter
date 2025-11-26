@@ -61,33 +61,18 @@ Item {
         }
     }
 
-    width: parent.width
-    height: mainWindow.topbarHeight
-
-    /*Rectangle {
-        anchors.fill: parent
-        color: "#202020"
-        //opacity: 0.2
-    }*/
-    /*Text {
-        anchors.horizontalCenter: parent.horizontalCenter
-        anchors.bottom: titleTextItem.top
-        font.pixelSize: 12 * dp
-        color: "#909090"
-        text: "QCPainter Gallery"
-    }*/
     Text {
         id: titleTextItem
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.verticalCenter: parent.verticalCenter
         anchors.verticalCenterOffset: -8 * dp
         font.pixelSize: 20 * dp
-        color: "#f0f0f0"
+        color: "#DFD0B8"
         text: title
     }
     Row {
         anchors.top: titleTextItem.bottom
-        anchors.topMargin: 4 * dp
+        anchors.topMargin: 6 * dp
         anchors.horizontalCenter: parent.horizontalCenter
         spacing: 4 * dp
         Repeater {
@@ -96,9 +81,9 @@ Item {
                 width: 8 * dp
                 height: width
                 radius: width/2
-                color: "#e0e0e0"
+                color: "#948979"
                 border.width: 1
-                border.color: "#000000"
+                border.color: "#DFD0B8"
                 opacity: index == root.currentIndex ? 0.8 : 0.2
                 Behavior on opacity {
                     NumberAnimation {

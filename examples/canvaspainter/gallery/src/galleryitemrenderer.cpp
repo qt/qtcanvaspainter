@@ -18,7 +18,7 @@
 
 GalleryItemRenderer::GalleryItemRenderer()
 {
-    QFontDatabase::addApplicationFont(":/qcpainter_features/fonts/Pacifico.ttf");
+    QFontDatabase::addApplicationFont(":/fonts/Pacifico.ttf");
 
     m_radGrad.setStops({QCGradientStop(0.0f, QColor(255, 0, 0, 255)),
                         QCGradientStop(0.1f, QColor(255, 255, 0, 255)),
@@ -33,23 +33,23 @@ GalleryItemRenderer::~GalleryItemRenderer()
 void GalleryItemRenderer::initializeResources(QCPainter *painter)
 {
     QCPainter::ImageFlags flags = QCPainter::ImageFlag::Repeat | QCPainter::ImageFlag::GenerateMipmaps;
-    m_patternImage = painter->addImage(QImage(":/qcpainter_features/images/pattern1.png"), flags);
-    m_patternImage2 = painter->addImage(QImage(":/qcpainter_features/images/pattern2.png"), flags);
-    m_patternImage3 = painter->addImage(QImage(":/qcpainter_features/images/pattern3.png"), flags);
-    m_testImage = painter->addImage(QImage(":/qcpainter_features/images/qt_development_white.png"));
-    image3Gray = painter->addImage(QImage(":/qcpainter_features/images/face-smile-bw.png"));
-    image3Plain = painter->addImage(QImage(":/qcpainter_features/images/pattern2.png"));
-    image3Nearest = painter->addImage(QImage(":/qcpainter_features/images/pattern2.png"),
+    m_patternImage = painter->addImage(QImage(":/images/pattern1.png"), flags);
+    m_patternImage2 = painter->addImage(QImage(":/images/pattern2.png"), flags);
+    m_patternImage3 = painter->addImage(QImage(":/images/pattern3.png"), flags);
+    m_testImage = painter->addImage(QImage(":/images/qt_development_white.png"));
+    image3Gray = painter->addImage(QImage(":/images/face-smile-bw.png"));
+    image3Plain = painter->addImage(QImage(":/images/pattern2.png"));
+    image3Nearest = painter->addImage(QImage(":/images/pattern2.png"),
                                         QCPainter::ImageFlag::Nearest);
-    image3Mips = painter->addImage(QImage(":/qcpainter_features/images/pattern2.png"),
+    image3Mips = painter->addImage(QImage(":/images/pattern2.png"),
                                      QCPainter::ImageFlag::GenerateMipmaps);
-    image3NearestMips = painter->addImage(QImage(":/qcpainter_features/images/pattern2.png"),
+    image3NearestMips = painter->addImage(QImage(":/images/pattern2.png"),
                                             QCPainter::ImageFlag::Nearest | QCPainter::ImageFlag::GenerateMipmaps);
-    m_customBrush.setFragmentShader(":/qcgalleryexample/qcpainter_features/brush1.frag.qsb");
-    m_customBrush2.setFragmentShader(":/qcgalleryexample/qcpainter_features/brush2.frag.qsb");
-    m_customBrush3.setFragmentShader(":/qcgalleryexample/qcpainter_features/brush3.frag.qsb");
-    m_customBrush3.setVertexShader(":/qcgalleryexample/qcpainter_features/brush3.vert.qsb");
-    m_customBrush4.setFragmentShader(":/qcgalleryexample/qcpainter_features/brush4.frag.qsb");
+    m_customBrush.setFragmentShader(":/qcgalleryexample/brush1.frag.qsb");
+    m_customBrush2.setFragmentShader(":/qcgalleryexample/brush2.frag.qsb");
+    m_customBrush3.setFragmentShader(":/qcgalleryexample/brush3.frag.qsb");
+    m_customBrush3.setVertexShader(":/qcgalleryexample/brush3.vert.qsb");
+    m_customBrush4.setFragmentShader(":/qcgalleryexample/brush4.frag.qsb");
     // Enable iTime animations
     m_customBrush.setTimeRunning(true);
     m_customBrush2.setTimeRunning(true);
@@ -496,8 +496,8 @@ void GalleryItemRenderer::drawPaths() {
     float posY = margin;
     float lineWidth = width()*0.02f;
 
-    painter()->setFillStyle(0xFFE0E0E0);
-    painter()->setStrokeStyle(0xFFE00000);
+    painter()->setFillStyle(0xFFDFD0B8);
+    painter()->setStrokeStyle(0xFF948979);
     painter()->setLineWidth(lineWidth);
     painter()->setLineCap(QCPainter::LineCap::Round);
     painter()->setLineJoin(QCPainter::LineJoin::Round);
