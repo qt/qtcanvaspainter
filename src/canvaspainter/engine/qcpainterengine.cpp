@@ -175,8 +175,6 @@ void QCPainterEngine::setStrokeColor(const QColor &color)
 void QCPainterEngine::setStrokePaint(const QCPaint &paint)
 {
     state.stroke = paint;
-    // Take current transform into account
-    state.stroke.transform *= state.transform;
     state.customStroke = nullptr;
 }
 
@@ -197,8 +195,6 @@ void QCPainterEngine::setFillColor(const QColor &color)
 void QCPainterEngine::setFillPaint(const QCPaint &paint)
 {
     state.fill = paint;
-    // Take current transform into account
-    state.fill.transform *= state.transform;
     state.customFill = nullptr;
 }
 
@@ -2310,6 +2306,9 @@ QCPaint QCPainterEngine::getFillPaint()
         auto *customFillPriv = QCCustomBrushPrivate::get(state.customFill);
         customFillPriv->globalAlpha = state.alpha;
     }
+    // Apply current transform
+    if (fillPaint.brushType != BrushColor && !state.transform.isIdentity())
+        fillPaint.transform *= state.transform;
     return fillPaint;
 }
 
@@ -2336,6 +2335,9 @@ void QCPainterEngine::getStrokeVars(float *strokeWidth, QCPaint *strokePaint)
         auto *customStrokePriv = QCCustomBrushPrivate::get(state.customStroke);
         customStrokePriv->globalAlpha = state.alpha;
     }
+    // Apply current transform
+    if (strokePaint->brushType != BrushColor && !state.transform.isIdentity())
+        strokePaint->transform *= state.transform;
 }
 
 // Return the effective text align, depending on text direction.
