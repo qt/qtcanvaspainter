@@ -14,10 +14,37 @@ class tst_QCPainterPath : public QObject
 
 private slots:
     // Path autotests
+    void testConstructors();
     void testEqual();
     void testAppending();
     void testSlicing();
 };
+
+void tst_QCPainterPath::testConstructors()
+{
+    QCPainterPath p1;
+    QVERIFY(p1.isEmpty());
+    // Note: Currently there is no initial capasity.
+    QCOMPARE(p1.commandsCapacity(), 0);
+    QCOMPARE(p1.commandsDataCapacity(), 0);
+    QCPainterPath p2(10);
+    QCOMPARE(p2.commandsCapacity(), 10);
+    QCOMPARE(p2.commandsDataCapacity(), 20);
+    QCPainterPath p3(10, 40);
+    QCOMPARE(p3.commandsCapacity(), 10);
+    QCOMPARE(p3.commandsDataCapacity(), 40);
+    QCPainterPath p4(p3);
+    QCOMPARE(p4.commandsCapacity(), 10);
+    QCOMPARE(p4.commandsDataCapacity(), 40);
+    QCPainterPath p5 = p4;
+    QCOMPARE(p5.commandsCapacity(), 10);
+    QCOMPARE(p5.commandsDataCapacity(), 40);
+
+    p5.reserveCommands(23);
+    QCOMPARE(p5.commandsCapacity(), 23);
+    p5.reserveCommandsData(51);
+    QCOMPARE(p5.commandsDataCapacity(), 51);
+}
 
 void tst_QCPainterPath::testEqual()
 {

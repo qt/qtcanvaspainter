@@ -60,6 +60,32 @@ QCPainterPath::QCPainterPath()
 }
 
 /*!
+    Constructs an empty path, allocating space for \commandsSize amount
+    of commands and optionally \a commandsDataSize amount of data.
+    If \a commandsDataSize parameter is not given, space is automatically
+    reserved for \c{2 * commandsSize} amount of data, which is optimal
+    amount when the path commands are straight lines (\l moveTo(),
+    \l lineTo(), \l rect()).
+
+    Reserving correct space is an optimization for path creation and
+    memory usage. It isn't mandatory as sufficient space will automatically
+    be ensured while adding commands into the path.
+
+    \sa reserveCommands(), reserveCommandsData()
+*/
+
+QCPainterPath::QCPainterPath(qsizetype commandsSize, qsizetype commandsDataSize)
+    : d_ptr(new QCPainterPathPrivate)
+{
+    d_ptr->commands.resize(commandsSize);
+    if (commandsDataSize < 0)
+        d_ptr->commandsData.resize(2 * commandsSize);
+    else
+        d_ptr->commandsData.resize(commandsDataSize);
+
+}
+
+/*!
     Constructs a path that is a copy of the given \a path.
 */
 
