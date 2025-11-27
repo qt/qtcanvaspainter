@@ -75,8 +75,6 @@ void GalleryItemRenderer::paint(QCPainter *painter)
     // Draw similarly colored rectangles
     switch (m_viewIndex) {
     case 0:
-        drawRectsWithSameColor();
-        //drawRectsWithMix();
         drawRectsWithLinearGradient();
         drawRectsWithRadialGradient();
         drawRectsWithBoxGradient();
@@ -85,149 +83,55 @@ void GalleryItemRenderer::paint(QCPainter *painter)
         drawRectsWithBrushStroke();
         break;
     case 1:
-        drawPaths();
-        break;
-    case 2:
-        drawPainterPaths();
-        break;
-    case 3:
-        drawTransforms();
-        break;
-    case 4:
-        drawAntialiasing();
-        break;
-    case 5:
-        drawCompositeModes();
-        break;
-    case 6:
-        drawGridPatterns();
-        break;
-    case 7:
-        drawRectangularShadows();
-        break;
-    case 8:
-        drawCustomBrushes();
-        break;
-    case 9:
-        drawTextsFonts();
-        break;
-    case 10:
-        drawTextsBrushes();
-        break;
-    case 11:
-        drawTextsAlignments();
-        break;
-    case 12:
-        drawTextsWrapping();
-        break;
-    case 13:
         drawImages();
         break;
-    case 14:
-        //drawFrameBuffers();
+    case 2:
+        drawGridPatterns();
+        break;
+    case 3:
+        drawRectangularShadows();
+        break;
+    case 4:
+        drawCustomBrushes();
+        break;
+    case 5:
+        drawPaths();
+        break;
+    case 6:
+        drawPainterPaths();
+        break;
+    case 7:
+        drawTransforms();
+        break;
+    case 8:
+        drawAntialiasing();
+        break;
+    case 9:
+        drawCompositeModes();
+        break;
+    case 10:
+        drawTextsFonts();
+        break;
+    case 11:
+        drawTextsBrushes();
+        break;
+    case 12:
+        drawTextsAlignments();
+        break;
+    case 13:
+        drawTextsWrapping();
         break;
     default:
         break;
     }
 }
 
-void GalleryItemRenderer::drawRectsWithSameColor() {
-
-    int rects = 7;
-    float margin = width()*0.02f;
-    float w = width() / (rects+1) - margin;
-    float posX = w/2 + margin;
-    float posY = w/2;
-
-    painter()->setStrokeStyle(QColor(0,0,0));
-    painter()->setFillStyle(QColor(204,102,51,102));
-    drawRect(posX,posY,w,w);
-    posX += w + margin;
-
-    painter()->setStrokeStyle("#000000");
-    painter()->setFillStyle(QColor::fromRgba(0x66CC6633));
-    drawRect(posX,posY,w,w);
-    posX += w + margin;
-
-    QColor c1; // Note: Using default
-    QColor c2;
-    c2.setRed(204);
-    c2.setGreen(102);
-    c2.setBlue(51);
-    c2.setAlpha(102);
-    painter()->setStrokeStyle(c1);
-    painter()->setFillStyle(c2);
-    drawRect(posX,posY,w,w);
-    posX += w + margin;
-
-    QColor cf1; // Note: Using default
-    QColor cf2;
-    cf2.setRedF(0.8f);
-    cf2.setGreenF(0.4f);
-    cf2.setBlueF(0.2f);
-    cf2.setAlphaF(0.4f);
-    painter()->setStrokeStyle(cf1);
-    painter()->setFillStyle(cf2);
-    drawRect(posX,posY,w,w);
-    posX += w + margin;
-
-    QColor qc1(0,0,0,255);
-    QColor qc2(204,102,51,102);
-    painter()->setStrokeStyle(qc1);
-    painter()->setFillStyle(qc2);
-    drawRect(posX,posY,w,w);
-    posX += w + margin;
-
-    painter()->setStrokeStyle(QColor::fromHsl(0, 0, 0, 255));
-    // HSL: 20° 60% 50%
-    painter()->setFillStyle(QColor::fromHsl(20, 255*0.6, 255*0.5, 102));
-    drawRect(posX,posY,w,w);
-    posX += w + margin;
-
-    QColor cc1(c1);
-    QColor cc2(c2);
-    painter()->setStrokeStyle(cc1);
-    painter()->setFillStyle(cc2);
-    drawRect(posX,posY,w,w);
-}
-
-// Disabled as QColor doesn't have mix / lerp methods.
-/*
-void GalleryItemRenderer::drawRectsWithMix() {
-    int rects = 3;
-    float margin = width()*0.02f;
-    float w = width() / (rects+2) - margin;
-    float posX = w + margin;
-    float posY = w+margin;
-
-    QCColor c1 = QCColor::fromMix(QCColor(255,0,0,255), QCColor(0,0,0,255), m_animationSine);
-    QCColor c2 = QCColor::fromMix(QCColor(255,0,0,100), QCColor(0,0,0,0), m_animationSine);
-    painter()->setStrokeStyle(c1);
-    painter()->setFillStyle(c2);
-    drawRect(posX,posY,w,w);
-    posX += w + margin;
-
-    QCColor c12 = QCColor::fromMix(QCColor(0,255,0,255), QCColor(0,0,0,255), m_animationSine);
-    QCColor c22 = QCColor::fromMix(QCColor(0,255,0,100), QCColor(0,0,0,0), m_animationSine);
-    painter()->setStrokeStyle(c12);
-    painter()->setFillStyle(c22);
-    drawRect(posX,posY,w,w);
-    posX += w + margin;
-
-    QCColor c23 = QCColor::fromMix(QCColor(0,0,255,255), QCColor(0,0,255,0), m_animationSine);
-    painter()->setStrokeStyle(QCColor(255,255,255));
-    painter()->setFillStyle(c23);
-    drawRect(posX,posY,w,w);
-    posX += w + margin;
-}
-*/
-
 void GalleryItemRenderer::drawRectsWithLinearGradient() {
     int rects = 4;
     float margin = width()*0.02f;
     float w = width() / (rects+1) - margin;
     float posX = w*0.5 + margin;
-    float posY = 1*(w+margin);
+    float posY = 0;
 
     QRectF rect1(posX,posY,w,w);
     painter()->setFillStyle(QCLinearGradient(0, rect1.y(), 0, rect1.y()+rect1.height()));
@@ -268,7 +172,7 @@ void GalleryItemRenderer::drawRectsWithRadialGradient() {
     float margin = width()*0.02f;
     float w = width() / (rects+1) - margin;
     float posX = w*0.5 + margin;
-    float posY = 2*(w+margin);
+    float posY = (w+margin);
 
     QRectF rect1(posX,posY,w,w);
     painter()->setFillStyle(QCRadialGradient(rect1.x(), rect1.y(), rect1.width()));
@@ -311,7 +215,7 @@ void GalleryItemRenderer::drawRectsWithBoxGradient() {
     float margin = width()*0.02f;
     float w = width() / (rects+1) - margin;
     float posX = w*0.5 + margin;
-    float posY = 3*(w+margin);
+    float posY = 2*(w+margin);
 
     QRectF rect1(posX,posY,w,w);
     painter()->setFillStyle(QCBoxGradient(rect1, w/2));
@@ -354,7 +258,7 @@ void GalleryItemRenderer::drawRectsWithConicalGradients() {
     float margin = width()*0.02f;
     float w = width() / (rects+1) - margin;
     float posX = w*0.5 + margin;
-    float posY = 4*(w+margin);
+    float posY = 3*(w+margin);
 
     QRectF rect1(posX,posY,w,w);
     QCConicalGradient g1;
@@ -399,7 +303,7 @@ void GalleryItemRenderer::drawRectsWithImagePattern() {
     float margin = width()*0.02f;
     float w = width() / (rects+2) - margin;
     float posX = w + margin;
-    float posY = 5*(w+margin);
+    float posY = 4*(w+margin);
 
     QRectF rect1(posX,posY,w,w);
     QCImagePattern g4(m_patternImage2, rect1);
@@ -439,7 +343,7 @@ void GalleryItemRenderer::drawRectsWithBrushStroke() {
     float w = width() / (rects+2) - margin;
     float w2 = w - border;
     float posX = w + margin + border/2;
-    float posY = 6*(w+margin) + border/2;
+    float posY = 5*(w+margin) + border/2;
 
     QRectF rect1(posX,posY,w2,w2);
     painter()->setLineWidth(border);
@@ -492,12 +396,12 @@ void GalleryItemRenderer::drawPaths() {
     int rects = 3;
     float margin = width()*0.1f;
     float w = width() / (rects) - margin;
-    float posX = margin/2;
-    float posY = margin;
     float lineWidth = width()*0.02f;
+    float posX = margin/2;
+    float posY = 0.5 * lineWidth;
 
-    painter()->setFillStyle(0xFFDFD0B8);
-    painter()->setStrokeStyle(0xFF948979);
+    painter()->setFillStyle(0xFF948979);
+    painter()->setStrokeStyle(0xFFDFD0B8);
     painter()->setLineWidth(lineWidth);
     painter()->setLineCap(QCPainter::LineCap::Round);
     painter()->setLineJoin(QCPainter::LineJoin::Round);
@@ -602,7 +506,7 @@ void GalleryItemRenderer::drawPainterPaths()
                 path1.lineTo(px, py);
         }
     }
-    painter()->setStrokeStyle("#608020");
+    painter()->setStrokeStyle(0xFFDFD0B8);
     painter()->setLineWidth(4);
     // Use same group for all non-changing paths.
     painter()->stroke(path1, StaticPath);
@@ -624,7 +528,7 @@ void GalleryItemRenderer::drawPainterPaths()
         path2.moveTo(px, py);
     else
         path2.lineTo(px, py);
-    painter()->setStrokeStyle("#406080");
+    painter()->setStrokeStyle(0xFFDFD0B8);
     painter()->setLineWidth(4);
     painter()->stroke(path2, DynamicPath);
     p2Index++;
@@ -678,8 +582,12 @@ void GalleryItemRenderer::drawPainterPaths()
             path4.addPath(path3, t);
         }
     }
-    painter()->translate(w * 0.4, h * 0.4);
-    painter()->stroke(path4, StaticPath);
+    QTransform t2;
+    t2.translate(center.x(), center.y() - hSize*0.6);
+    t2.translate(w * 0.4, h * 0.4);
+    t2.rotateRadians(m_animationTime);
+    t2.translate(-center.x(), -(center.y() - hSize*0.6));
+    painter()->stroke(path4, StaticPath, t2);
 
     // Example of reusing parts of paths
     posY += h + margin;
@@ -711,7 +619,7 @@ void GalleryItemRenderer::drawPainterPaths()
     painter()->setLineCap(QCPainter::LineCap::Round);
     painter()->setFillStyle(g1);
     painter()->fill(pathGraphArea);
-    painter()->setStrokeStyle(Qt::white);
+    painter()->setStrokeStyle(0xFFDFD0B8);
     painter()->setLineWidth(1);
     painter()->stroke(pathGraphLine);
     // Selection is part of line graph.
@@ -725,9 +633,9 @@ void GalleryItemRenderer::drawPainterPaths()
     float selectionLastX = pathSelection.positionAt(pathSelection.commandsSize() - 1).x();
     pathSelectionFill.lineTo(selectionLastX, posY + h);
     pathSelectionFill.lineTo(selectionFirstX, posY + h);
-    painter()->setFillStyle("#20ffff00");
+    painter()->setFillStyle("#20DFD0B8");
     painter()->fill(pathSelectionFill);
-    painter()->setStrokeStyle("#80f04020");
+    painter()->setStrokeStyle("#80DFD0B8");
     painter()->setLineWidth(16);
     painter()->stroke(pathSelection);
     painter()->restore();
@@ -738,8 +646,8 @@ void GalleryItemRenderer::drawTransforms() {
     float margin = width()*0.1f;
     float w = width() / (rects) - margin;
     float posX = margin/2;
-    float posY = margin;
     float lineWidth = width()*0.01f;
+    float posY = lineWidth;
 
     painter()->setFillStyle(0xFFFFFFFF);
     painter()->setStrokeStyle(0xFF000000);
@@ -757,8 +665,8 @@ void GalleryItemRenderer::drawTransforms() {
     painter()->setLineCap(QCPainter::LineCap::Round);
     painter()->setLineJoin(QCPainter::LineJoin::Round);
     painter()->translate(posX+w/2, posY+w/2);
-    painter()->rotate(m_animationSine);
-    painter()->scale(0.5f + 0.5f*m_animationSine);
+    painter()->rotate(1.0 - m_animationSine);
+    painter()->scale(0.2f + 0.8f*m_animationSine);
     painter()->translate(-(posX+w/2), -(posY+w/2));
     painter()->fillRect(posX, posY, w, w);
     painter()->strokeRect(posX, posY, w, w);
@@ -771,7 +679,7 @@ void GalleryItemRenderer::drawTransforms() {
 
     posY += w+margin;
     posX = margin/2;
-    painter()->setStrokeStyle(0xFF40E040);
+    painter()->setStrokeStyle(0xFFDFD0B8);
     painter()->save();
     painter()->translate(w/8 * m_animationSine, w/4 * m_animationSine);
     painter()->strokeRect(posX, posY, w/2, w/2);
@@ -814,7 +722,7 @@ void GalleryItemRenderer::drawTransforms() {
     QTransform t2 = painter()->getTransform();
     painter()->transform(t2);
 
-    painter()->setStrokeStyle(0xFF40E0E0);
+    painter()->setStrokeStyle(0xFF948979);
     painter()->strokeRect(posX, posY, w, w);
     painter()->resetClipping();
 
@@ -823,6 +731,7 @@ void GalleryItemRenderer::drawTransforms() {
     painter()->resetTransform();
     painter()->setLineWidth(lineWidth);
     QRectF r(posX, posY, w*2, w);
+    painter()->setStrokeStyle(0xFFDFD0B8);
     painter()->strokeRect(r);
     r.adjust(lineWidth/2, lineWidth/2, -lineWidth/2, -lineWidth/2);
     painter()->setClipRect(r);
@@ -837,8 +746,8 @@ void GalleryItemRenderer::drawAntialiasing() {
     float margin = width()*0.1f;
     float w = width() / (rects) - margin;
     float posX = margin/2;
-    float posY = margin;
     float lineWidth = width()*0.01f;
+    float posY = 2 * lineWidth;
 
     painter()->setLineCap(QCPainter::LineCap::Round);
     painter()->setStrokeStyle(0xFFFFFFFF);
@@ -853,7 +762,7 @@ void GalleryItemRenderer::drawAntialiasing() {
     painter()->roundRect(posX, posY, w, w, w/4);
     painter()->stroke();
     posX += w + margin;
-    painter()->setAntialias(1.0f + m_animationSine*5);
+    painter()->setAntialias(1.0f + m_animationSine*8);
     painter()->beginPath();
     painter()->roundRect(posX, posY, w, w, w/4);
     painter()->stroke();
@@ -956,7 +865,7 @@ void GalleryItemRenderer::drawCompositeItem1(float x, float y, float w, float h,
     // First item
     painter()->beginPath();
     painter()->roundRect(x, y, w, h * 0.7, w * 0.2);
-    painter()->setFillStyle("#6060d0");
+    painter()->setFillStyle("#DFD0B8");
     painter()->fill();
 
     painter()->setGlobalCompositeOperation(mode);
@@ -964,7 +873,7 @@ void GalleryItemRenderer::drawCompositeItem1(float x, float y, float w, float h,
     // Second item
     painter()->beginPath();
     painter()->circle(x + w * 0.5f, y + h * (0.6f + 0.4f * m_animationSine), w * 0.4f);
-    painter()->setFillStyle("#ff0000");
+    painter()->setFillStyle("#948979");
     painter()->fill();
 }
 
@@ -975,7 +884,7 @@ void GalleryItemRenderer::drawCompositeItem2(float x, float y, float w, float h,
     // First item
     painter()->beginPath();
     painter()->roundRect(x, y, w, h * 0.7, w * 0.2);
-    painter()->setFillStyle("#6060d0");
+    painter()->setFillStyle("#DFD0B8");
     painter()->fill();
     painter()->setStrokeStyle("#ffffff");
     painter()->stroke();
@@ -985,7 +894,7 @@ void GalleryItemRenderer::drawCompositeItem2(float x, float y, float w, float h,
     // Second item
     painter()->beginPath();
     painter()->circle(x + w * 0.5f, y + h * (0.6f + 0.4f * m_animationSine), w * 0.4f);
-    painter()->setFillStyle("#ff0000");
+    painter()->setFillStyle("#948979");
     painter()->fill();
     painter()->setStrokeStyle("#000000");
     painter()->stroke();
@@ -999,7 +908,7 @@ void GalleryItemRenderer::drawCompositeItem3(float x, float y, float w, float h,
     // First item
     painter()->beginPath();
     painter()->roundRect(x, y, w, h * 0.7, w * 0.2);
-    painter()->setFillStyle("#6060d0");
+    painter()->setFillStyle("#DFD0B8");
     painter()->fill();
     painter()->setStrokeStyle("#ffffff");
     painter()->stroke();
@@ -1010,7 +919,7 @@ void GalleryItemRenderer::drawCompositeItem3(float x, float y, float w, float h,
     painter()->setGlobalAlpha(0.5);
     painter()->beginPath();
     painter()->circle(x + w * 0.5f, y + h * (0.6f + 0.4f * m_animationSine), w * 0.4f);
-    painter()->setFillStyle("#ff0000");
+    painter()->setFillStyle("#948979");
     painter()->fill();
     painter()->setStrokeStyle("#000000");
     painter()->stroke();
@@ -1055,7 +964,7 @@ void GalleryItemRenderer::drawGridPatterns() {
     float w = width() / rects - margin;
     float h = height() * 0.25;
     float posX = margin/2;
-    float posY = margin;
+    float posY = 0;
 
     QRectF rect1(posX, posY, w, h);
     float cellZoom = 1.0 + 0.95 * sin(0.5 * m_animationTime);
@@ -1165,7 +1074,7 @@ void GalleryItemRenderer::drawRectangularShadows() {
     QRectF rect3(posX, posY, w, h);
     QCBoxShadow bs3(rect3);
     bs3.setBlur(h/8);
-    bs3.setColor("#202020");
+    bs3.setColor("#393E46");
     bs3.setTopLeftRadius(h/4 + h/4 * sin(m_animationTime));
     bs3.setTopRightRadius(h/4 + h/4 * sin(m_animationTime + 0.5 * M_PI));
     bs3.setBottomLeftRadius(h/4 + h/4 * sin(m_animationTime + 1.0 * M_PI));
@@ -1189,19 +1098,24 @@ void GalleryItemRenderer::drawRectangularShadows() {
     // Double shadows
     QRectF shadow1Rect = buttonRect.translated(-shadowOffsetX, shadowOffsetY);
     QCBoxShadow shadow;
+    QColor c("#393E46");
+    QColor cl = c.lighter(200);
+    QColor cd = c.darker(250);
+    cl.setAlphaF(0.2);
+    cd.setAlphaF(0.8);
     shadow.setBlur(blur);
     shadow.setRadius(radius);
     shadow.setRect(shadow1Rect);
-    shadow.setColor("#40000000");
+    shadow.setColor(cd);
     p->drawBoxShadow(shadow);
     QRectF shadow2Rect = buttonRect.translated(shadowOffsetX, -shadowOffsetY);
     shadow.setRect(shadow2Rect);
-    shadow.setColor("#10ffffff");
+    shadow.setColor(cl);
     p->drawBoxShadow(shadow);
     // Button on top of shadows
     p->beginPath();
     p->roundRect(buttonRect, radius);
-    p->setFillStyle("#404040");
+    p->setFillStyle(c);
     p->fill();
 
     buttonRect.translate(w + margin, 0);
@@ -1212,15 +1126,15 @@ void GalleryItemRenderer::drawRectangularShadows() {
     shadow.setBlur(h/16 + m_animationSine * h/2);
     // Double shadows
     shadow.setRect(shadow1Rect);
-    shadow.setColor("#80000000");
+    shadow.setColor(cd);
     p->drawBoxShadow(shadow);
     shadow.setRect(shadow2Rect);
-    shadow.setColor("#20ffffff");
+    shadow.setColor(cl);
     p->drawBoxShadow(shadow);
     // Button on top of shadows
     p->beginPath();
     p->roundRect(buttonRect, radius);
-    p->setFillStyle("#404040");
+    p->setFillStyle(c);
     p->fill();
 
     buttonRect.translate(w + margin, 0);
@@ -1232,16 +1146,16 @@ void GalleryItemRenderer::drawRectangularShadows() {
     // Double shadows
     shadow1Rect.translate(h/8 * sin(m_animationTime), 0);
     shadow.setRect(shadow1Rect);
-    shadow.setColor("#40000000");
+    shadow.setColor(cd);
     p->drawBoxShadow(shadow);
     shadow2Rect.translate(h/8 * sin(m_animationTime + M_PI), 0);
     shadow.setRect(shadow2Rect);
-    shadow.setColor("#10ffffff");
+    shadow.setColor(cl);
     p->drawBoxShadow(shadow);
     // Button on top of shadows
     p->beginPath();
     p->roundRect(buttonRect, radius);
-    p->setFillStyle("#404040");
+    p->setFillStyle(c);
     p->fill();
 
 }
@@ -1250,7 +1164,7 @@ void GalleryItemRenderer::drawCustomBrushes() {
     float w = width() * 0.8;
     float h = w * 0.3;
     float posX = width() * 0.5 - w * 0.5;
-    float posY = h * 0.5;
+    float posY = 0;
     float margin = width()*0.02f;
     float border = h * 0.1;
 
@@ -1297,7 +1211,7 @@ void GalleryItemRenderer::drawCustomBrushes() {
     painter()->moveTo(posX, posY);
     painter()->bezierCurveTo(posX+w*0.2f*m_animationSine, posY+h*0.8f*m_animationSine, posX+w*0.8f*m_animationSine, posY-h*0.2f*m_animationSine, posX+w, posY+h);
     painter()->setLineCap(QCPainter::LineCap::Round);
-    m_customBrush2.setData1(QVector4D(0.0, 0.0, 10.0, 1.0));
+    m_customBrush2.setData1(QVector4D(m_animationSine, 0.0, 0.0, 1.0));
     painter()->setStrokeStyle(m_customBrush2);
     painter()->setLineWidth(20);
     painter()->stroke();
@@ -1454,10 +1368,10 @@ void GalleryItemRenderer::drawTextsBrushes() {
     painter()->setFillStyle(g4);
     f.setPixelSize(fontSize);
     painter()->setFont(f);
-    //painter()->fillText("MULTIGRADIENT", posX, posY);
-    m_text1.setText("MULTIGRADIENT");
-    m_text1.setX(posX);
-    m_text1.setY(posY);
+    painter()->fillText("MULTIGRADIENT", posX, posY);
+    //m_text1.setText("MULTIGRADIENT");
+    //m_text1.setX(posX);
+    //m_text1.setY(posY);
     painter()->fillText(m_text1);
 
     posY += margin + fontSize;
@@ -1466,6 +1380,16 @@ void GalleryItemRenderer::drawTextsBrushes() {
     p1.setStartPosition(0, m_animationTime * 10);
     painter()->setFillStyle(p1);
     painter()->fillText("IMAGE PATTERN", posX, posY);
+
+    posY += margin + fontSize;
+    QCGridPattern p2;
+    p2.setStartPosition(m_animationSine * 10, 0);
+    p2.setLineWidth(2);
+    p2.setCellSize(4, 4);
+    p2.setLineColor("#00414A");
+    p2.setBackgroundColor("#2CDE85");
+    painter()->setFillStyle(p2);
+    painter()->fillText("GRID PATTERN", posX, posY);
 
     posY += margin + fontSize;
     painter()->setFillStyle(m_customBrush3);
@@ -1494,8 +1418,8 @@ void GalleryItemRenderer::drawTextsAlignments() {
 
     // Test horizontal alignments
     posX = width() * 0.5f;
-    painter()->setFillStyle(0xFF808080);
-    painter()->fillRect(posX-1, posY-fontSize, 2, fontSize*3);
+    painter()->setFillStyle(0xFFDFD0B8);
+    painter()->fillRect(posX-1, posY-fontSize, 1, fontSize*3);
     painter()->setTextBaseline(QCPainter::TextBaseline::Bottom);
     painter()->setFillStyle(0xFFFF9090);
     painter()->setTextAlign(QCPainter::TextAlign::Left);
@@ -1511,8 +1435,8 @@ void GalleryItemRenderer::drawTextsAlignments() {
     posY += margin;
     posX = width() * 0.1f;
     const float spacing = width() * 0.19;
-    painter()->setFillStyle(0xFF808080);
-    painter()->fillRect(posX, posY-1, width()*0.8f, 2);
+    painter()->setFillStyle(0xFFDFD0B8);
+    painter()->fillRect(posX, posY-1, width()*0.8f, 1);
     painter()->setTextAlign(QCPainter::TextAlign::Center);
     painter()->setFillStyle(0xFFFF90FF);
     painter()->setTextBaseline(QCPainter::TextBaseline::Top);
@@ -1535,7 +1459,7 @@ void GalleryItemRenderer::drawTextsAlignments() {
     QRectF r1(width() * 0.5f, posY, 0, fontSize);
     float animX = width() * 0.4f * m_animationSine;
     r1.adjust(-animX, 0, animX, 0);
-    painter()->setStrokeStyle(0xFF808080);
+    painter()->setStrokeStyle(0xFFDFD0B8);
     painter()->strokeRect(r1);
 
     painter()->setTextBaseline(QCPainter::TextBaseline::Middle);
@@ -1552,7 +1476,7 @@ void GalleryItemRenderer::drawTextsAlignments() {
     posX = width() * 0.1f;
     float rectW = width() * 0.8f;
     QRectF r2(posX, posY, rectW, margin * m_animationSine);
-    painter()->setStrokeStyle(0xFF808080);
+    painter()->setStrokeStyle(0xFFDFD0B8);
     painter()->strokeRect(r2);
 
     painter()->setTextAlign(QCPainter::TextAlign::Left);
@@ -1620,11 +1544,11 @@ void GalleryItemRenderer::drawTextsWrapping() {
     float rectW = (width() - 2 * margin) - m_animationSine*width()*0.4f;
     float rectH = 120;
     QRectF rect1(posX, posY, rectW, rectH);
-    painter()->setStrokeStyle(0xFF808080);
+    painter()->setStrokeStyle(0xFF393E46);
     painter()->strokeRect(rect1);
     painter()->fillText(s, rect1);
     QRectF boundingRect1 = painter()->textBoundingBox(s, rect1);
-    painter()->setStrokeStyle(0xFFFF8080);
+    painter()->setStrokeStyle(0xFFDFD0B8);
     painter()->strokeRect(boundingRect1);
 
     posY += rectH + margin;
@@ -1632,11 +1556,11 @@ void GalleryItemRenderer::drawTextsWrapping() {
     painter()->setTextBaseline(QCPainter::TextBaseline::Middle);
     painter()->setTextLineHeight(0);
     QRectF rect2(posX, posY, rectW, rectH);
-    painter()->setStrokeStyle(0xFF808080);
+    painter()->setStrokeStyle(0xFF393E46);
     painter()->strokeRect(rect2);
     painter()->fillText(s, rect2);
     QRectF boundingRect2 = painter()->textBoundingBox(s, rect2);
-    painter()->setStrokeStyle(0xFFFF8080);
+    painter()->setStrokeStyle(0xFFDFD0B8);
     painter()->strokeRect(boundingRect2);
 
     posY += rectH + margin;
@@ -1644,11 +1568,11 @@ void GalleryItemRenderer::drawTextsWrapping() {
     painter()->setTextBaseline(QCPainter::TextBaseline::Bottom);
     painter()->setTextLineHeight(10);
     QRectF rect3(posX, posY, rectW, rectH);
-    painter()->setStrokeStyle(0xFF808080);
+    painter()->setStrokeStyle(0xFF393E46);
     painter()->strokeRect(rect3);
     painter()->fillText(s, rect3);
     QRectF boundingRect3 = painter()->textBoundingBox(s, rect3);
-    painter()->setStrokeStyle(0xFFFF8080);
+    painter()->setStrokeStyle(0xFFDFD0B8);
     painter()->strokeRect(boundingRect3);
 
     posY += 1.6 * rectH + margin;
@@ -1672,10 +1596,10 @@ void GalleryItemRenderer::drawTextsWrapping() {
     painter()->beginPath();
     painter()->setLineWidth(1);
     painter()->circle(posX, posY, circleRadius);
-    painter()->setStrokeStyle(0xFF808080);
+    painter()->setStrokeStyle(0xFF393E46);
     painter()->stroke();
     QRectF boundingRect4 = painter()->textBoundingBox(text, posX, posY, textW);
-    painter()->setStrokeStyle(0xFFFF8080);
+    painter()->setStrokeStyle(0xFFDFD0B8);
     painter()->strokeRect(boundingRect4);
 }
 
@@ -1746,152 +1670,3 @@ void GalleryItemRenderer::drawImages() {
     painter()->fillText(offString, cx, text1PosY);
     painter()->fillText(onString, cx, text2PosY);
 }
-/*
-void GalleryItemRenderer::drawFrameBuffers()
-{
-    int rects = 2;
-    float dp = painter()->devicePixelRatio();
-    float dpWidth = width() * dp;
-    float dpHeight = height() * dp;
-    float margin = dpWidth*0.1f;
-    float w = (dpWidth / rects) - margin;
-    float posX = margin/2;
-    float posY = margin;
-    float lineWidth = 2;
-    QOpenGLFunctions glF(QOpenGLContext::currentContext());
-
-    // Cancel current frame as we will instead paint into fbo.
-    // We can do this instead of endFrame() as there hasn't
-    // been QCPainter commands for this item yet.
-    painter()->cancelFrame();
-
-    // Create and bind fbo1 into use
-    if (!m_fbo1) {
-        QOpenGLFramebufferObjectFormat format;
-        format.setAttachment(QOpenGLFramebufferObject::CombinedDepthStencil);
-        m_fbo1 = new QOpenGLFramebufferObject(w, w, format);
-        // Clear fbo intially
-        m_fbo1->bind();
-        glF.glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-        glF.glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT|GL_STENCIL_BUFFER_BIT);
-    }
-    m_fbo1->bind();
-
-    // Begin QCPainter frame for fbo1
-    painter()->beginFrame(m_fbo1->width(), m_fbo1->height());
-
-    // Paint borders
-    QRectF rect1(lineWidth/2, lineWidth/2, w-lineWidth, w-lineWidth);
-    painter()->setStrokeStyle("#ffffff");
-    painter()->setLineWidth(2);
-    painter()->strokeRect(rect1);
-
-    // Paint random circles inside rect
-    painter()->beginPath();
-    float cR = w * 0.1f;
-    float cX = cR + lineWidth + rand() % int(w-cR*2-lineWidth*2);
-    float cY = cR + lineWidth + rand() % int(w-cR*2-lineWidth*2);
-    QColor cColor = QColor(50 + rand() % 200, 50, 50, 100);
-    QPointF circlePos = QPointF(cX, cY);
-    painter()->circle(circlePos, cR);
-    painter()->setStrokeStyle("#000000");
-    painter()->setFillStyle(cColor);
-    painter()->fill();
-    painter()->stroke();
-
-    // Paint rect + text
-    painter()->setFillStyle("#202020");
-    painter()->fillRect(w*0.1, w*0.35, w*0.8, w*0.3);
-    QCFont f(QCFont::DEFAULT_FONT_NORMAL);
-    f.setPointSize(20);
-    painter()->setFont(f);
-    painter()->setFillStyle("#ffffff");
-    painter()->setTextAlign(QCPainter::ALIGN_CENTER);
-    painter()->setTextBaseline(QCPainter::BASELINE_MIDDLE);
-    painter()->fillText("FBO #1", w/2, w/2);
-
-    // We are done with fbo1, so end frame and unbind it
-    painter()->endFrame();
-    m_fbo1->release();
-
-    // Create and bind fbo2 into use
-    if (!m_fbo2) {
-        QOpenGLFramebufferObjectFormat format;
-        format.setAttachment(QOpenGLFramebufferObject::CombinedDepthStencil);
-        m_fbo2 = new QOpenGLFramebufferObject(w*2 + margin, w, format);
-    }
-    m_fbo2->bind();
-
-    // Clear fbo, let's not overdraw this time
-    glF.glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-    glF.glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT|GL_STENCIL_BUFFER_BIT);
-
-    // Begin QCPainter frame for fbo2
-    painter()->beginFrame(m_fbo2->width(), m_fbo2->height());
-
-    // Blit fbo1 into fbo2 few times
-    QRect blitSourceRect = QRect(0,0,m_fbo1->width(),m_fbo1->height());
-    float centerX = m_fbo2->width()/2 - w/4;
-    int blits = 5;
-    for (int i=0; i<blits; i++) {
-        float range = (float(i+1) / blits) * (m_animationSine - 0.5);
-        float blitPosX = centerX + (range * m_fbo2->width());
-        QRect blitTargetRect(blitPosX, lineWidth*2, m_fbo1->width()/2, m_fbo1->height()/2);
-        QOpenGLFramebufferObject::blitFramebuffer(m_fbo2, blitTargetRect,
-                                                  m_fbo1, blitSourceRect,
-                                                  GL_COLOR_BUFFER_BIT,
-                                                  GL_LINEAR);
-    }
-
-    // Paint rect + text
-    QRectF rect2(lineWidth/2, lineWidth/2, m_fbo2->width() - lineWidth, m_fbo2->height() - lineWidth);
-    painter()->setStrokeStyle("#ffffff");
-    painter()->setLineWidth(2);
-    painter()->strokeRect(rect2);
-    f.setPointSize(20);
-    painter()->setFont(f);
-    painter()->setFillStyle("#ffffff");
-    painter()->setTextAlign(QCPainter::ALIGN_CENTER);
-    painter()->setTextBaseline(QCPainter::BASELINE_MIDDLE);
-    painter()->fillText("FBO #2 - Blitting", m_fbo2->width()/2, m_fbo2->height()/4);
-
-    // We are done with fbo2, so end frame and unbind it
-    painter()->endFrame();
-    m_fbo2->release();
-
-    // Bind default QtQuick FBO back
-    // Handled a bit differently with RENDERNODE
-    // TODO: Consider creating helper for these
-#ifdef QCPAINTER_USE_RENDERNODE
-    QOpenGLFramebufferObject::bindDefault();
-    painter()->beginFrameAt(itemData().x*dp, itemData().y*dp, dpWidth, dpHeight);
-    glF.glViewport(0, int(itemData().y*dp), int(dpWidth), int(dpHeight));
-#elif QC_USE_RHI
-    // TODO: Not implemented for RHI
-#else
-    framebufferObject()->bind();
-    painter()->beginFrameAt(0, 0, dpWidth, dpHeight);
-#endif
-
-    // Draw fbo1 as image
-    QCImage fbo1Image = QCImage::fromFrameBuffer(m_fbo1);
-    painter()->drawImage(fbo1Image, posX, posY);
-
-    // Draw rotating & scaling fbo1
-    posX += w + margin;
-    float r = w * 0.5f + m_animationSine * w * 0.5f;
-    QRectF rect(posX + w/2 - r/2, posY + w/2 - r/2, r, r);
-    QPointF c(rect.x() + rect.width()/2, rect.y() + rect.height()/2);
-    painter()->save();
-    painter()->translate(c);
-    painter()->rotate(m_animationTime);
-    painter()->translate(-c);
-    painter()->drawImage(fbo1Image, rect);
-    painter()->restore();
-
-    // Draw fbo2 as image
-    posY += w + margin;
-    posX = margin/2;
-    QCImage fbo2Image = QCImage::fromFrameBuffer(m_fbo2);
-    painter()->drawImage(fbo2Image, posX, posY);
-}*/

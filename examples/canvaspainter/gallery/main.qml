@@ -47,9 +47,10 @@ Window {
     TopBar {
         id: topBar
         width: parent.width
-        height: Math.floor(50 * dp)
+        height: Math.floor(60 * dp)
         currentIndex: listView.currentIndex
         itemCount: listView.count
+        visibilityState: listView.contentX / listView.width
     }
 
 /*
@@ -76,6 +77,7 @@ Window {
     ListView {
         id: listView
         anchors.top: topBar.bottom
+        anchors.topMargin: 20 * dp
         anchors.bottom: parent.bottom
         width: parent.width
         orientation: ListView.Horizontal
@@ -92,13 +94,6 @@ Window {
             galleryView: index
             fillColor: "transparent"
             alphaBlending: true
-            Connections {
-                // Fixing QCPainter issue #22
-                target: listView
-                function onContentXChanged() {
-                    update();
-                }
-            }
         }
     }
 }

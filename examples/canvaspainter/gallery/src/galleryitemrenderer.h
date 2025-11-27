@@ -28,8 +28,6 @@ public:
 private:
 
     // View - Rectangles
-    void drawRectsWithSameColor();
-    //void drawRectsWithMix();
     void drawRectsWithLinearGradient();
     void drawRectsWithRadialGradient();
     void drawRectsWithBoxGradient();
@@ -72,9 +70,6 @@ private:
 
     // View - Images
     void drawImages();
-
-    // View - Frame Buffers
-    //void drawFrameBuffers();
 
     void drawRect(float x, float y, float w, float h);
 
