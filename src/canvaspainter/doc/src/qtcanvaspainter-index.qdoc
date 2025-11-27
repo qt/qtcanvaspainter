@@ -5,11 +5,23 @@
 \title Qt Canvas Painter
 \page qtcanvaspainter-index.html
 
-\section1 Content
+\section1 Using the Module
 
-\section1 C++ API
+\section2 C++ API
 
-\generatelist classesbymodule QtCanvasPainter
+\include {module-use.qdocinc} {using the c++ api}
+
+\section3 Building with CMake
+
+\include {module-use.qdocinc} {building with cmake} {CanvasPainter}
+
+\section1 Class Reference
+
+\l{Qt Canvas Painter C++ Classes}
+
+\section1 Examples
+
+\l{Qt Canvas Painter Examples and Tutorials}{All examples}
 
 \section1 Licenses and Attributions
 

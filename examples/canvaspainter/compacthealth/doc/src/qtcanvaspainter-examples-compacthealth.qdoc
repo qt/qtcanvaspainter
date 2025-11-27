@@ -3,7 +3,7 @@
 
 /*!
     \example compacthealth
-    \ingroup qtcanvaspainter-examples
+    \ingroup canvaspainter-examples
     \title Qt Canvas Painter - Compact Health Example
     \examplecategory {Graphics}
     \brief Demonstrates the use of QCPainter in a QWindow.
