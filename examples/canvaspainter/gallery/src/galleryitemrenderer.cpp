@@ -590,10 +590,9 @@ void GalleryItemRenderer::drawPainterPaths()
     static QCPainterPath path1;
     if (path1.isEmpty()) {
         // Reserve, so allocations are not needed while adding commands.
-        path1.reserveCommands(points);
         // All commands are moveTo & lineTo which take 2 data
-        // points (x & y) per command.
-        path1.reserveCommandsData(points * 2);
+        // points (x & y) per command, so second parameter is not needed.
+        path1.reserve(points);
         for (int i = 0; i < points; i++) {
             int px = posX + float(i) / (points - 1) * w;
             int py = posY + std::sin(1234.0 * (float(i*i))) * (h * 0.4);

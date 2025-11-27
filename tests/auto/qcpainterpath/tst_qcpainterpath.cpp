@@ -40,9 +40,11 @@ void tst_QCPainterPath::testConstructors()
     QCOMPARE(p5.commandsCapacity(), 10);
     QCOMPARE(p5.commandsDataCapacity(), 40);
 
-    p5.reserveCommands(23);
+    p5.reserve(23);
     QCOMPARE(p5.commandsCapacity(), 23);
-    p5.reserveCommandsData(51);
+    QCOMPARE(p5.commandsDataCapacity(), 2 * 23);
+    p5.reserve(15, 51);
+    QCOMPARE(p5.commandsCapacity(), 15);
     QCOMPARE(p5.commandsDataCapacity(), 51);
 }
 

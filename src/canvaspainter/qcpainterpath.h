@@ -97,8 +97,7 @@ public:
     qsizetype commandsDataSize() const;
     qsizetype commandsCapacity() const;
     qsizetype commandsDataCapacity() const;
-    void reserveCommands(qsizetype size);
-    void reserveCommandsData(qsizetype size);
+    void reserve(qsizetype commandsSize, qsizetype commandsDataSize = -1);
 
     // Other
     QPointF currentPosition() const;

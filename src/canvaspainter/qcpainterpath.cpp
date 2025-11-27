@@ -25,7 +25,7 @@ QT_BEGIN_NAMESPACE
  */
 
 // TODO: Measure optimal values for these
-// These are the minimum sizes used if not calling reserveCommands() and reserveCommandsData().
+// These are the minimum sizes used if not calling reserve().
 // Arrays will then grow automatically as path commands are added.
 #ifndef QCPAINTER_MINIMUM_PATH_COMMANDS_SIZE
 #define QCPAINTER_MINIMUM_PATH_COMMANDS_SIZE 64
@@ -60,7 +60,7 @@ QCPainterPath::QCPainterPath()
 }
 
 /*!
-    Constructs an empty path, allocating space for \commandsSize amount
+    Constructs an empty path, allocating space for \a commandsSize amount
     of commands and optionally \a commandsDataSize amount of data.
     If \a commandsDataSize parameter is not given, space is automatically
     reserved for \c{2 * commandsSize} amount of data, which is optimal
@@ -71,7 +71,7 @@ QCPainterPath::QCPainterPath()
     memory usage. It isn't mandatory as sufficient space will automatically
     be ensured while adding commands into the path.
 
-    \sa reserveCommands(), reserveCommandsData()
+    \sa reserve()
 */
 
 QCPainterPath::QCPainterPath(qsizetype commandsSize, qsizetype commandsDataSize)
@@ -835,9 +835,9 @@ bool QCPainterPath::isEmpty() const
     Clears the path commands and data.
 
     Call this when the path commands change to recreate the path.
-    This does not affect the memory usage, use  reserveCommands(), reserveCommandsData() and squeeze() for that.
+    This does not affect the memory usage, use  reserve() and squeeze() for that.
 
-    \sa reserveCommands, reserveCommandsData, squeeze
+    \sa reserve(), squeeze()
 */
 void QCPainterPath::clear()
 {
@@ -849,15 +849,14 @@ void QCPainterPath::clear()
 
 /*!
     Releases any memory not required to store the path commands and data.
-    This can be used to reduce the memory usage after calling the \l reserveCommands
-    and \l reserveCommandsData method.
+    This can be used to reduce the memory usage after calling the \l reserve().
 
     Normally this is not needed to be used, but it can be useful when the path size has
     been big due to reserving or adding many elements (\l lineTo, \l bezierCurveTo etc.) and
-    then size is expected to be much smaller in future so calling first \c reserveCommands,
-    \c reserveCommandsData and then \c squeeze, will release some memory.
+    then size is expected to be much smaller in future so calling first \c reserve()
+    and then \c squeeze(), will release some memory.
 
-    \sa reserveCommands, reserveCommandsData
+    \sa reserve()
 */
 void QCPainterPath::squeeze()
 {
@@ -896,7 +895,7 @@ qsizetype QCPainterPath::commandsDataSize() const
 /*!
     Returns the capacity of commands in the path.
 
-    \sa reserveCommands
+    \sa commandsDataCapacity(), reserve()
 */
 qsizetype QCPainterPath::commandsCapacity() const
 {
@@ -907,7 +906,7 @@ qsizetype QCPainterPath::commandsCapacity() const
 /*!
     Returns the capacity of commands data in the path.
 
-    \sa reserveCommandsData
+    \sa commandsCapacity(), reserve()
 */
 qsizetype QCPainterPath::commandsDataCapacity() const
 {
@@ -916,33 +915,33 @@ qsizetype QCPainterPath::commandsDataCapacity() const
 }
 
 /*!
-    Reserves a given amount of commands in QCPainterPath's internal memory.
+    Reserves a given amounts of space in QCPainterPath's internal memory.
 
-    Attempts to allocate memory for at least \a size commands.
-    Some path elements require multiple commands, see \l commandsSize.
+    Attempts to allocate memory for at least \a commandsSize commands
+    and \a commandsDataSize data points. Some path elements require
+    multiple commands, see \l commandsSize() and \l commandsDataSize().
+    If \a commandsDataSize parameter is not given, space is automatically
+    reserved for \c{2 * commandsSize} amount of data, which is optimal
+    amount when the path commands are straight lines (\l moveTo(),
+    \l lineTo(), \l rect()).
 
-    \sa squeeze
+    Reserving correct space is an optimization for path creation and
+    memory usage. It isn't mandatory as sufficient space will automatically
+    be ensured while adding commands into the path.
+
+    \sa squeeze(), commandsCapacity(), commandsDataCapacity()
 */
-void QCPainterPath::reserveCommands(qsizetype size)
+
+void QCPainterPath::reserve(qsizetype commandsSize, qsizetype commandsDataSize)
 {
     Q_D(QCPainterPath);
-    d->commands.resize(size);
+    d->commands.resize(commandsSize);
+    if (commandsDataSize < 0)
+        d->commandsData.resize(2 * commandsSize);
+    else
+        d->commandsData.resize(commandsDataSize);
+
 }
-
-/*!
-    Reserves a given amount of commands data in QCPainterPath's internal memory.
-
-    Attempts to allocate memory for at least \a size data points.
-    Some path elements require multiple data points, see \l commandsDataSize.
-
-    \sa squeeze
-*/
-void QCPainterPath::reserveCommandsData(qsizetype size)
-{
-    Q_D(QCPainterPath);
-    d->commandsData.resize(size);
-}
-
 
 /*!
     Returns the current position of the path.
@@ -997,7 +996,9 @@ QCPainterPath QCPainterPath::sliced(qsizetype start, qsizetype count, const QTra
     Q_D(const QCPainterPath);
     QCPainterPath path;
     if (d->commandsCount > start) {
-        path.reserveCommands(count);
+        // We don't know exact amount of commandData, so default
+        // 2 * (commands)count is a good estimation.
+        path.reserve(count);
         if (d->commands.at(start) != QCCommand::MoveTo) {
             path.moveTo(positionAt(start));
             path.addPath(*this, start + 1, count - 1, transform);
