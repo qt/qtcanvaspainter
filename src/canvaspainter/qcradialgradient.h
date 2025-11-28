@@ -31,6 +31,8 @@ public:
 
 private:
     QCPaint createPaint(QCPainter *painter) const final;
+    void createRadialGradient(const QColor &iColor, const QColor &oColor,
+                              int imageId) const;
 
 };
 

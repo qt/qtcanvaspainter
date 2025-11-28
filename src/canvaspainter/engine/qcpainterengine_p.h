@@ -75,39 +75,14 @@ public:
     void skew(float angleX, float angleY = 0.0f);
 
     // Images
-    // TODO: Return int id or QCImage?
     int createImage(int width, int height,
                     QCPainter::ImageFlags flags,
                     const uchar* data);
     bool deleteImage(int imageId);
-
-    // Brushes
-    QCPaint createLinearGradient(float startX, float startY,
-                                 float endX, float endY,
-                                 const QColor &iColor, const QColor &oColor,
-                                 int imageId);
-    QCPaint createRadialGradient(float centerX, float centerY,
-                                 float iRadius, float oRadius,
-                                 const QColor &iColor, const QColor &oColor,
-                                 int imageId);
-    QCPaint createConicalGradient(float centerX, float centerY, float angle,
-                                  const QColor &iColor, const QColor &oColor,
-                                  int imageId);
-    QCPaint createBoxGradient(float x, float y,
-                              float width, float height,
-                              float radius, float feather,
-                              const QColor &iColor, const QColor &oColor,
-                              int imageId);
+    void drawImageId(int imageId, float x, float y, float width, float height,
+                     const QColor &tintColor);
     QCPaint createImagePattern(float x, float y, float width, float height,
                                int imageId, float angle, const QColor &tintColor);
-    QCPaint createBoxShadow(float x, float y, float width, float height,
-                            const QVector4D &radius,
-                            float blur, const QColor &color);
-    QCPaint createGridPattern(float x, float y,
-                              float width, float height,
-                              float lineWidth, float angle, float feather,
-                              const QColor &gridColor,
-                              const QColor &backgroundColor);
 
     // Paths
     void beginPath();

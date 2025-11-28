@@ -72,6 +72,9 @@ private:
     friend class QCPainter;
     friend class QCPainterPrivate;
     QCPaint createPaint(QCPainter *painter) const final;
+    void createBoxShadow(float x, float y, float width, float height,
+                         const QVector4D &radius,
+                         float blur, const QColor &color) const;
 
 private:
     QExplicitlySharedDataPointer<QCBoxShadowPrivate> d;

@@ -71,6 +71,7 @@ public:
 
 private:
     QCPaint createPaint(QCPainter *painter) const final;
+    void createGridPattern() const;
 
 private:
     QExplicitlySharedDataPointer<QCGridPatternPrivate> d;

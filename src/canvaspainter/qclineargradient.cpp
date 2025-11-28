@@ -159,34 +159,66 @@ void QCLinearGradient::setEndPosition(QPointF end)
 
 QCPaint QCLinearGradient::createPaint(QCPainter *painter) const
 {
-    auto *painterPriv = QCPainterPrivate::get(painter);
     if (d->dirty) {
-        const float sx = d->data.linear.sx;
-        const float sy = d->data.linear.sy;
-        const float ex = d->data.linear.ex;
-        const float ey = d->data.linear.ey;
-        auto *e = painterPriv->engine();
         if (d->gradientStops.size() == 0) {
             QColor icol = { 255, 255, 255, 255 };
             QColor ocol = { 0, 0, 0, 0 };
-            d->paint = e->createLinearGradient(sx, sy, ex, ey, icol, ocol, 0);
+            createLinearGradient(icol, ocol, 0);
         } else if (d->gradientStops.size() == 1) {
             QColor c = d->gradientStops.first().second;
-            d->paint = e->createLinearGradient(sx, sy, ex, ey, c, c, 0);
+            createLinearGradient(c, c, 0);
         } else if (d->gradientStops.size() == 2) {
             QColor ic = d->gradientStops.first().second;
             QColor oc = d->gradientStops.last().second;
-            d->paint = e->createLinearGradient(sx, sy, ex, ey, ic, oc, 0);
+            createLinearGradient(ic, oc, 0);
         } else {
             d->updateGradientTexture(painter);
             QColor col = { 255, 255, 255, 255 };
-            d->paint = e->createLinearGradient(sx, sy, ex, ey, col, col, d->imageId);
+            createLinearGradient(col, col, d->imageId);
         }
         d->dirty = {};
     }
-    if (d->gradientStops.size() > 2)
+    if (d->gradientStops.size() > 2) {
+        auto *painterPriv = QCPainterPrivate::get(painter);
         painterPriv->markTextureIdUsed(d->imageId);
+    }
     return d->paint;
+}
+
+void QCLinearGradient::createLinearGradient(const QColor &iColor, const QColor &oColor,
+                                            int imageId) const
+{
+    const auto dd = d->data.linear;
+    QCPaint &p = d->paint;
+    p.brushType = BrushLinearGradient;
+
+    float dx = dd.ex - dd.sx;
+    float dy = dd.ey - dd.sy;
+    float d = std::sqrt(dx*dx + dy*dy);
+    const float small = 0.0001f;
+    if (d > small) {
+        dx /= d;
+        dy /= d;
+    } else {
+        dx = 0;
+        dy = 1;
+    }
+    p.transform.setMatrix(dy, -dx, 0,
+                          dx, dy, 0,
+                          dd.sx, dd.sy, 1);
+    p.feather = qMax(1.0f, d);
+
+    // Note: extent and radius not used.
+
+    if (imageId != 0) {
+        // Multistop gradient
+        p.imageId = imageId;
+    } else {
+        // 2 stops gradient
+        p.innerColor = { iColor.redF(), iColor.greenF(), iColor.blueF(), iColor.alphaF() };
+        p.outerColor = { oColor.redF(), oColor.greenF(), oColor.blueF(), oColor.alphaF() };
+        p.imageId = 0;
+    }
 }
 
 QT_END_NAMESPACE

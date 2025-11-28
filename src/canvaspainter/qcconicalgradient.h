@@ -28,6 +28,8 @@ public:
 
 private:
     QCPaint createPaint(QCPainter *painter) const final;
+    void createConicalGradient(const QColor &iColor, const QColor &oColor,
+                               int imageId) const;
 
 };
 

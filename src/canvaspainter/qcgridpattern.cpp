@@ -480,15 +480,36 @@ void QCGridPattern::detach()
 
 QCPaint QCGridPattern::createPaint(QCPainter *painter) const
 {
-    auto *painterPriv = QCPainterPrivate::get(painter);
+    Q_UNUSED(painter);
     if (d->changed) {
-        auto *e = painterPriv->engine();
-        d->paint = e->createGridPattern(d->x, d->y, d->width, d->height,
-                                        d->lineWidth, d->angle, d->feather,
-                                        d->lineColor, d->backgroundColor);
+        createGridPattern();
         d->changed = false;
     }
     return d->paint;
+}
+
+void QCGridPattern::createGridPattern() const
+{
+    QCPaint &p = d->paint;
+    p.brushType = BrushGrid;
+    p.transform = QTransform::fromTranslate(d->x, d->y);
+    if (!qFuzzyIsNull(d->angle))
+        p.transform = p.transform.rotateRadians(d->angle);
+
+    p.extent[0] = d->width;
+    p.extent[1] = d->height;
+
+    p.feather = d->feather;
+    p.radius = d->lineWidth;
+
+    p.innerColor = { d->lineColor.redF(),
+                     d->lineColor.greenF(),
+                     d->lineColor.blueF(),
+                     d->lineColor.alphaF() };
+    p.outerColor = { d->backgroundColor.redF(),
+                     d->backgroundColor.greenF(),
+                     d->backgroundColor.blueF(),
+                     d->backgroundColor.alphaF() };
 }
 
 QT_END_NAMESPACE

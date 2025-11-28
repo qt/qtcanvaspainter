@@ -449,9 +449,6 @@ QCPaint QCImagePattern::createPaint(QCPainter *painter) const
         auto *e = painterPriv->engine();
         if (d->image.isNull()) {
             qWarning() << "No image set for pattern, please use setImage()";
-            // When image is missing, use instead solid gradient paint
-            QColor col = { 0, 0, 0, 0 };
-            d->paint = e->createLinearGradient(0, 0, 100, 100, col, col, 0);
         } else {
             d->paint = e->createImagePattern(d->x, d->y, d->width, d->height,
                                              d->image.id(), d->angle, d->tintColor);

@@ -1261,7 +1261,8 @@ void QCPainter::drawBoxShadow(const QCBoxShadow &shadow)
 void QCPainter::drawImage(const QCImage &image, float x, float y)
 {
     Q_D(QCPainter);
-    d->drawImageId(image.id(), x, y, image.width(), image.height(), image.tintColor());
+    d->m_e->drawImageId(image.id(), x, y, image.width(), image.height(), image.tintColor());
+    d->markTextureIdUsed(image.id());
 }
 
 /*!
@@ -1273,7 +1274,8 @@ void QCPainter::drawImage(const QCImage &image, float x, float y)
 void QCPainter::drawImage(const QCImage &image, float x, float y, float width, float height)
 {
     Q_D(QCPainter);
-    d->drawImageId(image.id(), x, y, width, height, image.tintColor());
+    d->m_e->drawImageId(image.id(), x, y, width, height, image.tintColor());
+    d->markTextureIdUsed(image.id());
 }
 
 /*!
@@ -1968,18 +1970,6 @@ QCImage QCPainterPrivate::getQCImage(const QCOffscreenCanvas &canvas, QCPainter:
         flags.setFlag(QCPainter::ImageFlag::FlipY, !flags.testFlag(QCPainter::ImageFlag::FlipY));
 
     return getQCImage(canvas.texture(), flags);
-}
-
-void QCPainterPrivate::drawImageId(int imageId, float x, float y, float width, float height, const QColor &tintColor)
-{
-    QCPaint ip = m_e->createImagePattern(x, y, width, height, imageId, 0.0f, tintColor);
-    m_e->save();
-    m_e->beginPath();
-    m_e->addRect(x, y, width, height);
-    m_e->setFillPaint(ip);
-    m_e->fill();
-    m_e->restore();
-    markTextureIdUsed(imageId);
 }
 
 void QCPainterPrivate::setFont(const QFont &font)

@@ -301,134 +301,19 @@ bool QCPainterEngine::deleteImage(int imageId)
     return m_renderer->renderDeleteTexture(imageId);
 }
 
-
-// ***** Brushes *****
-
-QCPaint QCPainterEngine::createLinearGradient(float startX, float startY,
-                                              float endX, float endY,
-                                              const QColor &iColor, const QColor &oColor,
-                                              int imageId)
+void QCPainterEngine::drawImageId(int imageId, float x, float y, float width, float height, const QColor &tintColor)
 {
-    QCPaint p;
-    p.brushType = BrushLinearGradient;
-
-    float dx = endX - startX;
-    float dy = endY - startY;
-    float d = std::sqrt(dx*dx + dy*dy);
-    const float small = 0.0001f;
-    if (d > small) {
-        dx /= d;
-        dy /= d;
-    } else {
-        dx = 0;
-        dy = 1;
-    }
-    p.transform.setMatrix(dy, -dx, 0,
-                          dx, dy, 0,
-                          startX, startY, 1);
-    p.feather = qMax(1.0f, d);
-
-    // Note: extent and radius not used.
-
-    if (imageId != 0) {
-        // Multistop gradient
-        p.imageId = imageId;
-    } else {
-        // 2 stops gradient
-        p.innerColor = { iColor.redF(), iColor.greenF(), iColor.blueF(), iColor.alphaF() };
-        p.outerColor = { oColor.redF(), oColor.greenF(), oColor.blueF(), oColor.alphaF() };
-        p.imageId = 0;
-    }
-
-    return p;
-}
-
-QCPaint QCPainterEngine::createRadialGradient(float centerX, float centerY,
-                                              float iRadius, float oRadius,
-                                              const QColor &iColor, const QColor &oColor,
-                                              int imageId)
-{
-    QCPaint p;
-    p.brushType = BrushRadialGradient;
-    const float r = (iRadius + oRadius) * 0.5f;
-    const float f = (oRadius - iRadius);
-    p.transform = p.transform.translate(centerX, centerY);
-
-    // Note: extent not used.
-
-    p.radius = r;
-    p.feather = qMax(1.0f, f);
-
-    if (imageId != 0) {
-        // Multistop gradient
-        p.imageId = imageId;
-    } else {
-        // 2 stops gradient
-        p.innerColor = { iColor.redF(), iColor.greenF(), iColor.blueF(), iColor.alphaF() };
-        p.outerColor = { oColor.redF(), oColor.greenF(), oColor.blueF(), oColor.alphaF() };
-        p.imageId = 0;
-    }
-
-    return p;
-}
-
-QCPaint QCPainterEngine::createConicalGradient(float centerX, float centerY, float angle,
-                                                  const QColor &iColor, const QColor &oColor,
-                                                  int imageId)
-{
-    QCPaint p;
-    p.brushType = BrushConicalGradient;
-    p.transform = p.transform.translate(centerX, centerY);
-
-    // Note: p.extent not used
-
-    // Angle is in radius variable, as radians
-    // Rotating clockwise, starting from east
-    p.radius = angle + M_PI_2;
-
-    if (imageId != 0) {
-        // Multistop gradient
-        p.imageId = imageId;
-    } else {
-        // 2 stops gradient
-        p.innerColor = { iColor.redF(), iColor.greenF(), iColor.blueF(), iColor.alphaF() };
-        p.outerColor = { oColor.redF(), oColor.greenF(), oColor.blueF(), oColor.alphaF() };
-        p.imageId = 0;
-    }
-    return p;
-}
-
-QCPaint QCPainterEngine::createBoxGradient(float x, float y,
-                                           float width, float height,
-                                           float radius, float feather,
-                                           const QColor &iColor, const QColor &oColor,
-                                           int imageId)
-{
-    QCPaint p;
-    p.brushType = BrushBoxGradient;
-    p.transform = p.transform.translate(x + (width * 0.5f), y + (height * 0.5f));
-
-    p.extent[0] = width * 0.5f;
-    p.extent[1] = height * 0.5f;
-
-    p.radius = qMin(radius, qMin(width, height) * 0.5f);
-    p.feather = qMax(0.0f, feather);
-
-    if (imageId != 0) {
-        // Multistop gradient
-        p.imageId = imageId;
-    } else {
-        // 2 stops gradient
-        p.innerColor = { iColor.redF(), iColor.greenF(), iColor.blueF(), iColor.alphaF() };
-        p.outerColor = { oColor.redF(), oColor.greenF(), oColor.blueF(), oColor.alphaF() };
-        p.imageId = 0;
-    }
-
-    return p;
+    QCPaint ip = createImagePattern(x, y, width, height, imageId, 0.0f, tintColor);
+    save();
+    beginPath();
+    addRect(x, y, width, height);
+    setFillPaint(ip);
+    fill();
+    restore();
 }
 
 QCPaint QCPainterEngine::createImagePattern(float x, float y, float width, float height,
-                                               int imageId, float angle, const QColor &tintColor)
+                                            int imageId, float angle, const QColor &tintColor)
 {
     QCPaint p;
     p.brushType = BrushImage;
@@ -444,52 +329,6 @@ QCPaint QCPainterEngine::createImagePattern(float x, float y, float width, float
     p.innerColor = { tintColor.redF(), tintColor.greenF(), tintColor.blueF(), tintColor.alphaF() };
     // Not used currently
     //p.outerColor = WHITE_COLOR;
-
-    return p;
-}
-
-QCPaint QCPainterEngine::createBoxShadow(float x, float y, float width, float height,
-                                         const QVector4D &radius,
-                                         float blur, const QColor &color)
-{
-    QCPaint p;
-    p.brushType = BrushBoxShadow;
-
-    p.transform = p.transform.translate(x + (width * 0.5f), y + (height * 0.5f));
-
-    p.extent[0] = width * 0.5f;
-    p.extent[1] = height * 0.5f;
-
-    // Unused, individual corner radius in outerColor
-    //p.radius = radius;
-
-    p.feather = blur;
-
-    p.innerColor = { color.redF(), color.greenF(), color.blueF(), color.alphaF() };
-    p.outerColor = { radius.x(), radius.y(), radius.z(), radius.w() };
-    p.imageId = 0;
-
-    return p;
-}
-
-QCPaint QCPainterEngine::createGridPattern(float x, float y, float width, float height,
-                                           float lineWidth, float angle, float feather,
-                                           const QColor &gridColor, const QColor &backgroundColor)
-{
-    QCPaint p;
-    p.brushType = BrushGrid;
-    p.transform = p.transform.translate(x, y);
-    if (!qFuzzyIsNull(angle))
-        p.transform = p.transform.rotateRadians(angle);
-
-    p.extent[0] = width;
-    p.extent[1] = height;
-
-    p.feather = feather;
-    p.radius = lineWidth;
-
-    p.innerColor = { gridColor.redF(), gridColor.greenF(), gridColor.blueF(), gridColor.alphaF() };
-    p.outerColor = { backgroundColor.redF(), backgroundColor.greenF(), backgroundColor.blueF(), backgroundColor.alphaF() };
 
     return p;
 }

@@ -190,41 +190,55 @@ void QCBoxGradient::setRadius(float radius)
 
 QCPaint QCBoxGradient::createPaint(QCPainter *painter) const
 {
-    auto *painterPriv = QCPainterPrivate::get(painter);
     if (d->dirty) {
-        const float x = d->data.box.x;
-        const float y = d->data.box.y;
-        const float width = d->data.box.width;
-        const float height = d->data.box.height;
-        const float feather = d->data.box.feather;
-        const float radius = d->data.box.radius;
-        auto *e = painterPriv->engine();
         if (d->gradientStops.size() == 0) {
             QColor icol = { 255, 255, 255, 255 };
             QColor ocol = { 0, 0, 0, 0 };
-            d->paint = e->createBoxGradient(x, y, width, height,
-                                            radius, feather, icol, ocol, 0);
-
+            createBoxGradient(icol, ocol, 0);
         } else if (d->gradientStops.size() == 1) {
             QColor c = d->gradientStops.first().second;
-            d->paint = e->createBoxGradient(x, y, width, height,
-                                            radius, feather, c, c, 0);
+            createBoxGradient(c, c, 0);
         } else if (d->gradientStops.size() == 2) {
             QColor ic = d->gradientStops.first().second;
             QColor oc = d->gradientStops.last().second;
-            d->paint = e->createBoxGradient(x, y, width, height,
-                                            radius, feather, ic, oc, 0);
+            createBoxGradient(ic, oc, 0);
         } else {
             d->updateGradientTexture(painter);
             QColor col = { 255, 255, 255, 255 };
-            d->paint = e->createBoxGradient(x, y, width, height, radius,
-                                            feather, col, col, d->imageId);
+            createBoxGradient(col, col, d->imageId);
         }
         d->dirty = {};
     }
-    if (d->gradientStops.size() > 2)
+    if (d->gradientStops.size() > 2) {
+        auto *painterPriv = QCPainterPrivate::get(painter);
         painterPriv->markTextureIdUsed(d->imageId);
+    }
     return d->paint;
+}
+
+void QCBoxGradient::createBoxGradient(const QColor &iColor, const QColor &oColor,
+                                      int imageId) const
+{
+    const auto dd = d->data.box;
+    QCPaint &p = d->paint;
+    p.brushType = BrushBoxGradient;
+    p.transform = QTransform::fromTranslate(dd.x + (dd.width * 0.5f), dd.y + (dd.height * 0.5f));
+
+    p.extent[0] = dd.width * 0.5f;
+    p.extent[1] = dd.height * 0.5f;
+
+    p.radius = qMin(dd.radius, qMin(dd.width, dd.height) * 0.5f);
+    p.feather = qMax(0.0f, dd.feather);
+
+    if (imageId != 0) {
+        // Multistop gradient
+        p.imageId = imageId;
+    } else {
+        // 2 stops gradient
+        p.innerColor = { iColor.redF(), iColor.greenF(), iColor.blueF(), iColor.alphaF() };
+        p.outerColor = { oColor.redF(), oColor.greenF(), oColor.blueF(), oColor.alphaF() };
+        p.imageId = 0;
+    }
 }
 
 QT_END_NAMESPACE

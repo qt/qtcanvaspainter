@@ -537,10 +537,8 @@ void QCBoxShadow::detach()
 
 QCPaint QCBoxShadow::createPaint(QCPainter *painter) const
 {
-    auto *painterPriv = QCPainterPrivate::get(painter);
+    Q_UNUSED(painter);
     if (d->changed) {
-        auto *e = painterPriv->engine();
-
         // TODO: Support non-antialiased shadows?
         const float aa = 1.0f;
 
@@ -583,12 +581,35 @@ QCPaint QCBoxShadow::createPaint(QCPainter *painter) const
             radius.setZ(d->clampedRadius(d->bottomLeftRadius, width, height));
         if (d->bottomRightRadius >= 0)
             radius.setW(d->clampedRadius(d->bottomRightRadius, width, height));
-        d->paint = e->createBoxShadow(x, y, width, height, radius, blurOut, color);
+
+        createBoxShadow(x, y, width, height, radius, blurOut, color);
 
         d->changed = false;
     }
 
     return d->paint;
+}
+
+void QCBoxShadow::createBoxShadow(float x, float y, float width, float height,
+                                  const QVector4D &radius,
+                                  float blur, const QColor &color) const
+{
+    QCPaint &p = d->paint;
+    p.brushType = BrushBoxShadow;
+
+    p.transform = QTransform::fromTranslate(x + (width * 0.5f), y + (height * 0.5f));
+
+    p.extent[0] = width * 0.5f;
+    p.extent[1] = height * 0.5f;
+
+    // Unused, individual corner radius in outerColor
+    //p.radius = radius;
+
+    p.feather = blur;
+
+    p.innerColor = { color.redF(), color.greenF(), color.blueF(), color.alphaF() };
+    p.outerColor = { radius.x(), radius.y(), radius.z(), radius.w() };
+    p.imageId = 0;
 }
 
 float QCBoxShadowPrivate::clampedRadius(float rad, float width, float height) const

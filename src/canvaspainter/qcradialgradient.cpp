@@ -176,30 +176,55 @@ void QCRadialGradient::setInnerRadius(float radius)
 QCPaint QCRadialGradient::createPaint(QCPainter *painter) const
 {
     if (d->dirty) {
-        const float cx = d->data.radial.cx;
-        const float cy = d->data.radial.cy;
-        auto *e = QCPainterPrivate::get(painter)->engine();
         if (d->gradientStops.size() == 0) {
             QColor icol = { 255, 255, 255, 255 };
             QColor ocol = { 0, 0, 0, 0 };
-            d->paint = e->createRadialGradient(cx, cy, d->data.radial.iRadius, d->data.radial.oRadius, icol, ocol, 0);
+            createRadialGradient(icol, ocol, 0);
         } else if (d->gradientStops.size() == 1) {
             QColor c = d->gradientStops.first().second;
-            d->paint = e->createRadialGradient(cx, cy, d->data.radial.iRadius, d->data.radial.oRadius, c, c, 0);
+            createRadialGradient(c, c, 0);
         } else if (d->gradientStops.size() == 2) {
             QColor ic = d->gradientStops.first().second;
             QColor oc = d->gradientStops.last().second;
-            d->paint = e->createRadialGradient(cx, cy, d->data.radial.iRadius, d->data.radial.oRadius, ic, oc, 0);
+            createRadialGradient(ic, oc, 0);
         } else {
             d->updateGradientTexture(painter);
             QColor col = { 255, 255, 255, 255 };
-            d->paint = e->createRadialGradient(cx, cy, d->data.radial.iRadius, d->data.radial.oRadius, col, col, d->imageId);
+            createRadialGradient(col, col, d->imageId);
         }
         d->dirty = {};
     }
-    if (d->gradientStops.size() > 2)
-        QCPainterPrivate::get(painter)->markTextureIdUsed(d->imageId);
+    if (d->gradientStops.size() > 2) {
+        auto *painterPriv = QCPainterPrivate::get(painter);
+        painterPriv->markTextureIdUsed(d->imageId);
+    }
     return d->paint;
+}
+
+void QCRadialGradient::createRadialGradient(const QColor &iColor, const QColor &oColor,
+                                               int imageId) const
+{
+    const auto dd = d->data.radial;
+    QCPaint &p = d->paint;
+    p.brushType = BrushRadialGradient;
+    const float r = (dd.iRadius + dd.oRadius) * 0.5f;
+    const float f = (dd.oRadius - dd.iRadius);
+    p.transform = QTransform::fromTranslate(dd.cx, dd.cy);
+
+    // Note: extent not used.
+
+    p.radius = r;
+    p.feather = qMax(1.0f, f);
+
+    if (imageId != 0) {
+        // Multistop gradient
+        p.imageId = imageId;
+    } else {
+        // 2 stops gradient
+        p.innerColor = { iColor.redF(), iColor.greenF(), iColor.blueF(), iColor.alphaF() };
+        p.outerColor = { oColor.redF(), oColor.greenF(), oColor.blueF(), oColor.alphaF() };
+        p.imageId = 0;
+    }
 }
 
 QT_END_NAMESPACE

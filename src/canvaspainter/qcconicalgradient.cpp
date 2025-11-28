@@ -144,32 +144,55 @@ void QCConicalGradient::setAngle(float angle)
 
 QCPaint QCConicalGradient::createPaint(QCPainter *painter) const
 {
-    auto *painterPriv = QCPainterPrivate::get(painter);
     if (d->dirty) {
-        const float cx = d->data.conical.cx;
-        const float cy = d->data.conical.cy;
-        auto *e = painterPriv->engine();
         if (d->gradientStops.size() == 0) {
             QColor icol = { 255, 255, 255, 255 };
             QColor ocol = { 0, 0, 0, 0 };
-            d->paint = e->createConicalGradient(cx, cy, d->data.conical.angle, icol, ocol, 0);
+            createConicalGradient(icol, ocol, 0);
         } else if (d->gradientStops.size() == 1) {
             QColor c = d->gradientStops.first().second;
-            d->paint = e->createConicalGradient(cx, cy, d->data.conical.angle, c, c, 0);
+            createConicalGradient(c, c, 0);
         } else if (d->gradientStops.size() == 2) {
             QColor ic = d->gradientStops.first().second;
             QColor oc = d->gradientStops.last().second;
-            d->paint = e->createConicalGradient(cx, cy, d->data.conical.angle, ic, oc, 0);
+            createConicalGradient(ic, oc, 0);
         } else {
             d->updateGradientTexture(painter);
             QColor col = { 255, 255, 255, 255 };
-            d->paint = e->createConicalGradient(cx, cy, d->data.conical.angle, col, col, d->imageId);
+            createConicalGradient(col, col, d->imageId);
         }
         d->dirty = {};
     }
-    if (d->gradientStops.size() > 2)
+    if (d->gradientStops.size() > 2) {
+        auto *painterPriv = QCPainterPrivate::get(painter);
         painterPriv->markTextureIdUsed(d->imageId);
+    }
     return d->paint;
+}
+
+void QCConicalGradient::createConicalGradient(const QColor &iColor, const QColor &oColor,
+                                              int imageId) const
+{
+    const auto dd = d->data.conical;
+    QCPaint &p = d->paint;
+    p.brushType = BrushConicalGradient;
+    p.transform = QTransform::fromTranslate(dd.cx, dd.cy);
+
+    // Note: p.extent not used
+
+    // Angle is in radius variable, as radians
+    // Rotating clockwise, starting from east
+    p.radius = dd.angle + M_PI_2;
+
+    if (imageId != 0) {
+        // Multistop gradient
+        p.imageId = imageId;
+    } else {
+        // 2 stops gradient
+        p.innerColor = { iColor.redF(), iColor.greenF(), iColor.blueF(), iColor.alphaF() };
+        p.outerColor = { oColor.redF(), oColor.greenF(), oColor.blueF(), oColor.alphaF() };
+        p.imageId = 0;
+    }
 }
 
 QT_END_NAMESPACE

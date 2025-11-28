@@ -29,7 +29,9 @@ public:
     void setEndPosition(QPointF end);
 
 private:
-   QCPaint createPaint(QCPainter *painter) const final;
+    QCPaint createPaint(QCPainter *painter) const final;
+    void createLinearGradient(const QColor &iColor, const QColor &oColor,
+                              int imageId) const;
 
 };
 
