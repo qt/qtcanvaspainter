@@ -87,6 +87,8 @@ void QCRhiPaintDriver::resetForNewFrame()
     \note The associated QRhi must be recording a frame (\l QRhi::beginFrame()
     or \l QRhi::beginOffscreenFrame() must have been called), but it should not
     be in render pass recording state when this function is called.
+
+    \overload
  */
 void QCRhiPaintDriver::beginPaint(QRhiCommandBuffer *cb, QRhiRenderTarget *rt, const QColor &fillColor, QSize logicalSize, float dpr)
 {
@@ -131,6 +133,8 @@ void QCRhiPaintDriver::beginPaint(QRhiCommandBuffer *cb, QRhiRenderTarget *rt, c
     \note The associated QRhi must be recording a frame (\l QRhi::beginFrame()
     or \l QRhi::beginOffscreenFrame() must have been called), but it should not
     be in render pass recording state when this function is called.
+
+    \overload
  */
 void QCRhiPaintDriver::beginPaint(QCOffscreenCanvas &canvas, QRhiCommandBuffer *cb)
 {
@@ -241,7 +245,9 @@ void QCRhiPaintDriver::renderPaint()
     Issues a texture readback request for \a canvas.
 
     \a callback is invoked either before the function returns, or later,
-    depending on the underlying QRhi and 3D API implementation.
+    depending on the underlying QRhi and 3D API implementation. Reading back
+    texture contents may involve a GPU->CPU copy, depending on the GPU
+    architecture.
 
     This function can be called both within a beginPaint() - endPaint() block,
     and outside. When called outside, it will internally invoke \l

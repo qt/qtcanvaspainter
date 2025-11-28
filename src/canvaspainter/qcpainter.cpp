@@ -2026,7 +2026,29 @@ QRectF QCPainterPrivate::textBoundingBox(const QString &text, const QRectF &rect
     return m_e->textBoundingBox(text, rect);
 }
 
-// TODO: API docs
+/*!
+    \return a new offscreen canvas with the given \a pixelSize, \a sampleCount,
+    and \a flags.
+
+    The size of the canvas is specified in pixels. The \a pixelSize, \a
+    sampleCount, and \a flags properties are immutable afterwards. To get a
+    canvas with a different size, sample count, or flags, create a new one.
+
+    To target an offscreen canvas with with draw commands, call the appropriate
+    \l QCRhiPaintDriver::beginPaint() overload when working with the lower level
+    API, or \l QCPainterWidget::beginCanvasPainting() or \l
+    QQuickCPainterRenderer::beginCanvasPainting() when using the convenience
+    widget or Qt Quick item classes.
+
+    Normally the contents of the canvas is cleared when painting to it. To
+    disable this, pass \l{Flag::}{PreserveContents} in \a flags.
+
+    To request multisample rendering onto the canvas (multisample antialiasing,
+    MSAA), set a sample count larger than 1, such as 4 or 8. Preserving the
+    canvas contents between render passes is not supported however when
+    multisampling is enabled, and the \l{Flag::}{PreserveContents} flag will not
+    work in this case.
+ */
 QCOffscreenCanvas QCPainter::createCanvas(QSize pixelSize, int sampleCount, QCOffscreenCanvas::Flags flags)
 {
     Q_D(QCPainter);
@@ -2037,8 +2059,14 @@ QCOffscreenCanvas QCPainter::createCanvas(QSize pixelSize, int sampleCount, QCOf
     return d->m_renderer->createCanvas(pixelSize, sampleCount, flags);
 }
 
-// TODO: API docs
-// optional, the renderer destroys all canvases automatically
+/*!
+    Destroys the resources backing \a canvas. \a canvas becomes a
+    \l{QCOffscreenCanvas::isNull()}{null canvas} then.
+
+    The painter automatically does this upon its destruction. Therefore, calling
+    this function is only necessary when releasing the associated resources is
+    desired right away.
+*/
 void QCPainter::destroyCanvas(QCOffscreenCanvas &canvas)
 {
     Q_D(QCPainter);

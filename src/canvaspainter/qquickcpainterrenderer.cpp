@@ -71,6 +71,8 @@ void QQuickCPainterRenderer::initializeResources(QCPainter *painter)
 /*!
     This function is called at the start of rendering using \a painter.
     This function is called for every frame, before the paint engine is initialized.
+
+    \sa beginCanvasPainting(), endCanvasPainting()
 */
 void QQuickCPainterRenderer::prePaint(QCPainter *painter)
 {
@@ -128,20 +130,42 @@ QColor QQuickCPainterRenderer::fillColor() const
     return d->m_fillColor;
 }
 
+/*!
+    Returns \c true if this item renderer uses a shared painter.
+
+    \sa setSharedPainter
+ */
 bool QQuickCPainterRenderer::hasSharedPainter() const
 {
     Q_D(const QQuickCPainterRenderer);
     return d->m_sharedPainter;
 }
 
-// Must be called early enough, e.g. from the derived class' constructor, must
-// not be changed afterwards. Hence not a property exposed on the item, it is an
-// implementation detail.
-// NOTE: The default is true, and even then items in different
-// windows, meaning different QRhis, are still going to use different drivers
-// (painter/engine/renderer). Items with the same QRhi (in the same
-// QQuickWindow) will use the same painter, however. There are consequences and
-// pros/cons to both.
+/*!
+    Disable painter sharing if \a enable is \c false.
+
+    Painter sharing is enabled by default.
+
+    When painter sharing is enabled, all painter items inside the same
+    QQuickWindow will use the same QCPainter.
+
+    If disabling painter sharing is desired, this function must be called early
+    enough, for example from the derived class' constructor. Changing it
+    afterwards, when the item has already initialized for painting, will have no
+    effect.
+
+    If two items use dedicated, non-shared painters, each other's graphics
+    resources, such as the ones backing QCImage or QOffscreenCanvas, will not be
+    visible to them. Whereas if the items are in the same window, and sharing is
+    enabled, they can use images or canvases created by the other item, because
+    they both use the same QCPainter.
+
+    \note Even when \a enable is true, painters are not shared when between
+    items belonging to different QQuickWindow instances, and by extension, to
+    different scene graphs.
+
+    \sa hasSharedPainter
+ */
 void QQuickCPainterRenderer::setSharedPainter(bool enable)
 {
     Q_D(QQuickCPainterRenderer);
@@ -349,6 +373,14 @@ void QQuickCPainterRenderer::render(QRhiCommandBuffer *cb)
     }
 }
 
+/*!
+    Starts recording QCPainter draw commands targeting \a canvas.
+
+    \note This function should only be called from prePaint().
+
+    beginCanvasPainting() must always be followed by corresponding
+    endCanvasPainting() before returning from prePaint().
+ */
 void QQuickCPainterRenderer::beginCanvasPainting(QCOffscreenCanvas &canvas)
 {
     Q_D(QQuickCPainterRenderer);
@@ -360,6 +392,15 @@ void QQuickCPainterRenderer::beginCanvasPainting(QCOffscreenCanvas &canvas)
     d->m_factory->paintDriver()->beginPaint(canvas, d->m_currentCb);
 }
 
+/*!
+    Indicates the end of the drawing targeting the canvas specified in
+    beginCanvasPainting().
+
+    \note This function should only be called from prePaint().
+
+    beginCanvasPainting() must always be followed by corresponding
+    endCanvasPainting() before returning from prePaint().
+ */
 void QQuickCPainterRenderer::endCanvasPainting()
 {
     Q_D(QQuickCPainterRenderer);
@@ -369,6 +410,14 @@ void QQuickCPainterRenderer::endCanvasPainting()
     d->m_factory->paintDriver()->endPaint();
 }
 
+/*!
+    Issues a texture readback request for \a canvas.
+
+    \a callback is invoked either before the function returns, or later,
+    depending on the underlying QRhi and 3D API implementation. Reading back
+    texture contents may involve a GPU->CPU copy, depending on the GPU
+    architecture.
+ */
 void QQuickCPainterRenderer::grabCanvas(const QCOffscreenCanvas &canvas, std::function<void(const QImage &)> callback)
 {
     Q_D(QQuickCPainterRenderer);

@@ -19,39 +19,85 @@ QT_BEGIN_NAMESPACE
     an \l{QCImagePattern}{image pattern}.
 
     To create an offscreen canvas, call \l QCPainter::createCanvas(). To target
-    with with draw commands, call \l QRhiPaintDriver::beginPaint() when working
-    with the lower level API, or \l QCPainterWidget::beginCanvasPainting() or \l
-    QQuickCPainterRenderer::beginCanvasPainting() when using the QCPainter
-    convenience widget and item implementations.
+    an offscreen canvas with with draw commands, call the appropriate \l
+    QCRhiPaintDriver::beginPaint() overload when working with the lower level
+    API, or \l QCPainterWidget::beginCanvasPainting() or \l
+    QQuickCPainterRenderer::beginCanvasPainting() when using the convenience
+    widget or Qt Quick item classes.
+
+    Similarly to QCImage and QCBrush, QCOffscreenCanvas is explicitly shared.
+    See \l{Implicit Data Sharing} and \l QSharedDataPointer for details. As with
+    QCImage, a QCOffscreenCanvas object can be seen as containing handles to
+    graphics resources. Even when a detach occurs, the actual resources, i.e.
+    the image data in the underlying texture, are never actually copied or
+    duplicated.
+
+    A canvas always belongs to the QCPainter that created it. Manually
+    destroying canvases is done by calling \l{QCPainter::}{destroyCanvas()}. In
+    most cases this will not be necessary, however, since the painter will
+    automatically destroy any canvases during its own destruction.
  */
 
+ /*!
+    \enum QCOffscreenCanvas::Flag
+
+    Specifies the flags for the canvas.
+
+    \value PreserveContents Indicates that the contents of the canvas is
+    preserved when painting to it. This can have a negative effect on
+    performance, depending on the GPU architecture. See
+    \l{QRhiTextureRenderTarget::PreserveColorContents} for details. Settings
+    this flag is not supported when the sample count is greater than 1.
+ */
+
+/*!
+    \internal
+*/
 QCOffscreenCanvas::QCOffscreenCanvas()
     : d(new QCOffscreenCanvasPrivate)
 {
 }
 
+/*!
+    Copy constructor.
+*/
 QCOffscreenCanvas::QCOffscreenCanvas(const QCOffscreenCanvas &canvas) noexcept
     : d(canvas.d)
 {
 }
 
+/*!
+    Destructor.
+*/
 QCOffscreenCanvas::~QCOffscreenCanvas() = default;
 
 QT_DEFINE_QESDP_SPECIALIZATION_DTOR(QCOffscreenCanvasPrivate)
 
+/*!
+    Assigns a shallow copy of the given \a canvas to this canvas and returns a
+    reference to this canvas. For more information about shallow copies, see the
+    \l{Implicit Data Sharing}{implicit data sharing} documentation.
+
+    \note The underlying resources, the graphics resources such as the
+    QRhiTexture, are never copied or duplicated.
+*/
 QCOffscreenCanvas &QCOffscreenCanvas::operator=(const QCOffscreenCanvas &canvas) noexcept
 {
     QCOffscreenCanvas(canvas).swap(*this);
     return *this;
 }
 
-bool QCOffscreenCanvas::operator==(const QCOffscreenCanvas &i) const
+/*!
+    \return true if this and the \a other canvas are the same, meaning their
+    fill colors are the same and they reference the same graphics resources.
+ */
+bool QCOffscreenCanvas::operator==(const QCOffscreenCanvas &other) const
 {
-    if (i.d == d)
+    if (other.d == d)
         return true;
 
-    if (i.d->rhiCanvas != d->rhiCanvas
-        || i.d->fillColor != d->fillColor)
+    if (other.d->rhiCanvas != d->rhiCanvas
+        || other.d->fillColor != d->fillColor)
     {
         return false;
     }
@@ -59,6 +105,17 @@ bool QCOffscreenCanvas::operator==(const QCOffscreenCanvas &i) const
     return true;
 }
 
+/*!
+    If multiple canvases share common data, this image makes a copy of the data
+    and detaches itself from the sharing mechanism, making sure that this image
+    is the only one referring to the data.
+
+    Nothing is done if there is just a single reference.
+
+    \note The canvas only contains handles to the underlying graphics resources,
+    and data such as the fill color. The graphics resources themselves, such as
+    the QRhiTexture, are never copied or duplicated.
+ */
 void QCOffscreenCanvas::detach()
 {
     if (d)
@@ -67,21 +124,43 @@ void QCOffscreenCanvas::detach()
         d = new QCOffscreenCanvasPrivate;
 }
 
+/*!
+    \return true if this canvas has valid data.
+
+    Normally this will always be true.
+
+    \sa texture()
+ */
 bool QCOffscreenCanvas::isNull() const
 {
     return d->rhiCanvas.isNull();
 }
 
+/*!
+    \return the flags with which the canvas was created.
+
+    The flags are immutable and cannot be changed once the canvas has been
+    created.
+ */
 QCOffscreenCanvas::Flags QCOffscreenCanvas::flags() const
 {
     return d->rhiCanvas.flags;
 }
 
+/*!
+    \return the current fill color.
+ */
 QColor QCOffscreenCanvas::fillColor() const
 {
     return d->fillColor;
 }
 
+/*!
+    Sets the fill (clear) color to \a color.
+
+    By default this is set to the value passed to
+    \l{QCPainter::}{createCanvas()}.
+ */
 void QCOffscreenCanvas::setFillColor(const QColor &color)
 {
     if (d->fillColor == color)
@@ -91,6 +170,11 @@ void QCOffscreenCanvas::setFillColor(const QColor &color)
     d->fillColor = color;
 }
 
+/*!
+    \return the texture backing this offscreen canvas.
+
+    \sa isNull()
+ */
 QRhiTexture *QCOffscreenCanvas::texture() const
 {
     return d->rhiCanvas.tex;

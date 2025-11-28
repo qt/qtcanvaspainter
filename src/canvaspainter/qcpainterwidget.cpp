@@ -66,14 +66,6 @@ void QCPainterWidget::releaseResources()
 }
 
 /*!
-    \fn void QCPainterWidget::paint(QCPainter *painter)
-
-    Reimplement this method to paint using \a painter.
-
-    This will get called after the item has been filled with fillColor().
-*/
-
-/*!
     \fn QColor QCPainterWidget::fillColor() const
 
     Returns the current fill color.
@@ -117,13 +109,6 @@ bool QCPainterWidget::hasSharedPainter() const
     return d->m_sharedPainter;
 }
 
-// Must be called early enough, e.g. from the derived class' constructor, must
-// not be changed afterwards.
-// NOTE: The default is true, and even then widgets in
-// different windows, meaning different QRhis, are still going to use different
-// drivers (painter/engine/renderer). Widgets with the same QRhi (in the same
-// window) will use the same painter, however. There are consequences and
-// pros/cons to both.
 /*!
     Disable painter sharing if \a enable is \c false.
 
@@ -132,6 +117,17 @@ bool QCPainterWidget::hasSharedPainter() const
     and must not be changed afterwards.
 
     Painter sharing is enabled by default.
+
+    If two widgets use dedicated, non-shared painters, each other's graphics
+    resources, such as the ones backing QCImage or QOffscreenCanvas, will not be
+    visible to them. Whereas if the widgets are in the same window, and sharing
+    is enabled, they can use images or canvases created by the other widget,
+    because they both use the same QCPainter.
+
+    \note Even when \a enable is true, painters are not shared when between
+    widgets belonging to different windows (top-level widgets).
+
+    \sa hasSharedPainter
  */
 void QCPainterWidget::setSharedPainter(bool enable)
 {
@@ -204,11 +200,26 @@ void QCPainterWidget::render(QRhiCommandBuffer *cb)
     QCPainterWidgetPrivate::m_rendered.storeRelease(1);
 }
 
+/*!
+    Reimplement this function to perform drawing into one or more offscreen
+    canvases using \a painter.
+
+    The default implementation is empty.
+
+    \sa beginCanvasPainting(), endCanvasPainting()
+ */
 void QCPainterWidget::prePaint(QCPainter *painter)
 {
     Q_UNUSED(painter);
 }
 
+/*!
+    Reimplement this method to paint using \a painter.
+
+    The widget is first filled with fillColor().
+
+    The default implementation is empty.
+ */
 void QCPainterWidget::paint(QCPainter *painter)
 {
     Q_UNUSED(painter);
@@ -234,6 +245,44 @@ void QCPainterWidget::graphicsResourcesInvalidated()
 {
 }
 
+/*!
+    Starts recording QCPainter draw commands targeting \a canvas.
+
+    \note This function should only be called from prePaint().
+
+    beginCanvasPainting() must always be followed by corresponding
+    endCanvasPainting() before returning from prePaint().
+
+    The following snippet from a QCPainterWidget subclass shows how an offscreen
+    canvas could be rendered into and then used as an image or image pattern
+    when drawing the contents for the widget:
+
+    \code
+        QCOffscreenCanvas canvas;
+        QCImage canvasImage;
+        void graphicsResourcesInvalidated() override
+        {
+            canvas = {}; // so that the next prePaint() will recreate and redraw the canvas
+        }
+        void prePaint(QCPainter *p) override
+        {
+            if (canvas.isNull()) {
+                canvas = p->createCanvas(QSize(320, 240));
+                beginCanvasPainting(canvas);
+                p->beginPath();
+                p->circle(160, 120, 20);
+                p->setFillStyle(Qt::red);
+                p->fill();
+                endCanvasPainting();
+                canvasImage = p->addImage(canvas, QCPainter::ImageFlag::Repeat);
+            }
+        }
+        void paint(QCPainter *p) override
+        {
+            // use canvasImage as a brush or with drawImage()
+        }
+    \endcode
+ */
 void QCPainterWidget::beginCanvasPainting(QCOffscreenCanvas &canvas)
 {
     Q_D(QCPainterWidget);
@@ -245,6 +294,15 @@ void QCPainterWidget::beginCanvasPainting(QCOffscreenCanvas &canvas)
     d->m_factory->paintDriver()->beginPaint(canvas, d->m_currentCb);
 }
 
+/*!
+    Indicates the end of the drawing targeting the canvas specified in
+    beginCanvasPainting().
+
+    \note This function should only be called from prePaint().
+
+    beginCanvasPainting() must always be followed by corresponding
+    endCanvasPainting() before returning from prePaint().
+ */
 void QCPainterWidget::endCanvasPainting()
 {
     Q_D(QCPainterWidget);
@@ -254,6 +312,14 @@ void QCPainterWidget::endCanvasPainting()
     d->m_factory->paintDriver()->endPaint();
 }
 
+/*!
+    Issues a texture readback request for \a canvas.
+
+    \a callback is invoked either before the function returns, or later,
+    depending on the underlying QRhi and 3D API implementation. Reading back
+    texture contents may involve a GPU->CPU copy, depending on the GPU
+    architecture.
+ */
 void QCPainterWidget::grabCanvas(const QCOffscreenCanvas &canvas, std::function<void(const QImage &)> callback)
 {
     Q_D(QCPainterWidget);
