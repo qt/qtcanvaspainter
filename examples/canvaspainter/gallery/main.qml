@@ -86,11 +86,15 @@ Window {
         maximumFlickVelocity: 10000
         highlightMoveDuration: 2500
         model: 14
+        // Disable this to not preload all views.
+        cacheBuffer: 10000
         delegate: GalleryItem {
+            readonly property bool animationsOn: index >= listView.currentIndex - 1 &&
+                                                 index <= listView.currentIndex + 1
             width: listView.width
             height: listView.height
-            animationTime: mainView.animationTime
-            animationSine: mainView.animationSine
+            animationTime: animationsOn ? mainView.animationTime : 0
+            animationSine: animationsOn ? mainView.animationSine : 0
             galleryView: index
             fillColor: "transparent"
             alphaBlending: true
