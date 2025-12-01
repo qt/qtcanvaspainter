@@ -19,13 +19,24 @@ public:
 
     void paint(QCPainter *p) override
     {
-        // Painting code is shared as it's identical in all hello* examples
-        paintHelloItem(p, width(), height());
+        // Provide our own QCImage, to verify that a "load-if-not-yet-done"
+        // logic works as expected, and it does not break down when the widget
+        // is moved between windows (and so changes QRhis, losing all graphics
+        // resources in the process).
+        static QImage logoImage(":/quitlogo.png");
+        if (logo.isNull())
+            logo = p->addImage(logoImage, QCPainter::ImageFlag::Repeat);
+
+        paintHelloItem(p, width(), height(), &logo);
     }
+
+    QCImage logo;
 
     void graphicsResourcesInvalidated() override
     {
         qWarning("graphicsResourcesInvalidated");
+
+        logo = {}; // textures are lost, indicate the need for reload
     }
 };
 

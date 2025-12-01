@@ -3,3 +3,4 @@
 
 add_subdirectory(hellorhi)
 add_subdirectory(widgettest)
+add_subdirectory(itemtest)
