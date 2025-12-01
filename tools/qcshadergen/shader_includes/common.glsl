@@ -15,8 +15,8 @@ layout(std140, binding = 1) uniform fragUBuf {
     int texType;
     int type;
     // Take these into use when needed
+    float globalAlpha;
     int unused1;
-    int unused2;
     // Custom data starts
     mat3 paintMat;
     vec4 innerCol;

@@ -11,7 +11,7 @@ void main()
     float fontAlpha = sdfFontAlphaRaw();
     vec4 f1 = color1 * smoothstep(a1, fontAlphaMin + a1, fontAlpha);
     vec4 f2 = color2 * smoothstep(fontAlphaMin, fontAlphaMax, fontAlpha);
-    fragColor = mix(f1, f2, f2.a);
+    fragColor = mix(f1, f2, f2.a) * globalAlpha;
     // Note: Disable this if you don't want color effects to affect.
     applyColorEffects(fragColor);
 }

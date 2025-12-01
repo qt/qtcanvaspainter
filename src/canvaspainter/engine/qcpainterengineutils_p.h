@@ -62,6 +62,7 @@ struct QCPaint {
     float extent[2];
     float radius = 0.0f;
     float feather = 1.0f;
+    float alpha = 1.0f;
 };
 
 struct QCDrawDebug {

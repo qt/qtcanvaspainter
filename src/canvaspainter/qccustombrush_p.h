@@ -41,13 +41,14 @@ public:
         float colorEffects[4];
         int texType;
         int type;
-        int unusedInt[2];
-        // Custom input size is 112 bytes.
         float globalAlpha;
+        int unusedInt;
+        // Custom input size is 112 bytes.
         float iTime;
         int alphaIsRed;
         // Take into use when needed
-        int unusedInt1;
+        int unused1;
+        float unused3;
         QVector4D data[4];
         // Take these into use when needed
         float unused2[8];
@@ -59,7 +60,6 @@ public:
     QShader vertexShader;
     bool timeRunning = false;
     float time = 0;
-    float globalAlpha;
     QVector4D data[4];
 };
 

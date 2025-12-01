@@ -27,13 +27,13 @@ layout(std140, binding = 1) uniform commonUBuf {
     vec4 colorEffects;
     int texType;
     int type;
-    int unused1;
-    int unused2;
-    // Custom input
     float globalAlpha;
+    int unused1;
+    // Custom input
     float iTime;
     int alphaIsRed;
-    int unused3;
+    float unused2;
+    float unused3;
     vec4 data1;
     vec4 data2;
     vec4 data3;

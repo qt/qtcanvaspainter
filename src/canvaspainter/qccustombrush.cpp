@@ -131,7 +131,6 @@ bool QCCustomBrush::operator==(const QCCustomBrush &b) const
         || d->vertexShader != b.d->vertexShader
         || d->timeRunning != b.d->timeRunning
         || d->time != b.d->time
-        || d->globalAlpha != b.d->globalAlpha
         || d->data[0] != b.d->data[0]
         || d->data[1] != b.d->data[1]
         || d->data[2] != b.d->data[2]

@@ -911,8 +911,7 @@ void QCPainterEngine::stroke()
 #endif
 
     float strokeWidth;
-    QCPaint strokePaint;
-    getStrokeVars(&strokeWidth, &strokePaint);
+    const QCPaint strokePaint = getStrokePaint(&strokeWidth);
 
     commandsToPaths();
     expandStroke(strokeWidth * 0.5f, state.lineCap, state.lineJoin, state.miterLimit);
@@ -993,8 +992,7 @@ void QCPainterEngine::stroke(const QCPainterPath &path, int pathGroup, const QTr
     } else {
         // Caching - No need to update.
         float strokeWidth;
-        QCPaint strokePaint;
-        getStrokeVars(&strokeWidth, &strokePaint);
+        const QCPaint strokePaint = getStrokePaint(&strokeWidth);
         // Uses pathsCount 0, meaning that previous path data can be reused.
         m_renderer->renderStroke(strokePaint, state, ctx.edgeAAWidth,
                                  strokeWidth, ctx.paths, 0,
@@ -2294,26 +2292,19 @@ bool QCPainterEngine::strokePathUpdateRequired(QCPainterPath *path, int pathGrou
     return updateRequired;
 }
 
-// Return current fillPaint taking into account the state alpha
+// Return current fillPaint taking into account the state.
 QCPaint QCPainterEngine::getFillPaint()
 {
     QCPaint fillPaint = state.fill;
-    // Apply global alpha
-    if (!state.customFill) {
-        fillPaint.innerColor.a *= state.alpha;
-        fillPaint.outerColor.a *= state.alpha;
-    } else {
-        auto *customFillPriv = QCCustomBrushPrivate::get(state.customFill);
-        customFillPriv->globalAlpha = state.alpha;
-    }
+    fillPaint.alpha = state.alpha;
     // Apply current transform
     if (fillPaint.brushType != BrushColor && !state.transform.isIdentity())
         fillPaint.transform *= state.transform;
     return fillPaint;
 }
 
-// Set \a strokeWidth and \a strokePaint taking into account the state.
-void QCPainterEngine::getStrokeVars(float *strokeWidth, QCPaint *strokePaint)
+//  Return current strokePaint taking into account the state and set \a strokeWidth.
+QCPaint QCPainterEngine::getStrokePaint(float *strokeWidth)
 {
     float scale = getAverageScale(state.transform);
     *strokeWidth = std::clamp(state.strokeWidth * scale, 0.0f, QCPAINTER_MAX_STROKE_WIDTH);
@@ -2326,18 +2317,12 @@ void QCPainterEngine::getStrokeVars(float *strokeWidth, QCPaint *strokePaint)
         *strokeWidth = ctx.edgeAAWidth;
     }
 
-    *strokePaint = state.stroke;
-    // Apply global alpha
-    if (!state.customStroke) {
-        strokePaint->innerColor.a *= state.alpha * expa;
-        strokePaint->outerColor.a *= state.alpha * expa;
-    } else {
-        auto *customStrokePriv = QCCustomBrushPrivate::get(state.customStroke);
-        customStrokePriv->globalAlpha = state.alpha;
-    }
+    QCPaint strokePaint = state.stroke;
+    strokePaint.alpha = state.alpha * expa;
     // Apply current transform
-    if (strokePaint->brushType != BrushColor && !state.transform.isIdentity())
-        strokePaint->transform *= state.transform;
+    if (strokePaint.brushType != BrushColor && !state.transform.isIdentity())
+        strokePaint.transform *= state.transform;
+    return strokePaint;
 }
 
 // Return the effective text align, depending on text direction.

@@ -225,7 +225,7 @@ private:
     QCPainter::TextAlign effectiveTextAlign(QStringView text) const;
 
     QCPaint getFillPaint();
-    void getStrokeVars(float *strokeWidth, QCPaint *strokePaint);
+    QCPaint getStrokePaint(float *strokeWidth);
 #ifndef QCPAINTER_DISABLE_TEXT_SUPPORT
     void updateStateFontVars();
 #endif

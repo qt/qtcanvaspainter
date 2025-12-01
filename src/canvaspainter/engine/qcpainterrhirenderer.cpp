@@ -144,8 +144,9 @@ struct QCRHICommonUniforms {
     float colorEffects[4];
     int texType;
     int type;
+    float globalAlpha;
     // Take these into use when needed
-    int unusedInt[2];
+    int unusedInt;
     // Custom input size is 112 bytes.
     float paintMat[12];
     QCColor innerCol;
@@ -1212,6 +1213,7 @@ void QCPainterRhiRenderer::preparePaint(QCRHICommonUniforms *frag, const QCPaint
     else
         frag->outerCol = premulColor(paint.outerColor);
 
+    frag->globalAlpha = paint.alpha;
     frag->fontAlphaMin = fontAlphaMin;
     frag->fontAlphaMax = fontAlphaMax;
 
@@ -1304,6 +1306,7 @@ void QCPainterRhiRenderer::prepareCustomPaint(QCCustomBrushPrivate::CommonUnifor
     frag->data[2] = privBrush->data[2];
     frag->data[3] = privBrush->data[3];
 
+    frag->globalAlpha = paint.alpha;
     frag->fontAlphaMin = fontAlphaMin;
     frag->fontAlphaMax = fontAlphaMax;
 
@@ -1314,8 +1317,6 @@ void QCPainterRhiRenderer::prepareCustomPaint(QCCustomBrushPrivate::CommonUnifor
         privBrush->time += s;
         frag->iTime = privBrush->time;
     }
-
-    frag->globalAlpha = privBrush->globalAlpha;
 
     const bool isTextRed = rhiCtx->rhi->isFeatureSupported(QRhi::RedOrAlpha8IsRed);
     frag->alphaIsRed = isTextRed;

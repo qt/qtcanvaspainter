@@ -98,7 +98,7 @@ void main()
 #endif
     if (type == 0) { // Color
         color = innerCol;
-        color *= aaAlpha * clip;
+        color *= globalAlpha * aaAlpha * clip;
     } else if (type == 11) { // Stencil fill
         color = vec4(1.0);
     } else {
@@ -144,7 +144,7 @@ void main()
             float lines = max(hLines, vLines);
             color = mix(outerCol, innerCol, lines);
         }
-        color *= aaAlpha * clip;
+        color *= globalAlpha * aaAlpha * clip;
     }
 
     // See if rendering text
