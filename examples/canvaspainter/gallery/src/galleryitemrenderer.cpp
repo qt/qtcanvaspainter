@@ -110,15 +110,18 @@ void GalleryItemRenderer::paint(QCPainter *painter)
         drawCompositeModes();
         break;
     case 10:
-        drawTextsFonts();
+        drawColorEffects();
         break;
     case 11:
-        drawTextsBrushes();
+        drawTextsFonts();
         break;
     case 12:
-        drawTextsAlignments();
+        drawTextsBrushes();
         break;
     case 13:
+        drawTextsAlignments();
+        break;
+    case 14:
         drawTextsWrapping();
         break;
     default:
@@ -932,7 +935,7 @@ void GalleryItemRenderer::drawCompositeModes() {
     float w = width() / rects - margin;
     float h = w * 1.2;
     float posX = margin/2;
-    float posY = margin;
+    float posY = margin/2;
 
     drawCompositeItem1(posX, posY, w, h, QCPainter::CompositeOperation::SourceOver);
     posX += w + margin;
@@ -955,6 +958,68 @@ void GalleryItemRenderer::drawCompositeModes() {
     drawCompositeItem3(posX, posY, w, h, QCPainter::CompositeOperation::SourceAtop);
     posX += w + margin;
     drawCompositeItem3(posX, posY, w, h, QCPainter::CompositeOperation::DestinationOut);
+}
+
+void GalleryItemRenderer::drawButton(float x, float y, float w, float h, const QString &label)
+{
+    float border = h * 0.1;
+    QRectF rect1(x,y,w,h);
+    painter()->setLineWidth(border);
+    QPointF c = rect1.center();
+    QCLinearGradient g1(c.x() - 0.25 * h,
+                        c.y() - 0.25 * w,
+                        c.x() + 0.25 * h,
+                        c.y() + 0.25 * w);
+    g1.setColorAt(0.0, 0xFFFF0000);
+    g1.setColorAt(0.5, 0xFFD0D000);
+    g1.setColorAt(1.0, 0xFF000000);
+    QCLinearGradient g2(0, rect1.y(), 0, rect1.y() + rect1.height());
+    g2.setColorAt(0.0, 0xFF00414A);
+    g2.setColorAt(0.4, 0xFF2CDE85);
+    g2.setColorAt(1.0, 0xFF00414A);
+    painter()->beginPath();
+    painter()->roundRect(rect1, border * 2);
+    painter()->setStrokeStyle(g1);
+    painter()->setFillStyle(g2);
+    painter()->fill();
+    painter()->stroke();
+
+    painter()->setTextAlign(QCPainter::TextAlign::Center);
+    painter()->setTextBaseline(QCPainter::TextBaseline::Middle);
+    QFont f1;
+    f1.setPixelSize(h * 0.4f);
+    painter()->setFont(f1);
+    painter()->setFillStyle(0xFFFFFFFF);
+    painter()->fillText(label, rect1);
+}
+
+void GalleryItemRenderer::drawColorEffects() {
+    float w = width() * 0.8;
+    float h = w * 0.2;
+    float posX = width() * 0.5 - w * 0.5;
+    float margin = width()*0.05f;
+    float posY = margin;
+    float effectAnim = 0.5 + 0.5 * sin(m_animationTime);
+    painter()->setGlobalAlpha(effectAnim);
+    drawButton(posX, posY, w, h, "OPACITY");
+    painter()->setGlobalAlpha(1);
+    posY += h + margin;
+    painter()->setGlobalSaturate(3 * effectAnim);
+    drawButton(posX, posY, w, h, "SATURATE");
+    painter()->setGlobalSaturate(1);
+    posY += h + margin;
+    painter()->setGlobalBrightness(2 * effectAnim);
+    drawButton(posX, posY, w, h, "BRIGHTNESS");
+    painter()->setGlobalBrightness(1);
+    posY += h + margin;
+    painter()->setGlobalContrast(3 * effectAnim);
+    drawButton(posX, posY, w, h, "CONTRAST");
+    painter()->setGlobalContrast(1);
+    posY += h + margin;
+    painter()->setGlobalAlpha(effectAnim);
+    painter()->setGlobalSaturate(8 - 8 * effectAnim);
+    painter()->setGlobalContrast(2 * effectAnim);
+    drawButton(posX, posY, w, h, "MULTIPLE");
 }
 
 void GalleryItemRenderer::drawGridPatterns() {

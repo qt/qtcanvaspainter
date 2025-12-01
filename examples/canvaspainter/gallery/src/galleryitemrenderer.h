@@ -62,6 +62,10 @@ private:
     // View - Custom Brushes
     void drawCustomBrushes();
 
+    // View - Color Effects
+    void drawButton(float x, float y, float w, float h, const QString &label);
+    void drawColorEffects();
+
     // View - Texts
     void drawTextsFonts();
     void drawTextsBrushes();

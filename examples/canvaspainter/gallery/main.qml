@@ -85,7 +85,7 @@ Window {
         highlightRangeMode: ListView.StrictlyEnforceRange
         maximumFlickVelocity: 10000
         highlightMoveDuration: 2500
-        model: 14
+        model: 15
         // Disable this to not preload all views.
         cacheBuffer: 10000
         delegate: GalleryItem {

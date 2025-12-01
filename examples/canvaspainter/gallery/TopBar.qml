@@ -56,18 +56,22 @@ Item {
             title = "Composite Modes";
             break;
         case 10:
-            groupTitle = "Text";
-            title = "Fonts and Styles";
+            groupTitle = "Painting";
+            title = "Color Effects";
             break;
         case 11:
             groupTitle = "Text";
-            title = "Brushes";
+            title = "Fonts and Styles";
             break;
         case 12:
             groupTitle = "Text";
-            title = "Alignment";
+            title = "Brushes";
             break;
         case 13:
+            groupTitle = "Text";
+            title = "Alignment";
+            break;
+        case 14:
             groupTitle = "Text";
             title = "Wrapping";
             break;
