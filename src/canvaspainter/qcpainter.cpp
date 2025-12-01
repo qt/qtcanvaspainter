@@ -629,6 +629,16 @@ void QCPainter::scale(float scale)
 }
 
 /*!
+    Sets the current brush transform to \a transform. This transform is
+    applied to both stroke and fill brushes.
+*/
+void QCPainter::setBrushTransform(const QTransform &transform)
+{
+    Q_D(QCPainter);
+    d->m_e->setBrushTransform(transform);
+}
+
+/*!
     \overload
 
     Scales the current coordinat system by \a scaleX and \a scaleY.

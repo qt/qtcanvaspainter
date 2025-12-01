@@ -105,6 +105,8 @@ public:
     void scale(float scaleX, float scaleY);
     const QTransform getTransform() const;
 
+    void setBrushTransform(const QTransform &transform);
+
     // *** Clipping ***
 
     void setClipRect(float x, float y, float width, float height);

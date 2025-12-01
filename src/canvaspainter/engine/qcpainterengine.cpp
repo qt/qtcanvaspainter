@@ -129,6 +129,7 @@ void QCPainterEngine::reset()
     state.contrast = 1.0f;
     state.saturate = 1.0f;
     state.transform.reset();
+    state.brushTransform.reset();
     state.clip.extent[0] = -1.0f;
     state.clip.extent[1] = -1.0f;
     state.customFill = nullptr;
@@ -285,6 +286,11 @@ void QCPainterEngine::rotate(float angle)
 void QCPainterEngine::skew(float angleX, float angleY)
 {
     state.transform = state.transform.shear(angleX, angleY);
+}
+
+void QCPainterEngine::setBrushTransform(const QTransform &transform)
+{
+    state.brushTransform = transform;
 }
 
 // ***** Images *****
@@ -2137,8 +2143,8 @@ QCPaint QCPainterEngine::getFillPaint()
     QCPaint fillPaint = state.fill;
     fillPaint.alpha = state.alpha;
     // Apply current transform
-    if (fillPaint.brushType != BrushColor && !state.transform.isIdentity())
-        fillPaint.transform *= state.transform;
+    if (fillPaint.brushType != BrushColor && !(state.transform.isIdentity() && state.brushTransform.isIdentity()))
+        fillPaint.transform *= (state.brushTransform * state.transform);
     return fillPaint;
 }
 
@@ -2158,9 +2164,9 @@ QCPaint QCPainterEngine::getStrokePaint(float *strokeWidth)
 
     QCPaint strokePaint = state.stroke;
     strokePaint.alpha = state.alpha * expa;
-    // Apply current transform
-    if (strokePaint.brushType != BrushColor && !state.transform.isIdentity())
-        strokePaint.transform *= state.transform;
+    // Apply current transform and optional brush transform
+    if (strokePaint.brushType != BrushColor && !(state.transform.isIdentity() && state.brushTransform.isIdentity()))
+        strokePaint.transform *= (state.brushTransform * state.transform);
     return strokePaint;
 }
 

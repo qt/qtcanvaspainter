@@ -74,6 +74,8 @@ public:
     void rotate(float angle);
     void skew(float angleX, float angleY = 0.0f);
 
+    void setBrushTransform(const QTransform &transform);
+
     // Images
     int createImage(int width, int height,
                     QCPainter::ImageFlags flags,

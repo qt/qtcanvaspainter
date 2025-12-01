@@ -121,6 +121,7 @@ typedef QVarLengthArray<QCPath> QCPaths;
 
 struct QCState {
     QTransform transform;
+    QTransform brushTransform;
     QFont font;
     QCClip clip;
     QCPaint fill;
