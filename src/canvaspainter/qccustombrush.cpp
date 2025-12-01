@@ -8,7 +8,7 @@
 
 QT_BEGIN_NAMESPACE
 
-static QShader getShader(const QString &name)
+static QShader getCustomShader(const QString &name)
 {
     QFile f(name);
     if (f.open(QIODevice::ReadOnly)) {
@@ -170,7 +170,7 @@ QCBrush::BrushType QCCustomBrush::type() const
 void QCCustomBrush::setFragmentShader(const QString &fragmentShader)
 {
     detach();
-    d->fragmentShader = getShader(fragmentShader);
+    d->fragmentShader = getCustomShader(fragmentShader);
 }
 
 /*!
@@ -181,7 +181,7 @@ void QCCustomBrush::setFragmentShader(const QString &fragmentShader)
 void QCCustomBrush::setVertexShader(const QString &vertexShader)
 {
     detach();
-    d->vertexShader = getShader(vertexShader);
+    d->vertexShader = getCustomShader(vertexShader);
 }
 
 /*!
