@@ -213,8 +213,9 @@ void QCRadialGradient::createRadialGradient(const QColor &iColor, const QColor &
 
     // Note: extent not used.
 
+    constexpr float small = 0.0001f;
     p.radius = r;
-    p.feather = qMax(1.0f, f);
+    p.feather = qMax(small, f);
 
     if (imageId != 0) {
         // Multistop gradient

@@ -195,7 +195,7 @@ void QCLinearGradient::createLinearGradient(const QColor &iColor, const QColor &
     float dx = dd.ex - dd.sx;
     float dy = dd.ey - dd.sy;
     float d = std::sqrt(dx*dx + dy*dy);
-    const float small = 0.0001f;
+    constexpr float small = 0.0001f;
     if (d > small) {
         dx /= d;
         dy /= d;
@@ -206,7 +206,7 @@ void QCLinearGradient::createLinearGradient(const QColor &iColor, const QColor &
     p.transform.setMatrix(dy, -dx, 0,
                           dx, dy, 0,
                           dd.sx, dd.sy, 1);
-    p.feather = qMax(1.0f, d);
+    p.feather = qMax(small, d);
 
     // Note: extent and radius not used.
 
