@@ -141,6 +141,11 @@ void QCPainterEngine::reset()
     state.textLineHeight = 0.0f;
     state.textAntialias = 1.0f;
     state.font = QFont();
+
+    // Blending is almost always enabled, so e.g. antialiasing,
+    // non-opaque colors and composition modes work.
+    state.blendEnable = true;
+
     ctx.fontId = 0;
     ctx.fontAlphaMin = -1.0f;
     ctx.fontAlphaMax = -1.0f;
@@ -746,6 +751,31 @@ void QCPainterEngine::fill()
                            ctx.currentPathTransform);
 #ifdef QCPAINTER_PERF_DEBUG
     perf.logEnd(QCPerfLogging::FILL);
+#endif
+}
+
+void QCPainterEngine::fillForClear()
+{
+#ifdef QCPAINTER_PERF_DEBUG
+    perf.logStart(QCPerfLogging::CLEAR);
+#endif
+    commandsToPaths();
+    expandFill();
+
+    QCPaint fillPaint;
+    fillPaint.innerColor = { 0.0f, 0.0f, 0.0f, 0.0f }; // transparent black
+    fillPaint.outerColor = fillPaint.innerColor;
+
+    const bool wasBlendEnabled = state.blendEnable;
+    state.blendEnable = false;
+    m_renderer->renderFill(fillPaint, state, ctx.edgeAAWidth,
+                           ctx.bounds, ctx.paths, ctx.pathsCount,
+                           ctx.currentPainterPath, ctx.currentPathGroup,
+                           ctx.currentPathTransform);
+    state.blendEnable = wasBlendEnabled;
+
+#ifdef QCPAINTER_PERF_DEBUG
+    perf.logEnd(QCPerfLogging::CLEAR);
 #endif
 }
 

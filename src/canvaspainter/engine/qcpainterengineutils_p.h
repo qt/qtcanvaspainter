@@ -143,6 +143,7 @@ struct QCState {
     QCPainter::TextDirection textDirection = QCPainter::TextDirection::Inherit;
     float textLineHeight;
     float textAntialias;
+    bool blendEnable;
 };
 
 struct QCPoint {
@@ -252,6 +253,7 @@ public:
         FILL,
         STROKE,
         C2P,
+        CLEAR,
     };
     Q_ENUM(QCPerfCategory)
 

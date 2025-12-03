@@ -1206,6 +1206,32 @@ void QCPainter::fillRect(const QRectF &rect)
 }
 
 /*!
+    Fills the rectangle specified by \a x, \a y, \a width, \a height with
+    transparent black. As clearing does not need blending, it can be faster
+    than fillRect().
+*/
+void QCPainter::clearRect(float x, float y, float width, float height)
+{
+    Q_D(QCPainter);
+    d->m_e->beginPath();
+    d->m_e->addRect(x, y, width, height);
+    d->m_e->fillForClear();
+}
+
+/*!
+    \overload
+    Fills \a rect with transparent black.
+    This is an overloaded method using QRectF.
+*/
+void QCPainter::clearRect(const QRectF &rect)
+{
+    clearRect(float(rect.x()),
+              float(rect.y()),
+              float(rect.width()),
+              float(rect.height()));
+}
+
+/*!
     Draws a stoked rectangle into specified position ( \a x, \a y) at size \a width, \a height.
     \note This is provided for convenience. When stroking more than just a single rect,
     prefer using rect().

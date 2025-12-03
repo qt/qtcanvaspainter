@@ -193,6 +193,8 @@ public:
 
     void fillRect(float x, float y, float width, float height);
     void fillRect(const QRectF &rect);
+    void clearRect(float x, float y, float width, float height);
+    void clearRect(const QRectF &rect);
     void strokeRect(float x, float y, float width, float height);
     void strokeRect(const QRectF &rect);
 

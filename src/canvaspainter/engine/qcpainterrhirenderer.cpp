@@ -87,6 +87,7 @@ enum QCRHIPathAction {
 
 struct QCRHIBlend
 {
+    bool enable;
     QRhiGraphicsPipeline::BlendFactor srcRGB;
     QRhiGraphicsPipeline::BlendFactor dstRGB;
     QRhiGraphicsPipeline::BlendFactor srcAlpha;
@@ -239,6 +240,7 @@ inline bool operator==(const QCRHIPipelineState &a, const QCRHIPipelineState &b)
            && a.customVertShader == b.customVertShader
            // NB! not memcmp
            && a.targetBlend.colorWrite == b.targetBlend.colorWrite
+           && a.targetBlend.enable == b.targetBlend.enable
            && a.targetBlend.srcColor == b.targetBlend.srcColor
            && a.targetBlend.dstColor == b.targetBlend.dstColor
            && a.targetBlend.opColor == b.targetBlend.opColor
@@ -265,7 +267,8 @@ inline size_t qHash(const QCRHIPipelineState &s, size_t seed) noexcept
            ^ (s.depthTestEnable << 1)
            ^ (s.depthWriteEnable << 2)
            ^ (s.stencilTestEnable << 3)
-           ^ (s.usesStencilRef << 4);
+           ^ (s.usesStencilRef << 4)
+           ^ (s.targetBlend.enable << 5);
 }
 
 struct QCRHIPipelineStateKey
@@ -560,11 +563,7 @@ QRhiGraphicsPipeline *QCPainterRhiRenderer::pipeline(const QCRHIPipelineStateKey
     ps->setTopology(key.state.topology);
     ps->setCullMode(key.state.cullMode);
 
-    QRhiGraphicsPipeline::TargetBlend blend = key.state.targetBlend;
-    // Internal blending is always enabled so e.g. antialiasing,
-    // non-opaque colors and composition modes work.
-    blend.enable = true;
-    ps->setTargetBlends({ blend });
+    ps->setTargetBlends({ key.state.targetBlend });
 
     ps->setSampleCount(key.state.sampleCount);
 
@@ -936,7 +935,7 @@ void QCPainterRhiRenderer::setViewport(float x, float y, float width, float heig
     rhiCtx->viewRect[3] = height;
 }
 
-static QCRHIBlend blendCompositeOperation(QCPainter::CompositeOperation op)
+static QCRHIBlend blendCompositeOperation(QCPainter::CompositeOperation op, bool blendEnable)
 {
     QRhiGraphicsPipeline::BlendFactor sourceFactor;
     QRhiGraphicsPipeline::BlendFactor destinationFactor;
@@ -957,8 +956,9 @@ static QCRHIBlend blendCompositeOperation(QCPainter::CompositeOperation op)
         destinationFactor = QRhiGraphicsPipeline::OneMinusSrcAlpha;
         break;
     }
-    QCRHIBlend blend { sourceFactor, destinationFactor,
-                     sourceFactor, destinationFactor };
+    QCRHIBlend blend { blendEnable,
+                       sourceFactor, destinationFactor,
+                       sourceFactor, destinationFactor };
     return blend;
 }
 
@@ -1377,7 +1377,7 @@ void QCPainterRhiRenderer::renderFill(const QCPaint &paint, const QCState &state
     }
     call->triangleCount = 4;
     call->image = paint.imageId;
-    call->blendFunc = blendCompositeOperation(state.compositeOperation);
+    call->blendFunc = blendCompositeOperation(state.compositeOperation, state.blendEnable);
     const QRectF clipRect = state.clip.rect;
     call->scissor.setScissor(clipRect.x(), clipRect.y(), clipRect.width(), clipRect.height());
     call->pathGroup = pathGroup;
@@ -1584,7 +1584,7 @@ void QCPainterRhiRenderer::renderStroke(const QCPaint &paint, const QCState &sta
         call->customVertShader = customBrushPriv->vertexShader;
     }
     call->image = paint.imageId;
-    call->blendFunc = blendCompositeOperation(state.compositeOperation);
+    call->blendFunc = blendCompositeOperation(state.compositeOperation, state.blendEnable);
     const QRectF clipRect = state.clip.rect;
     call->scissor.setScissor(clipRect.x(), clipRect.y(), clipRect.width(), clipRect.height());
     call->pathGroup = pathGroup;
@@ -1703,7 +1703,7 @@ void QCPainterRhiRenderer::renderTextFill(
     call->renderFlags &= ~RenderFlag::Antialiasing;
     call->image = paint.imageId;
     call->font = ctx.fontId;
-    call->blendFunc = blendCompositeOperation(state.compositeOperation);
+    call->blendFunc = blendCompositeOperation(state.compositeOperation, state.blendEnable);
     const QRectF clipRect = state.clip.rect;
     call->scissor.setScissor(clipRect.x(), clipRect.y(), clipRect.width(), clipRect.height());
     call->textItemId = -1;
@@ -1750,7 +1750,7 @@ void QCPainterRhiRenderer::renderTextFill(
     call->renderFlags &= ~RenderFlag::Antialiasing;
     call->image = paint.imageId;
     call->font = ctx.fontId;
-    call->blendFunc = blendCompositeOperation(state.compositeOperation);
+    call->blendFunc = blendCompositeOperation(state.compositeOperation, state.blendEnable);
     const QRectF clipRect = state.clip.rect;
     call->scissor.setScissor(clipRect.x(), clipRect.y(), clipRect.width(), clipRect.height());
     QCTextCache &ct = ctx.cachedTexts[text.getId()];
@@ -1819,7 +1819,7 @@ void QCPainterRhiRenderer::renderTextFillCustom(
         call->customFragShader = customBrushPriv->fragmentShader;
         call->customVertShader = customBrushPriv->vertexShader;
     }
-    call->blendFunc = blendCompositeOperation(state.compositeOperation);
+    call->blendFunc = blendCompositeOperation(state.compositeOperation, state.blendEnable);
     const QRectF clipRect = state.clip.rect;
     call->scissor.setScissor(clipRect.x(), clipRect.y(), clipRect.width(), clipRect.height());
 
@@ -1884,7 +1884,7 @@ void QCPainterRhiRenderer::renderTextFillCustom(
         call->customFragShader = customBrushPriv->fragmentShader;
         call->customVertShader = customBrushPriv->vertexShader;
     }
-    call->blendFunc = blendCompositeOperation(state.compositeOperation);
+    call->blendFunc = blendCompositeOperation(state.compositeOperation, state.blendEnable);
     const QRectF clipRect = state.clip.rect;
     call->scissor.setScissor(clipRect.x(), clipRect.y(), clipRect.width(), clipRect.height());
     call->textItemId = -1;
@@ -2122,6 +2122,7 @@ void QCPainterRhiRenderer::endPrepare()
             }
 
             // Set the blending mode
+            basePs.targetBlend.enable = call->blendFunc.enable;
             basePs.targetBlend.srcColor = call->blendFunc.srcRGB;
             basePs.targetBlend.dstColor = call->blendFunc.dstRGB;
             basePs.targetBlend.srcAlpha = call->blendFunc.srcAlpha;

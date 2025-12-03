@@ -111,6 +111,7 @@ public:
     void addPath(const QCPainterPath &path, qsizetype start, qsizetype count, const QTransform &transform = QTransform());
     void setPathWinding(QCPainter::PathWinding winding);
     void fill();
+    void fillForClear();
     void stroke();
     void fill(const QCPainterPath &path, int pathGroup, const QTransform &transform);
     void stroke(const QCPainterPath &path, int pathGroup, const QTransform &transform);

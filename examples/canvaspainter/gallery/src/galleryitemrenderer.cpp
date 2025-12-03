@@ -742,6 +742,13 @@ void GalleryItemRenderer::drawTransforms() {
     painter()->circle(posX + m_animationSine*w*2, posY + w/2, w/2);
     painter()->fill();
     painter()->resetClipping();
+
+    posX += w*2 + margin;
+    painter()->setFillStyle(0xFFDFD0B8);
+    painter()->fillRect(posX, posY, w, w);
+    painter()->setClipRect(int(posX + w/2), int(posY + w/2), int(w/2)+2, int(w/2)+2);
+    painter()->clearRect(posX, posY, w, w);
+    painter()->resetClipping();
 }
 
 void GalleryItemRenderer::drawAntialiasing() {
