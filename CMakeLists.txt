@@ -44,8 +44,6 @@ endif()
 # See QTBUG-96358 for details.
 find_package(Qt6 ${PROJECT_VERSION} CONFIG OPTIONAL_COMPONENTS ShaderTools)
 
-# TODO what if Quick or Widgets are not present?
-
 include(tools/qcshadergen/Qt6CanvasPainterMacros.cmake)
 
 qt_build_repo()

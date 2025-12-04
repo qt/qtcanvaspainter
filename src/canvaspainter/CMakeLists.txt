@@ -31,11 +31,6 @@ qt_internal_add_module(CanvasPainter
 
         qtcanvaspainterglobal.h qtcanvaspainterglobal_p.h
 
-        qquickcpainteritem.cpp qquickcpainteritem.h qquickcpainteritem_p.h
-        qquickcpainterrenderer.cpp qquickcpainterrenderer.h qquickcpainterrenderer_p.h
-
-        qcpainterwidget.cpp qcpainterwidget.h qcpainterwidget_p.h
-
     DEFINES
         QT_BUILD_CANVASPAINTER_LIB
         # QCPAINTER_TRACK_TEXTURE_USAGE
@@ -48,14 +43,25 @@ qt_internal_add_module(CanvasPainter
     LIBRARIES
         Qt::CorePrivate
         Qt::GuiPrivate
-        Qt::QuickPrivate
-        Qt::WidgetsPrivate
     PUBLIC_LIBRARIES
         Qt::Core
         Qt::Gui
     PRIVATE_MODULE_INTERFACE
         Qt::GuiPrivate
+)
+
+qt_internal_extend_target(CanvasPainter CONDITION TARGET Qt::Quick
+    SOURCES
+        qquickcpainteritem.cpp qquickcpainteritem.h qquickcpainteritem_p.h
+        qquickcpainterrenderer.cpp qquickcpainterrenderer.h qquickcpainterrenderer_p.h
+    LIBRARIES
         Qt::QuickPrivate
+)
+
+qt_internal_extend_target(CanvasPainter CONDITION TARGET Qt::Widgets
+    SOURCES
+        qcpainterwidget.cpp qcpainterwidget.h qcpainterwidget_p.h
+    LIBRARIES
         Qt::WidgetsPrivate
 )
 
