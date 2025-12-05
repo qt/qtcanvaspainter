@@ -169,7 +169,6 @@ struct QCCachedPath
     QCPainter::LineCap lineCap = QCPainter::LineCap::Butt;
     QCPainter::LineJoin lineJoin = QCPainter::LineJoin::Miter;
     float edgeAAWidth = 1.0f;
-    QTransform stateTransform;
 };
 
 #ifndef QCPAINTER_DISABLE_TEXT_SUPPORT

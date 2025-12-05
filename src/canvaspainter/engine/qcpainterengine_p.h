@@ -113,8 +113,8 @@ public:
     void fill();
     void fillForClear();
     void stroke();
-    void fill(const QCPainterPath &path, int pathGroup, const QTransform &transform);
-    void stroke(const QCPainterPath &path, int pathGroup, const QTransform &transform);
+    void fill(const QCPainterPath &path, int pathGroup);
+    void stroke(const QCPainterPath &path, int pathGroup);
 
     // Blending
     void setGlobalCompositeOperation(QCPainter::CompositeOperation op);
@@ -159,7 +159,7 @@ private:
     void setDevicePixelRatio(float ratio);
     void appendCommand(QCCommand command);
     void appendCommands(const QCCommand commands[], int cCount);
-    void appendCommandsData(const float commandsData[], int dCount);
+    void appendCommandsData(const float commandsData[], int dCount, bool ignoreTransform = false);
     void handleSetPathWinding(QCPainter::PathWinding winding);
     void handleClosePath();
     void handleMoveTo();
@@ -202,8 +202,8 @@ private:
     bool strokePathUpdateRequired(QCPainterPath *path, int pathGroup);
     QCPainter::TextAlign effectiveTextAlign(QStringView text) const;
 
-    QCPaint getFillPaint();
-    QCPaint getStrokePaint(float *strokeWidth);
+    QCPaint getFillPaint(bool ignoreTransform = false);
+    QCPaint getStrokePaint(float *strokeWidth, bool ignoreTransform = false);
 #ifndef QCPAINTER_DISABLE_TEXT_SUPPORT
     void updateStateFontVars();
 #endif

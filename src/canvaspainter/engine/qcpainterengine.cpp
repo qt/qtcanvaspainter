@@ -744,7 +744,8 @@ void QCPainterEngine::fill()
     commandsToPaths();
     expandFill();
 
-    const QCPaint fillPaint = getFillPaint();
+    const bool ignoreTransform = (ctx.currentPathGroup != -1);
+    const QCPaint fillPaint = getFillPaint(ignoreTransform);
     m_renderer->renderFill(fillPaint, state, ctx.edgeAAWidth,
                            ctx.bounds, ctx.paths, ctx.pathsCount,
                            ctx.currentPainterPath, ctx.currentPathGroup,
@@ -786,7 +787,8 @@ void QCPainterEngine::stroke()
 #endif
 
     float strokeWidth;
-    const QCPaint strokePaint = getStrokePaint(&strokeWidth);
+    const bool ignoreTransform = (ctx.currentPathGroup != -1);
+    const QCPaint strokePaint = getStrokePaint(&strokeWidth, ignoreTransform);
 
     commandsToPaths();
     expandStroke(strokeWidth * 0.5f, state.lineCap, state.lineJoin, state.miterLimit);
@@ -799,7 +801,7 @@ void QCPainterEngine::stroke()
 #endif
 }
 
-void QCPainterEngine::fill(const QCPainterPath &path, int pathGroup, const QTransform &transform)
+void QCPainterEngine::fill(const QCPainterPath &path, int pathGroup)
 {
     if (path.isEmpty())
         return;
@@ -809,33 +811,37 @@ void QCPainterEngine::fill(const QCPainterPath &path, int pathGroup, const QTran
     const bool pathUpdateRequired = fillPathUpdateRequired(p, pathGroup);
     if (!cacheGeometry) {
         // Not caching, so prepare and fill normally.
-        if (pathUpdateRequired || ctx.preparedPainterPath != &path || ctx.preparedTransform != transform)
-            preparePainterPath(path, transform);
+        // In this case we apply state transformation into commands data points.
+        // So data needs to be prepared again if state transformation has changed.
+        if (pathUpdateRequired || ctx.preparedPainterPath != &path || ctx.preparedTransform != state.transform)
+            preparePainterPath(path, state.transform);
         fill();
     } else if (pathUpdateRequired) {
         // Caching - Update required.
-        if (ctx.preparedPainterPath != &path || ctx.preparedTransform != transform)
+        // In this case data points are untransformed, and transformation is applied in vertex shader.
+        if (ctx.preparedPainterPath != &path)
             preparePainterPath(path);
         // Fill with currently rendering painterpath
         ctx.currentPainterPath = p;
         ctx.currentPathGroup = pathGroup;
-        ctx.currentPathTransform = transform;
+        ctx.currentPathTransform = state.transform;
         fill();
         ctx.currentPainterPath = nullptr;
         ctx.currentPathGroup = -1;
         ctx.currentPathTransform.reset();
     } else {
         // Caching - No need to update.
-        const QCPaint fillPaint = getFillPaint();
+        // In this case data points are untransformed, and transformation is applied in vertex shader.
+        const QCPaint fillPaint = getFillPaint(true);
 
         // Uses pathsCount 0, meaning that previous path data can be reused.
         m_renderer->renderFill(fillPaint, state, ctx.edgeAAWidth,
                                ctx.bounds, ctx.paths, 0,
-                               p, pathGroup, transform);
+                               p, pathGroup, state.transform);
     }
 }
 
-void QCPainterEngine::stroke(const QCPainterPath &path, int pathGroup, const QTransform &transform)
+void QCPainterEngine::stroke(const QCPainterPath &path, int pathGroup)
 {
     if (path.isEmpty())
         return;
@@ -845,33 +851,33 @@ void QCPainterEngine::stroke(const QCPainterPath &path, int pathGroup, const QTr
     const bool pathUpdateRequired = strokePathUpdateRequired(p, pathGroup);
     if (!cacheGeometry) {
         // Not caching, so prepare and stroke normally.
-        // TODO: Updated testing shows that this mode wouldn't have pros compared to cached...
-        // Slower both animated and non-animated, and doesn't reduce mem usage as dynamic
-        // buffers need similar amount to static buffers(?)
-        // So consider if having this -1 group makes sense other than for testing?
-        if (pathUpdateRequired || ctx.preparedPainterPath != &path || ctx.preparedTransform != transform)
-            preparePainterPath(path, transform);
+        // In this case we apply state transformation into commands data points.
+        // So data needs to be prepared again if state transformation has changed.
+        if (pathUpdateRequired || ctx.preparedPainterPath != &path || ctx.preparedTransform != state.transform)
+            preparePainterPath(path, state.transform);
         stroke();
     } else if (pathUpdateRequired) {
         // Caching - Update required.
-        if (ctx.preparedPainterPath != &path || ctx.preparedTransform != transform)
+        // In this case data points are untransformed, and transformation is applied in vertex shader.
+        if (ctx.preparedPainterPath != &path)
             preparePainterPath(path);
         // Stroke with currently rendering painterpath
         ctx.currentPainterPath = p;
         ctx.currentPathGroup = pathGroup;
-        ctx.currentPathTransform = transform;
+        ctx.currentPathTransform = state.transform;
         stroke();
         ctx.currentPainterPath = nullptr;
         ctx.currentPathGroup = -1;
         ctx.currentPathTransform.reset();
     } else {
         // Caching - No need to update.
+        // In this case data points are untransformed, and transformation is applied in vertex shader.
         float strokeWidth;
-        const QCPaint strokePaint = getStrokePaint(&strokeWidth);
+        const QCPaint strokePaint = getStrokePaint(&strokeWidth, true);
         // Uses pathsCount 0, meaning that previous path data can be reused.
         m_renderer->renderStroke(strokePaint, state, ctx.edgeAAWidth,
                                  strokeWidth, ctx.paths, 0,
-                                 p, pathGroup, transform);
+                                 p, pathGroup, state.transform);
     }
 }
 
@@ -1226,7 +1232,8 @@ void QCPainterEngine::appendCommands(const QCCommand commands[], int cCount)
 }
 
 // Append \a dCount amount of \a commands data.
-void QCPainterEngine::appendCommandsData(const float commandsData[], int dCount)
+// When \a ignoreTransform is set to true, state tranformation is not applied.
+void QCPainterEngine::appendCommandsData(const float commandsData[], int dCount, bool ignoreTransform)
 {
     // There are always even amount of data as they are (x, y) points.
     Q_ASSERT(dCount % 2 == 0);
@@ -1243,7 +1250,7 @@ void QCPainterEngine::appendCommandsData(const float commandsData[], int dCount)
         c.resize(newSize);
     }
 
-    if (state.transform.isIdentity()) {
+    if (ignoreTransform || state.transform.isIdentity()) {
         // Add commands directly
         for (int i = 0; i < dCount; i++)
             c[ctx.commandsDataCount++] = commandsData[i];
@@ -2039,8 +2046,13 @@ void QCPainterEngine::ensureVertices(int count)
 void QCPainterEngine::preparePainterPath(const QCPainterPath &path,
                                          const QTransform &transform)
 {
+    // Create new path, without applying transformation is not needed.
     beginPath();
-    appendPainterPath(path, transform);
+    const QCPainterPathPrivate *pathd = QCPainterPathPrivate::get(&path);
+    const bool ignoreTransforms = transform.isIdentity();
+    appendCommandsData(pathd->commandsData.constData(), pathd->commandsDataCount, ignoreTransforms);
+    appendCommands(pathd->commands.constData(), pathd->commandsCount);
+
     // Store currently prepared path so subsequential fill & stroke calls
     // with same (unchanged) path & transform require preparing commands only once.
     ctx.preparedPainterPath = &path;
@@ -2124,7 +2136,6 @@ bool QCPainterEngine::fillPathUpdateRequired(QCPainterPath *path, int pathGroup)
         pathd->pathIterations != cp.pathIterations ||
         pathd->commandsCount != cp.commandsCount ||
         !qFuzzyCompare(ctx.edgeAAWidth, cp.edgeAAWidth) ||
-        state.transform != cp.stateTransform ||
         !m_renderer->isPathCached(path, pathGroup)) {
         updateRequired = true;
         // Reset cache states
@@ -2132,7 +2143,6 @@ bool QCPainterEngine::fillPathUpdateRequired(QCPainterPath *path, int pathGroup)
         cp.pathIterations = pathd->pathIterations;
         cp.commandsCount = pathd->commandsCount;
         cp.edgeAAWidth = ctx.edgeAAWidth;
-        cp.stateTransform = state.transform;
     }
     return updateRequired;
 }
@@ -2151,7 +2161,6 @@ bool QCPainterEngine::strokePathUpdateRequired(QCPainterPath *path, int pathGrou
         !qFuzzyCompare(state.strokeWidth, cp.strokeWidth) ||
         state.lineCap != cp.lineCap ||
         state.lineJoin != cp.lineJoin ||
-        state.transform != cp.stateTransform ||
         !m_renderer->isPathCached(path, pathGroup)) {
         updateRequired = true;
         // Reset cache states
@@ -2162,24 +2171,30 @@ bool QCPainterEngine::strokePathUpdateRequired(QCPainterPath *path, int pathGrou
         cp.strokeWidth = state.strokeWidth;
         cp.lineCap = state.lineCap;
         cp.lineJoin = state.lineJoin;
-        cp.stateTransform = state.transform;
     }
     return updateRequired;
 }
 
 // Return current fillPaint taking into account the state.
-QCPaint QCPainterEngine::getFillPaint()
+// When \a ignoreTransform is true, don't apply state transform
+// here as it gets applied in vertex shader.
+QCPaint QCPainterEngine::getFillPaint(bool ignoreTransform)
 {
     QCPaint fillPaint = state.fill;
     fillPaint.alpha = state.alpha;
     // Apply current transform
-    if (fillPaint.brushType != BrushColor && !(state.transform.isIdentity() && state.brushTransform.isIdentity()))
+    if (!ignoreTransform &&
+        fillPaint.brushType != BrushColor &&
+        !(state.transform.isIdentity() && state.brushTransform.isIdentity())) {
         fillPaint.transform *= (state.brushTransform * state.transform);
+    }
     return fillPaint;
 }
 
 //  Return current strokePaint taking into account the state and set \a strokeWidth.
-QCPaint QCPainterEngine::getStrokePaint(float *strokeWidth)
+// When \a ignoreTransform is true, don't apply state transform
+// here as it gets applied in vertex shader.
+QCPaint QCPainterEngine::getStrokePaint(float *strokeWidth, bool ignoreTransform)
 {
     float scale = getAverageScale(state.transform);
     *strokeWidth = std::clamp(state.strokeWidth * scale, 0.0f, QCPAINTER_MAX_STROKE_WIDTH);
@@ -2195,8 +2210,11 @@ QCPaint QCPainterEngine::getStrokePaint(float *strokeWidth)
     QCPaint strokePaint = state.stroke;
     strokePaint.alpha = state.alpha * expa;
     // Apply current transform and optional brush transform
-    if (strokePaint.brushType != BrushColor && !(state.transform.isIdentity() && state.brushTransform.isIdentity()))
+    if (!ignoreTransform &&
+        strokePaint.brushType != BrushColor &&
+        !(state.transform.isIdentity() && state.brushTransform.isIdentity())) {
         strokePaint.transform *= (state.brushTransform * state.transform);
+    }
     return strokePaint;
 }
 

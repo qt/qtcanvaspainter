@@ -186,8 +186,8 @@ public:
     void fill();
     void stroke();
 
-    void fill(const QCPainterPath &path, int pathGroup = 0, const QTransform &transform = QTransform());
-    void stroke(const QCPainterPath &path, int pathGroup = 0, const QTransform &transform = QTransform());
+    void fill(const QCPainterPath &path, int pathGroup = 0);
+    void stroke(const QCPainterPath &path, int pathGroup = 0);
 
     // *** Direct drawing ***
 
