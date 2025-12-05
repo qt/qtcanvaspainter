@@ -34,8 +34,6 @@ public:
     QQuickCPainterRenderer *m_renderer = nullptr;
     QString m_backendName;
     QColor m_fillColor = Qt::black;
-    Qt::MouseButtons m_acceptedMouseButtons = Qt::LeftButton;
-    bool m_mouseEnabled = false;
     QVariantMap m_debug;
     QTimer m_debugUpdateTimer;
     bool m_debugDataChanged = false;

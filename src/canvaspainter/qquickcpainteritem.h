@@ -22,9 +22,6 @@ class Q_CANVASPAINTER_EXPORT QQuickCPainterItem : public QQuickRhiItem
     Q_OBJECT
     Q_PROPERTY(QString backendName READ backendName NOTIFY backendNameChanged FINAL)
     Q_PROPERTY(QColor fillColor READ fillColor WRITE setFillColor NOTIFY fillColorChanged FINAL)
-    Q_PROPERTY(bool mouseEventsEnabled READ mouseEventsEnabled WRITE setMouseEventsEnabled NOTIFY mouseEventsEnabledChanged FINAL)
-    Q_PROPERTY(bool mouseHoverEventsEnabled READ mouseHoverEventsEnabled WRITE setMouseHoverEventsEnabled NOTIFY mouseHoverEventsEnabledChanged FINAL)
-    Q_PROPERTY(Qt::MouseButtons acceptedButtons READ acceptedButtons WRITE setAcceptedButtons NOTIFY acceptedButtonsChanged FINAL)
     Q_PROPERTY(QVariantMap debug READ debug NOTIFY debugChanged FINAL)
 
 public:
@@ -37,15 +34,6 @@ public:
     QColor fillColor() const;
     void setFillColor(const QColor &color);
 
-    Qt::MouseButtons acceptedButtons() const;
-    void setAcceptedButtons(Qt::MouseButtons buttons);
-
-    bool mouseEventsEnabled() const;
-    void setMouseEventsEnabled(bool enabled);
-
-    bool mouseHoverEventsEnabled() const;
-    void setMouseHoverEventsEnabled(bool enabled);
-
     QVariantMap debug();
 
 protected:
@@ -56,9 +44,6 @@ protected:
 Q_SIGNALS:
     void backendNameChanged();
     void fillColorChanged();
-    void acceptedButtonsChanged();
-    void mouseEventsEnabledChanged();
-    void mouseHoverEventsEnabledChanged();
     void debugChanged();
 
 private:
