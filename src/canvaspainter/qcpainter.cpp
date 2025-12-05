@@ -1143,15 +1143,14 @@ void QCPainter::stroke()
     into \a pathGroup. By default, \a pathGroup is \c 0, so using the
     first group. When \a pathGroup is \c -1, the path will not be cached
     on GPU side. More information about using path cache group in {TODO: LINK}.
-    Transform \a transform is used when filling the path.
     This does not require calling beginPath().
     \sa setFillStyle()
 */
 
-void QCPainter::fill(const QCPainterPath &path, int pathGroup, const QTransform &transform)
+void QCPainter::fill(const QCPainterPath &path, int pathGroup)
 {
     Q_D(QCPainter);
-    d->m_e->fill(path, pathGroup, transform);
+    d->m_e->fill(path, pathGroup);
 }
 
 /*!
@@ -1161,15 +1160,14 @@ void QCPainter::fill(const QCPainterPath &path, int pathGroup, const QTransform 
     into \a pathGroup. By default, \a pathGroup is \c 0, so using the
     first group. When \a pathGroup is \c -1, the path will not be cached
     on GPU side. More information about using path cache group in {TODO: LINK}.
-    Transform \a transform is used when filling the path.
     This does not require calling beginPath().
     \sa setStrokeStyle()
 */
 
-void QCPainter::stroke(const QCPainterPath &path, int pathGroup, const QTransform &transform)
+void QCPainter::stroke(const QCPainterPath &path, int pathGroup)
 {
     Q_D(QCPainter);
-    d->m_e->stroke(path, pathGroup, transform);
+    d->m_e->stroke(path, pathGroup);
 }
 
 // *** Direct drawing ***

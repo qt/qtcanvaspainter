@@ -569,8 +569,9 @@ void GalleryItemRenderer::drawPainterPaths()
     painter()->setFillStyle(rg);
     painter()->setLineWidth(2);
     // Using path transformation, so group can be StaticPath
-    painter()->fill(path3, StaticPath, transform);
-    painter()->stroke(path3, StaticPath, transform);
+    painter()->setTransform(transform);
+    painter()->fill(path3, StaticPath);
+    painter()->stroke(path3, StaticPath);
 
     // Adding paths into path
     static QCPainterPath path4;
@@ -590,7 +591,8 @@ void GalleryItemRenderer::drawPainterPaths()
     t2.translate(w * 0.4, h * 0.4);
     t2.rotateRadians(m_animationTime);
     t2.translate(-center.x(), -(center.y() - hSize*0.6));
-    painter()->stroke(path4, StaticPath, t2);
+    painter()->setTransform(t2);
+    painter()->stroke(path4, StaticPath);
 
     // Example of reusing parts of paths
     posY += h + margin;
