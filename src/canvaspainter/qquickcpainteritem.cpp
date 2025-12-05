@@ -29,11 +29,6 @@ QT_BEGIN_NAMESPACE
 */
 
 /*!
-    \property QQuickCPainterItem::backendName
-    \brief Get name of used QCPainter RHI backend.
-*/
-
-/*!
     \property QQuickCPainterItem::fillColor
     \brief The color to use for filling the item ie. the item background.
 
@@ -97,20 +92,6 @@ QQuickCPainterItem::~QQuickCPainterItem()
     }
 
 */
-
-/*!
-    \fn QString QQuickCPainterItem::backendName() const
-
-    Returns used RHI rendering backend name. See \l QRhi::backendName()
-
-    To affect which backend is used, configure the RHI
-    backend of the Qt application e.g. with QSG_RHI_BACKEND.
-*/
-QString QQuickCPainterItem::backendName() const
-{
-    Q_D(const QQuickCPainterItem);
-    return d->m_backendName;
-}
 
 /*!
     \fn QColor QQuickCPainterItem::fillColor() const
@@ -207,19 +188,6 @@ QQuickRhiItemRenderer *QQuickCPainterItem::createRenderer()
     Q_D(QQuickCPainterItem);
     d->m_renderer = createItemRenderer();
     return d->m_renderer;
-}
-
-/*!
-   \internal
-*/
-
-void QQuickCPainterItemPrivate::setBackendName(const QString &name)
-{
-    Q_Q(QQuickCPainterItem);
-    if (m_backendName != name) {
-        m_backendName = name;
-        Q_EMIT q->backendNameChanged();
-    }
 }
 
 QT_END_NAMESPACE

@@ -27,12 +27,10 @@ class QQuickCPainterItemPrivate : public QQuickRhiItemPrivate
 {
     Q_DECLARE_PUBLIC(QQuickCPainterItem)
 public:
-    void setBackendName(const QString &name);
     void updateDebugData(QCDrawDebug drawDebug);
     void updateDebug();
 
     QQuickCPainterRenderer *m_renderer = nullptr;
-    QString m_backendName;
     QColor m_fillColor = Qt::black;
     QVariantMap m_debug;
     QTimer m_debugUpdateTimer;
