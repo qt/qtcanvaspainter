@@ -1889,12 +1889,6 @@ static QRectF textAlignedRectFromPoint(QCPainter::TextAlign textAlignment, float
     return rect;
 }
 
-void QCPainterPrivate::updateBackendName(QRhi *rhi) {
-    if (!rhi)
-        return;
-    m_rhiBackendName = QString::fromUtf8(rhi->backendName());
-}
-
 // Delete the textures marked to be cleaned.
 void QCPainterPrivate::handleCleanupTextures()
 {

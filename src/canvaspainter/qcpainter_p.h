@@ -81,8 +81,6 @@ public:
     void clearTextureCache();
     void markTextureIdUsed(int imageId);
 
-    void updateBackendName(QRhi *rhi);
-
     void setFont(const QFont &font);
     void prepareText(const QCText &text);
     void fillText(const QString &text, float x, float y, float maxWidth = -1, int cacheIndex = -1);
@@ -94,7 +92,6 @@ public:
 
     QCDataCache m_dataCache;
     QHash<quint64, QCImage> m_nativeTextureCache;
-    QString m_rhiBackendName;
     float m_devicePixelRatio = 1.0f;
     QCPainterRhiRenderer *m_renderer = nullptr;
     QCPainterEngine *m_e = nullptr;

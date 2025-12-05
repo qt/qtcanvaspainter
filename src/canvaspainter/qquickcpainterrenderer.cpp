@@ -269,8 +269,6 @@ void QQuickCPainterRenderer::synchronize(QQuickRhiItem * item)
         painter->setRenderHint(QCPainter::RenderHint::Antialiasing, antialiasing);
     }
 
-    realItem->d_func()->setBackendName(painterPriv->m_rhiBackendName);
-
     static bool collectDebug = qEnvironmentVariableIsSet("QCPAINTER_DEBUG_COLLECT");
     static bool renderDebug = qEnvironmentVariableIsSet("QCPAINTER_DEBUG_RENDER");
 
@@ -318,7 +316,6 @@ void QQuickCPainterRenderer::initialize(QRhiCommandBuffer *cb)
         }
         if (!d->m_factory->isValid())
             d->m_factory->create(d->m_rhi);
-        QCPainterPrivate::get(d->m_factory->painter())->updateBackendName(d->m_rhi);
         d->m_renderedOnce = false;
     }
 
