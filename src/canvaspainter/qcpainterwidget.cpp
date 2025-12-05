@@ -23,6 +23,11 @@ QAtomicInt QCPainterWidgetPrivate::m_rendered;
 
     Implement the \l paint virtual function in a subclass to perform rendering
     using a QCPainter.
+
+    The below code snippet shows the typical structure of a QCPainterWidget
+    subclass:
+
+    \snippet widget-ex-1.cpp 0
 */
 
 /*!
@@ -257,31 +262,7 @@ void QCPainterWidget::graphicsResourcesInvalidated()
     canvas could be rendered into and then used as an image or image pattern
     when drawing the contents for the widget:
 
-    \code
-        QCOffscreenCanvas canvas;
-        QCImage canvasImage;
-        void graphicsResourcesInvalidated() override
-        {
-            canvas = {}; // so that the next prePaint() will recreate and redraw the canvas
-        }
-        void prePaint(QCPainter *p) override
-        {
-            if (canvas.isNull()) {
-                canvas = p->createCanvas(QSize(320, 240));
-                beginCanvasPainting(canvas);
-                p->beginPath();
-                p->circle(160, 120, 20);
-                p->setFillStyle(Qt::red);
-                p->fill();
-                endCanvasPainting();
-                canvasImage = p->addImage(canvas, QCPainter::ImageFlag::Repeat);
-            }
-        }
-        void paint(QCPainter *p) override
-        {
-            // use canvasImage as a brush or with drawImage()
-        }
-    \endcode
+    \snippet widget-canvas-ex-1.cpp 0
  */
 void QCPainterWidget::beginCanvasPainting(QCOffscreenCanvas &canvas)
 {

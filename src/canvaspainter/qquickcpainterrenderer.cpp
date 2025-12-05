@@ -25,6 +25,32 @@ QAtomicInt QQuickCPainterRendererPrivate::m_rendered;
     \inmodule QtCanvasPainter
 
     Implement the paint() method to perform the rendering.
+
+    To expose data from the item to the renderer in a thread-safe manner,
+    implement synchronize().
+
+    The renderer object lives and operates on the \l {Scene Graph and
+    Rendering}{Qt Quick scene graph render thread}, if there is one, since that
+    is the thread on which \l{QQuickCPainterItem::}{createItemRenderer()} and
+    all the functions in this class are invoked.
+
+    If the QQuickCPainterItem is moved to a different \l{QQuickWindow}{window},
+    it will get associated with a new \l QRhi. Therefore, the renderer object is
+    automatically destroyed, and a new one is created by invoking
+    \l{QQuickCPainterItem::}{createItemRenderer()} again. This allows simple
+    management of QCImage and QCOffscreenCanvas objects, because they can be
+    member variables in renderer, set up either in initializeResources() or in
+    paint(), without having to reset them when the graphics resources are lost
+    due to the window and QRhi change, since it all happens implicitly by the
+    destruction of the whole renderer object.
+
+    The below code snippet shows the typical structure of a
+    QQuickCPainterRenderer subclass. See QQuickCPainterItem for an example of
+    the \c MyItem class.
+
+    \snippet renderer-ex-1.cpp 0
+
+    \sa QQuickCPainterItem
 */
 
 
@@ -57,10 +83,11 @@ QQuickCPainterRenderer::~QQuickCPainterRenderer()
     \fn void QQuickCPainterRenderer::initializeResources(QCPainter *painter)
 
     Reimplement this method to initialize resources using \a painter. This will
-    be called once before the first synchronize() and when ever resources have
-    been dropped and need to be initialized / added again.
+    be called once before the first synchronize().
 
-    \sa QCPainter::addImage
+    \note This function is not called when the size of the QQuickCPainterItem changes.
+
+    \sa QCPainter::addImage, QCPainter::createCanvas
 */
 
 void QQuickCPainterRenderer::initializeResources(QCPainter *painter)
@@ -69,8 +96,11 @@ void QQuickCPainterRenderer::initializeResources(QCPainter *painter)
 }
 
 /*!
-    This function is called at the start of rendering using \a painter.
-    This function is called for every frame, before the paint engine is initialized.
+    This function is called at the start of rendering using \a painter, before
+    paint().
+
+    There is no render target active when this function is invoked. Call
+    beginCanvasPainting() to initialize drawing into an offscreen canvas.
 
     \sa beginCanvasPainting(), endCanvasPainting()
 */
@@ -86,12 +116,11 @@ void QQuickCPainterRenderer::prePaint(QCPainter *painter)
 
     This will get called after the item has been filled with fillColor().
 
-    Paint is called from renderer thread, to access item data do it in
-    synchronize().
+    paint() is called from renderer thread. To access item data safely, copy it
+    in synchronize().
 
     \sa synchronize()
 */
-
 void QQuickCPainterRenderer::paint(QCPainter *painter)
 {
     Q_UNUSED(painter);

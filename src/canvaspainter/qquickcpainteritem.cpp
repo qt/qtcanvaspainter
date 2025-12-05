@@ -18,6 +18,14 @@ QT_BEGIN_NAMESPACE
     QQuickCPainterItem, and then start by implementing its only pure virtual
     public function: createItemRenderer(), which returns an object that performs
     the actual painting.
+
+    The below code snippet shows the typical structure of a QQuickCPainterItem
+    subclass. See QQuickCPainterRenderer for an example of the \c MyRenderer
+    class.
+
+    \snippet item-ex-1.cpp 0
+
+    \sa QQuickCPainterRenderer
 */
 
 /*!
