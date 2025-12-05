@@ -88,7 +88,7 @@ QColor QCPainterWidget::fillColor() const
     \fn void QCPainterWidget::setFillColor (const QColor &color)
 
     Set the fill color to \a color. This color will be used to draw
-    the background of the item. The default color is transparent.
+    the background of the item. The default color is black.
 
     \sa fillColor()
 */

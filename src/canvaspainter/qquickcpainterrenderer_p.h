@@ -45,7 +45,7 @@ public:
     QMetaObject::Connection m_sharedPainterNewFrameConn;
     QCPainterFactory *m_factory = nullptr;
     QRhiCommandBuffer *m_currentCb = nullptr;
-    QColor m_fillColor = {0, 0, 0, 0};
+    QColor m_fillColor = Qt::black; // the default in item is what matters
     ItemData m_itemData;
     bool m_antialiasing = true;
     bool m_highQualityRendering = false;

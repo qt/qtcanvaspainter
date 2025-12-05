@@ -32,7 +32,7 @@ class QCPainterWidgetPrivate : public QRhiWidgetPrivate
 public:
     bool m_sharedPainter = true;
     QCPainterFactory *m_factory = nullptr;
-    QColor m_fillColor = {0, 0, 0, 0};
+    QColor m_fillColor = Qt::black;
     QCDebug m_debug;
     bool m_firstRender = true;
     QRhiCommandBuffer *m_currentCb = nullptr;
