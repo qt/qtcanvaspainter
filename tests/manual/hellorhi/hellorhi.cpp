@@ -10,7 +10,7 @@
 
 #include "qcpainter.h"
 #include "qcradialgradient.h"
-#include "qclineargradient"
+#include "qclineargradient.h"
 #include "qcimagepattern.h"
 #include "qcoffscreencanvas.h"
 #include "qcpainterfactory.h"
