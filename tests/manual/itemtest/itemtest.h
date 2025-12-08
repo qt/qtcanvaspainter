@@ -22,9 +22,17 @@ public:
         qDebug() << "HelloItemRenderer" << this << "created";
     }
 
-    void initializeResources(QCPainter *) override
+    void initializeResources(QCPainter *p) override
     {
         qDebug() << "initializeResources" << this;
+
+        // Provide our own QCImage, to verify that a "load-if-not-yet-done"
+        // logic works as expected, and it does not break down when the item
+        // is moved between windows (and so changes QRhis, losing all graphics
+        // resources in the process).
+        static QImage logoImage(":/quitlogo.png");
+        if (logo.isNull())
+            logo = p->addImage(logoImage, QCPainter::ImageFlag::Repeat);
     }
 
     void synchronize(QQuickCPainterItem *) override
@@ -34,14 +42,6 @@ public:
 
     void paint(QCPainter *p) override
     {
-        // Provide our own QCImage, to verify that a "load-if-not-yet-done"
-        // logic works as expected, and it does not break down when the item
-        // is moved between windows (and so changes QRhis, losing all graphics
-        // resources in the process).
-        static QImage logoImage(":/quitlogo.png");
-        if (logo.isNull())
-            logo = p->addImage(logoImage, QCPainter::ImageFlag::Repeat);
-
         paintHelloItem(p, width(), height(), &logo);
     }
 

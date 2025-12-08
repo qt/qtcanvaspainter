@@ -5,11 +5,15 @@
 class MyWidget : public QCPainterWidget
 {
 public:
-    void paint(QCPainter *p) override
+    void initializeResources(QCPainter *p) override
     {
+        // load assets
         if (m_image.isNull())
             m_image = p->addImage(QImage("image.png"), QCPainter::ImageFlag::Repeat);
+    }
 
+    void paint(QCPainter *p) override
+    {
         // ... draw using m_image
     }
 

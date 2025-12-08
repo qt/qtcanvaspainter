@@ -32,6 +32,7 @@ public:
     void grabCanvas(const QCOffscreenCanvas &canvas, std::function<void(const QImage &)> callback);
 
 protected:
+    virtual void initializeResources(QCPainter *painter);
     virtual void prePaint(QCPainter *painter);
     virtual void paint(QCPainter *painter);
     virtual void graphicsResourcesInvalidated();
