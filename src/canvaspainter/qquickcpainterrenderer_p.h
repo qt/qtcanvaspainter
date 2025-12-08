@@ -55,7 +55,7 @@ public:
     QRhi *m_rhi = nullptr;
     QRhiRenderTarget *m_rt = nullptr;
     bool m_initialized = false;
-    bool m_synchronized = false;
+    bool m_initializeResourcesCalled = false;
     bool m_firstRender = true;
     static QAtomicInt m_rendered;
 };
