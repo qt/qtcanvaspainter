@@ -146,7 +146,9 @@ void QCPainterWidget::setSharedPainter(bool enable)
 void QCPainterWidget::initialize(QRhiCommandBuffer *)
 {
     Q_D(QCPainterWidget);
+    bool callInitRes = false;
     if (!d->m_factory) {
+        callInitRes = true;
         if (!d->m_sharedPainter) {
             d->m_factory = new QCPainterFactory;
         } else {
@@ -160,8 +162,13 @@ void QCPainterWidget::initialize(QRhiCommandBuffer *)
         }
     }
 
-    if (!d->m_factory->isValid())
+    if (!d->m_factory->isValid()) {
         d->m_factory->create(rhi());
+        callInitRes = true;
+    }
+
+    if (callInitRes && d->m_factory->isValid())
+        initializeResources(d->m_factory->painter());
 }
 
 /*!
@@ -208,6 +215,20 @@ void QCPainterWidget::render(QRhiCommandBuffer *cb)
 }
 
 /*!
+    Reimplement this method to initialize resources using \a painter. Generally,
+    this will be called once before the first prePaint() and paint(). An
+    exception is when graphics resources are lost, see
+    graphicsResourcesInvalidated(). In that case, this method will get invoked
+    again afterwards.
+
+    The default implementation is empty.
+*/
+void QCPainterWidget::initializeResources(QCPainter *painter)
+{
+    Q_UNUSED(painter);
+}
+
+/*!
     Reimplement this function to perform drawing into one or more offscreen
     canvases using \a painter.
 
@@ -245,6 +266,10 @@ void QCPainterWidget::paint(QCPainter *painter)
     The same applies to QCOffscreenCanvas objects returned from
     QCPainter::createCanvas(). When this function is called, the next invocation
     of paint() should create new canvases and redraw their contents.
+
+    Graphics resources can be lost, for example, when the widget is moved to a
+    new top-level window, because that implies being associated with a new QRhi
+    instance.
 
     \sa QRhiWidget::releaseResources()
  */

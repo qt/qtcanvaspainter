@@ -17,7 +17,7 @@ public:
         setFillColor("#000000");
     }
 
-    void paint(QCPainter *p) override
+    void initializeResources(QCPainter *p) override
     {
         // Provide our own QCImage, to verify that a "load-if-not-yet-done"
         // logic works as expected, and it does not break down when the widget
@@ -26,7 +26,10 @@ public:
         static QImage logoImage(":/quitlogo.png");
         if (logo.isNull())
             logo = p->addImage(logoImage, QCPainter::ImageFlag::Repeat);
+    }
 
+    void paint(QCPainter *p) override
+    {
         paintHelloItem(p, width(), height(), &logo);
     }
 
