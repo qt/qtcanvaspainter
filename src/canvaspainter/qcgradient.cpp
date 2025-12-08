@@ -38,59 +38,12 @@ QT_BEGIN_NAMESPACE
 #define QCPAINTER_GRADIENT_MAX_STOPS 16
 #endif
 
-/*!
-    Constructs a default gradient of type \a type.
-*/
 
-QCGradient::QCGradient(QCBrush::BrushType type)
-    : d(new QCGradientPrivate(type))
+QCGradient::QCGradient(QCGradientPrivate *priv)
+    : QCBrush(priv)
 {
 }
 
-/*!
-    Constructs a gradient that is a copy of the given \a gradient.
-*/
-
-QCGradient::QCGradient(const QCGradient &gradient) noexcept
-    : d(gradient.d)
-{
-}
-
-/*!
-    Destroys the gradient.
-*/
-
-QCGradient::~QCGradient() = default;
-
-QT_DEFINE_QESDP_SPECIALIZATION_DTOR(QCGradientPrivate)
-
-/*!
-    Assigns the given \a gradient to this gradient and returns a reference to
-    this gradient.
-*/
-
-QCGradient &QCGradient::operator=(const QCGradient &gradient) noexcept
-{
-    QCGradient(gradient).swap(*this);
-    return *this;
-}
-
-/*!
-    \fn QCGradient::QCGradient(QCGradient &&other) noexcept
-
-    Move-constructs a new QCGradient from \a other.
-*/
-
-/*!
-    \fn QCGradient &QCGradient::operator=(QCGradient &&other)
-
-    Move-assigns \a other to this QCGradient instance.
-*/
-
-/*!
-    \fn void QCGradient::swap(QCGradient &other)
-    \memberswap{gradient}
-*/
 
 /*!
    Returns the gradient as a \l QVariant.
@@ -119,39 +72,43 @@ QCGradient::operator QVariant() const
     \sa operator!=()
 */
 
+#define G_D() auto *d = QCGradientPrivate::get(this)
+
 bool QCGradient::operator==(const QCGradient &g) const
 {
-    if (g.d == d)
+    G_D();
+    auto *gd = QCGradientPrivate::get(&g);
+    if (gd == d)
         return true;
-    if (g.d->type != d->type)
+    if (gd->type != d->type)
         return false;
-    if (d->type == BrushType::LinearGradient) {
-        if (d->data.linear.sx != g.d->data.linear.sx
-            || d->data.linear.sy != g.d->data.linear.sy
-            || d->data.linear.ex != g.d->data.linear.ex
-            || d->data.linear.ey != g.d->data.linear.ey)
+    if (d->type == QCBrush::BrushType::LinearGradient) {
+        if (d->data.linear.sx != gd->data.linear.sx
+            || d->data.linear.sy != gd->data.linear.sy
+            || d->data.linear.ex != gd->data.linear.ex
+            || d->data.linear.ey != gd->data.linear.ey)
             return false;
-    } else if (d->type == BrushType::RadialGradient) {
-        if (d->data.radial.cx != g.d->data.radial.cx
-            || d->data.radial.cy != g.d->data.radial.cy
-            || d->data.radial.oRadius != g.d->data.radial.oRadius
-            || d->data.radial.iRadius != g.d->data.radial.iRadius)
+    } else if (d->type == QCBrush::BrushType::RadialGradient) {
+        if (d->data.radial.cx != gd->data.radial.cx
+            || d->data.radial.cy != gd->data.radial.cy
+            || d->data.radial.oRadius != gd->data.radial.oRadius
+            || d->data.radial.iRadius != gd->data.radial.iRadius)
             return false;
-    } else if (d->type == BrushType::ConicalGradient) {
-        if (d->data.conical.cx != g.d->data.conical.cx
-            || d->data.conical.cy != g.d->data.conical.cy
-            || d->data.conical.angle != g.d->data.conical.angle)
+    } else if (d->type == QCBrush::BrushType::ConicalGradient) {
+        if (d->data.conical.cx != gd->data.conical.cx
+            || d->data.conical.cy != gd->data.conical.cy
+            || d->data.conical.angle != gd->data.conical.angle)
             return false;
-    } else if (d->type == BrushType::BoxGradient) {
-        if (d->data.box.x != g.d->data.box.x
-            || d->data.box.y != g.d->data.box.y
-            || d->data.box.width != g.d->data.box.width
-            || d->data.box.height != g.d->data.box.height
-            || d->data.box.feather != g.d->data.box.feather
-            || d->data.box.radius != g.d->data.box.radius)
+    } else if (d->type == QCBrush::BrushType::BoxGradient) {
+        if (d->data.box.x != gd->data.box.x
+            || d->data.box.y != gd->data.box.y
+            || d->data.box.width != gd->data.box.width
+            || d->data.box.height != gd->data.box.height
+            || d->data.box.feather != gd->data.box.feather
+            || d->data.box.radius != gd->data.box.radius)
             return false;
     }
-    return g.d->gradientStops == d->gradientStops;
+    return gd->gradientStops == d->gradientStops;
 }
 
 #ifndef QT_NO_DEBUG_STREAM
@@ -162,13 +119,13 @@ QDebug operator<<(QDebug dbg, const QCGradient &g)
 {
     QDebugStateSaver saver(dbg);
     const auto t = g.type();
-    if (t == QCGradient::BrushType::LinearGradient)
+    if (t == QCBrush::BrushType::LinearGradient)
         dbg.nospace() << "QCLinearGradient(" << g.stops() << ')';
-    else if (t == QCGradient::BrushType::RadialGradient)
+    else if (t == QCBrush::BrushType::RadialGradient)
         dbg.nospace() << "QCRadialGradient(" << g.stops() << ')';
-    else if (t == QCGradient::BrushType::ConicalGradient)
+    else if (t == QCBrush::BrushType::ConicalGradient)
         dbg.nospace() << "QCConicalGradient(" << g.stops() << ')';
-    else if (t == QCGradient::BrushType::BoxGradient)
+    else if (t == QCBrush::BrushType::BoxGradient)
         dbg.nospace() << "QCBoxGradient(" << g.stops() << ')';
     else // QCGradient
         dbg.nospace() << "QCGradient(" << g.stops() << ')';
@@ -194,23 +151,23 @@ QDataStream &operator<<(QDataStream &s, const QCGradient &g)
 {
     s << g.type();
     s << g.stops();
-    if (g.type() == QCGradient::BrushType::LinearGradient) {
+    if (g.type() == QCBrush::BrushType::LinearGradient) {
         const auto lg = static_cast<const QCLinearGradient *>(&g);
         const auto &sp = lg->startPosition();
         const auto &ep = lg->endPosition();
         s << sp.x() << sp.y() << ep.x() << ep.y();
-    } else if (g.type() == QCGradient::BrushType::RadialGradient) {
+    } else if (g.type() == QCBrush::BrushType::RadialGradient) {
         const auto rg = static_cast<const QCRadialGradient *>(&g);
         const auto &cp = rg->centerPosition();
         s << cp.x() << cp.y();
         s << rg->outerRadius();
         s << rg->innerRadius();
-    } else if (g.type() == QCGradient::BrushType::ConicalGradient) {
+    } else if (g.type() == QCBrush::BrushType::ConicalGradient) {
         const auto cg = static_cast<const QCConicalGradient *>(&g);
         const auto &cp = cg->centerPosition();
         s << cp.x() << cp.y();
         s << cg->angle();
-    } else if (g.type() == QCGradient::BrushType::BoxGradient) {
+    } else if (g.type() == QCBrush::BrushType::BoxGradient) {
         const auto bg = static_cast<const QCBoxGradient *>(&g);
         const auto &r = bg->rect();
         s << r.x() << r.y() << r.width() << r.height();
@@ -234,27 +191,27 @@ QDataStream &operator>>(QDataStream &s, QCGradient &g)
 {
     int type_as_int;
     s >> type_as_int;
-    QCGradient::BrushType type = QCGradient::BrushType(type_as_int);
+    QCBrush::BrushType type = QCBrush::BrushType(type_as_int);
     // Stops
     QCGradientStops stops;
     s >> stops;
     // Gradient specifics
-    if (type == QCGradient::BrushType::LinearGradient) {
+    if (type == QCBrush::BrushType::LinearGradient) {
         float startX, startY, endX, endY;
         s >> startX >> startY >> endX >> endY;
         QCLinearGradient lg(startX, startY, endX, endY);
         g = lg;
-    } else if (type == QCGradient::BrushType::RadialGradient) {
+    } else if (type == QCBrush::BrushType::RadialGradient) {
         float cX, cY, oRad, iRad;
         s >> cX >> cY >> oRad >> iRad;
         QCRadialGradient rg(cX, cY, oRad, iRad);
         g = rg;
-    } else if (type == QCGradient::BrushType::ConicalGradient) {
+    } else if (type == QCBrush::BrushType::ConicalGradient) {
         float cX, cY, angle;
         s >> cX >> cY >> angle;
         QCConicalGradient cg(cX, cY, angle);
         g = cg;
-    } else if (type == QCGradient::BrushType::BoxGradient) {
+    } else if (type == QCBrush::BrushType::BoxGradient) {
         float x, y, w, h, feather, radius;
         s >> x >> y >> w >> h >> feather >> radius;
         QCBoxGradient bg(x, y, w, h, feather, radius);
@@ -272,6 +229,7 @@ QDataStream &operator>>(QDataStream &s, QCGradient &g)
 
 QCBrush::BrushType QCGradient::type() const
 {
+    G_D();
     return d->type;
 }
 
@@ -284,6 +242,7 @@ QCBrush::BrushType QCGradient::type() const
 
 QColor QCGradient::startColor() const
 {
+    G_D();
     if (d->gradientStops.isEmpty())
         return QColor(255, 255, 255);
     return d->gradientStops.constFirst().second;
@@ -308,6 +267,8 @@ void QCGradient::setStartColor(const QColor &color)
 
 QColor QCGradient::endColor() const
 {
+    G_D();
+
     if (d->gradientStops.isEmpty())
         return QColor(0, 0, 0, 0);
     return d->gradientStops.constLast().second;
@@ -332,6 +293,8 @@ void QCGradient::setEndColor(const QColor &color)
 
 void QCGradient::setColorAt(float position, const QColor &color)
 {
+    G_D();
+
     if (Q_UNLIKELY(d->gradientStops.size() >= QCPAINTER_GRADIENT_MAX_STOPS)) {
         qWarning("QCGradient::setColorAt: The maximum amount of color stops is: %d",
                  QCPAINTER_GRADIENT_MAX_STOPS);
@@ -371,6 +334,7 @@ void QCGradient::setColorAt(float position, const QColor &color)
 
 void QCGradient::setStops(const QCGradientStops &stops)
 {
+    G_D();
     detach();
     d->gradientStops = stops;
     d->dirty |= QCGradientPrivate::DirtyFlag::Stops;
@@ -383,19 +347,10 @@ void QCGradient::setStops(const QCGradientStops &stops)
 */
 QCGradientStops QCGradient::stops() const
 {
+    G_D();
     return d->gradientStops;
 }
 
-/*!
-    \internal
-*/
-void QCGradient::detach()
-{
-    if (d)
-        d.detach();
-    else
-        d = new QCGradientPrivate(type());
-}
 
 /*!
     \typedef QCGradientStop
@@ -414,7 +369,7 @@ void QCGradient::detach()
 // ***** Private *****
 
 QCGradientPrivate::QCGradientPrivate(QCBrush::BrushType type)
-    : type(type)
+    : QCBrushPrivate(type)
     , dirty(DirtyFlag::All)
     , imageId(0)
 {

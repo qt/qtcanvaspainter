@@ -34,6 +34,23 @@ QT_BEGIN_NAMESPACE
 
 // TODO:     \image radialgradient_example_1.png
 
+#define G_D() auto *d = QCGradientPrivate::get(this)
+#define DECONST(d) const_cast<QCRadialGradientPrivate *>(d)
+
+class QCRadialGradientPrivate : public QCGradientPrivate
+{
+public:
+    QCRadialGradientPrivate() : QCGradientPrivate(QCBrush::BrushType::RadialGradient) {}
+    QCRadialGradientPrivate(const QCRadialGradientPrivate &) = default;
+    QCPaint createPaint(QCPainter *painter) const override;
+    void createRadialGradient(const QColor &iColor, const QColor &oColor,
+                              int imageId) const;
+    QCBrushPrivate *clone() override
+    {
+        return new QCRadialGradientPrivate(*this);
+    }
+};
+
 /*!
     Constructs a default radial gradient.
     Gradient center position is (0, 0).
@@ -43,8 +60,9 @@ QT_BEGIN_NAMESPACE
 */
 
 QCRadialGradient::QCRadialGradient()
-    : QCGradient(BrushType::RadialGradient)
+    : QCGradient(new QCRadialGradientPrivate)
 {
+    G_D();
     d->data.radial.cx = 0.0f;
     d->data.radial.cy = 0.0f;
     d->data.radial.oRadius = 100.0f;
@@ -60,8 +78,9 @@ QCRadialGradient::QCRadialGradient()
 */
 
 QCRadialGradient::QCRadialGradient(float centerX, float centerY, float outerRadius, float innerRadius)
-    : QCGradient(BrushType::RadialGradient)
+    : QCGradient(new QCRadialGradientPrivate)
 {
+    G_D();
     d->data.radial.cx = centerX;
     d->data.radial.cy = centerY;
     d->data.radial.oRadius = outerRadius;
@@ -77,8 +96,9 @@ QCRadialGradient::QCRadialGradient(float centerX, float centerY, float outerRadi
 */
 
 QCRadialGradient::QCRadialGradient(QPointF center, float outerRadius, float innerRadius)
-    : QCGradient(BrushType::RadialGradient)
+    : QCGradient(new QCRadialGradientPrivate)
 {
+    G_D();
     d->data.radial.cx = float(center.x());
     d->data.radial.cy = float(center.y());
     d->data.radial.oRadius = outerRadius;
@@ -95,6 +115,7 @@ QCRadialGradient::~QCRadialGradient()
 
 QPointF QCRadialGradient::centerPosition() const
 {
+    G_D();
     return QPointF(d->data.radial.cx,
                    d->data.radial.cy);
 }
@@ -105,6 +126,7 @@ QPointF QCRadialGradient::centerPosition() const
 
 void QCRadialGradient::setCenterPosition(float x, float y)
 {
+    G_D();
     detach();
     d->data.radial.cx = x;
     d->data.radial.cy = y;
@@ -128,6 +150,7 @@ void QCRadialGradient::setCenterPosition(QPointF center)
 
 float QCRadialGradient::outerRadius() const
 {
+    G_D();
     return d->data.radial.oRadius;
 }
 
@@ -138,6 +161,7 @@ float QCRadialGradient::outerRadius() const
 
 void QCRadialGradient::setOuterRadius(float radius)
 {
+    G_D();
     detach();
     d->data.radial.oRadius = radius;
     d->dirty |= QCGradientPrivate::DirtyFlag::Values;
@@ -150,6 +174,7 @@ void QCRadialGradient::setOuterRadius(float radius)
 
 float QCRadialGradient::innerRadius() const
 {
+    G_D();
     return d->data.radial.iRadius;
 }
 
@@ -162,6 +187,7 @@ float QCRadialGradient::innerRadius() const
 
 void QCRadialGradient::setInnerRadius(float radius)
 {
+    G_D();
     detach();
     d->data.radial.iRadius = radius;
     d->dirty |= QCGradientPrivate::DirtyFlag::Values;
@@ -173,8 +199,9 @@ void QCRadialGradient::setInnerRadius(float radius)
    \internal
 */
 
-QCPaint QCRadialGradient::createPaint(QCPainter *painter) const
+QCPaint QCRadialGradientPrivate::createPaint(QCPainter *painter) const
 {
+    auto *d = this;
     if (d->dirty) {
         if (d->gradientStops.size() == 0) {
             QColor icol = { 255, 255, 255, 255 };
@@ -188,11 +215,11 @@ QCPaint QCRadialGradient::createPaint(QCPainter *painter) const
             QColor oc = d->gradientStops.last().second;
             createRadialGradient(ic, oc, 0);
         } else {
-            d->updateGradientTexture(painter);
+            DECONST(d)->updateGradientTexture(painter);
             QColor col = { 255, 255, 255, 255 };
             createRadialGradient(col, col, d->imageId);
         }
-        d->dirty = {};
+        DECONST(d)->dirty = {};
     }
     if (d->gradientStops.size() > 2) {
         auto *painterPriv = QCPainterPrivate::get(painter);
@@ -201,11 +228,12 @@ QCPaint QCRadialGradient::createPaint(QCPainter *painter) const
     return d->paint;
 }
 
-void QCRadialGradient::createRadialGradient(const QColor &iColor, const QColor &oColor,
+void QCRadialGradientPrivate::createRadialGradient(const QColor &iColor, const QColor &oColor,
                                                int imageId) const
 {
+    auto *d = this;
     const auto dd = d->data.radial;
-    QCPaint &p = d->paint;
+    QCPaint &p = DECONST(d)->paint;
     p.brushType = BrushRadialGradient;
     const float r = (dd.iRadius + dd.oRadius) * 0.5f;
     const float f = (dd.oRadius - dd.iRadius);

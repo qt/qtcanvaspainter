@@ -23,8 +23,6 @@ Q_CANVASPAINTER_EXPORT QDataStream &operator<<(QDataStream &, const QCImagePatte
 Q_CANVASPAINTER_EXPORT QDataStream &operator>>(QDataStream &, QCImagePattern &);
 #endif
 
-QT_DECLARE_QESDP_SPECIALIZATION_DTOR(QCImagePatternPrivate)
-
 class Q_CANVASPAINTER_EXPORT QCImagePattern : public QCBrush
 {
 public:
@@ -32,20 +30,14 @@ public:
     QCImagePattern(const QCImage &image);
     QCImagePattern(const QCImage &image, const QRectF &rect, float angle = 0.0f, const QColor &tintColor = QColorConstants::White);
     QCImagePattern(const QCImage &image, float x, float y, float width, float height, float angle = 0.0f, const QColor &tintColor = QColorConstants::White);
-    QCImagePattern(const QCImagePattern &pattern) noexcept;
     ~QCImagePattern();
 
-    QCImagePattern &operator=(const QCImagePattern &pattern) noexcept;
-    QCImagePattern(QCImagePattern &&other) noexcept = default;
-    QT_MOVE_ASSIGNMENT_OPERATOR_IMPL_VIA_PURE_SWAP(QCImagePattern)
-    void swap(QCImagePattern &other) noexcept { d.swap(other.d); }
+
+
 
     bool operator==(const QCImagePattern &pattern) const;
     inline bool operator!=(const QCImagePattern &pattern) const { return !(operator==(pattern)); }
     operator QVariant() const;
-
-    void detach();
-    BrushType type() const override;
 
     QPointF startPosition() const;
     void setStartPosition(float x, float y);
@@ -61,13 +53,8 @@ public:
     void setTintColor(const QColor &color);
 
 private:
-    QCPaint createPaint(QCPainter *painter) const final;
-
-private:
-    QExplicitlySharedDataPointer<QCImagePatternPrivate> d;
+    friend class QCImagePatternPrivate;
 };
-
-Q_DECLARE_SHARED(QCImagePattern)
 
 #ifndef QT_NO_DEBUG_STREAM
 Q_CANVASPAINTER_EXPORT QDebug operator<<(QDebug, const QCImagePattern &);

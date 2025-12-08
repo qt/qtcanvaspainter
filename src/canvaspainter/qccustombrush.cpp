@@ -2,11 +2,15 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
 
 #include "qccustombrush.h"
+#include "engine/qcpainterengineutils_p.h"
 #include "qccustombrush_p.h"
 #include <QFile>
 #include <QDebug>
 
 QT_BEGIN_NAMESPACE
+
+#define C_D() auto *d = static_cast<QCCustomBrushPrivate*>(baseData.get())
+#define C_CD() const auto *d = static_cast<QCCustomBrushPrivate*>(baseData.get())
 
 static QShader getCustomShader(const QString &name)
 {
@@ -32,7 +36,7 @@ static QShader getCustomShader(const QString &name)
 */
 
 QCCustomBrush::QCCustomBrush()
-    : d(new QCCustomBrushPrivate)
+    : QCBrush(new QCCustomBrushPrivate)
 {
 }
 
@@ -44,20 +48,12 @@ QCCustomBrush::QCCustomBrush()
 
 QCCustomBrush::QCCustomBrush(const QString &fragmentShader,
                              const QString &vertexShader)
-    : d(new QCCustomBrushPrivate)
+    : QCBrush(new QCCustomBrushPrivate)
 {
     setFragmentShader(fragmentShader);
     setVertexShader(vertexShader);
 }
 
-/*!
-    Constructs a custom brush that is a copy of the given \a brush.
-*/
-
-QCCustomBrush::QCCustomBrush(const QCCustomBrush &brush) noexcept
-    : d(brush.d)
-{
-}
 
 /*!
     Destroys the custom brush.
@@ -65,35 +61,6 @@ QCCustomBrush::QCCustomBrush(const QCCustomBrush &brush) noexcept
 
 QCCustomBrush::~QCCustomBrush() = default;
 
-QT_DEFINE_QESDP_SPECIALIZATION_DTOR(QCCustomBrushPrivate)
-
-/*!
-    Assigns the given \a brush to this custom brush and returns a reference to
-    this custom brush.
-*/
-
-QCCustomBrush &QCCustomBrush::operator=(const QCCustomBrush &brush) noexcept
-{
-    QCCustomBrush(brush).swap(*this);
-    return *this;
-}
-
-/*!
-    \fn QCCustomBrush::QCCustomBrush(QCCustomBrush &&other) noexcept
-
-    Move-constructs a new QCCustomBrush from \a other.
-*/
-
-/*!
-    \fn QCCustomBrush &QCCustomBrush::operator=(QCCustomBrush &&other)
-
-    Move-assigns \a other to this QCCustomBrush instance.
-*/
-
-/*!
-    \fn void QCCustomBrush::swap(QCCustomBrush &other)
-    \memberswap{other}
-*/
 
 /*!
    Returns the custom brush as a QVariant.
@@ -124,17 +91,19 @@ QCCustomBrush::operator QVariant() const
 
 bool QCCustomBrush::operator==(const QCCustomBrush &b) const
 {
-    if (b.d == d)
+    if (b.baseData == baseData)
         return true;
 
-    if (d->fragmentShader != b.d->fragmentShader
-        || d->vertexShader != b.d->vertexShader
-        || d->timeRunning != b.d->timeRunning
-        || d->time != b.d->time
-        || d->data[0] != b.d->data[0]
-        || d->data[1] != b.d->data[1]
-        || d->data[2] != b.d->data[2]
-        || d->data[3] != b.d->data[3])
+    auto *d = QCCustomBrushPrivate::get(this);
+    auto *bd = QCCustomBrushPrivate::get(&b);
+    if (d->fragmentShader != bd->fragmentShader
+        || d->vertexShader != bd->vertexShader
+        || d->timeRunning != bd->timeRunning
+        || d->time != bd->time
+        || d->data[0] != bd->data[0]
+        || d->data[1] != bd->data[1]
+        || d->data[2] != bd->data[2]
+        || d->data[3] != bd->data[3])
         return false;
 
     return true;
@@ -152,14 +121,6 @@ QDebug operator<<(QDebug dbg, const QCCustomBrush &)
 }
 #endif // QT_NO_DEBUG_STREAM
 
-/*!
-    Returns the type of brush, \c QCBrush::BrushType::Custom.
-*/
-
-QCBrush::BrushType QCCustomBrush::type() const
-{
-    return QCBrush::BrushType::Custom;
-}
 
 /*!
     Sets the custom brush to use \a fragmentShader.
@@ -168,6 +129,7 @@ QCBrush::BrushType QCCustomBrush::type() const
 
 void QCCustomBrush::setFragmentShader(const QString &fragmentShader)
 {
+    auto *d = QCCustomBrushPrivate::get(this);
     detach();
     d->fragmentShader = getCustomShader(fragmentShader);
 }
@@ -179,6 +141,7 @@ void QCCustomBrush::setFragmentShader(const QString &fragmentShader)
 
 void QCCustomBrush::setVertexShader(const QString &vertexShader)
 {
+    auto *d = QCCustomBrushPrivate::get(this);
     detach();
     d->vertexShader = getCustomShader(vertexShader);
 }
@@ -189,6 +152,7 @@ void QCCustomBrush::setVertexShader(const QString &vertexShader)
 
 bool QCCustomBrush::timeRunning() const
 {
+    auto *d = QCCustomBrushPrivate::get(this);
     return d->timeRunning;
 }
 
@@ -201,6 +165,7 @@ bool QCCustomBrush::timeRunning() const
 
 void QCCustomBrush::setTimeRunning(bool running)
 {
+    auto *d = QCCustomBrushPrivate::get(this);
     detach();
     d->timeRunning = running;
 }
@@ -212,6 +177,7 @@ void QCCustomBrush::setTimeRunning(bool running)
 
 void QCCustomBrush::setData1(const QVector4D &data)
 {
+    auto *d = QCCustomBrushPrivate::get(this);
     detach();
     d->data[0] = data;
 }
@@ -223,6 +189,7 @@ void QCCustomBrush::setData1(const QVector4D &data)
 
 void QCCustomBrush::setData2(const QVector4D &data)
 {
+    auto *d = QCCustomBrushPrivate::get(this);
     detach();
     d->data[1] = data;
 }
@@ -234,6 +201,7 @@ void QCCustomBrush::setData2(const QVector4D &data)
 
 void QCCustomBrush::setData3(const QVector4D &data)
 {
+    auto *d = QCCustomBrushPrivate::get(this);
     detach();
     d->data[2] = data;
 }
@@ -245,20 +213,20 @@ void QCCustomBrush::setData3(const QVector4D &data)
 
 void QCCustomBrush::setData4(const QVector4D &data)
 {
+    auto *d = QCCustomBrushPrivate::get(this);
     detach();
     d->data[3] = data;
 }
 
-/*!
-    \internal
-*/
-
-void QCCustomBrush::detach()
+QCBrushPrivate *QCCustomBrushPrivate::clone()
 {
-    if (d)
-        d.detach();
-    else
-        d = new QCCustomBrushPrivate;
+    return new QCCustomBrushPrivate(*this);
+}
+
+QCPaint QCCustomBrushPrivate::createPaint(QCPainter *) const
+{
+    QCPaint empty;
+    return empty;
 }
 
 QT_END_NAMESPACE

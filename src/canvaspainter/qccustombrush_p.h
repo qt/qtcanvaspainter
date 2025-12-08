@@ -15,6 +15,7 @@
 // We mean it.
 //
 
+#include "qcbrush_p.h"
 #include "qccustombrush.h"
 #include <QtCore/qshareddata.h>
 #include <qvectornd.h>
@@ -22,11 +23,18 @@
 
 QT_BEGIN_NAMESPACE
 
-class QCCustomBrushPrivate : public QSharedData
+class QCCustomBrushPrivate : public QCBrushPrivate
 {
 public:
-    static QCCustomBrushPrivate *get(QCCustomBrush *brush) { return brush->d.get(); }
-    static const QCCustomBrushPrivate *get(const QCCustomBrush *brush) { return brush->d.get(); }
+    QCCustomBrushPrivate() : QCBrushPrivate(QCBrush::BrushType::Custom) {}
+    QCCustomBrushPrivate(const QCCustomBrushPrivate&) = default;
+    QCBrushPrivate *clone() override;
+    QCPaint createPaint(QCPainter *painter) const override;
+
+    static QCCustomBrushPrivate *get(QCCustomBrush *brush)
+    { return static_cast<QCCustomBrushPrivate*>(brush->baseData.get()); }
+    static const QCCustomBrushPrivate *get(const QCCustomBrush *brush)
+    { return static_cast<QCCustomBrushPrivate*>(brush->baseData.get()); }
 
     struct CommonUniforms {
         // Total size 112 + 112 = 224 bytes.

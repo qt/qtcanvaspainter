@@ -38,6 +38,9 @@ static const float QCPAINTER_BOX_SHADOW_MULTIPLIER = 1.0f;
     \image examples_qcpainter_box_shadow.png
 */
 
+
+#define B_D() auto *d = static_cast<QCBoxShadowPrivate*>(baseData.get())
+
 /*!
     Constructs a default box shadow.
     The box shadow position is (0, 0) and size (100, 100).
@@ -46,7 +49,7 @@ static const float QCPAINTER_BOX_SHADOW_MULTIPLIER = 1.0f;
 */
 
 QCBoxShadow::QCBoxShadow()
-    : d(new QCBoxShadowPrivate)
+    : QCBrush(new QCBoxShadowPrivate)
 {
 }
 
@@ -58,8 +61,9 @@ QCBoxShadow::QCBoxShadow()
 */
 
 QCBoxShadow::QCBoxShadow(const QRectF &rect, float radius, float blur, const QColor &color)
-    : d(new QCBoxShadowPrivate)
+    : QCBrush(new QCBoxShadowPrivate)
 {
+    B_D();
     d->x = float(rect.x());
     d->y = float(rect.y());
     d->width = float(rect.width());
@@ -77,8 +81,9 @@ QCBoxShadow::QCBoxShadow(const QRectF &rect, float radius, float blur, const QCo
 */
 
 QCBoxShadow::QCBoxShadow(float x, float y, float width, float height, float radius, float blur, const QColor &color)
-    : d(new QCBoxShadowPrivate)
+    : QCBrush(new QCBoxShadowPrivate)
 {
+    B_D();
     d->x = x;
     d->y = y;
     d->width = width;
@@ -88,54 +93,7 @@ QCBoxShadow::QCBoxShadow(float x, float y, float width, float height, float radi
     d->color = color;
 }
 
-/*!
-    Constructs a box shadow that is a copy of the given \a shadow.
-*/
-
-QCBoxShadow::QCBoxShadow(const QCBoxShadow &shadow) noexcept
-    : d(shadow.d)
-{
-}
-
-/*!
-    Destroys the box shadow.
-*/
-
 QCBoxShadow::~QCBoxShadow() = default;
-
-QT_DEFINE_QESDP_SPECIALIZATION_DTOR(QCBoxShadowPrivate)
-
-/*!
-    Assigns the given \a shadow to this shadow and returns a reference to
-    this box shadow.
-*/
-
-QCBoxShadow &QCBoxShadow::operator=(const QCBoxShadow &shadow) noexcept
-{
-    QCBoxShadow(shadow).swap(*this);
-    return *this;
-}
-
-/*!
-    \fn QCBoxShadow::QCBoxShadow(QCBoxShadow &&other) noexcept
-
-    Move-constructs a new QCBoxShadow from \a other.
-*/
-
-/*!
-    \fn QCBoxShadow &QCBoxShadow::operator=(QCBoxShadow &&other)
-
-    Move-assigns \a other to this QCBoxShadow instance.
-*/
-
-/*!
-    \fn void QCBoxShadow::swap(QCBoxShadow &other)
-    \memberswap{other}
-*/
-
-/*!
-   Returns the box shadow as a QVariant.
-*/
 
 QCBoxShadow::operator QVariant() const
 {
@@ -162,20 +120,22 @@ QCBoxShadow::operator QVariant() const
 
 bool QCBoxShadow::operator==(const QCBoxShadow &p) const
 {
-    if (p.d == d)
+    B_D();
+    auto *pd = QCBoxShadowPrivate::get(&p);
+    if (pd == d)
         return true;
 
-    if (d->x != p.d->x
-        || d->y != p.d->y
-        || d->width != p.d->width
-        || d->height != p.d->height
-        || d->radius != p.d->radius
-        || d->blur != p.d->blur
-        || d->color != p.d->color
-        || d->topLeftRadius != p.d->topLeftRadius
-        || d->topRightRadius != p.d->topRightRadius
-        || d->bottomLeftRadius != p.d->bottomLeftRadius
-        || d->bottomRightRadius != p.d->bottomRightRadius)
+    if (d->x != pd->x
+        || d->y != pd->y
+        || d->width != pd->width
+        || d->height != pd->height
+        || d->radius != pd->radius
+        || d->blur != pd->blur
+        || d->color != pd->color
+        || d->topLeftRadius != pd->topLeftRadius
+        || d->topRightRadius != pd->topRightRadius
+        || d->bottomLeftRadius != pd->bottomLeftRadius
+        || d->bottomRightRadius != pd->bottomRightRadius)
         return false;
 
     return true;
@@ -254,21 +214,13 @@ QDataStream &operator>>(QDataStream &s, QCBoxShadow &p)
 #endif // QT_NO_DATASTREAM
 
 /*!
-    Returns the type of brush, \c QCBrush::BrushType::BoxShadow.
-*/
-
-QCBrush::BrushType QCBoxShadow::type() const
-{
-    return QCBrush::BrushType::BoxShadow;
-}
-
-/*!
     Returns the rect area of shadow box.
     \sa setRect()
 */
 
 QRectF QCBoxShadow::rect() const
 {
+    B_D();
     return QRectF(d->x,
                   d->y,
                   d->width,
@@ -292,6 +244,7 @@ void QCBoxShadow::setRect(const QRectF &rect)
 
 void QCBoxShadow::setRect(float x, float y, float width, float height)
 {
+    B_D();
     detach();
     d->x = x;
     d->y = y;
@@ -314,6 +267,7 @@ void QCBoxShadow::setRect(float x, float y, float width, float height)
 
 QRectF QCBoxShadow::boundingRect() const
 {
+    B_D();
     // Extend the rect with blur, spread and aa
     const float aa = 1.0f;
     const float extend = d->blur + d->spread + aa;
@@ -331,6 +285,7 @@ QRectF QCBoxShadow::boundingRect() const
 
 float QCBoxShadow::radius() const
 {
+    B_D();
     return d->radius;
 }
 
@@ -341,6 +296,7 @@ float QCBoxShadow::radius() const
 
 void QCBoxShadow::setRadius(float radius)
 {
+    B_D();
     detach();
     d->radius = radius;
     d->changed = true;
@@ -353,6 +309,7 @@ void QCBoxShadow::setRadius(float radius)
 
 float QCBoxShadow::blur() const
 {
+    B_D();
     return d->blur;
 }
 
@@ -363,6 +320,7 @@ float QCBoxShadow::blur() const
 
 void QCBoxShadow::setBlur(float blur)
 {
+    B_D();
     detach();
     d->blur = blur;
     d->changed = true;
@@ -375,6 +333,7 @@ void QCBoxShadow::setBlur(float blur)
 
 float QCBoxShadow::spread() const
 {
+    B_D();
     return d->spread;
 }
 
@@ -385,6 +344,7 @@ float QCBoxShadow::spread() const
 
 void QCBoxShadow::setSpread(float spread)
 {
+    B_D();
     detach();
     d->spread = spread;
     d->changed = true;
@@ -397,6 +357,7 @@ void QCBoxShadow::setSpread(float spread)
 
 QColor QCBoxShadow::color() const
 {
+    B_D();
     return d->color;
 }
 
@@ -407,6 +368,7 @@ QColor QCBoxShadow::color() const
 
 void QCBoxShadow::setColor(const QColor &color)
 {
+    B_D();
     detach();
     d->color = color;
     d->changed = true;
@@ -421,6 +383,7 @@ void QCBoxShadow::setColor(const QColor &color)
 
 float QCBoxShadow::topLeftRadius() const
 {
+    B_D();
     return d->topLeftRadius;
 }
 
@@ -433,6 +396,7 @@ float QCBoxShadow::topLeftRadius() const
 
 void QCBoxShadow::setTopLeftRadius(float radius)
 {
+    B_D();
     detach();
     d->topLeftRadius = radius;
     d->changed = true;
@@ -447,6 +411,7 @@ void QCBoxShadow::setTopLeftRadius(float radius)
 
 float QCBoxShadow::topRightRadius() const
 {
+    B_D();
     return d->topRightRadius;
 }
 
@@ -459,6 +424,7 @@ float QCBoxShadow::topRightRadius() const
 
 void QCBoxShadow::setTopRightRadius(float radius)
 {
+    B_D();
     detach();
     d->topRightRadius = radius;
     d->changed = true;
@@ -473,6 +439,7 @@ void QCBoxShadow::setTopRightRadius(float radius)
 
 float QCBoxShadow::bottomLeftRadius() const
 {
+    B_D();
     return d->bottomLeftRadius;
 }
 
@@ -485,6 +452,7 @@ float QCBoxShadow::bottomLeftRadius() const
 
 void QCBoxShadow::setBottomLeftRadius(float radius)
 {
+    B_D();
     detach();
     d->bottomLeftRadius = radius;
     d->changed = true;
@@ -499,6 +467,7 @@ void QCBoxShadow::setBottomLeftRadius(float radius)
 
 float QCBoxShadow::bottomRightRadius() const
 {
+    B_D();
     return d->bottomRightRadius;
 }
 
@@ -511,23 +480,12 @@ float QCBoxShadow::bottomRightRadius() const
 
 void QCBoxShadow::setBottomRightRadius(float radius)
 {
+    B_D();
     detach();
     d->bottomRightRadius = radius;
     d->changed = true;
 }
 
-
-/*!
-    \internal
-*/
-
-void QCBoxShadow::detach()
-{
-    if (d)
-        d.detach();
-    else
-        d = new QCBoxShadowPrivate;
-}
 
 // ***** Private *****
 
@@ -535,9 +493,10 @@ void QCBoxShadow::detach()
    \internal
 */
 
-QCPaint QCBoxShadow::createPaint(QCPainter *painter) const
+QCPaint QCBoxShadowPrivate::createPaint(QCPainter *painter) const
 {
     Q_UNUSED(painter);
+    auto *d = this;
     if (d->changed) {
         // TODO: Support non-antialiased shadows?
         const float aa = 1.0f;
@@ -584,17 +543,17 @@ QCPaint QCBoxShadow::createPaint(QCPainter *painter) const
 
         createBoxShadow(x, y, width, height, radius, blurOut, color);
 
-        d->changed = false;
+        const_cast<QCBoxShadowPrivate *>(d)->changed = false;
     }
 
     return d->paint;
 }
 
-void QCBoxShadow::createBoxShadow(float x, float y, float width, float height,
+void QCBoxShadowPrivate::createBoxShadow(float x, float y, float width, float height,
                                   const QVector4D &radius,
                                   float blur, const QColor &color) const
 {
-    QCPaint &p = d->paint;
+    QCPaint &p = const_cast<QCBoxShadowPrivate *>(this)->paint;
     p.brushType = BrushBoxShadow;
 
     p.transform = QTransform::fromTranslate(x + (width * 0.5f), y + (height * 0.5f));
@@ -610,6 +569,11 @@ void QCBoxShadow::createBoxShadow(float x, float y, float width, float height,
     p.innerColor = { color.redF(), color.greenF(), color.blueF(), color.alphaF() };
     p.outerColor = { radius.x(), radius.y(), radius.z(), radius.w() };
     p.imageId = 0;
+}
+
+QCBrushPrivate *QCBoxShadowPrivate::clone()
+{
+    return new QCBoxShadowPrivate(*this);
 }
 
 float QCBoxShadowPrivate::clampedRadius(float rad, float width, float height) const

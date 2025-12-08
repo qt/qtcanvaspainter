@@ -11,8 +11,6 @@
 
 QT_BEGIN_NAMESPACE
 
-class QCRadialGradientPrivate;
-
 class Q_CANVASPAINTER_EXPORT QCRadialGradient : public QCGradient
 {
 public:
@@ -28,15 +26,7 @@ public:
     void setOuterRadius(float radius);
     float innerRadius() const;
     void setInnerRadius(float radius);
-
-private:
-    QCPaint createPaint(QCPainter *painter) const final;
-    void createRadialGradient(const QColor &iColor, const QColor &oColor,
-                              int imageId) const;
-
 };
-
-Q_DECLARE_SHARED(QCRadialGradient)
 
 QT_END_NAMESPACE
 

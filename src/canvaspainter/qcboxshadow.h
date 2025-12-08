@@ -18,33 +18,17 @@ class QCBoxShadowPrivate;
 class QCBoxShadow;
 class QCImage;
 
-#ifndef QT_NO_DATASTREAM
-Q_CANVASPAINTER_EXPORT QDataStream &operator<<(QDataStream &, const QCBoxShadow &);
-Q_CANVASPAINTER_EXPORT QDataStream &operator>>(QDataStream &, QCBoxShadow &);
-#endif
-
-QT_DECLARE_QESDP_SPECIALIZATION_DTOR(QCBoxShadowPrivate)
-
 class Q_CANVASPAINTER_EXPORT QCBoxShadow : public QCBrush
 {
 public:
     QCBoxShadow();
     QCBoxShadow(const QRectF &rect, float radius = 0.0f, float blur = 0.0f, const QColor &color = QColorConstants::Black);
     QCBoxShadow(float x, float y, float width, float height, float radius = 0.0f, float blur = 0.0f, const QColor &color = QColorConstants::Black);
-    QCBoxShadow(const QCBoxShadow &shadow) noexcept;
     ~QCBoxShadow();
-
-    QCBoxShadow &operator=(const QCBoxShadow &shadow) noexcept;
-    QCBoxShadow(QCBoxShadow &&other) noexcept = default;
-    QT_MOVE_ASSIGNMENT_OPERATOR_IMPL_VIA_PURE_SWAP(QCBoxShadow)
-    void swap(QCBoxShadow &other) noexcept { d.swap(other.d); }
 
     bool operator==(const QCBoxShadow &shadow) const;
     inline bool operator!=(const QCBoxShadow &shadow) const { return !(operator==(shadow)); }
     operator QVariant() const;
-
-    void detach();
-    BrushType type() const override;
 
     QRectF rect() const;
     void setRect(const QRectF &rect);
@@ -71,16 +55,13 @@ public:
 private:
     friend class QCPainter;
     friend class QCPainterPrivate;
-    QCPaint createPaint(QCPainter *painter) const final;
-    void createBoxShadow(float x, float y, float width, float height,
-                         const QVector4D &radius,
-                         float blur, const QColor &color) const;
-
-private:
-    QExplicitlySharedDataPointer<QCBoxShadowPrivate> d;
+    friend class QCBoxShadowPrivate;
 };
 
-Q_DECLARE_SHARED(QCBoxShadow)
+#ifndef QT_NO_DATASTREAM
+Q_CANVASPAINTER_EXPORT QDataStream &operator<<(QDataStream &, const QCBoxShadow &);
+Q_CANVASPAINTER_EXPORT QDataStream &operator>>(QDataStream &, QCBoxShadow &);
+#endif
 
 #ifndef QT_NO_DEBUG_STREAM
 Q_CANVASPAINTER_EXPORT QDebug operator<<(QDebug, const QCBoxShadow &);

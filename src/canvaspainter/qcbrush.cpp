@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
 
 #include "qcbrush.h"
+#include "qcbrush_p.h"
 #include "engine/qcpainterengineutils_p.h"
 #include "qdatastream.h"
 #include <qdebug.h>
@@ -19,11 +20,58 @@ QT_BEGIN_NAMESPACE
 */
 
 /*!
+   Constructs an invalid brush.
+*/
+
+QCBrush::QCBrush()
+{
+}
+
+/*!
+    Constructs a brush that is a copy of the given \a brush.
+*/
+QCBrush::QCBrush(const QCBrush &brush) noexcept
+    : baseData(brush.baseData)
+{
+}
+
+QCBrush::~QCBrush() = default;
+
+/*!
+    Assigns the given \a brush to this brush and returns a reference to
+    this brush.
+*/
+
+QCBrush &QCBrush::operator=(const QCBrush &brush) noexcept
+{
+    QCBrush(brush).swap(*this);
+    return *this;
+}
+
+/*!
+    \fn QCBrush::QCBrush(QCImage &&other) noexcept
+
+    Move-constructs a new QCBrush from \a other.
+*/
+
+/*!
+    \fn QCBrush &QCBrush::operator=(QCBrush &&other)
+
+    Move-assigns \a other to this QCBrush instance.
+*/
+
+/*!
+    \fn void QCBrush::swap(QCBrush &other)
+    \memberswap{brush}
+*/
+
+
+/*!
     \enum QCBrush::BrushType
 
     Specifies the type of brush.
 
-    \value Brush - Empty brush.
+    \value Invalid - Empty brush.
 
     \value LinearGradient - Interpolates colors between start and end points
     (QCLinearGradient)
@@ -51,12 +99,11 @@ QT_BEGIN_NAMESPACE
 
 /*!
     Returns the type of the brush.
-    Subclasses override this method.
 */
 
 QCBrush::BrushType QCBrush::type() const
 {
-    return QCBrush::BrushType::Brush;
+    return baseData ? baseData->type : QCBrush::BrushType::Invalid;
 }
 
 // ***** Private *****
@@ -64,9 +111,18 @@ QCBrush::BrushType QCBrush::type() const
 /*!
    \internal
 */
-QCBrush::~QCBrush()
+void QCBrush::detach()
+{
+    if (baseData)
+        baseData.detach();
+}
+
+QCBrush::QCBrush(QCBrushPrivate *priv)
+    : baseData(priv)
 {
 }
+
+QT_DEFINE_QESDP_SPECIALIZATION_DTOR(QCBrushPrivate);
 
 /*!
    \internal
@@ -74,8 +130,22 @@ QCBrush::~QCBrush()
 QCPaint QCBrush::createPaint(QCPainter *painter) const
 {
     Q_UNUSED(painter)
+    if (baseData)
+        return baseData->createPaint(painter);
     QCPaint empty;
     return empty;
 }
 
+#ifndef QT_NO_DEBUG_STREAM
+/*!
+  \internal
+*/
+QDebug operator<<(QDebug dbg, const QCBrush &b)
+{
+    QDebugStateSaver saver(dbg);
+    const auto t = b.type();
+    dbg.nospace() << "QCBrush(" << t << ")";
+    return dbg;
+}
+#endif
 QT_END_NAMESPACE

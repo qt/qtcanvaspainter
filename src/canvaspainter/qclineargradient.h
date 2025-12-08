@@ -11,8 +11,6 @@
 
 QT_BEGIN_NAMESPACE
 
-class QCLinearGradientPrivate;
-
 class Q_CANVASPAINTER_EXPORT QCLinearGradient : public QCGradient
 {
 public:
@@ -27,15 +25,7 @@ public:
     QPointF endPosition() const;
     void setEndPosition(float x, float y);
     void setEndPosition(QPointF end);
-
-private:
-    QCPaint createPaint(QCPainter *painter) const final;
-    void createLinearGradient(const QColor &iColor, const QColor &oColor,
-                              int imageId) const;
-
 };
-
-Q_DECLARE_SHARED(QCLinearGradient)
 
 QT_END_NAMESPACE
 

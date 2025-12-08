@@ -15,7 +15,7 @@
 // We mean it.
 //
 
-#include <QtCore/qshareddata.h>
+#include "qcbrush_p.h"
 #include "qcgradient.h"
 #include "engine/qcpainterengineutils_p.h"
 #include <QImage>
@@ -23,10 +23,16 @@
 
 QT_BEGIN_NAMESPACE
 
-class QCGradientPrivate : public QSharedData
+class QCGradientPrivate : public QCBrushPrivate
 {
 public:
     QCGradientPrivate(QCBrush::BrushType type);
+
+    static QCGradientPrivate *get(QCGradient *brush)
+    { return static_cast<QCGradientPrivate*>(brush->baseData.get()); }
+    static const QCGradientPrivate *get(const QCGradient *brush)
+    { return static_cast<QCGradientPrivate*>(brush->baseData.get()); }
+
     qint64 generateGradientId() const;
     static void gradientColorSpan(quint32 *data, const QColor &color0, const QColor &color1, float offset0, float offset1);
     void updateGradientTexture(QCPainter *painter);
@@ -56,7 +62,6 @@ public:
     };
     QCGradientStops gradientStops;
     QCGradientData data;
-    QCBrush::BrushType type;
     QCPaint paint;
     DirtyFlags dirty;
     int imageId;

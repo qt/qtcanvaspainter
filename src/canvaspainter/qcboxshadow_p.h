@@ -16,15 +16,31 @@
 //
 
 #include "engine/qcpainterengine_p.h"
+#include "qcboxshadow.h"
+#include "qcbrush_p.h"
 #include "qcimage.h"
 #include <QtCore/qshareddata.h>
 #include <QImage>
 
 QT_BEGIN_NAMESPACE
 
-class QCBoxShadowPrivate : public QSharedData
+class QCBoxShadowPrivate : public QCBrushPrivate
 {
 public:
+    QCBoxShadowPrivate() : QCBrushPrivate(QCBrush::BrushType::BoxShadow) {}
+    QCBoxShadowPrivate(const QCBoxShadowPrivate &) = default;
+    QCBrushPrivate *clone() override;
+
+    static QCBoxShadowPrivate *get(QCBoxShadow *brush)
+    { return static_cast<QCBoxShadowPrivate*>(brush->baseData.get()); }
+    static const QCBoxShadowPrivate *get(const QCBoxShadow *brush)
+    { return static_cast<QCBoxShadowPrivate*>(brush->baseData.get()); }
+
+    QCPaint createPaint(QCPainter *painter) const override;
+    void createBoxShadow(float x, float y, float width, float height,
+                         const QVector4D &radius,
+                         float blur, const QColor &color) const;
+
     float clampedRadius(float radius, float width, float height) const;
     QColor clampedColor() const;
 

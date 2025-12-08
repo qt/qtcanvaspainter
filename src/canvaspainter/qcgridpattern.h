@@ -15,16 +15,6 @@
 
 QT_BEGIN_NAMESPACE
 
-class QCGridPatternPrivate;
-class QCGridPattern;
-
-#ifndef QT_NO_DATASTREAM
-Q_CANVASPAINTER_EXPORT QDataStream &operator<<(QDataStream &, const QCGridPattern &);
-Q_CANVASPAINTER_EXPORT QDataStream &operator>>(QDataStream &, QCGridPattern &);
-#endif
-
-QT_DECLARE_QESDP_SPECIALIZATION_DTOR(QCGridPatternPrivate)
-
 class Q_CANVASPAINTER_EXPORT QCGridPattern : public QCBrush
 {
 public:
@@ -37,20 +27,11 @@ public:
                   const QColor &lineColor = QColorConstants::White,
                   const QColor &backgroundColor = QColorConstants::Black,
                   float lineWidth = 1.0f, float feather = 1.0f, float angle = 0.0f);
-    QCGridPattern(const QCGridPattern &pattern) noexcept;
     ~QCGridPattern();
-
-    QCGridPattern &operator=(const QCGridPattern &pattern) noexcept;
-    QCGridPattern(QCGridPattern &&other) noexcept = default;
-    QT_MOVE_ASSIGNMENT_OPERATOR_IMPL_VIA_PURE_SWAP(QCGridPattern)
-    void swap(QCGridPattern &other) noexcept { d.swap(other.d); }
 
     bool operator==(const QCGridPattern &pattern) const;
     inline bool operator!=(const QCGridPattern &pattern) const { return !(operator==(pattern)); }
     operator QVariant() const;
-
-    void detach();
-    BrushType type() const override;
 
     QPointF startPosition() const;
     void setStartPosition(float x, float y);
@@ -70,14 +51,13 @@ public:
     void setBackgroundColor(const QColor &color);
 
 private:
-    QCPaint createPaint(QCPainter *painter) const final;
-    void createGridPattern() const;
-
-private:
-    QExplicitlySharedDataPointer<QCGridPatternPrivate> d;
+    friend class QCGridPatternPrivate;
 };
 
-Q_DECLARE_SHARED(QCGridPattern)
+#ifndef QT_NO_DATASTREAM
+Q_CANVASPAINTER_EXPORT QDataStream &operator<<(QDataStream &, const QCGridPattern &);
+Q_CANVASPAINTER_EXPORT QDataStream &operator>>(QDataStream &, QCGridPattern &);
+#endif
 
 #ifndef QT_NO_DEBUG_STREAM
 Q_CANVASPAINTER_EXPORT QDebug operator<<(QDebug, const QCGridPattern &);

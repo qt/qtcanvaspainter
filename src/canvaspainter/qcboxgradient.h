@@ -11,8 +11,6 @@
 
 QT_BEGIN_NAMESPACE
 
-class QCBoxGradientPrivate;
-
 class Q_CANVASPAINTER_EXPORT QCBoxGradient : public QCGradient
 {
 public:
@@ -28,15 +26,7 @@ public:
     void setFeather(float feather);
     float radius() const;
     void setRadius(float radius);
-
-private:
-    QCPaint createPaint(QCPainter *painter) const final;
-    void createBoxGradient(const QColor &iColor, const QColor &oColor,
-                           int imageId) const;
-
 };
-
-Q_DECLARE_SHARED(QCBoxGradient)
 
 QT_END_NAMESPACE
 

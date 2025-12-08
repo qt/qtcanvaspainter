@@ -263,7 +263,7 @@ void tst_QCBrush::testTypes()
     int patterns = 0;
     int shadows = 0;
     for (auto *brush : brushes) {
-        if (brush->type() == QCBrush::BrushType::Brush) {
+        if (brush->type() == QCBrush::BrushType::Invalid) {
             // Base brush type
         } else if (brush->type() == QCBrush::BrushType::LinearGradient) {
             auto b = static_cast<QCLinearGradient*>(brush);
