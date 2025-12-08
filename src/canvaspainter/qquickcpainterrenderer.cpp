@@ -241,9 +241,8 @@ float QQuickCPainterRenderer::height() const {
 }
 
 /*!
-   \internal
-*/
-
+   \reimp
+ */
 void QQuickCPainterRenderer::synchronize(QQuickRhiItem * item)
 {
     Q_D(QQuickCPainterRenderer);
@@ -292,6 +291,9 @@ QQuickCPainterRendererPrivate::~QQuickCPainterRendererPrivate()
 {
 }
 
+/*!
+    \reimp
+ */
 void QQuickCPainterRenderer::initialize(QRhiCommandBuffer *cb)
 {
     Q_UNUSED(cb);
@@ -345,6 +347,9 @@ void QQuickCPainterRenderer::initialize(QRhiCommandBuffer *cb)
     d->m_initialized = true;
 }
 
+/*!
+    \reimp
+ */
 void QQuickCPainterRenderer::render(QRhiCommandBuffer *cb)
 {
     Q_D(QQuickCPainterRenderer);

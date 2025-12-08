@@ -180,9 +180,8 @@ void QQuickCPainterItemPrivate::updateDebugData(QCDrawDebug drawDebug)
 }
 
 /*!
-   \internal
+   \reimp
 */
-
 QQuickRhiItemRenderer *QQuickCPainterItem::createRenderer()
 {
     Q_D(QQuickCPainterItem);
