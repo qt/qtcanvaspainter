@@ -228,7 +228,8 @@ void QCBoxGradient::createBoxGradient(const QColor &iColor, const QColor &oColor
     p.extent[1] = dd.height * 0.5f;
 
     p.radius = qMin(dd.radius, qMin(dd.width, dd.height) * 0.5f);
-    p.feather = qMax(0.0f, dd.feather);
+    constexpr float small = 0.0001f;
+    p.feather = qMax(small, dd.feather);
 
     if (imageId != 0) {
         // Multistop gradient
