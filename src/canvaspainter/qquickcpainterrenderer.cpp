@@ -213,29 +213,27 @@ QCPainter *QQuickCPainterRenderer::painter() const
 }
 
 /*!
-    \fn float QQuickCPainterRenderer::width() const
-
-    Returns the width of the painted area. This is usually the
-    same as the painter item width, but if \l QQuickRhiItem::fixedColorBufferWidth
-    has been set, width equals to this buffer width (with
-    the \l{QQuickWindow::effectiveDevicePixelRatio()}{device pixel ratio} taken
-    into account).
+    Returns the width of the painted area, in logical units, without the
+    \l{QQuickWindow::effectiveDevicePixelRatio()}{scale factor (device pixel
+    ratio)}. This is usually the same as the painter item's
+    \l{QQuickItem::}{width}, unless \l QQuickRhiItem::fixedColorBufferWidth has
+    been set.
 */
-float QQuickCPainterRenderer::width() const {
+float QQuickCPainterRenderer::width() const
+{
     Q_D(const QQuickCPainterRenderer);
     return float(d->m_itemData.width);
 }
 
 /*!
-    \fn float QQuickCPainterRenderer::height() const
-
-    Returns the height of the painted area. This is usually the
-    same as the painter item height, but if \l QQuickRhiItem::fixedColorBufferHeight
-    has been set, height equals to this buffer height (with
-    the \l{QQuickWindow::effectiveDevicePixelRatio()}{device pixel ratio} taken
-    into account).
+    Returns the height of the painted area, in logical units, without the
+    \l{QQuickWindow::effectiveDevicePixelRatio()}{scale factor (device pixel
+    ratio)}. This is usually the same as the painter item's
+    \l{QQuickItem::}{height}, unless \l QQuickRhiItem::fixedColorBufferHeight has
+    been set.
 */
-float QQuickCPainterRenderer::height() const {
+float QQuickCPainterRenderer::height() const
+{
     Q_D(const QQuickCPainterRenderer);
     return float(d->m_itemData.height);
 }
