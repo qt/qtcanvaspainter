@@ -83,7 +83,7 @@ QQuickCPainterRenderer::~QQuickCPainterRenderer()
     \fn void QQuickCPainterRenderer::initializeResources(QCPainter *painter)
 
     Reimplement this method to initialize resources using \a painter. This will
-    be called once before the first synchronize().
+    be called once \b before the first synchronize().
 
     \note This function is not called when the size of the QQuickCPainterItem changes.
 
@@ -275,10 +275,12 @@ void QQuickCPainterRenderer::synchronize(QQuickRhiItem * item)
     if (renderDebug)
         d->m_debug.start();
 
-    if (!d->m_synchronized)
+    if (!d->m_initializeResourcesCalled) {
+        d->m_initializeResourcesCalled = true;
         initializeResources(d->m_factory->painter());
+    }
+
     synchronize(realItem);
-    d->m_synchronized = true;
 }
 
 QQuickCPainterRendererPrivate::QQuickCPainterRendererPrivate(QQuickCPainterRenderer *q)
