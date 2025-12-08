@@ -30,6 +30,24 @@ QT_BEGIN_NAMESPACE
 
 */
 
+#define G_D() auto *d = QCGradientPrivate::get(this)
+#define DECONST(d) const_cast<QCConicalGradientPrivate *>(d)
+
+class QCConicalGradientPrivate : public QCGradientPrivate
+{
+public:
+    QCConicalGradientPrivate() : QCGradientPrivate(QCBrush::BrushType::ConicalGradient) {}
+    QCConicalGradientPrivate(const QCConicalGradientPrivate &) = default;
+    QCPaint createPaint(QCPainter *painter) const override;
+    void createConicalGradient(const QColor &iColor, const QColor &oColor,
+                               int imageId) const;
+    QCBrushPrivate *clone() override
+    {
+        return new QCConicalGradientPrivate(*this);
+    }
+};
+
+
 /*!
     Constructs a default conical gradient.
     Gradient center position is (0, 0).
@@ -39,8 +57,9 @@ QT_BEGIN_NAMESPACE
 */
 
 QCConicalGradient::QCConicalGradient()
-    : QCGradient(BrushType::ConicalGradient)
+    : QCGradient(new QCConicalGradientPrivate)
 {
+    G_D();
     d->data.conical.cx = 0.0f;
     d->data.conical.cy = 0.0f;
     d->data.conical.angle = 0.0f;
@@ -55,8 +74,9 @@ QCConicalGradient::QCConicalGradient()
 */
 
 QCConicalGradient::QCConicalGradient(float centerX, float centerY, float startAngle)
-    : QCGradient(BrushType::ConicalGradient)
+    : QCGradient(new QCConicalGradientPrivate)
 {
+    G_D();
     d->data.conical.cx = centerX;
     d->data.conical.cy = centerY;
     d->data.conical.angle = startAngle;
@@ -71,8 +91,9 @@ QCConicalGradient::QCConicalGradient(float centerX, float centerY, float startAn
 */
 
 QCConicalGradient::QCConicalGradient(QPointF center, float startAngle)
-    : QCGradient(BrushType::ConicalGradient)
+    : QCGradient(new QCConicalGradientPrivate)
 {
+    G_D();
     d->data.conical.cx = float(center.x());
     d->data.conical.cy = float(center.y());
     d->data.conical.angle = startAngle;
@@ -89,6 +110,7 @@ QCConicalGradient::~QCConicalGradient()
 
 QPointF QCConicalGradient::centerPosition() const
 {
+    G_D();
     return QPointF(d->data.conical.cx,
                    d->data.conical.cy);
 }
@@ -98,6 +120,7 @@ QPointF QCConicalGradient::centerPosition() const
 */
 void QCConicalGradient::setCenterPosition(float x, float y)
 {
+    G_D();
     detach();
     d->data.conical.cx = x;
     d->data.conical.cy = y;
@@ -120,6 +143,7 @@ void QCConicalGradient::setCenterPosition(QPointF center)
 
 float QCConicalGradient::angle() const
 {
+    G_D();
     return d->data.conical.angle;
 }
 
@@ -131,6 +155,7 @@ float QCConicalGradient::angle() const
 
 void QCConicalGradient::setAngle(float angle)
 {
+    G_D();
     detach();
     d->data.conical.angle = angle;
     d->dirty |= QCGradientPrivate::DirtyFlag::Values;
@@ -142,8 +167,9 @@ void QCConicalGradient::setAngle(float angle)
    \internal
 */
 
-QCPaint QCConicalGradient::createPaint(QCPainter *painter) const
+QCPaint QCConicalGradientPrivate::createPaint(QCPainter *painter) const
 {
+    auto *d = this;
     if (d->dirty) {
         if (d->gradientStops.size() == 0) {
             QColor icol = { 255, 255, 255, 255 };
@@ -157,11 +183,11 @@ QCPaint QCConicalGradient::createPaint(QCPainter *painter) const
             QColor oc = d->gradientStops.last().second;
             createConicalGradient(ic, oc, 0);
         } else {
-            d->updateGradientTexture(painter);
+            DECONST(d)->updateGradientTexture(painter);
             QColor col = { 255, 255, 255, 255 };
             createConicalGradient(col, col, d->imageId);
         }
-        d->dirty = {};
+        DECONST(d)->dirty = {};
     }
     if (d->gradientStops.size() > 2) {
         auto *painterPriv = QCPainterPrivate::get(painter);
@@ -170,11 +196,12 @@ QCPaint QCConicalGradient::createPaint(QCPainter *painter) const
     return d->paint;
 }
 
-void QCConicalGradient::createConicalGradient(const QColor &iColor, const QColor &oColor,
+void QCConicalGradientPrivate::createConicalGradient(const QColor &iColor, const QColor &oColor,
                                               int imageId) const
 {
+    auto *d = this;
     const auto dd = d->data.conical;
-    QCPaint &p = d->paint;
+    QCPaint &p = DECONST(d)->paint;
     p.brushType = BrushConicalGradient;
     p.transform = QTransform::fromTranslate(dd.cx, dd.cy);
 

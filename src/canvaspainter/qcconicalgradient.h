@@ -10,8 +10,6 @@
 
 QT_BEGIN_NAMESPACE
 
-class QCConicalGradientPrivate;
-
 class Q_CANVASPAINTER_EXPORT QCConicalGradient : public QCGradient
 {
 public:
@@ -25,15 +23,7 @@ public:
     void setCenterPosition(QPointF center);
     float angle() const;
     void setAngle(float angle);
-
-private:
-    QCPaint createPaint(QCPainter *painter) const final;
-    void createConicalGradient(const QColor &iColor, const QColor &oColor,
-                               int imageId) const;
-
 };
-
-Q_DECLARE_SHARED(QCConicalGradient)
 
 QT_END_NAMESPACE
 

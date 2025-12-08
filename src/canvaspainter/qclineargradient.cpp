@@ -34,6 +34,25 @@ QT_BEGIN_NAMESPACE
     \image lineargradient_example_1.png
 */
 
+#define G_D() auto *d = QCGradientPrivate::get(this)
+#define DECONST(d) const_cast<QCLinearGradientPrivate *>(d)
+
+class QCLinearGradientPrivate : public QCGradientPrivate
+{
+public:
+    QCLinearGradientPrivate() : QCGradientPrivate(QCBrush::BrushType::LinearGradient) {}
+    QCLinearGradientPrivate(const QCLinearGradientPrivate &) = default;
+    QCPaint createPaint(QCPainter *painter) const override;
+    void createLinearGradient(const QColor &iColor, const QColor &oColor,
+                              int imageId) const;
+
+    QCBrushPrivate *clone() override
+    {
+        return new QCLinearGradientPrivate(*this);
+    }
+};
+
+
 /*!
     Constructs a default linear gradient.
     Gradient start color position is (0, 0) and end color position (0, 100).
@@ -42,8 +61,9 @@ QT_BEGIN_NAMESPACE
 */
 
 QCLinearGradient::QCLinearGradient()
-    : QCGradient(BrushType::LinearGradient)
+    : QCGradient(new QCLinearGradientPrivate)
 {
+    G_D();
     d->data.linear.sx = 0.0f;
     d->data.linear.sy = 0.0f;
     d->data.linear.ex = 0.0f;
@@ -59,8 +79,9 @@ QCLinearGradient::QCLinearGradient()
 */
 
 QCLinearGradient::QCLinearGradient(float startX, float startY, float endX, float endY)
-    : QCGradient(BrushType::LinearGradient)
+    : QCGradient(new QCLinearGradientPrivate)
 {
+    G_D();
     d->data.linear.sx = startX;
     d->data.linear.sy = startY;
     d->data.linear.ex = endX;
@@ -75,8 +96,9 @@ QCLinearGradient::QCLinearGradient(float startX, float startY, float endX, float
 */
 
 QCLinearGradient::QCLinearGradient(QPointF start, QPointF end)
-    : QCGradient(BrushType::LinearGradient)
+    : QCGradient(new QCLinearGradientPrivate)
 {
+    G_D();
     d->data.linear.sx = float(start.x());
     d->data.linear.sy = float(start.y());
     d->data.linear.ex = float(end.x());
@@ -93,6 +115,7 @@ QCLinearGradient::~QCLinearGradient()
 
 QPointF QCLinearGradient::startPosition() const
 {
+    G_D();
     return QPointF(d->data.linear.sx,
                    d->data.linear.sy);
 }
@@ -103,6 +126,7 @@ QPointF QCLinearGradient::startPosition() const
 
 void QCLinearGradient::setStartPosition(float x, float y)
 {
+    G_D();
     detach();
     d->data.linear.sx = x;
     d->data.linear.sy = y;
@@ -125,6 +149,7 @@ void QCLinearGradient::setStartPosition(QPointF start)
 
 QPointF QCLinearGradient::endPosition() const
 {
+    G_D();
     return QPointF(d->data.linear.ex,
                    d->data.linear.ey);
 }
@@ -135,6 +160,7 @@ QPointF QCLinearGradient::endPosition() const
 
 void QCLinearGradient::setEndPosition(float x, float y)
 {
+    G_D();
     detach();
     d->data.linear.ex = x;
     d->data.linear.ey = y;
@@ -157,8 +183,10 @@ void QCLinearGradient::setEndPosition(QPointF end)
    \internal
 */
 
-QCPaint QCLinearGradient::createPaint(QCPainter *painter) const
+
+QCPaint QCLinearGradientPrivate::createPaint(QCPainter *painter) const
 {
+    auto *d = this;
     if (d->dirty) {
         if (d->gradientStops.size() == 0) {
             QColor icol = { 255, 255, 255, 255 };
@@ -172,11 +200,11 @@ QCPaint QCLinearGradient::createPaint(QCPainter *painter) const
             QColor oc = d->gradientStops.last().second;
             createLinearGradient(ic, oc, 0);
         } else {
-            d->updateGradientTexture(painter);
+            DECONST(d)->updateGradientTexture(painter);
             QColor col = { 255, 255, 255, 255 };
             createLinearGradient(col, col, d->imageId);
         }
-        d->dirty = {};
+        DECONST(d)->dirty = {};
     }
     if (d->gradientStops.size() > 2) {
         auto *painterPriv = QCPainterPrivate::get(painter);
@@ -185,20 +213,22 @@ QCPaint QCLinearGradient::createPaint(QCPainter *painter) const
     return d->paint;
 }
 
-void QCLinearGradient::createLinearGradient(const QColor &iColor, const QColor &oColor,
+void QCLinearGradientPrivate::createLinearGradient(const QColor &iColor, const QColor &oColor,
                                             int imageId) const
 {
+    auto *d = this;
+
     const auto dd = d->data.linear;
-    QCPaint &p = d->paint;
+    QCPaint &p = DECONST(d)->paint;
     p.brushType = BrushLinearGradient;
 
     float dx = dd.ex - dd.sx;
     float dy = dd.ey - dd.sy;
-    float d = std::sqrt(dx*dx + dy*dy);
+    float dist = std::sqrt(dx*dx + dy*dy);
     constexpr float small = 0.0001f;
-    if (d > small) {
-        dx /= d;
-        dy /= d;
+    if (dist > small) {
+        dx /= dist;
+        dy /= dist;
     } else {
         dx = 0;
         dy = 1;
@@ -206,7 +236,7 @@ void QCLinearGradient::createLinearGradient(const QColor &iColor, const QColor &
     p.transform.setMatrix(dy, -dx, 0,
                           dx, dy, 0,
                           dd.sx, dd.sy, 1);
-    p.feather = qMax(small, d);
+    p.feather = qMax(small, dist);
 
     // Note: extent and radius not used.
 

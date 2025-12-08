@@ -18,28 +18,17 @@ struct FragUniforms;
 
 // TODO: Should this have QDataStream support?
 
-QT_DECLARE_QESDP_SPECIALIZATION_DTOR(QCCustomBrushPrivate)
-
 class Q_CANVASPAINTER_EXPORT QCCustomBrush : public QCBrush
 {
 public:
     QCCustomBrush();
     QCCustomBrush(const QString &fragmentShader,
                   const QString &vertexShader);
-    QCCustomBrush(const QCCustomBrush &brush) noexcept;
     ~QCCustomBrush();
-
-    QCCustomBrush &operator=(const QCCustomBrush &brush) noexcept;
-    QCCustomBrush(QCCustomBrush &&other) noexcept = default;
-    QT_MOVE_ASSIGNMENT_OPERATOR_IMPL_VIA_PURE_SWAP(QCCustomBrush)
-    void swap(QCCustomBrush &other) noexcept { d.swap(other.d); }
 
     bool operator==(const QCCustomBrush &brush) const;
     inline bool operator!=(const QCCustomBrush &brush) const { return !(operator==(brush)); }
     operator QVariant() const;
-
-    void detach();
-    BrushType type() const override;
 
     void setFragmentShader(const QString &fragmentShader);
     void setVertexShader(const QString &vertexShader);
@@ -54,10 +43,7 @@ public:
 
 private:
     friend class QCCustomBrushPrivate;
-    QExplicitlySharedDataPointer<QCCustomBrushPrivate> d;
 };
-
-Q_DECLARE_SHARED(QCCustomBrush)
 
 #ifndef QT_NO_DEBUG_STREAM
 Q_CANVASPAINTER_EXPORT QDebug operator<<(QDebug, const QCCustomBrush &);

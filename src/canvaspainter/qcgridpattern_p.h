@@ -16,14 +16,28 @@
 #define QCGRIDPATTERN_P_H
 
 #include "engine/qcpainterengine_p.h"
+#include "qcbrush_p.h"
 #include <QtCore/qshareddata.h>
 #include <QtGui/qcolor.h>
+#include <qcgridpattern.h>
 
 QT_BEGIN_NAMESPACE
 
-class QCGridPatternPrivate : public QSharedData
+class QCGridPatternPrivate : public QCBrushPrivate
 {
 public:
+    QCGridPatternPrivate(const QCGridPatternPrivate &) = default;
+    QCGridPatternPrivate() : QCBrushPrivate(QCBrush::BrushType::GridPattern) {}
+    QCBrushPrivate *clone() override;
+    QCPaint createPaint(QCPainter *painter) const override;
+
+    static QCGridPatternPrivate *get(QCGridPattern *brush)
+    { return static_cast<QCGridPatternPrivate*>(brush->baseData.get()); }
+    static const QCGridPatternPrivate *get(const QCGridPattern *brush)
+    { return static_cast<QCGridPatternPrivate*>(brush->baseData.get()); }
+
+    void createGridPattern() const;
+
     QCPaint paint;
     QColor lineColor = QColorConstants::White;
     QColor backgroundColor = QColorConstants::Black;

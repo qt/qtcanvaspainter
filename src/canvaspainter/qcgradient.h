@@ -23,26 +23,14 @@ Q_CANVASPAINTER_EXPORT QDataStream &operator<<(QDataStream &, const QCGradient &
 Q_CANVASPAINTER_EXPORT QDataStream &operator>>(QDataStream &, QCGradient &);
 #endif
 
-QT_DECLARE_QESDP_SPECIALIZATION_DTOR(QCGradientPrivate)
-
 class Q_CANVASPAINTER_EXPORT QCGradient : public QCBrush
 {
 public:
-    QCGradient(QCBrush::BrushType type);
-    QCGradient(const QCGradient &gradient) noexcept;
-    ~QCGradient();
-
-    QCGradient &operator=(const QCGradient &gradient) noexcept;
-    QCGradient(QCGradient &&other) noexcept = default;
-    QT_MOVE_ASSIGNMENT_OPERATOR_IMPL_VIA_PURE_SWAP(QCGradient)
-    void swap(QCGradient &other) noexcept { d.swap(other.d); }
-
     bool operator==(const QCGradient &gradient) const;
     inline bool operator!=(const QCGradient &gradient) const { return !(operator==(gradient)); }
     operator QVariant() const;
 
-    void detach();
-    BrushType type() const override;
+    QCBrush::BrushType type() const;
 
     QColor startColor() const;
     void setStartColor(const QColor &color);
@@ -53,10 +41,10 @@ public:
     QCGradientStops stops() const;
 
 protected:
-    QExplicitlySharedDataPointer<QCGradientPrivate> d;
+    QCGradient(QCGradientPrivate *);
+private:
+    friend class QCGradientPrivate;
 };
-
-Q_DECLARE_SHARED(QCGradient)
 
 #ifndef QT_NO_DEBUG_STREAM
 Q_CANVASPAINTER_EXPORT QDebug operator<<(QDebug, const QCGradient &);

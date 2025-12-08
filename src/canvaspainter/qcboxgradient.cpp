@@ -38,6 +38,24 @@ QT_BEGIN_NAMESPACE
     extra vertices and thus performs better.
 */
 
+#define G_D() auto *d = QCGradientPrivate::get(this)
+#define DECONST(d) const_cast<QCBoxGradientPrivate *>(d)
+
+class QCBoxGradientPrivate : public QCGradientPrivate
+{
+public:
+    QCBoxGradientPrivate() : QCGradientPrivate(QCBrush::BrushType::BoxGradient) {}
+    QCBoxGradientPrivate(const QCBoxGradientPrivate &) = default;
+    QCPaint createPaint(QCPainter *painter) const override;
+    void createBoxGradient(const QColor &iColor, const QColor &oColor,
+                           int imageId) const;
+    QCBrushPrivate *clone() override
+    {
+        return new QCBoxGradientPrivate(*this);
+    }
+};
+
+
 /*!
     Constructs a default box gradient.
     Position of gradient is (0, 0) and size (100, 100)
@@ -48,8 +66,9 @@ QT_BEGIN_NAMESPACE
 */
 
 QCBoxGradient::QCBoxGradient()
-    : QCGradient(BrushType::BoxGradient)
+    : QCGradient(new QCBoxGradientPrivate)
 {
+    G_D();
     d->data.box.x = 0.0f;
     d->data.box.y = 0.0f;
     d->data.box.width = 100.0f;
@@ -68,8 +87,9 @@ QCBoxGradient::QCBoxGradient()
 */
 
 QCBoxGradient::QCBoxGradient(float x, float y, float width, float height, float feather, float radius)
-    : QCGradient(BrushType::BoxGradient)
+    : QCGradient(new QCBoxGradientPrivate)
 {
+    G_D();
     d->data.box.x = x;
     d->data.box.y = y;
     d->data.box.width = width;
@@ -88,8 +108,9 @@ QCBoxGradient::QCBoxGradient(float x, float y, float width, float height, float 
 */
 
 QCBoxGradient::QCBoxGradient(const QRectF &rect, float feather, float radius)
-    : QCGradient(BrushType::BoxGradient)
+    : QCGradient(new QCBoxGradientPrivate)
 {
+    G_D();
     d->data.box.x = float(rect.x());
     d->data.box.y = float(rect.y());
     d->data.box.width = float(rect.width());
@@ -109,6 +130,7 @@ QCBoxGradient::~QCBoxGradient()
 
 QRectF QCBoxGradient::rect() const
 {
+    G_D();
     return QRectF(d->data.box.x,
                   d->data.box.y,
                   d->data.box.width,
@@ -120,6 +142,7 @@ QRectF QCBoxGradient::rect() const
 
 void QCBoxGradient::setRect(float x, float y, float width, float height)
 {
+    G_D();
     detach();
     d->data.box.x = x;
     d->data.box.y = y;
@@ -145,6 +168,7 @@ void QCBoxGradient::setRect(const QRectF &rect)
 
 float QCBoxGradient::feather() const
 {
+    G_D();
     return d->data.box.feather;
 }
 
@@ -154,6 +178,7 @@ float QCBoxGradient::feather() const
 
 void QCBoxGradient::setFeather(float feather)
 {
+    G_D();
     detach();
     d->data.box.feather = feather;
     d->dirty |= QCGradientPrivate::DirtyFlag::Values;
@@ -166,6 +191,7 @@ void QCBoxGradient::setFeather(float feather)
 
 float QCBoxGradient::radius() const
 {
+    G_D();
     return d->data.box.radius;
 }
 
@@ -177,6 +203,7 @@ float QCBoxGradient::radius() const
 
 void QCBoxGradient::setRadius(float radius)
 {
+    G_D();
     detach();
     d->data.box.radius = radius;
     d->dirty |= QCGradientPrivate::DirtyFlag::Values;
@@ -188,8 +215,9 @@ void QCBoxGradient::setRadius(float radius)
    \internal
 */
 
-QCPaint QCBoxGradient::createPaint(QCPainter *painter) const
+QCPaint QCBoxGradientPrivate::createPaint(QCPainter *painter) const
 {
+    auto *d = this;
     if (d->dirty) {
         if (d->gradientStops.size() == 0) {
             QColor icol = { 255, 255, 255, 255 };
@@ -203,11 +231,11 @@ QCPaint QCBoxGradient::createPaint(QCPainter *painter) const
             QColor oc = d->gradientStops.last().second;
             createBoxGradient(ic, oc, 0);
         } else {
-            d->updateGradientTexture(painter);
+            DECONST(d)->updateGradientTexture(painter);
             QColor col = { 255, 255, 255, 255 };
             createBoxGradient(col, col, d->imageId);
         }
-        d->dirty = {};
+        DECONST(d)->dirty = {};
     }
     if (d->gradientStops.size() > 2) {
         auto *painterPriv = QCPainterPrivate::get(painter);
@@ -216,11 +244,12 @@ QCPaint QCBoxGradient::createPaint(QCPainter *painter) const
     return d->paint;
 }
 
-void QCBoxGradient::createBoxGradient(const QColor &iColor, const QColor &oColor,
+void QCBoxGradientPrivate::createBoxGradient(const QColor &iColor, const QColor &oColor,
                                       int imageId) const
 {
+    auto *d = this;
     const auto dd = d->data.box;
-    QCPaint &p = d->paint;
+    QCPaint &p = DECONST(d)->paint;
     p.brushType = BrushBoxGradient;
     p.transform = QTransform::fromTranslate(dd.x + (dd.width * 0.5f), dd.y + (dd.height * 0.5f));
 

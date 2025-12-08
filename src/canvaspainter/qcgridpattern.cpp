@@ -56,9 +56,11 @@ QT_BEGIN_NAMESPACE
 */
 
 QCGridPattern::QCGridPattern()
-    : d(new QCGridPatternPrivate)
+    : QCBrush(new QCGridPatternPrivate)
 {
 }
+
+#define G_D() auto *d = QCGridPatternPrivate::get(this)
 
 /*!
     Constructs an grid pattern.
@@ -72,8 +74,9 @@ QCGridPattern::QCGridPattern(const QRectF &rect,
                              const QColor &lineColor,
                              const QColor &backgroundColor,
                              float lineWidth, float feather, float angle)
-    : d(new QCGridPatternPrivate)
+    : QCBrush(new QCGridPatternPrivate)
 {
+    G_D();
     d->x = float(rect.x());
     d->y = float(rect.y());
     d->width = float(rect.width());
@@ -96,8 +99,9 @@ QCGridPattern::QCGridPattern(float x, float y, float width, float height,
                              const QColor &lineColor,
                              const QColor &backgroundColor,
                              float lineWidth, float feather, float angle)
-    : d(new QCGridPatternPrivate)
+    : QCBrush(new QCGridPatternPrivate)
 {
+    G_D();
     d->x = x;
     d->y = y;
     d->width = width;
@@ -110,49 +114,10 @@ QCGridPattern::QCGridPattern(float x, float y, float width, float height,
 }
 
 /*!
-    Constructs an grid pattern that is a copy of the given \a pattern.
-*/
-
-QCGridPattern::QCGridPattern(const QCGridPattern &pattern) noexcept
-    : d(pattern.d)
-{
-}
-
-/*!
     Destroys the grid pattern.
 */
 
 QCGridPattern::~QCGridPattern() = default;
-
-QT_DEFINE_QESDP_SPECIALIZATION_DTOR(QCGridPatternPrivate)
-
-/*!
-    Assigns the given grid \a pattern to this pattern and returns a reference to
-    this grid pattern.
-*/
-
-QCGridPattern &QCGridPattern::operator=(const QCGridPattern &pattern) noexcept
-{
-    QCGridPattern(pattern).swap(*this);
-    return *this;
-}
-
-/*!
-    \fn QCGridPattern::QCGridPattern(QCGridPattern &&other) noexcept
-
-    Move-constructs a new QCGridPattern from \a other.
-*/
-
-/*!
-    \fn QCGridPattern &QCGridPattern::operator=(QCGridPattern &&other)
-
-    Move-assigns \a other to this QCGridPattern instance.
-*/
-
-/*!
-    \fn void QCGridPattern::swap(QCGridPattern &other)
-    \memberswap{pattern}
-*/
 
 /*!
    Returns the grid pattern as a QVariant.
@@ -183,17 +148,19 @@ QCGridPattern::operator QVariant() const
 
 bool QCGridPattern::operator==(const QCGridPattern &p) const
 {
-    if (p.d == d)
+    G_D();
+    auto *pd = QCGridPatternPrivate::get(&p);
+    if (pd == d)
         return true;
-    if (d->x != p.d->x
-        || d->y != p.d->y
-        || d->width != p.d->width
-        || d->height != p.d->height
-        || d->feather != p.d->feather
-        || d->angle != p.d->angle
-        || d->lineWidth != p.d->lineWidth
-        || d->lineColor != p.d->lineColor
-        || d->backgroundColor != p.d->backgroundColor)
+    if (d->x != pd->x
+        || d->y != pd->y
+        || d->width != pd->width
+        || d->height != pd->height
+        || d->feather != pd->feather
+        || d->angle != pd->angle
+        || d->lineWidth != pd->lineWidth
+        || d->lineColor != pd->lineColor
+        || d->backgroundColor != pd->backgroundColor)
         return false;
 
     return true;
@@ -268,21 +235,13 @@ QDataStream &operator>>(QDataStream &s, QCGridPattern &p)
 #endif // QT_NO_DATASTREAM
 
 /*!
-    Returns the type of brush, \c QCBrush::BrushType::GridPattern.
-*/
-
-QCBrush::BrushType QCGridPattern::type() const
-{
-    return QCBrush::BrushType::GridPattern;
-}
-
-/*!
     Returns the start point of grid pattern.
     \sa setStartPosition()
 */
 
 QPointF QCGridPattern::startPosition() const
 {
+    G_D();
     return QPointF(d->x, d->y);
 }
 
@@ -295,6 +254,7 @@ QPointF QCGridPattern::startPosition() const
 
 void QCGridPattern::setStartPosition(float x, float y)
 {
+    G_D();
     detach();
     d->x = x;
     d->y = y;
@@ -322,6 +282,7 @@ void QCGridPattern::setStartPosition(QPointF point)
 
 QSizeF QCGridPattern::cellSize() const
 {
+    G_D();
     return QSizeF(d->width, d->height);
 }
 
@@ -334,6 +295,7 @@ QSizeF QCGridPattern::cellSize() const
 
 void QCGridPattern::setCellSize(float width, float height)
 {
+    G_D();
     detach();
     d->width = width;
     d->height = height;
@@ -360,6 +322,7 @@ void QCGridPattern::setCellSize(QSizeF size)
 
 float QCGridPattern::lineWidth() const
 {
+    G_D();
     return d->lineWidth;
 }
 
@@ -370,6 +333,7 @@ float QCGridPattern::lineWidth() const
 
 void QCGridPattern::setLineWidth(float width)
 {
+    G_D();
     detach();
     d->lineWidth = width;
     d->changed = true;
@@ -381,6 +345,7 @@ void QCGridPattern::setLineWidth(float width)
 
 float QCGridPattern::feather() const
 {
+    G_D();
     return d->feather;
 }
 
@@ -391,6 +356,7 @@ float QCGridPattern::feather() const
 
 void QCGridPattern::setFeather(float feather)
 {
+    G_D();
     detach();
     d->feather = feather;
     d->changed = true;
@@ -402,6 +368,7 @@ void QCGridPattern::setFeather(float feather)
 
 float QCGridPattern::rotation() const
 {
+    G_D();
     return d->angle;
 }
 
@@ -413,6 +380,7 @@ float QCGridPattern::rotation() const
 
 void QCGridPattern::setRotation(float rotation)
 {
+    G_D();
     detach();
     d->angle = rotation;
     d->changed = true;
@@ -424,6 +392,7 @@ void QCGridPattern::setRotation(float rotation)
 
 QColor QCGridPattern::lineColor() const
 {
+    G_D();
     return d->lineColor;
 }
 
@@ -434,6 +403,7 @@ QColor QCGridPattern::lineColor() const
 
 void QCGridPattern::setLineColor(const QColor &color)
 {
+    G_D();
     detach();
     d->lineColor = color;
     d->changed = true;
@@ -445,6 +415,7 @@ void QCGridPattern::setLineColor(const QColor &color)
 
 QColor QCGridPattern::backgroundColor() const
 {
+    G_D();
     return d->backgroundColor;
 }
 
@@ -455,21 +426,10 @@ QColor QCGridPattern::backgroundColor() const
 
 void QCGridPattern::setBackgroundColor(const QColor &color)
 {
+    G_D();
     detach();
     d->backgroundColor = color;
     d->changed = true;
-}
-
-/*!
-    \internal
-*/
-
-void QCGridPattern::detach()
-{
-    if (d)
-        d.detach();
-    else
-        d = new QCGridPatternPrivate;
 }
 
 // ***** Private *****
@@ -477,20 +437,23 @@ void QCGridPattern::detach()
 /*!
    \internal
 */
+#define DECONST(d) const_cast<QCGridPatternPrivate *>(d)
 
-QCPaint QCGridPattern::createPaint(QCPainter *painter) const
+QCPaint QCGridPatternPrivate::createPaint(QCPainter *painter) const
 {
+    auto *d = this;
     Q_UNUSED(painter);
     if (d->changed) {
         createGridPattern();
-        d->changed = false;
+        DECONST(d)->changed = false;
     }
     return d->paint;
 }
 
-void QCGridPattern::createGridPattern() const
+void QCGridPatternPrivate::createGridPattern() const
 {
-    QCPaint &p = d->paint;
+    auto *d = this;
+    QCPaint &p = DECONST(d)->paint;
     p.brushType = BrushGrid;
     p.transform = QTransform::fromTranslate(d->x, d->y);
     if (!qFuzzyIsNull(d->angle))
@@ -510,6 +473,11 @@ void QCGridPattern::createGridPattern() const
                      d->backgroundColor.greenF(),
                      d->backgroundColor.blueF(),
                      d->backgroundColor.alphaF() };
+}
+
+QCBrushPrivate *QCGridPatternPrivate::clone()
+{
+    return new QCGridPatternPrivate(*this);
 }
 
 QT_END_NAMESPACE

@@ -56,7 +56,7 @@ QT_BEGIN_NAMESPACE
 */
 
 QCImagePattern::QCImagePattern()
-    : d(new QCImagePatternPrivate)
+    : QCBrush(new QCImagePatternPrivate)
 {
 }
 
@@ -69,8 +69,9 @@ QCImagePattern::QCImagePattern()
 */
 
 QCImagePattern::QCImagePattern(const QCImage &image)
-    : d(new QCImagePatternPrivate)
+    : QCBrush(new QCImagePatternPrivate)
 {
+    auto *d = QCImagePatternPrivate::get(this);
     d->image = image;
     d->width = d->image.width();
     d->height = d->image.height();
@@ -85,8 +86,10 @@ QCImagePattern::QCImagePattern(const QCImage &image)
 */
 
 QCImagePattern::QCImagePattern(const QCImage &image, const QRectF &rect, float angle, const QColor &tintColor)
-    : d(new QCImagePatternPrivate)
+    : QCBrush(new QCImagePatternPrivate)
 {
+    auto *d = QCImagePatternPrivate::get(this);
+
     d->image = image;
     d->x = float(rect.x());
     d->y = float(rect.y());
@@ -105,8 +108,10 @@ QCImagePattern::QCImagePattern(const QCImage &image, const QRectF &rect, float a
 */
 
 QCImagePattern::QCImagePattern(const QCImage &image, float x, float y, float width, float height, float angle, const QColor &tintColor)
-    : d(new QCImagePatternPrivate)
+    : QCBrush(new QCImagePatternPrivate)
 {
+    auto *d = QCImagePatternPrivate::get(this);
+
     d->image = image;
     d->x = x;
     d->y = y;
@@ -117,49 +122,12 @@ QCImagePattern::QCImagePattern(const QCImage &image, float x, float y, float wid
 }
 
 /*!
-    Constructs an image pattern that is a copy of the given \a pattern.
-*/
-
-QCImagePattern::QCImagePattern(const QCImagePattern &pattern) noexcept
-    : d(pattern.d)
-{
-}
-
-/*!
     Destroys the image pattern.
 */
 
 QCImagePattern::~QCImagePattern() = default;
 
 QT_DEFINE_QESDP_SPECIALIZATION_DTOR(QCImagePatternPrivate)
-
-/*!
-    Assigns the given image \a pattern to this pattern and returns a reference to
-    this image pattern.
-*/
-
-QCImagePattern &QCImagePattern::operator=(const QCImagePattern &pattern) noexcept
-{
-    QCImagePattern(pattern).swap(*this);
-    return *this;
-}
-
-/*!
-    \fn QCImagePattern::QCImagePattern(QCImagePattern &&other) noexcept
-
-    Move-constructs a new QCImagePattern from \a other.
-*/
-
-/*!
-    \fn QCImagePattern &QCImagePattern::operator=(QCImagePattern &&other)
-
-    Move-assigns \a other to this QCImagePattern instance.
-*/
-
-/*!
-    \fn void QCImagePattern::swap(QCImagePattern &other)
-    \memberswap{pattern}
-*/
 
 /*!
    Returns the image pattern as a QVariant.
@@ -190,19 +158,22 @@ QCImagePattern::operator QVariant() const
 
 bool QCImagePattern::operator==(const QCImagePattern &p) const
 {
-    if (p.d == d)
+    auto *d = QCImagePatternPrivate::get(this);
+    auto *pd = QCImagePatternPrivate::get(&p);
+
+    if (pd == d)
         return true;
 
-    if (d->x != p.d->x
-        || d->y != p.d->y
-        || d->width != p.d->width
-        || d->height != p.d->height
-        || d->angle != p.d->angle
-        || d->tintColor != p.d->tintColor)
+    if (d->x != pd->x
+        || d->y != pd->y
+        || d->width != pd->width
+        || d->height != pd->height
+        || d->angle != pd->angle
+        || d->tintColor != pd->tintColor)
         return false;
 
     // For images comparing the id is enough
-    if (d->image.id() != p.d->image.id())
+    if (d->image.id() != pd->image.id())
         return false;
 
     return true;
@@ -276,14 +247,6 @@ QDataStream &operator>>(QDataStream &s, QCImagePattern &p)
 
 #endif // QT_NO_DATASTREAM
 
-/*!
-    Returns the type of brush, \c QCBrush::BrushType::ImagePattern.
-*/
-
-QCBrush::BrushType QCImagePattern::type() const
-{
-    return QCBrush::BrushType::ImagePattern;
-}
 
 /*!
     Returns the start point of image pattern.
@@ -292,6 +255,7 @@ QCBrush::BrushType QCImagePattern::type() const
 
 QPointF QCImagePattern::startPosition() const
 {
+    auto *d = QCImagePatternPrivate::get(this);
     return QPointF(d->x, d->y);
 }
 
@@ -304,6 +268,7 @@ QPointF QCImagePattern::startPosition() const
 
 void QCImagePattern::setStartPosition(float x, float y)
 {
+    auto *d = QCImagePatternPrivate::get(this);
     detach();
     d->x = x;
     d->y = y;
@@ -330,6 +295,7 @@ void QCImagePattern::setStartPosition(QPointF point)
 
 QSizeF QCImagePattern::imageSize() const
 {
+    auto *d = QCImagePatternPrivate::get(this);
     return QSizeF(d->width,
                   d->height);
 }
@@ -340,6 +306,7 @@ QSizeF QCImagePattern::imageSize() const
 
 void QCImagePattern::setImageSize(float width, float height)
 {
+    auto *d = QCImagePatternPrivate::get(this);
     detach();
     d->width = width;
     d->height = height;
@@ -362,6 +329,7 @@ void QCImagePattern::setImageSize(QSizeF size)
 */
 QCImage QCImagePattern::image() const
 {
+    auto *d = QCImagePatternPrivate::get(this);
     return d->image;
 }
 
@@ -373,6 +341,7 @@ QCImage QCImagePattern::image() const
 
 void QCImagePattern::setImage(const QCImage &image)
 {
+    auto *d = QCImagePatternPrivate::get(this);
     detach();
     d->image = image;
     d->changed = true;
@@ -384,6 +353,7 @@ void QCImagePattern::setImage(const QCImage &image)
 
 float QCImagePattern::rotation() const
 {
+    auto *d = QCImagePatternPrivate::get(this);
     return d->angle;
 }
 
@@ -395,6 +365,7 @@ float QCImagePattern::rotation() const
 
 void QCImagePattern::setRotation(float rotation)
 {
+    auto *d = QCImagePatternPrivate::get(this);
     detach();
     d->angle = rotation;
     d->changed = true;
@@ -406,6 +377,7 @@ void QCImagePattern::setRotation(float rotation)
 
 QColor QCImagePattern::tintColor() const
 {
+    auto *d = QCImagePatternPrivate::get(this);
     return d->tintColor;
 }
 
@@ -419,21 +391,10 @@ QColor QCImagePattern::tintColor() const
 
 void QCImagePattern::setTintColor(const QColor &color)
 {
+    auto *d = QCImagePatternPrivate::get(this);
     detach();
     d->tintColor = color;
     d->changed = true;
-}
-
-/*!
-    \internal
-*/
-
-void QCImagePattern::detach()
-{
-    if (d)
-        d.detach();
-    else
-        d = new QCImagePatternPrivate;
 }
 
 // ***** Private *****
@@ -441,22 +402,29 @@ void QCImagePattern::detach()
 /*!
    \internal
 */
+#define DECONST(d) const_cast<QCImagePatternPrivate *>(d)
 
-QCPaint QCImagePattern::createPaint(QCPainter *painter) const
+QCPaint QCImagePatternPrivate::createPaint(QCPainter *painter) const
 {
+    auto *d = this;
     auto *painterPriv = QCPainterPrivate::get(painter);
     if (d->changed) {
         auto *e = painterPriv->engine();
         if (d->image.isNull()) {
             qWarning() << "No image set for pattern, please use setImage()";
         } else {
-            d->paint = e->createImagePattern(d->x, d->y, d->width, d->height,
+            DECONST(d)->paint = e->createImagePattern(d->x, d->y, d->width, d->height,
                                              d->image.id(), d->angle, d->tintColor);
         }
-        d->changed = false;
+        DECONST(d)->changed = false;
     }
     painterPriv->markTextureIdUsed(d->image.id());
     return d->paint;
+}
+
+QCBrushPrivate *QCImagePatternPrivate::clone()
+{
+    return new QCImagePatternPrivate(*this);
 }
 
 QT_END_NAMESPACE

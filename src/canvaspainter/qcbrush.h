@@ -7,20 +7,37 @@
 
 #include <QtCanvasPainter/qtcanvaspainterglobal.h>
 #include <QtCore/qobject.h>
+#include <QtCore/qshareddata.h>
 
 QT_BEGIN_NAMESPACE
 
 class QCPainter;
 struct QCPaint;
 
+class QCGradient;
+class QCBoxShadow;
+class QCImagePattern;
+class QCGridPattern;
+class QCCustomBrush;
+
+class QCBrushPrivate;
+
+QT_DECLARE_QESDP_SPECIALIZATION_DTOR(QCBrushPrivate);
+
 class Q_CANVASPAINTER_EXPORT QCBrush
 {
     Q_GADGET
 public:
-    virtual ~QCBrush();
+    QCBrush();
+    QCBrush(const QCBrush &brush) noexcept;
+    ~QCBrush();
+
+    QCBrush &operator=(const QCBrush &brush) noexcept;
+    QT_MOVE_ASSIGNMENT_OPERATOR_IMPL_VIA_PURE_SWAP(QCBrush)
+    void swap(QCBrush &other) noexcept { baseData.swap(other.baseData); }
 
     enum class BrushType {
-        Brush,
+        Invalid,
         LinearGradient,
         RadialGradient,
         ConicalGradient,
@@ -33,14 +50,23 @@ public:
     };
     Q_ENUM(BrushType)
 
-    virtual BrushType type() const;
+    BrushType type() const;
+    void detach();
 
+protected:
+    explicit QCBrush(QCBrushPrivate *priv);
+    QExplicitlySharedDataPointer<QCBrushPrivate> baseData;
 private:
-    // Reimplement this in brush sub-classes
-    virtual QCPaint createPaint(QCPainter *painter) const;
+    QCPaint createPaint(QCPainter *painter) const;
 private:
     friend class QCPainter;
 };
+
+Q_DECLARE_SHARED(QCBrush)
+
+#ifndef QT_NO_DEBUG_STREAM
+Q_CANVASPAINTER_EXPORT QDebug operator<<(QDebug, const QCBrush &);
+#endif
 
 QT_END_NAMESPACE
 
