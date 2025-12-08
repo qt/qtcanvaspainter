@@ -127,8 +127,6 @@ void QQuickCPainterRenderer::paint(QCPainter *painter)
 }
 
 /*!
-    \fn void QQuickCPainterRenderer::synchronize(QQuickCPainterItem *item)
-
     Reimplement this method to synchronize data between \a item and
     item painter instances. This will be called before paint() each
     time item needs to be repainted.
@@ -138,8 +136,11 @@ void QQuickCPainterRenderer::paint(QCPainter *painter)
 
     Usually you should static_cast \a item to your real item type, and then
     exchange the data.
-*/
 
+    \note Make sure to reimplement this overload, taking a QQuickCPainterItem,
+    instead of the \l{QQuickRhiItemRenderer::synchronize()}{base class' version}
+    that takes a QQuickRhiItem.
+*/
 void QQuickCPainterRenderer::synchronize(QQuickCPainterItem *item)
 {
     Q_UNUSED(item);
