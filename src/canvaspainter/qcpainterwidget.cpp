@@ -52,8 +52,8 @@ QCPainterWidget::~QCPainterWidget()
 }
 
 /*!
-    \reimp
- */
+   \reimp
+*/
 void QCPainterWidget::releaseResources()
 {
     Q_D(QCPainterWidget);
@@ -141,9 +141,8 @@ void QCPainterWidget::setSharedPainter(bool enable)
 }
 
 /*!
-   \internal
+   \reimp
 */
-
 void QCPainterWidget::initialize(QRhiCommandBuffer *)
 {
     Q_D(QCPainterWidget);
@@ -165,6 +164,9 @@ void QCPainterWidget::initialize(QRhiCommandBuffer *)
         d->m_factory->create(rhi());
 }
 
+/*!
+   \reimp
+*/
 void QCPainterWidget::render(QRhiCommandBuffer *cb)
 {
     Q_D(QCPainterWidget);
