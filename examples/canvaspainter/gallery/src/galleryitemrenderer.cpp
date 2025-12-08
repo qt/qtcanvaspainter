@@ -755,11 +755,11 @@ void GalleryItemRenderer::drawTransforms() {
 
 void GalleryItemRenderer::drawAntialiasing() {
     int rects = 3;
-    float margin = width()*0.1f;
-    float w = width() / (rects) - margin;
+    float margin = std::floor(width() * 0.1f);
+    float w = std::floor(width() / (rects) - margin);
     float posX = margin/2;
     float lineWidth = width()*0.01f;
-    float posY = 2 * lineWidth;
+    float posY = std::floor(2 * lineWidth);
 
     painter()->setLineCap(QCPainter::LineCap::Round);
     painter()->setStrokeStyle(0xFFFFFFFF);
@@ -785,7 +785,7 @@ void GalleryItemRenderer::drawAntialiasing() {
     painter()->setAntialias(0);
     for (int i=0 ; i<lines ; i++) {
         painter()->beginPath();
-        painter()->setLineWidth(i*0.5f);
+        painter()->setLineWidth((i + 1) * 0.5f);
          // Align to improve thin lines painting
         painter()->moveTo(int(posX), int(posY+i*w/lines));
         painter()->lineTo(int(posX+w), int(posY+i*w/lines));
@@ -795,7 +795,7 @@ void GalleryItemRenderer::drawAntialiasing() {
     painter()->setAntialias(1.0f);
     for (int i=0 ; i<lines ; i++) {
         painter()->beginPath();
-        painter()->setLineWidth(i*0.5f);
+        painter()->setLineWidth((i + 1) * 0.5f);
         painter()->moveTo(posX, posY+i*w/lines);
         painter()->lineTo(posX+w, posY+i*w/lines);
         painter()->stroke();
@@ -804,7 +804,7 @@ void GalleryItemRenderer::drawAntialiasing() {
     painter()->setAntialias(1.0f + m_animationSine*5);
     for (int i=0 ; i<lines ; i++) {
         painter()->beginPath();
-        painter()->setLineWidth(i*0.5f);
+        painter()->setLineWidth((i + 1) * 0.5f);
         painter()->moveTo(posX, posY+i*w/lines);
         painter()->lineTo(posX+w, posY+i*w/lines);
         painter()->stroke();
@@ -815,16 +815,16 @@ void GalleryItemRenderer::drawAntialiasing() {
     painter()->setAntialias(0);
     for (int i=0 ; i<lines ; i++) {
         painter()->beginPath();
-        painter()->setLineWidth(i*0.5f);
-        painter()->moveTo(posX, posY+i*w/lines);
-        painter()->lineTo(posX+w, posY+i*w/lines+5);
+        painter()->setLineWidth((i + 1) * 0.5f);
+        painter()->moveTo(int(posX), int(posY+i*w/lines));
+        painter()->lineTo(int(posX+w), int(posY+i*w/lines) + 5);
         painter()->stroke();
     }
     posX += w + margin;
     painter()->setAntialias(1.0);
     for (int i=0 ; i<lines ; i++) {
         painter()->beginPath();
-        painter()->setLineWidth(i*0.5f);
+        painter()->setLineWidth((i + 1) * 0.5f);
         painter()->moveTo(posX, posY+i*w/lines);
         painter()->lineTo(posX+w, posY+i*w/lines+5);
         painter()->stroke();
@@ -833,7 +833,7 @@ void GalleryItemRenderer::drawAntialiasing() {
     painter()->setAntialias(1.0f + m_animationSine*5);
     for (int i=0 ; i<lines ; i++) {
         painter()->beginPath();
-        painter()->setLineWidth(i*0.5f);
+        painter()->setLineWidth((i + 1) * 0.5f);
         painter()->moveTo(posX, posY+i*w/lines);
         painter()->lineTo(posX+w, posY+i*w/lines+5);
         painter()->stroke();
@@ -845,16 +845,16 @@ void GalleryItemRenderer::drawAntialiasing() {
     painter()->setAntialias(0);
     for (int i=0 ; i<lines ; i++) {
         painter()->beginPath();
-        painter()->setLineWidth(i*0.5f);
-        painter()->moveTo(posX, posY+i*w/lines);
-        painter()->lineTo(posX+w, posY+i*w/lines+5);
+        painter()->setLineWidth((i + 1) * 0.5f);
+        painter()->moveTo(int(posX), int(posY+i*w/lines));
+        painter()->lineTo(int(posX+w), int(posY+i*w/lines) + 5);
         painter()->stroke();
     }
     posX += w + margin;
     painter()->setAntialias(1.0f);
     for (int i=0 ; i<lines ; i++) {
         painter()->beginPath();
-        painter()->setLineWidth(i*0.5f);
+        painter()->setLineWidth((i + 1) * 0.5f);
         painter()->moveTo(posX, posY+i*w/lines);
         painter()->lineTo(posX+w, posY+i*w/lines+5);
         painter()->stroke();
@@ -863,7 +863,7 @@ void GalleryItemRenderer::drawAntialiasing() {
     painter()->setAntialias(1.0f + m_animationSine*5);
     for (int i=0 ; i<lines ; i++) {
         painter()->beginPath();
-        painter()->setLineWidth(i*0.5f);
+        painter()->setLineWidth((i + 1) * 0.5f);
         painter()->moveTo(posX, posY+i*w/lines);
         painter()->lineTo(posX+w, posY+i*w/lines+5);
         painter()->stroke();

@@ -77,7 +77,7 @@ Window {
     ListView {
         id: listView
         anchors.top: topBar.bottom
-        anchors.topMargin: 20 * dp
+        anchors.topMargin: Math.floor(20 * dp)
         anchors.bottom: parent.bottom
         width: parent.width
         orientation: ListView.Horizontal
