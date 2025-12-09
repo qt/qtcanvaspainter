@@ -12,6 +12,7 @@
 class GalleryItem : public QQuickCPainterItem
 {
     Q_OBJECT
+    QML_NAMED_ELEMENT(GalleryItem)
     Q_PROPERTY(int galleryView READ galleryView WRITE setGalleryView NOTIFY galleryViewChanged)
     Q_PROPERTY(float animationTime READ animationTime WRITE setAnimationTime NOTIFY animationTimeChanged)
     Q_PROPERTY(float animationSine READ animationSine WRITE setAnimationSine NOTIFY animationSineChanged)

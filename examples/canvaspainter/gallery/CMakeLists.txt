@@ -13,22 +13,26 @@ qt_add_executable(qcgalleryexample
     MACOSX_BUNDLE
 
     main.cpp
-    src/galleryitem.cpp src/galleryitem.h
-    src/galleryitemrenderer.cpp src/galleryitemrenderer.h
+    galleryitem.cpp galleryitem.h
+    galleryitemrenderer.cpp galleryitemrenderer.h
 )
 
-qt_add_resources(qcgalleryexample
-    PREFIX
-        "/"
-    FILES
+qt_add_qml_module(qcgalleryexample
+    URI
+        GalleryExample
+    QML_FILES
         main.qml
         TopBar.qml
+    RESOURCE_PREFIX
+        /
+    RESOURCES
         images/pattern1.png
         images/pattern2.png
         fonts/Pacifico.ttf
         images/pattern3.png
         images/qt_development_white.png
         images/face-smile-bw.png
+    NO_RESOURCE_TARGET_PATH
 )
 
 target_link_libraries(qcgalleryexample PRIVATE

@@ -4,7 +4,7 @@
 
 import QtQuick
 import QtQuick.Window
-import GalleryItem 1.0
+import GalleryExample
 
 Window {
     id: mainView
