@@ -1,8 +1,17 @@
 # Copyright (C) 2025 The Qt Company Ltd.
 # SPDX-License-Identifier: LicenseRef-Qt-Commercial OR BSD-3-Clause
 
-qt_internal_add_example(gallery)
-qt_internal_add_example(compacthealth)
+if(TARGET Qt::Gui)
+    qt_internal_add_example(compacthealth)
+endif()
+
+if(TARGET Qt::Quick)
+    qt_internal_add_example(gallery)
+endif()
+
+if(TARGET Qt::Widgets)
+    qt_internal_add_example(hellowidget)
+endif()
 
 foreach(target IN LISTS reused_dir_targets)
     if(TARGET ${target})
