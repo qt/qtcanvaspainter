@@ -4,6 +4,20 @@
 /*!
 \title Qt Canvas Painter
 \page qtcanvaspainter-index.html
+\brief Provides hardware-accelerated painting API on QRhi.
+
+The Qt Canvas Painter module provides classes for hardware-accelerated
+imperative 2D painting. This painting API is available for both Qt Quick
+and Qt Widgets, and can also be used directly with QRhi. The API design
+generally follows HTML canvas 2d context, with some reductions and some
+additions.
+
+Compared to QPainter, the Qt Canvas Painter is more compact and has fewer
+abstractions, aiming to perform optimally on QRhi. Qt Canvas Painter is
+designed for GPU rendering and does not have a CPU backend as QPainter
+does.
+
+\note The Qt Canvas Painter module is currently in tech preview.
 
 \section1 Using the Module
 
