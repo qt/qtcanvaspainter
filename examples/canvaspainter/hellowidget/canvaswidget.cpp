@@ -15,7 +15,8 @@ CanvasWidget::CanvasWidget()
 void CanvasWidget::initializeResources(QCPainter *p)
 {
     Q_ASSERT(m_image.isNull());
-    m_image = p->addImage(QImage(":/qt-translucent.png"), QCPainter::ImageFlag::Repeat);
+    const auto flags = QCPainter::ImageFlag::Repeat | QCPainter::ImageFlag::GenerateMipmaps;
+    m_image = p->addImage(QImage(":/qt-translucent.png"), flags);
 }
 
 void CanvasWidget::graphicsResourcesInvalidated()
