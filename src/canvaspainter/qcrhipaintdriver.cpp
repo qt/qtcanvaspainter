@@ -74,9 +74,10 @@ void QCRhiPaintDriver::resetForNewFrame()
     not currently supported.
 
     \note \a rt is expected to have both a color and depth-stencil attachment.
-    QCPainter requires the presence of a depth buffer. In case there are
-    multiple color attachments, only the color buffer for attachment 0 is
-    written.
+    In case there are multiple color attachments, only the color buffer for
+    attachment 0 is written. QCPainter requires the presence of a depth-stencil
+    buffer. Currently only stencil is utilized, depth testing and writing are
+    always disabled.
 
     \a logicalSize is optional. When non-empty, it specifies the viewport size
     in logical units. \a dpr must then specify the scale factor (device pixel
