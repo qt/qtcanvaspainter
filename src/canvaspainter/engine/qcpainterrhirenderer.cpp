@@ -198,10 +198,6 @@ struct QCRHIPipelineState
     QRhiGraphicsPipeline::Topology topology = QRhiGraphicsPipeline::Triangles;
     QRhiGraphicsPipeline::CullMode cullMode = QRhiGraphicsPipeline::Back;
 
-    bool depthTestEnable = false;
-    bool depthWriteEnable = false;
-    QRhiGraphicsPipeline::CompareOp depthFunc = QRhiGraphicsPipeline::LessOrEqual;
-
     bool stencilTestEnable = false;
     bool usesStencilRef = false;
     QRhiGraphicsPipeline::StencilOpState stencilFront;
@@ -221,9 +217,6 @@ inline bool operator==(const QCRHIPipelineState &a, const QCRHIPipelineState &b)
     return a.renderFlags == b.renderFlags
            && a.topology == b.topology
            && a.cullMode == b.cullMode
-           && a.depthTestEnable == b.depthTestEnable
-           && a.depthWriteEnable == b.depthWriteEnable
-           && a.depthFunc == b.depthFunc
            && a.stencilTestEnable == b.stencilTestEnable
            && a.usesStencilRef == b.usesStencilRef
            && a.stencilFront.failOp == b.stencilFront.failOp
@@ -261,11 +254,8 @@ inline size_t qHash(const QCRHIPipelineState &s, size_t seed) noexcept
     return qHash(s.renderFlags, seed)
            ^ qHash(s.sampleCount)
            ^ qHash(s.targetBlend.dstColor)
-           ^ qHash(s.depthFunc)
            ^ qHash(s.cullMode)
            ^ qHashBits(&s.stencilFront, sizeof(QRhiGraphicsPipeline::StencilOpState))
-           ^ (s.depthTestEnable << 1)
-           ^ (s.depthWriteEnable << 2)
            ^ (s.stencilTestEnable << 3)
            ^ (s.usesStencilRef << 4)
            ^ (s.targetBlend.enable << 5);
@@ -567,9 +557,16 @@ QRhiGraphicsPipeline *QCPainterRhiRenderer::pipeline(const QCRHIPipelineStateKey
 
     ps->setSampleCount(key.state.sampleCount);
 
-    ps->setDepthTest(key.state.depthTestEnable);
-    ps->setDepthWrite(key.state.depthWriteEnable);
-    ps->setDepthOp(key.state.depthFunc);
+    // Depth test and write are always OFF. We do require a depth-stencil buffer
+    // though, due to relying on stencil, but the depth part of the buffer is
+    // not used for anything. If this would be needed for some feature in the
+    // future, note that enabling depth buffer usage is not trivial, since it
+    // can cause various conflicts in applications integrating QCPainter
+    // rendering in 3D scenes, if they also use the depth buffer while rendering
+    // the 2D drawing inline, targeting the same main color and depth-stencil
+    // buffers the 3D rendering also targets.
+    ps->setDepthTest(false);
+    ps->setDepthWrite(false);
 
     ps->setStencilTest(key.state.stencilTestEnable);
     ps->setStencilFront(key.state.stencilFront);
