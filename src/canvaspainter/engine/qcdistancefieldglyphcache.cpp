@@ -83,6 +83,7 @@ QCDistanceFieldGlyphCache::generate(const QString &text, const QRectF &rect, con
         text,
         state->textAlignment,
         state->textWrapMode,
+        float(rFont.pixelSize()),
         float(rect.width()),
         float(font.letterSpacing()),
         float(font.wordSpacing())
