@@ -2,5 +2,6 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 add_subdirectory(hellorhi)
+add_subdirectory(hellorhi2)
 add_subdirectory(widgettest)
 add_subdirectory(itemtest)
