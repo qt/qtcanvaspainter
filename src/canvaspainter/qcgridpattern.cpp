@@ -480,4 +480,7 @@ QCBrushPrivate *QCGridPatternPrivate::clone()
     return new QCGridPatternPrivate(*this);
 }
 
+#undef G_D
+#undef DECONST
+
 QT_END_NAMESPACE
