@@ -95,6 +95,8 @@ public:
     float m_devicePixelRatio = 1.0f;
     QCPainterRhiRenderer *m_renderer = nullptr;
     QCPainterEngine *m_e = nullptr;
+    int m_maxTextures = 0;
+    bool m_trackingDisabled = false;
 };
 
 QT_END_NAMESPACE

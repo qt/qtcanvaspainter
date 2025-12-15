@@ -27,6 +27,31 @@ QT_BEGIN_NAMESPACE
     If no stops are provided with \l setStartColor, \l setEndColor, \l setColorAt or \l setStops,
     the gragient is rendered as start color white (255,255,255) and end color transparent (0,0,0,0).
     If only a single stop is provided, the gradient is filled with this color.
+
+    QCPainter uses two different approaches for painting gradients.
+    \list
+    \li With maximum of 2 stops, the colors are passed into shader as 2 vec4 uniforms.
+        This makes animating 2 stop gradients very performant, with no extra steps in between.
+    \li With more than 2 stops, the colors are passed into shader as a one dimensional texture.
+        By default the texture size is 1x256 pixels, optimized for quality and performance.
+        The textures are cached, so when gradient stops or colors don't change, previous texture
+        can be reused even when other gradient properties (like position, angle etc.) change.
+        Although animating multi-stop gradients is fast, it will cause texture uploads, so
+        consider if it is worth it.
+    \endlist
+
+    There are few environment variables to control the gradients texture usage:
+    \list
+    \li QCPAINTER_DISABLE_TEXTURE_USAGE_TRACKING - By default, gradient texture usage is
+        tracked and kept under the max amount. Set this environment variable to disable
+        the tracking and keep all gradient textures in memory.
+    \li QCPAINTER_MAX_TEXTURES - By default, the maximum amount of textures is \c 1024.
+        Set this environt variable to contain number of desired maximum texture amount.
+        The currently unused temporary gradient textures are automatically removed when
+        the maximum amount is reached. \note This does not have an effect when the
+        texture usage tracking has been disabled.
+    \endlist
+
 */
 
 // Pixel amount of textured gradients

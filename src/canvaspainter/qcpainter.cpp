@@ -1816,7 +1816,7 @@ void QCDataCache::clear()
     m_doingResourcesRemoval = false;
 }
 
-// Marks imageId as being currently used
+// Marks imageId as being currently used.
 void QCDataCache::markTextureIdUsed(int imageId) {
     if (imageId > 0 && !m_usedTextureIDs.contains(imageId))
         m_usedTextureIDs << imageId;
@@ -1827,6 +1827,10 @@ QCPainterPrivate::QCPainterPrivate()
 {
     m_dataCache.m_painterPrivate = this;
     m_e = new QCPainterEngine();
+    const int defaultMaxTextures = 1024;
+    static int maxTexturesEnv = qEnvironmentVariableIntValue("QCPAINTER_MAX_TEXTURES");
+    m_maxTextures = maxTexturesEnv > 0 ? maxTexturesEnv : defaultMaxTextures;
+    m_trackingDisabled = qEnvironmentVariableIsSet("QCPAINTER_DISABLE_TEXTURE_USAGE_TRACKING");
 }
 
 QCPainterPrivate::~QCPainterPrivate()
@@ -1858,6 +1862,8 @@ static QRectF textAlignedRectFromPoint(QCPainter::TextAlign textAlignment, float
 }
 
 // Delete the textures marked to be cleaned.
+// This is also automatically called by engine to keep the amount
+// of (gradient) textures in control.
 void QCPainterPrivate::handleCleanupTextures()
 {
     if (m_renderer && m_renderer->ctx)
@@ -1876,11 +1882,8 @@ void QCPainterPrivate::clearTextureCache()
 
 // Marks that this imageId was used during the paint operation.
 void QCPainterPrivate::markTextureIdUsed(int imageId) {
-#ifdef QCPAINTER_TRACK_TEXTURE_USAGE
-    m_dataCache.markTextureIdUsed(imageId);
-#else
-    Q_UNUSED(imageId);
-#endif
+    if (!m_trackingDisabled)
+        m_dataCache.markTextureIdUsed(imageId);
 }
 
 qint64 QCPainterPrivate::generateImageKey(const QImage &image, QCPainter::ImageFlags flags) const
@@ -1927,6 +1930,12 @@ QCImage QCPainterPrivate::getQCImage(const QImage &image, QCPainter::ImageFlags 
             ip->size = convertedImage.sizeInBytes();
             ip->type = type;
             m_dataCache.insert(key, qcimage);
+            // When the amount of cache reaches the limit and tracking is enabled,
+            // remove all the unused temporary textures automatically.
+            if (!m_trackingDisabled && m_dataCache.size() > m_maxTextures) {
+                qCDebug(QC_INFO) << "Removing temporary gradient textures as max amount of" << m_maxTextures << "was reached.";
+                m_dataCache.removeTemporaryResources();
+            }
         }
     }
     return qcimage;
