@@ -22,11 +22,14 @@
 #include <QtCore/qstring.h>
 #include <QtCore/private/qobject_p.h>
 #include <QtCore/qhash.h>
+#include <QtCore/qloggingcategory.h>
 
 QT_BEGIN_NAMESPACE
 
 class QCPainterEngine;
 class QCPainterRhiRenderer;
+
+Q_DECLARE_LOGGING_CATEGORY(QC_INFO)
 
 // Keeps count of the texture id's and the total size of textures.
 // This doesn't cache the actual texture data.

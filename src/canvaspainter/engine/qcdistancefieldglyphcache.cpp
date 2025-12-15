@@ -3,6 +3,7 @@
 
 #include "engine/qctextlayout_p.h"
 #include "qcdistancefieldglyphcache_p.h"
+#include "qcpainter_p.h"
 #include <private/qrawfont_p.h>
 
 QT_BEGIN_NAMESPACE
@@ -177,7 +178,6 @@ void QCDistanceFieldGlyphCache::optimizeCache()
     const int maxGlyphRuns = 1024;
 #endif
     if (m_glyphRunCache.size() > maxGlyphRuns) {
-        qDebug() << "Text glyph cache full, cleaning.";
         int eraseCount = 0;
         // First remove the ones which have been used only few times.
         // These can come when e.g. animating letterSpacing.
@@ -194,7 +194,8 @@ void QCDistanceFieldGlyphCache::optimizeCache()
             eraseCount += m_glyphRunCache.size();
             m_glyphRunCache.clear();
         }
-        qDebug() << "Removed: " << eraseCount;
+        qCDebug(QC_INFO) << "Max text glyph cache size" << maxGlyphRuns
+                         << "reached. Removing" << eraseCount << "elements.";
     }
 #endif
 }
