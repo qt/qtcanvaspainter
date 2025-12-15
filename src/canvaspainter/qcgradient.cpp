@@ -454,4 +454,6 @@ void QCGradientPrivate::updateGradientTexture(QCPainter *painter)
     }
 }
 
+#undef G_D
+
 QT_END_NAMESPACE

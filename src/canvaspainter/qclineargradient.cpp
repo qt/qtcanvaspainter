@@ -251,4 +251,7 @@ void QCLinearGradientPrivate::createLinearGradient(const QColor &iColor, const Q
     }
 }
 
+#undef G_D
+#undef DECONST
+
 QT_END_NAMESPACE

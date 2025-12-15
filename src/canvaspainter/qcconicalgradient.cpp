@@ -222,4 +222,7 @@ void QCConicalGradientPrivate::createConicalGradient(const QColor &iColor, const
     }
 }
 
+#undef G_D
+#undef DECONST
+
 QT_END_NAMESPACE

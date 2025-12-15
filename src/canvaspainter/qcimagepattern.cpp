@@ -427,4 +427,6 @@ QCBrushPrivate *QCImagePatternPrivate::clone()
     return new QCImagePatternPrivate(*this);
 }
 
+#undef DECONST
+
 QT_END_NAMESPACE

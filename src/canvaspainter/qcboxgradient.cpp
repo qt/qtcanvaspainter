@@ -271,4 +271,7 @@ void QCBoxGradientPrivate::createBoxGradient(const QColor &iColor, const QColor 
     }
 }
 
+#undef G_D
+#undef DECONST
+
 QT_END_NAMESPACE
