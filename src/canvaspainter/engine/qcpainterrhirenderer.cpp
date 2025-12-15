@@ -2616,7 +2616,7 @@ void QCPainterRhiRenderer::render()
             }
 
             // 2. Draw anti-aliased pixels
-            if (rhiCtx->flags & QCPainterRhiRenderer::Antialiasing) {
+            if (call->renderFlags & QCPainterRhiRenderer::Antialiasing) {
                 bindPipeline(call, 1, 1, vertDynamicOffsetForCall, dynamicOffsetForCallPlusOne, false, &needsViewport);
                 // Draw antialiased edges
                 for (int i = 0; i < pathsCount; i++) {
@@ -2641,7 +2641,7 @@ void QCPainterRhiRenderer::render()
             }
 
             // 2. Draw antialiased edges
-            if (rhiCtx->flags & QCPainterRhiRenderer::Antialiasing) {
+            if (call->renderFlags & QCPainterRhiRenderer::Antialiasing) {
                 bindPipeline(call, 1, 0, vertDynamicOffsetForCall, dynamicOffsetForCall, false, &needsViewport);
                 for (int i = 0; i < pathsCount; i++) {
                     if (paths[i].strokeCount > 0) {
@@ -2670,7 +2670,7 @@ void QCPainterRhiRenderer::render()
                 }
 
                 // 3. Draw anti-aliased pixels.
-                if (rhiCtx->flags & QCPainterRhiRenderer::Antialiasing) {
+                if (call->renderFlags & QCPainterRhiRenderer::Antialiasing) {
                     bindPipeline(call, 2, 0, vertDynamicOffsetForCall, dynamicOffsetForCall, false, &needsViewport);
                     for (int i = 0; i < pathsCount; i++) {
                         if (paths[i].strokeCount > 0) {
