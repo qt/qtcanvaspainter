@@ -22,7 +22,7 @@ class QCCustomBrush;
 
 class QCBrushPrivate;
 
-QT_DECLARE_QESDP_SPECIALIZATION_DTOR(QCBrushPrivate);
+QT_DECLARE_QESDP_SPECIALIZATION_DTOR(QCBrushPrivate)
 
 class Q_CANVASPAINTER_EXPORT QCBrush
 {
