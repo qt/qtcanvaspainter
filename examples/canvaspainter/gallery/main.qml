@@ -9,13 +9,13 @@ import GalleryExample
 Window {
     id: mainView
 
-    readonly property real dp: Math.min(width, height) / 400
+    readonly property real dp: height / 600
     property real animationTime: 0
     property real animationSine: 0
     property bool animatePainting: true
 
-    width: 480
-    height: 800
+    width: 1280
+    height: 720
     visible: true
     color: "#222831"
 
@@ -50,7 +50,7 @@ Window {
         height: Math.floor(60 * dp)
         currentIndex: listView.currentIndex
         itemCount: listView.count
-        visibilityState: listView.contentX / listView.width
+        visibilityState: (listView.visibleArea.xPosition * (listView.delegateWidth * listView.count + listView.width)) / listView.delegateWidth
     }
 
 /*
@@ -76,6 +76,7 @@ Window {
 
     ListView {
         id: listView
+        readonly property real delegateWidth: height * 0.75
         anchors.top: topBar.bottom
         anchors.topMargin: Math.floor(20 * dp)
         anchors.bottom: parent.bottom
@@ -88,13 +89,17 @@ Window {
         model: 15
         // Disable this to not preload all views.
         cacheBuffer: 10000
+        preferredHighlightBegin: width * 0.5 - delegateWidth * 0.5
+        preferredHighlightEnd: preferredHighlightBegin + 1
+        Component.onCompleted: currentIndex = 0;
         delegate: GalleryItem {
             readonly property bool animationsOn: index >= listView.currentIndex - 1 &&
                                                  index <= listView.currentIndex + 1
-            width: listView.width
+            width: listView.delegateWidth
             height: listView.height
             animationTime: animationsOn ? mainView.animationTime : 0
             animationSine: animationsOn ? mainView.animationSine : 0
+            animState: Math.max(0, (1.0 - Math.abs(topBar.visibilityState - index)))
             galleryView: index
             fillColor: "transparent"
             alphaBlending: true

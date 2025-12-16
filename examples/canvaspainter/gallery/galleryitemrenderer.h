@@ -10,6 +10,7 @@
 #include <QtCanvasPainter/qcradialgradient.h>
 #include <QtCanvasPainter/qccustombrush.h>
 #include <QtCanvasPainter/qcimage.h>
+#include <QtCanvasPainter/qcpainterpath.h>
 
 #include <QQuickItem>
 
@@ -79,8 +80,14 @@ private:
     //QCPainter *m_painter;
     float m_animationTime = 0.0f;
     float m_animationSine = 0.0f;
+    float m_animState = 0.0f;
+    float m_viewAlpha = 1.0f;
+    float m_viewSaturate = 1.0f;
     int m_viewIndex = 0;
-
+    float m_previousWidth = 0;
+    float m_previousHeight = 0;
+    bool m_sizeChanged = false;
+    float m_topMargin = 0;
     QCRadialGradient m_radGrad;
     QCImage m_testImage;
     QCImage m_patternImage;
@@ -95,6 +102,12 @@ private:
     QCCustomBrush m_customBrush2;
     QCCustomBrush m_customBrush3;
     QCCustomBrush m_customBrush4;
+    QCPainterPath m_path1;
+    QCPainterPath m_path2;
+    QCPainterPath m_path3;
+    QCPainterPath m_path4;
+    QCPainterPath m_pathGraphLine;
+    QCPainterPath m_pathGraphArea;
 };
 
 #endif // GALLERYITEMRENDERER_H

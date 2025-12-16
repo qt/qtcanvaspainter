@@ -32,6 +32,8 @@ GalleryItemRenderer::~GalleryItemRenderer()
 
 void GalleryItemRenderer::initializeResources(QCPainter *painter)
 {
+    // TODO: Currently these resources are added to all views.
+    // Consider instead adding only when m_viewIndex matches.
     QCPainter::ImageFlags flags = QCPainter::ImageFlag::Repeat | QCPainter::ImageFlag::GenerateMipmaps;
     m_patternImage = painter->addImage(QImage(":/images/pattern1.png"), flags);
     m_patternImage2 = painter->addImage(QImage(":/images/pattern2.png"), flags);
@@ -64,7 +66,16 @@ void GalleryItemRenderer::synchronize(QQuickCPainterItem *item)
     if (realItem) {
         m_animationTime = realItem->animationTime();
         m_animationSine = realItem->animationSine();
+        m_animState = realItem->animState();
         m_viewIndex = realItem->galleryView();
+        if (!qFuzzyCompare(m_previousWidth, width()) ||
+            !qFuzzyCompare(m_previousHeight, height())) {
+            m_sizeChanged = true;
+            m_previousWidth = width();
+            m_previousHeight = height();
+        } else {
+            m_sizeChanged = false;
+        }
     }
 }
 
@@ -72,6 +83,13 @@ void GalleryItemRenderer::paint(QCPainter *painter)
 {
     Q_UNUSED(painter)
 
+    // Views not currently centered to have reduced
+    // alpha and saturation.
+    m_viewAlpha = 0.2 + 0.8 * m_animState;
+    m_viewSaturate = m_animState;
+    painter->setGlobalAlpha(m_viewAlpha);
+    painter->setGlobalSaturate(m_viewSaturate);
+    m_topMargin = height() * 0.02f;
     // Draw similarly colored rectangles
     switch (m_viewIndex) {
     case 0:
@@ -134,7 +152,7 @@ void GalleryItemRenderer::drawRectsWithLinearGradient() {
     float margin = width()*0.02f;
     float w = width() / (rects+1) - margin;
     float posX = w*0.5 + margin;
-    float posY = 0;
+    float posY = m_topMargin;
 
     QRectF rect1(posX,posY,w,w);
     painter()->setFillStyle(QCLinearGradient(0, rect1.y(), 0, rect1.y()+rect1.height()));
@@ -175,7 +193,7 @@ void GalleryItemRenderer::drawRectsWithRadialGradient() {
     float margin = width()*0.02f;
     float w = width() / (rects+1) - margin;
     float posX = w*0.5 + margin;
-    float posY = (w+margin);
+    float posY = m_topMargin + (w+margin);
 
     QRectF rect1(posX,posY,w,w);
     painter()->setFillStyle(QCRadialGradient(rect1.x(), rect1.y(), rect1.width()));
@@ -218,7 +236,7 @@ void GalleryItemRenderer::drawRectsWithBoxGradient() {
     float margin = width()*0.02f;
     float w = width() / (rects+1) - margin;
     float posX = w*0.5 + margin;
-    float posY = 2*(w+margin);
+    float posY = m_topMargin + 2*(w+margin);
 
     QRectF rect1(posX,posY,w,w);
     painter()->setFillStyle(QCBoxGradient(rect1, w/2));
@@ -261,7 +279,7 @@ void GalleryItemRenderer::drawRectsWithConicalGradients() {
     float margin = width()*0.02f;
     float w = width() / (rects+1) - margin;
     float posX = w*0.5 + margin;
-    float posY = 3*(w+margin);
+    float posY = m_topMargin + 3*(w+margin);
 
     QRectF rect1(posX,posY,w,w);
     QCConicalGradient g1;
@@ -306,7 +324,7 @@ void GalleryItemRenderer::drawRectsWithImagePattern() {
     float margin = width()*0.02f;
     float w = width() / (rects+2) - margin;
     float posX = w + margin;
-    float posY = 4*(w+margin);
+    float posY = m_topMargin + 4*(w+margin);
 
     QRectF rect1(posX,posY,w,w);
     QCImagePattern g4(m_patternImage2, rect1);
@@ -346,7 +364,7 @@ void GalleryItemRenderer::drawRectsWithBrushStroke() {
     float w = width() / (rects+2) - margin;
     float w2 = w - border;
     float posX = w + margin + border/2;
-    float posY = 5*(w+margin) + border/2;
+    float posY = m_topMargin + 5*(w+margin) + border/2;
 
     QRectF rect1(posX,posY,w2,w2);
     painter()->setLineWidth(border);
@@ -401,7 +419,7 @@ void GalleryItemRenderer::drawPaths() {
     float w = width() / (rects) - margin;
     float lineWidth = width()*0.02f;
     float posX = margin/2;
-    float posY = 0.5 * lineWidth;
+    float posY = m_topMargin;
 
     painter()->setFillStyle(0xFF948979);
     painter()->setStrokeStyle(0xFFDFD0B8);
@@ -484,7 +502,7 @@ void GalleryItemRenderer::drawPainterPaths()
     float w = width() * 0.8;
     float h = height() * 0.2;
     float posX = width() * 0.5 - w * 0.5;
-    float posY = h * 0.5;
+    float posY = m_topMargin + h * 0.5;
     float margin = height()*0.02f;
     const int points = 100;
 
@@ -493,67 +511,76 @@ void GalleryItemRenderer::drawPainterPaths()
         StaticPath
     };
 
+    if (m_sizeChanged) {
+        // When the window size changes,
+        // invalidate all cached paths.
+        m_path1.clear();
+        m_path2.clear();
+        m_path3.clear();
+        m_path4.clear();
+        m_pathGraphLine.clear();
+        m_pathGraphArea.clear();
+    }
+
     // Path that doesn't change
-    static QCPainterPath path1;
-    if (path1.isEmpty()) {
+    if (m_path1.isEmpty()) {
         // Reserve, so allocations are not needed while adding commands.
         // All commands are moveTo & lineTo which take 2 data
         // points (x & y) per command, so second parameter is not needed.
-        path1.reserve(points);
+        m_path1.clear();
+        m_path1.reserve(points);
         for (int i = 0; i < points; i++) {
             int px = posX + float(i) / (points - 1) * w;
             int py = posY + std::sin(1234.0 * (float(i*i))) * (h * 0.4);
             if (i == 0)
-                path1.moveTo(px, py);
+                m_path1.moveTo(px, py);
             else
-                path1.lineTo(px, py);
+                m_path1.lineTo(px, py);
         }
     }
     painter()->setStrokeStyle(0xFFDFD0B8);
     painter()->setLineWidth(4);
     // Use same group for all non-changing paths.
-    painter()->stroke(path1, StaticPath);
+    painter()->stroke(m_path1, StaticPath);
 
     posY += h + margin;
 
     // Path that increases, so old commands are remembered
-    static QCPainterPath path2;
     static int p2Index = 0;
     if (p2Index >= points) {
         // When we reach the end, start from the beginning
-        path2.clear();
+        m_path2.clear();
         p2Index = 0;
     }
     int i = p2Index;
     int px = posX + float(i) / (points - 1) * w;
     int py = posY + std::sin(1234.0 * (float(i*i))) * (h * 0.4);
     if (i == 0)
-        path2.moveTo(px, py);
+        m_path2.moveTo(px, py);
     else
-        path2.lineTo(px, py);
+        m_path2.lineTo(px, py);
     painter()->setStrokeStyle(0xFFDFD0B8);
     painter()->setLineWidth(4);
-    painter()->stroke(path2, DynamicPath);
+    painter()->stroke(m_path2, DynamicPath);
     p2Index++;
 
     posY += h + margin;
 
     // Path that doesn't change but is moved/scaled/rotated
-    static QCPainterPath path3;
     QPointF center(posX + 0.5 * w, posY);
     float hSize = h * 0.8;
-    if (path3.isEmpty()) {
-        path3.moveTo(center.x(), center.y() + hSize*0.5);
-        path3.bezierCurveTo(center.x() - hSize, center.y() - hSize*0.3,
+    if (m_path3.isEmpty()) {
+        m_path3.moveTo(center.x(), center.y() + hSize*0.5);
+        m_path3.bezierCurveTo(center.x() - hSize, center.y() - hSize*0.3,
                             center.x() - hSize*0.1, center.y() - hSize*0.5,
                             center.x(), center.y() - hSize*0.2);
-        path3.bezierCurveTo(center.x() + hSize*0.1, center.y() - hSize*0.5,
+        m_path3.bezierCurveTo(center.x() + hSize*0.1, center.y() - hSize*0.5,
                             center.x() + hSize, center.y() - hSize*0.3,
                             center.x(), center.y() + hSize*0.5);
         // Add holes into the path
-        path3.setPathWinding(QCPainter::PathWinding::ClockWise);
-        path3.circle(center.x() - hSize*0.2, center.y() - hSize*0.1, hSize * 0.1);
-        path3.circle(center.x() + hSize*0.2, center.y() - hSize*0.1, hSize * 0.1);
+        m_path3.setPathWinding(QCPainter::PathWinding::ClockWise);
+        m_path3.circle(center.x() - hSize*0.2, center.y() - hSize*0.1, hSize * 0.1);
+        m_path3.circle(center.x() + hSize*0.2, center.y() - hSize*0.1, hSize * 0.1);
     }
     QTransform transform;
     transform.translate(-w * 0.2 + w * 0.2 * sin(m_animationTime), 0);
@@ -570,12 +597,11 @@ void GalleryItemRenderer::drawPainterPaths()
     painter()->setLineWidth(2);
     // Using path transformation, so group can be StaticPath
     painter()->setTransform(transform);
-    painter()->fill(path3, StaticPath);
-    painter()->stroke(path3, StaticPath);
+    painter()->fill(m_path3, StaticPath);
+    painter()->stroke(m_path3, StaticPath);
 
     // Adding paths into path
-    static QCPainterPath path4;
-    if (path4.isEmpty()) {
+    if (m_path4.isEmpty()) {
         for (int i = 0; i < 8; i++) {
             // Create path from 8 heart paths
             QTransform t;
@@ -583,7 +609,7 @@ void GalleryItemRenderer::drawPainterPaths()
             t.rotateRadians(i * M_PI_2 * 0.5);
             t.scale(0.5, 0.5);
             t.translate(-center.x(), -(center.y() - hSize*0.6));
-            path4.addPath(path3, t);
+            m_path4.addPath(m_path3, t);
         }
     }
     QTransform t2;
@@ -592,30 +618,28 @@ void GalleryItemRenderer::drawPainterPaths()
     t2.rotateRadians(m_animationTime);
     t2.translate(-center.x(), -(center.y() - hSize*0.6));
     painter()->setTransform(t2);
-    painter()->stroke(path4, StaticPath);
+    painter()->stroke(m_path4, StaticPath);
 
     // Example of reusing parts of paths
     posY += h + margin;
     painter()->resetTransform();
     painter()->save();
     painter()->setRenderHint(QCPainter::RenderHint::HighQualityStroking, true);
-    static QCPainterPath pathGraphLine;
-    static QCPainterPath pathGraphArea;
-    if (pathGraphLine.isEmpty()) {
+    if (m_pathGraphLine.isEmpty()) {
         // Create linegraph path.
-        pathGraphLine.moveTo(posX, posY);
+        m_pathGraphLine.moveTo(posX, posY);
         const int lines = 200;
         for (int i = 0; i < lines; i++) {
             float fl = float(i) / (lines - 1);
             float lY = posY +
                     sin(8 * fl) * h * 0.15 +
                     sin(20 * fl) * h * 0.05;
-            pathGraphLine.lineTo(posX + fl * w, lY);
+            m_pathGraphLine.lineTo(posX + fl * w, lY);
         }
         // Create fillpath, graph + 2 points.
-        pathGraphArea = pathGraphLine;
-        pathGraphArea.lineTo(posX + w, posY + h);
-        pathGraphArea.lineTo(posX, posY + h);
+        m_pathGraphArea = m_pathGraphLine;
+        m_pathGraphArea.lineTo(posX + w, posY + h);
+        m_pathGraphArea.lineTo(posX, posY + h);
     }
     QCLinearGradient g1(0, posY, 0, posY + h);
     g1.setStartColor(Qt::black);
@@ -623,15 +647,15 @@ void GalleryItemRenderer::drawPainterPaths()
     painter()->setLineJoin(QCPainter::LineJoin::Round);
     painter()->setLineCap(QCPainter::LineCap::Round);
     painter()->setFillStyle(g1);
-    painter()->fill(pathGraphArea);
+    painter()->fill(m_pathGraphArea);
     painter()->setStrokeStyle(0xFFDFD0B8);
     painter()->setLineWidth(1);
-    painter()->stroke(pathGraphLine);
+    painter()->stroke(m_pathGraphLine);
     // Selection is part of line graph.
-    int commands = pathGraphLine.commandsSize();
+    int commands = m_pathGraphLine.commandsSize();
     int startIndex = 0.5f * commands * std::max(sin(0.5f * m_animationTime), 0.0f);
     int count = commands - 0.5f * commands * std::max(sin(-0.5f * m_animationTime), 0.0f);
-    QCPainterPath pathSelection = pathGraphLine.sliced(startIndex, count);
+    QCPainterPath pathSelection = m_pathGraphLine.sliced(startIndex, count);
     // Selection fill is selection + 2 points
     QCPainterPath pathSelectionFill(pathSelection);
     float selectionFirstX = pathSelection.positionAt(0).x();
@@ -652,7 +676,7 @@ void GalleryItemRenderer::drawTransforms() {
     float w = width() / (rects) - margin;
     float posX = margin/2;
     float lineWidth = width()*0.01f;
-    float posY = lineWidth;
+    float posY = m_topMargin;
 
     painter()->setFillStyle(0xFFFFFFFF);
     painter()->setStrokeStyle(0xFF000000);
@@ -735,22 +759,36 @@ void GalleryItemRenderer::drawTransforms() {
     posX = margin/2;
     painter()->resetTransform();
     painter()->setLineWidth(lineWidth);
-    QRectF r(posX, posY, w*2, w);
+    QRectF r(posX, posY, w, w);
     painter()->setStrokeStyle(0xFFDFD0B8);
     painter()->strokeRect(r);
     r.adjust(lineWidth/2, lineWidth/2, -lineWidth/2, -lineWidth/2);
     painter()->setClipRect(r);
     painter()->beginPath();
-    painter()->circle(posX + m_animationSine*w*2, posY + w/2, w/2);
+    painter()->circle(posX + m_animationSine*w, posY + w/2, w/2);
     painter()->fill();
     painter()->resetClipping();
 
-    posX += w*2 + margin;
+    posX += w + margin;
     painter()->setFillStyle(0xFFDFD0B8);
     painter()->fillRect(posX, posY, w, w);
     painter()->setClipRect(int(posX + w/2), int(posY + w/2), int(w/2)+2, int(w/2)+2);
     painter()->clearRect(posX, posY, w, w);
     painter()->resetClipping();
+
+    posX += w + margin;
+    painter()->setFillStyle(0xFFDFD0B8);
+    painter()->setStrokeStyle(0xFF948979);
+    painter()->beginPath();
+    painter()->roundRect(posX, posY, w, w, w / 4);
+    painter()->fill();
+    painter()->stroke();
+    float cRectSize = (0.6 + 0.4 * sin(m_animationTime)) * w;
+    QRectF cRect(posX + m_animationSine*w, posY + w/2 - cRectSize/2, cRectSize, cRectSize);
+    painter()->translate(cRect.center());
+    painter()->rotate(m_animationTime);
+    painter()->translate(-cRect.center());
+    painter()->clearRect(cRect);
 }
 
 void GalleryItemRenderer::drawAntialiasing() {
@@ -759,7 +797,7 @@ void GalleryItemRenderer::drawAntialiasing() {
     float w = std::floor(width() / (rects) - margin);
     float posX = margin/2;
     float lineWidth = width()*0.01f;
-    float posY = std::floor(2 * lineWidth);
+    float posY = std::floor(m_topMargin);
 
     painter()->setLineCap(QCPainter::LineCap::Round);
     painter()->setStrokeStyle(0xFFFFFFFF);
@@ -944,7 +982,7 @@ void GalleryItemRenderer::drawCompositeModes() {
     float w = width() / rects - margin;
     float h = w * 1.2;
     float posX = margin/2;
-    float posY = margin/2;
+    float posY = m_topMargin;
 
     drawCompositeItem1(posX, posY, w, h, QCPainter::CompositeOperation::SourceOver);
     posX += w + margin;
@@ -1007,15 +1045,15 @@ void GalleryItemRenderer::drawColorEffects() {
     float h = w * 0.2;
     float posX = width() * 0.5 - w * 0.5;
     float margin = width()*0.05f;
-    float posY = margin;
+    float posY = m_topMargin;
     float effectAnim = 0.5 + 0.5 * sin(m_animationTime);
-    painter()->setGlobalAlpha(effectAnim);
+    painter()->setGlobalAlpha(effectAnim * m_viewAlpha);
     drawButton(posX, posY, w, h, "OPACITY");
-    painter()->setGlobalAlpha(1);
+    painter()->setGlobalAlpha(m_viewAlpha);
     posY += h + margin;
-    painter()->setGlobalSaturate(3 * effectAnim);
+    painter()->setGlobalSaturate(3 * effectAnim * m_viewSaturate);
     drawButton(posX, posY, w, h, "SATURATE");
-    painter()->setGlobalSaturate(1);
+    painter()->setGlobalSaturate(m_viewSaturate);
     posY += h + margin;
     painter()->setGlobalBrightness(2 * effectAnim);
     drawButton(posX, posY, w, h, "BRIGHTNESS");
@@ -1025,8 +1063,8 @@ void GalleryItemRenderer::drawColorEffects() {
     drawButton(posX, posY, w, h, "CONTRAST");
     painter()->setGlobalContrast(1);
     posY += h + margin;
-    painter()->setGlobalAlpha(effectAnim);
-    painter()->setGlobalSaturate(8 - 8 * effectAnim);
+    painter()->setGlobalAlpha(effectAnim * m_viewAlpha);
+    painter()->setGlobalSaturate((8 - 8 * effectAnim) * m_viewSaturate);
     painter()->setGlobalContrast(2 * effectAnim);
     drawButton(posX, posY, w, h, "MULTIPLE");
 }
@@ -1038,7 +1076,7 @@ void GalleryItemRenderer::drawGridPatterns() {
     float w = width() / rects - margin;
     float h = height() * 0.25;
     float posX = margin/2;
-    float posY = 0;
+    float posY = m_topMargin;
 
     QRectF rect1(posX, posY, w, h);
     float cellZoom = 1.0 + 0.95 * sin(0.5 * m_animationTime);
@@ -1074,7 +1112,7 @@ void GalleryItemRenderer::drawGridPatterns() {
     posX = margin/2;
     QRectF rect3(posX, posY, w, h);
     QCGridPattern gp4;
-    float bar = 20;
+    float bar = w * 0.1f;
     gp4.setStartPosition(15 * m_animationTime, 0);
     gp4.setCellSize(bar, 0);
     gp4.setLineWidth(bar * 0.5f);
@@ -1085,9 +1123,9 @@ void GalleryItemRenderer::drawGridPatterns() {
     gp5.setLineColor("#404040");
     p->setStrokeStyle(gp4);
     p->setFillStyle(gp5);
-    p->setLineWidth(10);
+    p->setLineWidth(0.5f * bar);
     p->beginPath();
-    p->roundRect(rect3, 20);
+    p->roundRect(rect3, bar);
     p->fill();
     p->stroke();
 
@@ -1116,7 +1154,7 @@ void GalleryItemRenderer::drawRectangularShadows() {
     float w = width() / rects - margin;
     float h = height() * 0.15;
     float posX = margin/2;
-    float posY = margin;
+    float posY = m_topMargin + margin;
 
     QRectF rect1(posX, posY, w, h);
     QCBoxShadow bs1(rect1);
@@ -1172,7 +1210,7 @@ void GalleryItemRenderer::drawRectangularShadows() {
     // Double shadows
     QRectF shadow1Rect = buttonRect.translated(-shadowOffsetX, shadowOffsetY);
     QCBoxShadow shadow;
-    QColor c("#393E46");
+    QColor c("#222831");
     QColor cl = c.lighter(200);
     QColor cd = c.darker(250);
     cl.setAlphaF(0.2);
@@ -1238,11 +1276,10 @@ void GalleryItemRenderer::drawCustomBrushes() {
     float w = width() * 0.8;
     float h = w * 0.3;
     float posX = width() * 0.5 - w * 0.5;
-    float posY = 0;
+    float posY = m_topMargin;
     float margin = width()*0.02f;
     float border = h * 0.1;
 
-    //painter()->setGlobalAlpha(0.2);
     QRectF rect1(posX,posY,w,h);
     // Set the color for custom brush
     m_customBrush.setData1(QVector4D(1.0, 0.0, 0.0, 1.0));
@@ -1287,7 +1324,7 @@ void GalleryItemRenderer::drawCustomBrushes() {
     painter()->setLineCap(QCPainter::LineCap::Round);
     m_customBrush2.setData1(QVector4D(m_animationSine, 0.0, 0.0, 1.0));
     painter()->setStrokeStyle(m_customBrush2);
-    painter()->setLineWidth(20);
+    painter()->setLineWidth(w * 0.04f);
     painter()->stroke();
 }
 
@@ -1295,20 +1332,12 @@ void GalleryItemRenderer::drawTextsFonts() {
 
     float margin = height() * 0.04f;
     float posX = margin/2;
-    float posY = margin;
-    painter()->reset();
+    float posY = m_topMargin;
     painter()->setFillStyle(0xFFFFFFFF);
     painter()->fillText("This is text without setting any font", posX, posY);
 
     posY += margin;
     QFont f;
-    painter()->setFont(f);
-    painter()->fillText("This is text with default font", posX, posY);
-
-    posY += margin;
-    painter()->fillText("This is text aligned to pixels", int(posX), int(posY));
-
-    posY += margin;
     painter()->setFillStyle(0xFFD06060);
     f.setPixelSize(20);
     painter()->setFont(f);
@@ -1403,10 +1432,11 @@ void GalleryItemRenderer::drawTextsFonts() {
 void GalleryItemRenderer::drawTextsBrushes() {
     float margin = height() * 0.04f;
     float posX = margin * 0.5;
-    float posY = margin * 2;
-    float fontSize = 40;
+    float posY = m_topMargin + margin;
+    float fontSize1 = width() * 0.09;
+    float fontSize2 = width() * 0.13;
     QFont f;
-    f.setPixelSize(fontSize);
+    f.setPixelSize(fontSize1);
     painter()->setFont(f);
     float w = width();
     QCLinearGradient g1(0, 0, 0, 0);
@@ -1417,7 +1447,7 @@ void GalleryItemRenderer::drawTextsBrushes() {
     painter()->setFillStyle(g1);
     painter()->fillText("Text with linear gradient", posX, posY);
 
-    posY += margin + fontSize;
+    posY += margin + fontSize1;
     float h = 80;
     QCRadialGradient g2;
     g2.setStartColor(QColor(200, 200, 50, 255));
@@ -1429,10 +1459,9 @@ void GalleryItemRenderer::drawTextsBrushes() {
     painter()->setFillStyle(g2);
     painter()->fillText("Text with radial gradient", posX, posY);
 
-    fontSize = 60;
-    posY += margin + fontSize;
+    posY += margin + fontSize2;
     QCConicalGradient g4;
-    g4.setCenterPosition(width() * 0.5, posY - fontSize * 0.5);
+    g4.setCenterPosition(width() * 0.5, posY - fontSize2 * 0.5);
     g4.setAngle(m_animationTime);
     g4.setStartColor(QColor(255, 255, 0, 255));
     g4.setColorAt(0.25, QColor(0, 255, 0, 255));
@@ -1440,18 +1469,18 @@ void GalleryItemRenderer::drawTextsBrushes() {
     g4.setColorAt(0.75, QColor(255, 0, 255, 255));
     g4.setEndColor(QColor(255, 255, 0, 255));
     painter()->setFillStyle(g4);
-    f.setPixelSize(fontSize);
+    f.setPixelSize(fontSize2);
     painter()->setFont(f);
     painter()->fillText("MULTIGRADIENT", posX, posY);
 
-    posY += margin + fontSize;
+    posY += margin + fontSize2;
     QCImagePattern p1 = QCImagePattern(m_patternImage2);
     p1.setImageSize(64, 64);
     p1.setStartPosition(0, m_animationTime * 10);
     painter()->setFillStyle(p1);
     painter()->fillText("IMAGE PATTERN", posX, posY);
 
-    posY += margin + fontSize;
+    posY += margin + fontSize2;
     QCGridPattern p2;
     p2.setStartPosition(m_animationSine * 10, 0);
     p2.setLineWidth(2);
@@ -1461,13 +1490,12 @@ void GalleryItemRenderer::drawTextsBrushes() {
     painter()->setFillStyle(p2);
     painter()->fillText("GRID PATTERN", posX, posY);
 
-    posY += margin + fontSize;
+    posY += margin + fontSize2;
     painter()->setFillStyle(m_customBrush3);
     painter()->fillText("Custom Brush", posX, posY);
 
-    fontSize = 40;
-    posY += margin + fontSize;
-    f.setPixelSize(fontSize);
+    posY += margin + fontSize2;
+    f.setPixelSize(fontSize1);
     painter()->setFont(f);
     // Font color in data1
     m_customBrush4.setData1(QVector4D(0.0, 0.0, 0.0, 1.0));
@@ -1480,7 +1508,7 @@ void GalleryItemRenderer::drawTextsAlignments() {
     float margin = height() * 0.15f;
     float fontSize = height() * 0.03f;
     float posX = margin/2;
-    float posY = margin/2;
+    float posY = m_topMargin + margin/4;
 
     QFont f3;
     f3.setPixelSize(fontSize);
@@ -1595,10 +1623,13 @@ void GalleryItemRenderer::drawTextsAlignments() {
 }
 
 void GalleryItemRenderer::drawTextsWrapping() {
-    float margin = height() * 0.05f;
+    const float anim = 0.5f + 0.5f * sin(m_animationTime);
+    float margin = height() * 0.02f;
     float fontSize = height() * 0.03f;
-    float posX = margin;
-    float posY = margin;
+    float posX = margin + (anim * width() * 0.2f);
+    float posY = m_topMargin;
+    float rectW = (width() - 2 * margin) - (anim * width() * 0.4f);
+    float rectH = height() * 0.18;
 
     QFont f3;
     f3.setPixelSize(fontSize);
@@ -1611,8 +1642,6 @@ void GalleryItemRenderer::drawTextsWrapping() {
     painter()->setTextBaseline(QCPainter::TextBaseline::Top);
     painter()->setTextAlign(QCPainter::TextAlign::Left);
     painter()->setTextLineHeight(-10);
-    float rectW = (width() - 2 * margin) - m_animationSine*width()*0.4f;
-    float rectH = 120;
     QRectF rect1(posX, posY, rectW, rectH);
     painter()->setStrokeStyle(0xFF393E46);
     painter()->strokeRect(rect1);
@@ -1645,10 +1674,10 @@ void GalleryItemRenderer::drawTextsWrapping() {
     painter()->setStrokeStyle(0xFFDFD0B8);
     painter()->strokeRect(boundingRect3);
 
-    posY += 1.6 * rectH + margin;
+    posY += 2.0 * rectH + margin;
     posX = 0.5f * width();
     QFont f4;
-    f4.setPixelSize(18);
+    f4.setPixelSize(width() * 0.04f);
     painter()->setFont(f4);
     painter()->setTextLineHeight(0);
     painter()->setTextWrapMode(QCPainter::WrapMode::WordWrap);
@@ -1658,8 +1687,8 @@ void GalleryItemRenderer::drawTextsWrapping() {
     painter()->setTextAlign(QCPainter::TextAlign::Center);
     //painter()->setTextAlign(QCPainter::TextAlign::Right);
     //painter()->setTextAlign(QCPainter::TextAlign::Left);
-    float circleRadius = 40 + 50 * m_animationSine;
-    float textMargin = 10;
+    float circleRadius = width() * 0.1f * (1.0 + anim);
+    float textMargin = width() * 0.04f;
     float textW = 2 * (circleRadius - textMargin);
     QString text = QStringLiteral("Circle radius: %1").arg(qRound(circleRadius));
     painter()->fillText(text, posX, posY, textW);
@@ -1677,7 +1706,7 @@ void GalleryItemRenderer::drawImages() {
 
     float margin = height()*0.05f;
     float posX = width()*0.1f;
-    float posY = margin;
+    float posY = m_topMargin;
 
     QRectF rect1(0, 0, width(), height());
     // Tint background image darker
@@ -1686,12 +1715,15 @@ void GalleryItemRenderer::drawImages() {
     painter()->setFillStyle(pattern);
     painter()->fillRect(rect1);
 
-    // Draw image at its native resolution
-    float imgX = 0.5 * width() - 0.5 * m_testImage.width();
-    painter()->drawImage(m_testImage, imgX, posY);
+    // Draw image scaled to view width
+    float imageRatio = float(m_testImage.height()) / m_testImage.width();
+    float imgX = margin;
+    float imgW = width() - 2 * margin;
+    QRectF imgRect(imgX, posY, imgW, imgW * imageRatio);
+    painter()->drawImage(m_testImage, imgRect);
 
     // Draw just the "Development" part of the image
-    posY += m_testImage.height() + margin;
+    posY += imgRect.height() + margin;
     float cropW = 105;
     QRectF sourceArea(cropW, 0, m_testImage.width() - cropW, m_testImage.height());
     float cx = width() * 0.5f;
@@ -1727,7 +1759,8 @@ void GalleryItemRenderer::drawImages() {
         posX += size + 2;
     }
     QFont font;
-    font.setPixelSize(QCPainter::mmToPx(4));
+    float fontSize = width() * 0.04f;
+    font.setPixelSize(fontSize);
     painter()->setTextAlign(QCPainter::TextAlign::Center);
     painter()->setTextBaseline(QCPainter::TextBaseline::Top);
     QString scaling = useNearest ? "NEAREST" : "LINEAR";
