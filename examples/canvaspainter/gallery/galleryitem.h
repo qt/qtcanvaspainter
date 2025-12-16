@@ -16,6 +16,7 @@ class GalleryItem : public QQuickCPainterItem
     Q_PROPERTY(int galleryView READ galleryView WRITE setGalleryView NOTIFY galleryViewChanged)
     Q_PROPERTY(float animationTime READ animationTime WRITE setAnimationTime NOTIFY animationTimeChanged)
     Q_PROPERTY(float animationSine READ animationSine WRITE setAnimationSine NOTIFY animationSineChanged)
+    Q_PROPERTY(float animState READ animState WRITE setAnimState NOTIFY animStateChanged)
 
 public:
 
@@ -27,6 +28,7 @@ public:
     int galleryView() const { return m_galleryView; }
     float animationTime() const { return m_animationTime; }
     float animationSine() const { return m_animationSine; }
+    float animState() const { return m_animState; }
 
     void setGalleryView(int value) {
         if (m_galleryView == value)
@@ -52,15 +54,25 @@ public:
         update();
     }
 
+    void setAnimState(float value) {
+        if (qFuzzyCompare(value, m_animState))
+            return;
+        m_animState = value;
+        Q_EMIT animStateChanged();
+        update();
+    }
+
 Q_SIGNALS:
     void galleryViewChanged();
     void animationTimeChanged();
     void animationSineChanged();
+    void animStateChanged();
 
 private:
     int m_galleryView = 0;
     float m_animationTime = 0.0f;
     float m_animationSine = 0.0f;
+    float m_animState = 0.0f;
 };
 
 #endif // GALLERYITEM_H
