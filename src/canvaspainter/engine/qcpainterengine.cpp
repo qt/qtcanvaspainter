@@ -37,7 +37,7 @@ QT_BEGIN_NAMESPACE
 #define QCPAINTER_MAX_STATES 32
 #endif
 
-static const float QCPAINTER_MAX_STROKE_WIDTH = 100.0f;
+static const float QCPAINTER_MAX_STROKE_WIDTH = 1000.0f;
 static const float QCPAINTER_MAX_ANTIALIAS_WIDTH = 10.0f;
 static const int QCPAINTER_MAX_TESSELATE_LEVEL = 11;
 
