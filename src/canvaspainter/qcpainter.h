@@ -20,7 +20,6 @@ QT_BEGIN_NAMESPACE
 class QCBrush;
 class QCImage;
 class QCPainterPath;
-class QCText;
 class QCBoxShadow;
 class QRhiTexture;
 class QCPainterPrivate;
@@ -219,16 +218,13 @@ public:
     void setTextLineHeight(float height);
     void setTextAntialias(float antialias);
 
-    void prepareText(const QCText &text);
-    void fillText(const QString &text, float x, float y, float maxWidth = -1, int cacheIndex = -1);
-    void fillText(const QString &text, QPointF point, float maxWidth = -1, int cacheIndex = -1);
-    void fillText(const QString &text, const QRectF &rect, int cacheIndex = -1);
-    void fillText(const QCText &text);
+    void fillText(const QString &text, float x, float y, float maxWidth = -1);
+    void fillText(const QString &text, QPointF point, float maxWidth = -1);
+    void fillText(const QString &text, const QRectF &rect);
 
     QRectF textBoundingBox(const QString &text, float x, float y, float maxWidth = -1);
     QRectF textBoundingBox(const QString &text, QPointF point, float maxWidth = -1);
     QRectF textBoundingBox(const QString &text, const QRectF &rect);
-    QRectF textBoundingBox(const QCText &text);
 
     // *** Other ***
 

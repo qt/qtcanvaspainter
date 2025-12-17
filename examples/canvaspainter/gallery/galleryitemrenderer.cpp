@@ -12,9 +12,9 @@
 #include "qcboxshadow.h"
 #include "qcgridpattern.h"
 #include "qcpainterpath.h"
-#include "qctext.h"
 #include <math.h>
 #include <QFontDatabase>
+#include <QImage>
 
 GalleryItemRenderer::GalleryItemRenderer()
 {
@@ -1443,10 +1443,6 @@ void GalleryItemRenderer::drawTextsBrushes() {
     f.setPixelSize(fontSize);
     painter()->setFont(f);
     painter()->fillText("MULTIGRADIENT", posX, posY);
-    //m_text1.setText("MULTIGRADIENT");
-    //m_text1.setX(posX);
-    //m_text1.setY(posY);
-    painter()->fillText(m_text1);
 
     posY += margin + fontSize;
     QCImagePattern p1 = QCImagePattern(m_patternImage2);

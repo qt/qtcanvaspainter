@@ -11,7 +11,6 @@
 #include "qcbrush.h"
 #include "qccustombrush.h"
 
-#include "qctext.h"
 #include "qcimage_p.h"
 #include "qcboxshadow.h"
 
@@ -1441,27 +1440,17 @@ void QCPainter::setTextAntialias(float antialias)
     d->engine()->setTextAntialias(antialias);
 }
 
-// TODO: Document or remove, depending if this is used in public API.
-void QCPainter::prepareText(const QCText &text)
-{
-    Q_D(QCPainter);
-    d->prepareText(text);
-}
-
 /*!
     Draws \a text string at specified location ( \a x, \a y), with current textAlign and textBaseline.
     To make the text wrap into multiple lines, set optional \a maxWidth parameter to preferred
     row width in pixels. White space is stripped at the beginning of the rows,
     the text is split at word boundaries or when new-line characters are encountered.
     Words longer than the max width are split at nearest character (i.e. no hyphenation).
-
-    \a cacheIndex is optional.
 */
-void QCPainter::fillText(const QString &text, float x, float y, float maxWidth, int cacheIndex)
+void QCPainter::fillText(const QString &text, float x, float y, float maxWidth)
 {
-    // TODO: Document cacheIndex properly.
     Q_D(QCPainter);
-    d->fillText(text, x, y, maxWidth, cacheIndex);
+    d->fillText(text, x, y, maxWidth);
 }
 
 /*!
@@ -1476,10 +1465,10 @@ void QCPainter::fillText(const QString &text, float x, float y, float maxWidth, 
     This is an overloaded method using QPointF.
 */
 
-void QCPainter::fillText(const QString &text, QPointF point, float maxWidth, int cacheIndex)
+void QCPainter::fillText(const QString &text, QPointF point, float maxWidth)
 {
     Q_D(QCPainter);
-    d->fillText(text, point.x(), point.y(), maxWidth, cacheIndex);
+    d->fillText(text, point.x(), point.y(), maxWidth);
 }
 
 /*!
@@ -1491,25 +1480,11 @@ void QCPainter::fillText(const QString &text, QPointF point, float maxWidth, int
     This is an overloaded method using QRectF. It is often useful to set the
     text baseline to \l TextBaseline::Top or \l TextBaseline::Middle when painting
     text with this method.
-
-    \a cacheIndex is optional.
 */
-void QCPainter::fillText(const QString &text, const QRectF &rect, int cacheIndex)
-{
-    // TODO: Document cacheIndex properly.
-    Q_D(QCPainter);
-    d->fillText(text, rect, cacheIndex);
-}
-
-/*!
-    \overload
-
-    Draws the text container \a text according to its specification.
-*/
-void QCPainter::fillText(const QCText &text)
+void QCPainter::fillText(const QString &text, const QRectF &rect)
 {
     Q_D(QCPainter);
-    d->fillText(text);
+    d->fillText(text, rect);
 }
 
 /*!
@@ -1552,13 +1527,6 @@ QRectF QCPainter::textBoundingBox(const QString &text, const QRectF &rect)
 {
     Q_D(QCPainter);
     return d->textBoundingBox(text, rect);
-}
-
-// TODO: API Docs
-QRectF QCPainter::textBoundingBox(const QCText &text)
-{
-    Q_D(QCPainter);
-    return d->textBoundingBox(text);
 }
 
 /*!
@@ -2005,31 +1973,16 @@ void QCPainterPrivate::setFont(const QFont &font)
     m_e->state.font = font;
 }
 
-void QCPainterPrivate::prepareText(const QCText &text)
-{
-    m_e->prepareText(const_cast<QCText &>(text));
-}
-
-void QCPainterPrivate::fillText(const QString &text, float x, float y, float maxWidth, int cacheIndex)
+void QCPainterPrivate::fillText(const QString &text, float x, float y, float maxWidth)
 {
     // Unify point & rect APIs behavior.
     const QRectF rect = textAlignedRectFromPoint(m_e->state.textAlignment, x, y, maxWidth);
-    fillText(text, rect, cacheIndex);
+    fillText(text, rect);
 }
 
-void QCPainterPrivate::fillText(const QString &text, const QRectF &rect, int cacheIndex)
+void QCPainterPrivate::fillText(const QString &text, const QRectF &rect)
 {
-    m_e->fillText(text, rect, cacheIndex);
-}
-
-void QCPainterPrivate::fillText(const QCText &text)
-{
-    m_e->fillText(const_cast<QCText &>(text));
-}
-
-QRectF QCPainterPrivate::textBoundingBox(const QCText &text)
-{
-    return m_e->textBoundingBox(const_cast<QCText &>(text));
+    m_e->fillText(text, rect);
 }
 
 QRectF QCPainterPrivate::textBoundingBox(const QString &text, float x, float y, float maxWidth)

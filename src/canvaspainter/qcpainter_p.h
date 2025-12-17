@@ -82,11 +82,8 @@ public:
     void markTextureIdUsed(int imageId);
 
     void setFont(const QFont &font);
-    void prepareText(const QCText &text);
-    void fillText(const QString &text, float x, float y, float maxWidth = -1, int cacheIndex = -1);
-    void fillText(const QString &text, const QRectF &rect, int cacheIndex = -1);
-    void fillText(const QCText &text);
-    QRectF textBoundingBox(const QCText &text);
+    void fillText(const QString &text, float x, float y, float maxWidth = -1);
+    void fillText(const QString &text, const QRectF &rect);
     QRectF textBoundingBox(const QString &text, float x, float y, float maxWidth = -1);
     QRectF textBoundingBox(const QString &text, const QRectF &rect);
 

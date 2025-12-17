@@ -130,11 +130,8 @@ public:
     void setTextAlignment(QCPainter::TextAlign align);
     void setTextBaseline(QCPainter::TextBaseline baseline);
     void setTextDirection(QCPainter::TextDirection direction);
-    void prepareText(QCText &text);
-    void fillText(const QString &text, const QRectF &rect, int cacheIndex);
-    void fillText(QCText &text);
+    void fillText(const QString &text, const QRectF &rect);
     QRectF textBoundingBox(const QString &text, const QRectF &rect);
-    QRectF textBoundingBox(QCText &text);
 
     // Other
     QCDrawDebug drawDebug() const;
