@@ -135,21 +135,6 @@ public:
         const QCState &state,
         const std::vector<QCRhiDistanceFieldGlyphCache::TexturedPoint2D> &verts,
         const std::vector<uint32_t> &indices);
-    void renderTextFill(
-        const QCPaint &paint,
-        const QCState &state,
-        const std::vector<QCRhiDistanceFieldGlyphCache::TexturedPoint2D> &verts,
-        const std::vector<uint32_t> &indices,
-        QCText &text,
-        bool isDirty);
-    void renderTextFillCustom(
-        const QCPaint &paint,
-        const QCState &state,
-        QCCustomBrush *brush,
-        const std::vector<QCRhiDistanceFieldGlyphCache::TexturedPoint2D> &verts,
-        const std::vector<uint32_t> &indices,
-        QCText &text,
-        bool isDirty);
     void renderTextFillCustom(
         const QCPaint &paint,
         const QCState &state,
@@ -162,12 +147,6 @@ public:
         const QString &text,
         std::vector<QCRhiDistanceFieldGlyphCache::TexturedPoint2D> &vertices,
         std::vector<uint32_t> &indices,
-        int *textureWidth,
-        int *textureHeight);
-
-    int populateFont(
-        const QFont &font,
-        QCText &text,
         int *textureWidth,
         int *textureHeight);
 #endif

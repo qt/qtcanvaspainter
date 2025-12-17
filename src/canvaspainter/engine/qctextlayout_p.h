@@ -33,19 +33,6 @@ class QCTextLayout
 public:
     QCTextLayout();
 
-    void createOptimizedLayout(QRhi *rhi, const QFont &font, QCRhiDistanceFieldGlyphCache *cache);
-    void createDefaultLayout(
-        QRhi *rhi,
-        QCText &text,
-        const QFont &font,
-        QCState *state,
-        QCRhiDistanceFieldGlyphCache *cache,
-        QCDistanceFieldGlyphCache::FontKeyData *data);
-    TextPoints constructOptimizedBufferForString(const QString &txt);
-    TextPoints getDefaultBuffer() const;
-    bool isOptimized() const;
-    void setOptimized(bool o);
-
     const QRectF bounds() const;
 
     static QTextOption::WrapMode convertToQtWrapMode(QCPainter::WrapMode mode);
@@ -55,21 +42,13 @@ public:
 
 private:
     void generateVertexData(QCRhiDistanceFieldGlyphCache *cache);
-    void generateDefaultVertexData(
-        const QCText &text, const QFont &font, QCState *state, QCRhiDistanceFieldGlyphCache *cache, QCDistanceFieldGlyphCache::FontKeyData *data);
 
-    const QString m_commonText = QStringLiteral(".:0123456789");
     QTextLayout m_textLayout;
     QList<QGlyphRun> m_runs;
     bool m_initialized = false;
-    bool m_optimized = false;
 
     QVarLengthArray<QCRhiDistanceFieldGlyphCache::TexturedPoint2D, 256> verts;
     QVarLengthArray<ushort, 384> indices;
-
-    // For default layout
-    std::vector<QCRhiDistanceFieldGlyphCache::TexturedPoint2D> defaultVerts;
-    std::vector<uint32_t> defaultIndices;
 
     QRectF m_bounds;
 };

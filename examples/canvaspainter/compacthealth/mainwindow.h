@@ -8,7 +8,6 @@
 #include <QtCanvasPainter/QCPainter>
 #include <QtCanvasPainter/QCImage>
 #include <QtCanvasPainter/QCPainterPath>
-#include <QtCanvasPainter/QCText>
 #include <QTimer>
 #include <QElapsedTimer>
 
@@ -115,7 +114,6 @@ private:
     View m_views[ViewsEnd];
     // These views will be shows with warning box
     QSet<int> m_warningViews;
-    QVarLengthArray<QCText, 10> m_texts;
 
     Theme m_theme;
     float m_iconSize = 20;

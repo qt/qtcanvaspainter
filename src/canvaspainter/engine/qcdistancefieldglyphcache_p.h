@@ -70,9 +70,6 @@ public:
     std::tuple<std::vector<QCRhiDistanceFieldGlyphCache::TexturedPoint2D>, std::vector<uint32_t>>
     generate(const QString &text, const QRectF &rect, const QFont &font, QCState *state, QCPainter::TextAlign alignment);
 
-    std::tuple<std::vector<QCRhiDistanceFieldGlyphCache::TexturedPoint2D>, std::vector<uint32_t>>
-    generate(QCText &text, const QFont &font, QCState *state, QCContext *ctx);
-
     void commitResourceUpdates(QRhiResourceUpdateBatch *batch);
 
     QRhiTexture *getCurrentTextures(const FontKey &key) const;

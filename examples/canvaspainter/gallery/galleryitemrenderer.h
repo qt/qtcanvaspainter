@@ -9,7 +9,6 @@
 #include <QtCanvasPainter/qcpainter.h>
 #include <QtCanvasPainter/qcradialgradient.h>
 #include <QtCanvasPainter/qccustombrush.h>
-#include <QtCanvasPainter/qctext.h>
 #include <QtCanvasPainter/qcimage.h>
 
 #include <QQuickItem>
@@ -96,7 +95,6 @@ private:
     QCCustomBrush m_customBrush2;
     QCCustomBrush m_customBrush3;
     QCCustomBrush m_customBrush4;
-    QCText m_text1;
 };
 
 #endif // GALLERYITEMRENDERER_H

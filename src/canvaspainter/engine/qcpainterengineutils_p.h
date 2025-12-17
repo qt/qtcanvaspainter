@@ -24,7 +24,6 @@
 #include <QDebug>
 #include <QMetaEnum>
 #include "qcpainter.h"
-#include "qctext.h"
 #ifndef QCPAINTER_DISABLE_TEXT_SUPPORT
 #include "engine/qcrhidistancefieldglyphcache_p.h"
 #endif
@@ -33,7 +32,6 @@ QT_BEGIN_NAMESPACE
 
 class QCPainterRhiRenderer;
 class QCCustomBrush;
-class QCTextLayout;
 
 // Enable this to get performance logging outputs
 //#define QCPAINTER_PERF_DEBUG
@@ -171,22 +169,6 @@ struct QCCachedPath
     float edgeAAWidth = 1.0f;
 };
 
-#ifndef QCPAINTER_DISABLE_TEXT_SUPPORT
-struct QCTextCache
-{
-    QCTextLayout *layout = nullptr;
-    std::vector<QCRhiDistanceFieldGlyphCache::TexturedPoint2D> verts;
-    std::vector<QCRhiDistanceFieldGlyphCache::TexturedPoint2D> transformedVerts;
-    std::vector<uint32_t> indices;
-    int sizeChange = 0;
-    int atlasId;
-    uint32_t vIndex = 0;
-    uint32_t iIndex = 0;
-    bool isDirty = true;
-    bool indexesInitialized = false; // TODO: Better way than this?
-    QTransform previousTransform = {};
-};
-#endif
 
 struct QCContext {
     QCCommands commands;
@@ -207,10 +189,6 @@ struct QCContext {
     QTransform preparedTransform;
     QHash<const QCPainterPath*, QCCachedPath> cachedFillPaths;
     QHash<const QCPainterPath*, QCCachedPath> cachedStrokePaths;
-#ifndef QCPAINTER_DISABLE_TEXT_SUPPORT
-    QHash<quint32, QCTextCache> cachedTexts;
-    QHash<quint32, QCText> cachedCTexts;
-#endif
     QList<QCState> states;
     QRectF view;
     QRectF bounds;

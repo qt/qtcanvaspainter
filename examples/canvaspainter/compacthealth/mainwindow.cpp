@@ -3,7 +3,7 @@
 
 #include "mainwindow.h"
 #include <QRandomGenerator>
-#include <QtCanvasPainter/QCText>
+#include <QTouchEvent>
 
 MainWindow::MainWindow(QRhi::Implementation api)
     : PainterWindow(api)
@@ -27,7 +27,7 @@ MainWindow::MainWindow(QRhi::Implementation api)
     m_timer.start(500);
     m_elapsedTimer.start();
 
-    m_texts.resize(m_texts.capacity());
+    //m_texts.resize(m_texts.capacity());
 }
 
 MainWindow::~MainWindow()
@@ -189,37 +189,23 @@ void MainWindow::paint(QCPainter *p)
     p->setTextBaseline(QCPainter::TextBaseline::Middle);
     for (int i = 0; i < titleRects.size(); i++) {
         const auto r = titleRects.at(i);
-        m_texts[textIndex].setText(m_views[i].title);
-        m_texts[textIndex].setRect(r);
-        p->fillText(m_texts[textIndex++]);
+        p->fillText(m_views[i].title, r);
     }
 
     // Widget texts
     p->setFont(m_bigFont);
     p->setFillStyle(m_theme.foreground1());
     auto r1 = m_views[W1].rect;
-
-    m_texts[textIndex].setText(QString::number(int(m_hr)));
-    m_texts[textIndex].setRect(r1);
-    p->fillText(m_texts[textIndex++]);
+    p->fillText(QString::number(int(m_hr)), r1);
 
     auto r2 = m_views[W2].rect;
-    // r2.adjust(0, 0.6 * r2.height(), 0, 0);
-    m_texts[textIndex].setText(QString::number(m_spo2, 'f', 1));
-    m_texts[textIndex].setRect(r2);
-    p->fillText(m_texts[textIndex++]);
+    p->fillText(QString::number(m_spo2, 'f', 1), r2);
 
     auto r3 = m_views[W3].rect;
-    // r3.adjust(0, 0.6 * r3.height(), 0, 0);
-    m_texts[textIndex].setText(QString::number(m_awrr, 'f', 1));
-    m_texts[textIndex].setRect(r3);
-    p->fillText(m_texts[textIndex++]);
+    p->fillText(QString::number(m_awrr, 'f', 1), r3);
 
     auto r4 = m_views[W4].rect;
-    // r4.adjust(0, 0.6 * r4.height(), 0, 0);
-    m_texts[textIndex].setText(QString::number(m_temperature, 'f', 1));
-    m_texts[textIndex].setRect(r4);
-    p->fillText(m_texts[textIndex++]);
+    p->fillText(QString::number(m_temperature, 'f', 1), r4);
 
     // Paint graphs grid
     const auto gridRect = m_views[Center].rect;

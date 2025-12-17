@@ -11,7 +11,6 @@
 #include "qcpainter_p.h"
 #include "qccustombrush.h"
 #include "qcpainterpath.h"
-#include "qctext.h"
 #include "qcoffscreencanvas_p.h"
 
 #include <math.h>
@@ -115,7 +114,6 @@ struct QCRHICall {
     QShader customVertShader;
     QCPainterPath *painterPath = nullptr;
     int pathGroup = -1;
-    quint32 textItemId = quint32(-1);
 };
 
 struct QCRHIPath {
@@ -463,8 +461,6 @@ struct QCRHIContext
     struct PerPassData {
         QRhiBuffer *vertexBuffer = nullptr;
         QRhiBuffer *indexBuffer = nullptr;
-        QRhiBuffer *textVertexBuffer = nullptr;
-        QRhiBuffer *textIndexBuffer = nullptr;
         QRhiBuffer *vsUniformBuffer = nullptr; // Static vs buffer, shared for every call
         QRhiBuffer *vsUniformBuffer2 = nullptr; // Dynamic vs buffer
         QRhiBuffer *commonUniformBuffer = nullptr; // Dynamic uniform buffer for vs & fs
@@ -1703,7 +1699,6 @@ void QCPainterRhiRenderer::renderTextFill(
     call->blendFunc = blendCompositeOperation(state.compositeOperation, state.blendEnable);
     const QRectF clipRect = state.clip.rect;
     call->scissor.setScissor(clipRect.x(), clipRect.y(), clipRect.width(), clipRect.height());
-    call->textItemId = -1;
 
     // Allocate vertices for all the paths.
     const int vertsCount = int(verts.size());
@@ -1727,136 +1722,6 @@ void QCPainterRhiRenderer::renderTextFill(
     auto frag = uniformPtr(call->commonUniformBufferOffset);
     const float aa = 1.0f;
     preparePaint(frag, paint, state, 1.0f, aa, -1.0f, ctx.fontAlphaMin, ctx.fontAlphaMax);
-}
-
-// Fill static text with normal brush
-void QCPainterRhiRenderer::renderTextFill(
-    const QCPaint &paint,
-    const QCState &state,
-    const std::vector<QCRhiDistanceFieldGlyphCache::TexturedPoint2D> &verts,
-    const std::vector<uint32_t> &indices,
-    QCText &text,
-    bool isDirty)
-{
-    QCRHICall *call = allocCall();
-    auto &ctx = m_e->ctx;
-
-    call->type = CallText;
-    // Text uses own AA, so disable stroke antialiasing.
-    call->renderFlags = rhiCtx->flags;
-    call->renderFlags &= ~RenderFlag::Antialiasing;
-    call->image = paint.imageId;
-    call->font = ctx.fontId;
-    call->blendFunc = blendCompositeOperation(state.compositeOperation, state.blendEnable);
-    const QRectF clipRect = state.clip.rect;
-    call->scissor.setScissor(clipRect.x(), clipRect.y(), clipRect.width(), clipRect.height());
-    QCTextCache &ct = ctx.cachedTexts[text.getId()];
-
-    if (!ct.indexesInitialized) {
-        ct.vIndex = rhiCtx->textVertexOffset;
-        ct.iIndex = rhiCtx->textIndexOffset;
-
-        rhiCtx->textVertexOffset += uint32_t(sizeof(QCVertex) * verts.size());
-        rhiCtx->textIndexOffset += uint32_t(sizeof(uint32_t) * indices.size());
-        ct.indexesInitialized = true;
-    } else if (ct.sizeChange != 0) { // Recalculate change in size
-        auto change = ct.sizeChange;
-        auto start = ct.vIndex;
-
-        // Mark all the following caches dirty
-        for (auto i = ctx.cachedTexts.begin(); i != ctx.cachedTexts.end(); ++i) {
-            if (i->vIndex > start) {
-                i->vIndex += uint32_t(change * sizeof(QCVertex));
-                i->iIndex += uint32_t(change * (3.0f / 2.0f) * sizeof(uint32_t));
-                i->isDirty = true;
-            }
-        }
-
-        rhiCtx->textVertexOffset += uint32_t(change * sizeof(QCVertex));
-        rhiCtx->textIndexOffset += uint32_t(change * (3.0f / 2.0f) * sizeof(uint32_t));
-    }
-
-    ct.sizeChange = 0;
-
-    if (isDirty)
-        ct.isDirty = true;
-
-    // TODO: Set this null!
-    call->textItemId = text.getId();
-
-    // Fill shader
-    call->commonUniformBufferOffset = allocCommonUniforms(1);
-    auto frag = uniformPtr(call->commonUniformBufferOffset);
-    const float aa = 1.0f;
-    preparePaint(frag, paint, state, 1.0f, aa, -1.0f, ctx.fontAlphaMin, ctx.fontAlphaMax);
-}
-
-// Fill static text with custom brush
-void QCPainterRhiRenderer::renderTextFillCustom(
-        const QCPaint &paint,
-        const QCState &state,
-        QCCustomBrush *brush,
-        const std::vector<QCRhiDistanceFieldGlyphCache::TexturedPoint2D> &verts,
-        const std::vector<uint32_t> &indices,
-        QCText &text,
-        bool isDirty)
-{
-    QCRHICall *call = allocCall();
-    auto &ctx = m_e->ctx;
-    QCTextCache &ct = ctx.cachedTexts[text.getId()];
-
-    call->type = CallText;
-    // Text uses own AA, so disable stroke antialiasing.
-    call->renderFlags = rhiCtx->flags;
-    call->renderFlags &= ~RenderFlag::Antialiasing;
-    call->image = paint.imageId;
-    call->font = ctx.fontId;
-    if (brush) {
-        auto *customBrushPriv = QCCustomBrushPrivate::get(brush);
-        call->customFragShader = customBrushPriv->fragmentShader;
-        call->customVertShader = customBrushPriv->vertexShader;
-    }
-    call->blendFunc = blendCompositeOperation(state.compositeOperation, state.blendEnable);
-    const QRectF clipRect = state.clip.rect;
-    call->scissor.setScissor(clipRect.x(), clipRect.y(), clipRect.width(), clipRect.height());
-
-    if (!ct.indexesInitialized) {
-        ct.vIndex = rhiCtx->textVertexOffset;
-        ct.iIndex = rhiCtx->textIndexOffset;
-
-        rhiCtx->textVertexOffset += uint32_t(sizeof(QCVertex) * verts.size());
-        rhiCtx->textIndexOffset += uint32_t(sizeof(uint32_t) * indices.size());
-        ct.indexesInitialized = true;
-    } else if (ct.sizeChange != 0) { // Recalculate change in size
-        auto change = ct.sizeChange;
-        auto start = ct.vIndex;
-        // Mark all the following caches dirty
-        for (auto i = ctx.cachedTexts.begin(); i != ctx.cachedTexts.end(); ++i) {
-            if (i->vIndex > start) {
-                i->vIndex += uint32_t(change * sizeof(QCVertex));
-                i->iIndex += uint32_t(change * (3.0f / 2.0f) * sizeof(uint32_t));
-                i->isDirty = true;
-            }
-        }
-
-        rhiCtx->textVertexOffset += uint32_t(change * sizeof(QCVertex));
-        rhiCtx->textIndexOffset += uint32_t(change * (3.0f / 2.0f) * sizeof(uint32_t));
-    }
-
-    ct.sizeChange = 0;
-
-    if (isDirty)
-        ct.isDirty = true;
-
-    // TODO: Set this null!
-    call->textItemId = text.getId();
-
-    // Fill shader
-    call->commonUniformBufferOffset = allocCommonUniforms(1);
-    auto frag = customUniformPtr(call->commonUniformBufferOffset);
-    const float aa = 1.0f;
-    prepareCustomPaint(frag, paint, brush, state, 0.1f, aa, -1.0f,
-                       ctx.fontAlphaMin, ctx.fontAlphaMax);
 }
 
 // Fill direct text with custom brush
@@ -1884,7 +1749,6 @@ void QCPainterRhiRenderer::renderTextFillCustom(
     call->blendFunc = blendCompositeOperation(state.compositeOperation, state.blendEnable);
     const QRectF clipRect = state.clip.rect;
     call->scissor.setScissor(clipRect.x(), clipRect.y(), clipRect.width(), clipRect.height());
-    call->textItemId = -1;
 
     // Allocate vertices for all the paths.
     const int vertsCount = int(verts.size());
@@ -1947,22 +1811,6 @@ void QCPainterRhiRenderer::endPrepare()
                 return;
             }
         }
-        if (!ppd->textVertexBuffer) {
-            ppd->textVertexBuffer = rhiCtx->rhi->newBuffer(QRhiBuffer::Static, QRhiBuffer::VertexBuffer, 16384);
-            ppd->textVertexBuffer->setName("qc text vertex buffer");
-            if (!ppd->textVertexBuffer->create()) {
-                qWarning("Failed to create text vertex buffer");
-                return;
-            }
-        }
-        if (!ppd->textIndexBuffer) {
-            ppd->textIndexBuffer = rhiCtx->rhi->newBuffer(QRhiBuffer::Static, QRhiBuffer::IndexBuffer, 16384);
-            ppd->textIndexBuffer->setName("qc text index buffer");
-            if (!ppd->textIndexBuffer->create()) {
-                qWarning("Failed to create text index buffer");
-                return;
-            }
-        }
         if (!ppd->vsUniformBuffer) {
             ppd->vsUniformBuffer = rhiCtx->rhi->newBuffer(QRhiBuffer::Dynamic, QRhiBuffer::UniformBuffer, 20);
             ppd->vsUniformBuffer->setName("qc vs uniform buffer");
@@ -2015,38 +1863,6 @@ void QCPainterRhiRenderer::endPrepare()
             ensureBufferCapacity(&ppd->indexBuffer, sizeOfIBuf, overAllocate);
             u->uploadStaticBuffer(ppd->indexBuffer, 0, sizeOfIBuf, rhiCtx->indices.constData());
         }
-
-#ifndef QCPAINTER_DISABLE_TEXT_SUPPORT
-        // Upload texts
-        auto &cachedTexts = m_e->ctx.cachedTexts;
-        if (!cachedTexts.isEmpty()) {
-            int textVerts = 0;
-            int textIndices = 0;
-            for (auto ct = cachedTexts.constBegin(); ct != cachedTexts.constEnd(); ++ct) {
-                textVerts += int(ct->transformedVerts.size());
-                textIndices += int(ct->indices.size());
-            }
-            ensureBufferCapacity(&ppd->textVertexBuffer, textVerts * uint32_t(sizeof(QCVertex)));
-            ensureBufferCapacity(&ppd->textIndexBuffer, textIndices * uint32_t(sizeof(uint32_t)));
-            // TODO: Should there be a way to update the whole buffer instead
-            // of a for loop, when plenty of cachedTexts are dirty?
-            for (auto ct = cachedTexts.begin(); ct != cachedTexts.end(); ++ct) {
-                if (ct->isDirty) {
-                    u->uploadStaticBuffer(
-                        ppd->textVertexBuffer,
-                        ct->vIndex,
-                        uint32_t(sizeof(QCVertex) * ct->transformedVerts.size()),
-                        ct->transformedVerts.data());
-                    u->uploadStaticBuffer(
-                        ppd->textIndexBuffer,
-                        ct->iIndex,
-                        uint32_t(sizeof(uint32_t) * ct->indices.size()),
-                        ct->indices.data());
-                    ct->isDirty = false;
-                }
-            }
-        }
-#endif
 
         for (auto g = ppd->cachedPaths.begin(), end = ppd->cachedPaths.end(); g != end; ++g) {
             auto cpg = &g.value();
@@ -2309,23 +2125,8 @@ void QCPainterRhiRenderer::bindPipeline(QCRHICall *call,
         else
             vbufBinding.first = cpg.fillVertexBuffer;
         indexBuffer = cpg.indexBuffer;
-    } else if (call->type == CallText && call->textItemId != quint32(-1)) {
-#ifndef QCPAINTER_DISABLE_TEXT_SUPPORT
-        if (m_e->ctx.cachedTexts.contains(call->textItemId)) {
-            vbufBinding.first = ppd->textVertexBuffer;
-            indexBuffer = ppd->textIndexBuffer;
-        }
-#endif
     }
 
-#ifndef QCPAINTER_DISABLE_TEXT_SUPPORT
-    if (indexedDraw && call->type == CallText) {
-        rhiCtx->cb->setVertexInput(
-            0, 1, &vbufBinding, indexBuffer,
-            m_e->ctx.cachedTexts.value(call->textItemId).iIndex,
-            QRhiCommandBuffer::IndexUInt32);
-    }
-#endif
     if (indexedDraw) {
         rhiCtx->cb->setVertexInput(
             0, 1, &vbufBinding, indexBuffer,
@@ -2358,8 +2159,6 @@ void QCPainterRhiRenderer::renderDelete()
     for (const QCRHIContext::PerPassData &ppd : rhiCtx->perPassData) {
         delete ppd.vertexBuffer;
         delete ppd.indexBuffer;
-        delete ppd.textVertexBuffer;
-        delete ppd.textIndexBuffer;
         delete ppd.vsUniformBuffer;
         delete ppd.vsUniformBuffer2;
         delete ppd.commonUniformBuffer;
@@ -2445,56 +2244,6 @@ int QCPainterRhiRenderer::populateFont(
 
     vertices = vertCoords;
     indices = indexCoords;
-
-    tex->width = *textureWidth;
-    tex->height = *textureHeight;
-
-    return tex->id;
-}
-
-int QCPainterRhiRenderer::populateFont(
-    const QFont &font, QCText &text, int *textureWidth, int *textureHeight)
-{
-    QCRHIContext *rc = rhiCtx;
-    QCRHITexture *tex = nullptr;
-
-    auto [vertCoords, indexCoords] = rc->fontCache->generate(text, font, &(m_e->state), &(m_e->ctx));
-
-    QRhiResourceUpdateBatch *u = resourceUpdateBatch();
-
-    rc->fontCache->commitResourceUpdates(u);
-
-    const auto cacheKey = QCDistanceFieldGlyphCache::FontKey(QRawFont::fromFont(font));
-    auto mainTexture = rc->fontCache->getCurrentTextures(cacheKey);
-    auto currentTexture = rc->fontCache->getOldTextures(cacheKey);
-
-    if (!mainTexture)
-        return 0;
-
-    // Font texture not created or changed
-    if (!currentTexture) {
-        tex = renderCreateNativeTexture(mainTexture);
-        rc->fontCache->setOldTexture(cacheKey, tex->tex);
-    }
-    // Texture has already been created
-    if (!tex && currentTexture != mainTexture) {
-        tex = renderUpdateNativeTexture(currentTexture, mainTexture);
-        rc->fontCache->setOldTexture(cacheKey, tex->tex);
-    } else if (!tex) {
-        // Find texture
-        tex = findTexture(currentTexture);
-    }
-
-    // Todo: Gets only one texture, add support for multiple
-    if (!tex)
-        return 0;
-
-    *textureWidth = tex->tex->pixelSize().width();
-    *textureHeight = tex->tex->pixelSize().height();
-
-    QCTextCache &ct = m_e->ctx.cachedTexts[text.getId()];
-    ct.verts = vertCoords;
-    ct.indices = indexCoords;
 
     tex->width = *textureWidth;
     tex->height = *textureHeight;
@@ -2694,21 +2443,12 @@ void QCPainterRhiRenderer::render()
         } else if (call->type == CallText) {
 #ifndef QCPAINTER_DISABLE_TEXT_SUPPORT
             bindPipeline(call, 0, 0, vertDynamicOffsetForCall, dynamicOffsetForCall, true, &needsViewport);
-            if (call->textItemId != quint32(-1)) {
-                // Draw static text
-                const QCTextCache &ct = m_e->ctx.cachedTexts.value(call->textItemId);
-                rhiCtx->cb->drawIndexed(
-                    uint32_t(ct.indices.size()), 1, ct.iIndex / sizeof(uint32_t), ct.vIndex / sizeof(QCVertex));
-                logTextDrawCallCount++;
-                logTextTriCount += int(ct.indices.size()) / 3;
-            } else {
-                // Draw direct text
-                const int iCount = (call->triangleCount / 2) * 3;
-                rhiCtx->cb->drawIndexed(
+
+            const int iCount = (call->triangleCount / 2) * 3;
+            rhiCtx->cb->drawIndexed(
                     iCount, 1, call->indexOffset, call->triangleOffset);
-                logTextDrawCallCount++;
-                logTextTriCount += iCount / 3;
-            }
+            logTextDrawCallCount++;
+            logTextTriCount += iCount / 3;
 #endif
         }
     }

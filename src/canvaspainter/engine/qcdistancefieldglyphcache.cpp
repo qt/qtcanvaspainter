@@ -3,7 +3,6 @@
 
 #include "engine/qctextlayout_p.h"
 #include "qcdistancefieldglyphcache_p.h"
-#include "qctext.h"
 #include <private/qrawfont_p.h>
 
 QT_BEGIN_NAMESPACE
@@ -132,40 +131,6 @@ QCDistanceFieldGlyphCache::generate(const QString &text, const QRectF &rect, con
         index += verts.size();
     }
     return {textVerts, textIndices};
-}
-
-std::tuple<std::vector<QCRhiDistanceFieldGlyphCache::TexturedPoint2D>, std::vector<uint32_t>>
-QCDistanceFieldGlyphCache::generate(QCText &text, const QFont &font, QCState *state, QCContext *ctx)
-{
-    // Remove raw fonts
-    auto rFont = QRawFont::fromFont(font);
-    FontKeyData *data;
-
-    QCRhiDistanceFieldGlyphCache *cache;
-    FontKey key = {rFont};
-    if (m_glyphCaches.contains(key)) {
-        data = &m_glyphCaches[key];
-        cache = data->nativeGlyphCache;
-    } else {
-        cache = new QCRhiDistanceFieldGlyphCache(m_rhi);
-        FontKeyData f{ nullptr, cache, {} };
-        m_glyphCaches.insert(key, std::move(f));
-        cache->setRawFont(rFont);
-        data = &m_glyphCaches[key];
-    }
-
-    QCTextCache &ct = ctx->cachedTexts[text.getId()];
-    if (!ct.layout)
-        ct.layout = new QCTextLayout();
-    auto *layout = ct.layout;
-    layout->setOptimized(text.optimized());
-    if (layout->isOptimized()) {
-        layout->createOptimizedLayout(m_rhi, font, cache);
-        return layout->constructOptimizedBufferForString(text.text());
-    } else {
-        layout->createDefaultLayout(m_rhi, text, font, state, cache, data);
-        return layout->getDefaultBuffer();
-    }
 }
 
 void QCDistanceFieldGlyphCache::commitResourceUpdates(QRhiResourceUpdateBatch *batch)

@@ -7,8 +7,6 @@
 #include "qccustombrush.h"
 #include "qccustombrush_p.h"
 #include "qcpainterpath_p.h"
-#include "qctext.h"
-#include "qctext_p.h"
 #ifndef QCPAINTER_DISABLE_TEXT_SUPPORT
 #include "qctextlayout_p.h"
 #include <QtGui/private/qdistancefield_p.h>
@@ -60,12 +58,6 @@ QCContext* QCPainterEngine::initialize(QCPainterRhiRenderer *renderer)
 
 void QCPainterEngine::cleanup()
 {
-#ifndef QCPAINTER_DISABLE_TEXT_SUPPORT
-    auto &ct = ctx.cachedTexts;
-    for (auto i = ct.cbegin(), end = ct.cend(); i != end; ++i)
-        delete i.value().layout;
-    ct.clear();
-#endif
     ctx.commands.clear();
     ctx.commandsData.clear();
     ctx.paths.clear();
@@ -967,107 +959,26 @@ void QCPainterEngine::setTextDirection(QCPainter::TextDirection direction)
     state.textDirection = direction;
 }
 
-void QCPainterEngine::prepareText(QCText &text)
+void QCPainterEngine::fillText(const QString &text, const QRectF &rect)
 {
 #ifndef QCPAINTER_DISABLE_TEXT_SUPPORT
-    auto &font = state.font;
-    QCTextCache &ct = ctx.cachedTexts[text.getId()];
-    // Font size/scaling can also be moved (and eventually will) into the non-rendering part
-    // but involves a bit more work to scale with the baselines, offsets, etc
-    QCTextPrivate *textp = QCTextPrivate::get(&text);
-    if (!textp->isPrepared && (textp->isLayoutDirty || text.fontSize() != font.pixelSize())) {
-        text.setFontSize(font.pixelSize());
-        int width, height;
-        //TODO: This should be a pointer if some other text updates the atlas
-        ct.atlasId = m_renderer->populateFont(font, text, &width, &height);
-
-        auto currentSize = ct.transformedVerts.size();
-        ct.transformedVerts.resize(ct.verts.size());
-        ct.sizeChange = int(ct.transformedVerts.size() - currentSize);
-
-        textp->isPrepared = true;
-    }
-
-#endif
-}
-
-void QCPainterEngine::fillText(const QString &text, const QRectF &rect, int cacheIndex)
-{
-#ifndef QCPAINTER_DISABLE_TEXT_SUPPORT
-    if (cacheIndex > -1) {
-        auto &ct = ctx.cachedCTexts[cacheIndex];
-        ct.setText(text);
-        ct.setRect(rect);
-        fillText(ct);
-    } else {
-        std::vector<QCRhiDistanceFieldGlyphCache::TexturedPoint2D> verts{};
-        std::vector<uint32_t> indices{};
-        int width, height;
-        auto tex = m_renderer->populateFont(state.font, rect, text, verts, indices, &width, &height);
-
-        const QCPaint p = getFillPaint();
-        ctx.fontId = tex;
-        updateStateFontVars();
-
-        if (!state.customFill) {
-            m_renderer->renderTextFill(p, state, verts, indices);
-        } else {
-            m_renderer->renderTextFillCustom(
-                p, state, state.customFill, verts, indices);
-        }
-    }
-#endif
-}
-
-void QCPainterEngine::fillText(QCText &text)
-{
-#ifndef QCPAINTER_DISABLE_TEXT_SUPPORT
-    QCTextCache &ct = ctx.cachedTexts[text.getId()];
-    QCTextPrivate *textp = QCTextPrivate::get(&text);
-    if (state.transform != ct.previousTransform)
-        textp->isDirty = true;
-
-    prepareText(text);
+    std::vector<QCRhiDistanceFieldGlyphCache::TexturedPoint2D> verts{};
+    std::vector<uint32_t> indices{};
+    int width, height;
+    auto tex = m_renderer->populateFont(state.font, rect, text, verts, indices, &width, &height);
 
     const QCPaint p = getFillPaint();
-    ctx.fontId = ct.atlasId;
+    ctx.fontId = tex;
     updateStateFontVars();
 
-    // Add non-rendering transformation here
-    for (size_t i = 0; i < ct.verts.size(); ++i) {
-        auto v = ct.verts[i];
-        auto tp = state.transform.map(QPointF(v.x + text.x(), v.y + text.y()));
-        v.x = tp.x();
-        v.y = tp.y();
-        ct.transformedVerts[i] = v;
-    }
-
     if (!state.customFill) {
-        m_renderer->renderTextFill(
-            p,
-            state,
-            ct.transformedVerts,
-            ct.indices,
-            text,
-            textp->isDirty | textp->isLayoutDirty);
+        m_renderer->renderTextFill(p, state, verts, indices);
     } else {
         m_renderer->renderTextFillCustom(
-            p,
-            state,
-            state.customFill,
-            ct.transformedVerts,
-            ct.indices,
-            text,
-            textp->isDirty | textp->isLayoutDirty);
+                p, state, state.customFill, verts, indices);
     }
-
-    textp->isLayoutDirty = false;
-    textp->isDirty = false;
-
-    ct.previousTransform = state.transform;
 #endif
 }
-
 
 QRectF QCPainterEngine::textBoundingBox(const QString &text, const QRectF &rect)
 {
@@ -1120,16 +1031,6 @@ QRectF QCPainterEngine::textBoundingBox(const QString &text, const QRectF &rect)
     else
         textRect.adjust(textOffsetX, 0, 0, 0);
     return textRect;
-#else
-    return QRectF();
-#endif
-}
-
-QRectF QCPainterEngine::textBoundingBox(QCText &text)
-{
-#ifndef QCPAINTER_DISABLE_TEXT_SUPPORT
-    prepareText(text);
-    return ctx.cachedTexts[text.getId()].layout->bounds();
 #else
     return QRectF();
 #endif
