@@ -71,7 +71,6 @@ QCDistanceFieldGlyphCache::generate(const QString &text, const QRectF &rect, con
         cache = new QCRhiDistanceFieldGlyphCache(m_rhi);
         FontKeyData f{ nullptr, cache, {} };
         m_glyphCaches.insert(key, std::move(f));
-        cache->setRawFont(rFont);
         data = &m_glyphCaches[key];
     }
 
@@ -114,6 +113,7 @@ QCDistanceFieldGlyphCache::generate(const QString &text, const QRectF &rect, con
     qsizetype index = 0;
     const QPointF glyphPos(rect.x(), rect.y() + textY);
     for (const auto &run : std::as_const(glyphRuns)) {
+        cache->setRawFont(run.rawFont());
         cache->addGlyphs(glyphPos, run);
         cache->update();
 
