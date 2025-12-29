@@ -730,6 +730,9 @@ void QCPainterEngine::setPathWinding(QCPainter::PathWinding winding)
 
 void QCPainterEngine::fill()
 {
+    if (ctx.commandsCount < 3)
+        return;
+
 #ifdef QCPAINTER_PERF_DEBUG
     perf.logStart(QCPerfLogging::FILL);
 #endif
@@ -749,6 +752,9 @@ void QCPainterEngine::fill()
 
 void QCPainterEngine::fillForClear()
 {
+    if (ctx.commandsCount < 3)
+        return;
+
 #ifdef QCPAINTER_PERF_DEBUG
     perf.logStart(QCPerfLogging::CLEAR);
 #endif
@@ -774,6 +780,9 @@ void QCPainterEngine::fillForClear()
 
 void QCPainterEngine::stroke()
 {
+    if (ctx.commandsCount < 2)
+        return;
+
 #ifdef QCPAINTER_PERF_DEBUG
     perf.logStart(QCPerfLogging::STROKE);
 #endif
