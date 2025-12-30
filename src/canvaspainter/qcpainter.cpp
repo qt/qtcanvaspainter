@@ -27,7 +27,7 @@ Q_LOGGING_CATEGORY(QC_INFO, "qt.qcpainter.general")
     \brief The QCPainter class performs hardware-accelerated painting on QRhi.
     \inmodule QtCanvasPainter
 
-    Qt CanvasPainter (QCPainter) provides painting API optimized for
+    Qt Canvas Painter (QCPainter) provides painting API optimized for
     harware-accelerated (GPU) painting. The API follows closely HTML Canvas 2D
     Context specification, ported to Qt C++. It is also influenced by QPainter,
     but with a more compact API.
@@ -92,13 +92,19 @@ Q_LOGGING_CATEGORY(QC_INFO, "qt.qcpainter.general")
     \li Box Gradient: In addition to linear, radial and conical gradients,
     QCPainter supports also rounded rectangle box gradient.
     \li Box Shadow: QCPainter supports also CSS box-shadow type of brush. The
-    rendering uses SDF approach similar to Qt Quick RectangularShadow
-    (https://doc.qt.io/qt-6/qml-qtquick-effects-rectangularshadow.html), making
+    rendering uses SDF approach similar to Qt Quick RectangularShadow, making
     it very performant.
+    \li Grid patterns: QCPainter supports QCGridPattern for dynamic grid and bar
+    pattern styles.
     \li Custom brushes: QCPainter also allows filling & stroking with custom
-    vertex and fragment shaders. These can be used also for text.
+    vertex and fragment shaders (QCCustomBrush). These custom brushes can also
+    be used for text.
     \li Text wrapping: QCPainter supports automatic wrapping of text into
     multiple lines, with different wrapping modes.
+    \li Color effects: With addition to globalAlpha, QCPainter supports also
+    global brightness, contrast and saturation.
+    \li Tinted images: QCPainter adds tint color support for painted images
+    and image patterns.
     \endlist
 
     QCPainter is architecture agnostic, and usable for both Qt Quick and
@@ -110,40 +116,6 @@ Q_LOGGING_CATEGORY(QC_INFO, "qt.qcpainter.general")
     \li Qt Widgets: Use \l QCPainterWidget.
     \li QRhi-based QWindow, or offscreen QRhi buffers: Use \l QCPainterFactory and \c QCRhiPaintDriver.
     \endlist
-*/
-
-//     TODO: Move this into proper place as doc with example code.
-/*
-    PathGroups and caching
-
-    Painting paths through QCPainterPath allows engine to cache the path
-    geometry (vertices). This improves the performance of static paths,
-    while potentially increasing GPU memory consumption.
-
-    When painting paths using \l QCPainterPath and \l fill() \l or stroke(),
-    it is possible to set a \c pathGroup as a second parameter. This defines
-    the GPU buffer where the path is cached. By default, \c pathGroup is \c 0
-    meaning that the first buffer is used. Setting \c pathGroup to \c -1 means
-    that path does not allocate own buffer, but same dynamic buffer is used
-    as with direct painting using beginPath() followed by commands and fill/stroke.
-
-    Arranging paths into pathGroups allows effeciently optimizing the rendering
-    performance and GPU memory usage. Paths which belong together and often change
-    at the same time, should be in the same group for optimal buffer usage.
-
-    When the path changes, geometry is automatically updated.
-    Things that cause geometry update of the path group:
-    - Clearing the path elements or adding new elements.
-    - Changing the stroke line width (\a QCPainter::setLineWidth() ).
-    - Adjusting antialiasing amount (\a QCPainter::setAntialias() ).
-    - Changing state transform (\a QCPainter::transform(), \a QCPainter::rotate() etc. ).
-    - Changing line cap or line join type (\a QCPainter::setLineCap(), \a QCPainter::setLineJoin() ).
-
-    In cases where path does not need to be painted anymore, or application should
-    release GPU memory, cache can be released by calling \a removePathGroup().
-    This isn't usually needed, as path caches are released in the painter destructor.
-
-    \sa removePathGroup()
 */
 
 /*!
@@ -243,7 +215,7 @@ Q_LOGGING_CATEGORY(QC_INFO, "qt.qcpainter.general")
 /*!
     \enum QCPainter::CompositeOperation
 
-    Qt CanvasPainter supports 3 composite operations:
+    Qt Canvas Painter supports 3 composite operations:
 
     \value SourceOver The default value. Draws new shapes on top of the existing content.
     \value SourceAtop The new shape is only drawn where it overlaps the existing content.
@@ -365,6 +337,19 @@ void QCPainter::reset()
 /*!
     Sets the stroke style to a solid \a color.
     The default stroke style is solid black color (0, 0, 0, 1).
+    \table
+    \row
+    \li \inlineimage qcpainter-strokestyle.webp
+    \li
+    \code
+    p->setStrokeStyle(QColorConstants::Black);
+    p->strokeRect(20, 20, 160, 160);
+    p->setStrokeStyle(QColor(0, 65, 74));
+    p->strokeRect(40, 40, 120, 120);
+    p->setStrokeStyle("#2CDE85");
+    p->strokeRect(60, 60, 80, 80);
+    \endcode
+    \endtable
 */
 
 void QCPainter::setStrokeStyle(const QColor &color)
@@ -378,6 +363,21 @@ void QCPainter::setStrokeStyle(const QColor &color)
 
     Sets the stroke style to \a brush.
     The default stroke style is solid black color (0, 0, 0, 1).
+    \table
+    \row
+    \li \inlineimage qcpainter-strokestyle2.webp
+    \li
+    \code
+    QCLinearGradient g1(180, 20, 20, 180);
+    g1.setStartColor(QColor(44, 222, 133));
+    g1.setEndColor(Qt::black);
+    p->setStrokeStyle(g1);
+    p->strokeRect(20, 20, 160, 160);
+    g1.setEndColor(Qt::yellow);
+    p->setStrokeStyle(g1);
+    p->strokeRect(40, 40, 120, 120);
+    \endcode
+    \endtable
 */
 
 void QCPainter::setStrokeStyle(const QCBrush &brush)
@@ -394,6 +394,19 @@ void QCPainter::setStrokeStyle(const QCBrush &brush)
 /*!
     Sets the fill style to a solid \a color.
     The default fill style is solid black color (0, 0, 0, 1).
+    \table
+    \row
+    \li \inlineimage qcpainter-fillstyle.webp
+    \li
+    \code
+    p->setFillStyle(QColorConstants::Black);
+    p->fillRect(20, 20, 160, 160);
+    p->setFillStyle(QColor(0, 65, 74));
+    p->fillRect(40, 40, 120, 120);
+    p->setFillStyle("#2CDE85");
+    p->fillRect(60, 60, 80, 80);
+    \endcode
+    \endtable
 */
 
 void QCPainter::setFillStyle(const QColor &color)
@@ -407,6 +420,21 @@ void QCPainter::setFillStyle(const QColor &color)
 
     Sets the fill style to \a brush.
     The default fill style is solid black color (0, 0, 0, 1).
+    \table
+    \row
+    \li \inlineimage qcpainter-fillstyle2.webp
+    \li
+    \code
+    QCRadialGradient g2(140, 40, 300);
+    g2.setStartColor(QColor(44, 222, 133));
+    g2.setEndColor(QColor(0, 65, 74));
+    p->setFillStyle(g2);
+    p->fillRect(20, 20, 160, 160);
+    g2.setCenterPosition(100, 100);
+    p->setFillStyle(g2);
+    p->fillRect(40, 40, 120, 120);
+    \endcode
+    \endtable
 */
 
 void QCPainter::setFillStyle(const QCBrush &brush)
@@ -439,6 +467,22 @@ void QCPainter::setMiterLimit(float limit)
 /*!
     Sets the line width of stroke to \a width in pixels.
     The default line width is \c 1.0.
+    \table
+    \row
+    \li \inlineimage qcpainter-linewidth.webp
+    \li
+    \code
+    for (int i = 1; i < 9 ; i++) {
+        int y = i * 20;
+        p->setLineWidth(i);
+        p->beginPath();
+        p->moveTo(20, y);
+        p->bezierCurveTo(80, y + 20, 120,
+                         y - 20, 180, y);
+        p->stroke();
+    }
+    \endcode
+    \endtable
 
     \sa stroke()
 */
@@ -479,6 +523,24 @@ void QCPainter::setLineJoin(LineJoin join)
     proportionally more transparent as well.
     Alpha should be between 0.0 (fully transparent) and 1.0 (fully opaque).
     By default alpha is \c 1.0.
+    \table
+    \row
+    \li \inlineimage qcpainter-globalalpha.webp
+    \li
+    \code
+    static QImage logo(":/qt_logo2.png");
+    QCImage image = p->addImage(logo);
+    p->setFillStyle("#d9f720");
+    for (int i = 0; i < 4; i++) {
+        float x = 100 * (i % 2);
+        float y = 100 * (i / 2);
+        QRectF rect(x, y, 100, 100);
+        p->setGlobalAlpha(1.0 - i * 0.3);
+        p->fillRect(rect);
+        p->drawImage(image, rect);
+    }
+    \endcode
+    \endtable
 */
 
 void QCPainter::setGlobalAlpha(float alpha)
@@ -505,6 +567,24 @@ void QCPainter::setGlobalCompositeOperation(CompositeOperation operation)
     to be completely black. Value can also be bigger than 1.0, to
     increase the brightness.
     By default, brightness is \c 1.0.
+    \table
+    \row
+    \li \inlineimage qcpainter-globalbrightness.webp
+    \li
+    \code
+    static QImage logo(":/qt_logo2.png");
+    QCImage image = p->addImage(logo);
+    p->setFillStyle("#d9f720");
+    for (int i = 0; i < 4; i++) {
+        float x = 100 * (i % 2);
+        float y = 100 * (i / 2);
+        QRectF rect(x, y, 100, 100);
+        p->setGlobalBrightness(1.5 - i * 0.45);
+        p->fillRect(rect);
+        p->drawImage(image, rect);
+    }
+    \endcode
+    \endtable
 */
 
 void QCPainter::setGlobalBrightness(float value)
@@ -519,6 +599,24 @@ void QCPainter::setGlobalBrightness(float value)
     to be completely gray (0.5, 0.5, 0.5). Value can also be bigger
     than 1.0, to increase the contrast.
     By default, contrast is \c 1.0.
+    \table
+    \row
+    \li \inlineimage qcpainter-globalcontrast.webp
+    \li
+    \code
+    static QImage logo(":/qt_logo2.png");
+    QCImage image = p->addImage(logo);
+    p->setFillStyle("#d9f720");
+    for (int i = 0; i < 4; i++) {
+        float x = 100 * (i % 2);
+        float y = 100 * (i / 2);
+        QRectF rect(x, y, 100, 100);
+        p->setGlobalContrast(1.5 - i * 0.45);
+        p->fillRect(rect);
+        p->drawImage(image, rect);
+    }
+    \endcode
+    \endtable
 */
 
 void QCPainter::setGlobalContrast(float value)
@@ -533,6 +631,24 @@ void QCPainter::setGlobalContrast(float value)
     and cause painting to be completely grayscale. Value can also be bigger
     than 1.0, to increase the saturation.
     By default, saturation is \c 1.0.
+    \table
+    \row
+    \li \inlineimage qcpainter-globalsaturate.webp
+    \li
+    \code
+    static QImage logo(":/qt_logo2.png");
+    QCImage image = p->addImage(logo);
+    p->setFillStyle("#d9f720");
+    for (int i = 0; i < 4; i++) {
+        float x = 100 * (i % 2);
+        float y = 100 * (i / 2);
+        QRectF rect(x, y, 100, 100);
+        p->setGlobalSaturate(1.5 - i * 0.5);
+        p->fillRect(rect);
+        p->drawImage(image, rect);
+    }
+    \endcode
+    \endtable
 */
 
 void QCPainter::setGlobalSaturate(float value)
@@ -666,6 +782,22 @@ const QTransform QCPainter::getTransform() const
     The scissor rectangle is transformed by the current transform.
     \note Clipping has some performance cost and it should only be used
     when needed.
+    \table
+    \row
+    \li \inlineimage qcpainter-cliprect.webp
+    \li
+    \code
+    QRectF viewArea(20, 20, 160, 160);
+    p->setClipRect(viewArea);
+    p->beginPath();
+    p->circle(40, 40, 110);
+    p->fill();
+    p->setFillStyle(Qt::black);
+    p->fillText("Clip me...", 40, 100);
+    p->strokeRect(viewArea);
+    \endcode
+    \endtable
+
     \sa resetClipping()
 */
 
@@ -751,6 +883,18 @@ void QCPainter::moveTo(QPointF point)
 
 /*!
     Adds line segment from the last point in the path to the ( \a x, \a y) point.
+    \table
+    \row
+    \li \inlineimage qcpainter-line.webp
+    \li
+    \code
+    p->beginPath();
+    p->moveTo(20, 20);
+    p->lineTo(140, 180);
+    p->lineTo(180, 120);
+    p->stroke();
+    \endcode
+    \endtable
 */
 
 void QCPainter::lineTo(float x, float y)
@@ -774,6 +918,17 @@ void QCPainter::lineTo(QPointF point)
 /*!
     Adds cubic bezier segment from last point in the path via two
     control points (\a cp1X, \a cp1Y and \a cp2X, \a cp2Y) to the specified point (\a x, \a y).
+    \table
+    \row
+    \li \inlineimage qcpainter-beziercurve.webp
+    \li
+    \code
+    p->beginPath();
+    p->moveTo(20, 20);
+    p->bezierCurveTo(150, 50, 50, 250, 180, 120);
+    p->stroke();
+    \endcode
+    \endtable
 */
 
 void QCPainter::bezierCurveTo(float cp1X, float cp1Y, float cp2X, float cp2Y, float x, float y)
@@ -802,6 +957,19 @@ void QCPainter::bezierCurveTo(QPointF controlPoint1, QPointF controlPoint2, QPoi
 /*!
     Adds quadratic bezier segment from last point in the path via
     a control point (\a cpX, \a cpY) to the specified point (\a x, \a y).
+    \table
+    \row
+    \li \inlineimage qcpainter-quadraticcurve.webp
+    \li
+    \code
+    p->beginPath();
+    p->moveTo(20, 20);
+    p->quadraticCurveTo(150, 50, 180, 180);
+    p->quadraticCurveTo(20, 220, 20, 20);
+    p->fill();
+    p->stroke();
+    \endcode
+    \endtable
 */
 
 void QCPainter::quadraticCurveTo(float cpX, float cpY, float x, float y)
@@ -828,6 +996,20 @@ void QCPainter::quadraticCurveTo(QPointF controlPoint, QPointF endPoint)
 /*!
     Adds an arc segment at the corner defined by the last path point,
     and two specified points (\a x1, \a y1 and \a x2, \a y2) with \a radius.
+    The arc is automatically connected to the path's latest point with
+    a straight line if necessary.
+    \table
+    \row
+    \li \inlineimage qcpainter-arcto.webp
+    \li
+    \code
+    p->beginPath();
+    p->moveTo(20, 20);
+    p->arcTo(240, 20, 20, 220, 50);
+    p->arcTo(20, 220, 20, 20, 30);
+    p->stroke();
+    \endcode
+    \endtable
 */
 
 void QCPainter::arcTo(float x1, float y1, float x2, float y2, float radius)
@@ -841,6 +1023,8 @@ void QCPainter::arcTo(float x1, float y1, float x2, float y2, float radius)
 
     Adds an arc segment at the corner defined by the last path point,
     and two specified points (\a controlPoint1 and \a controlPoint2) with \a radius.
+    The arc is automatically connected to the path's latest point with
+    a straight line if necessary.
 */
 
 void QCPainter::arcTo(QPointF controlPoint1, QPointF controlPoint2, float radius)
@@ -859,6 +1043,22 @@ void QCPainter::arcTo(QPointF controlPoint1, QPointF controlPoint2, float radius
     When \a isConnected is set to false, arc does not add line from the previous
     path position to the start of the arc.
     Angles are specified in radians.
+    \table
+    \row
+    \li \inlineimage qcpainter-arc.webp
+    \li
+    \code
+    p->beginPath();
+    p->moveTo(100, 100);
+    p->arc(100, 100, 80, 0, 1.5 * M_PI);
+    p->closePath();
+    p->fill();
+    p->stroke();
+    \endcode
+    \endtable
+
+    \note While HTML canvas 2D context uses arc() for painting circles, with
+    QCPainter it is recommended to use \l circle() or \l ellipse() for those.
 */
 
 void QCPainter::arc(float centerX, float centerY, float radius, float a0, float a1, PathWinding direction, bool isConnected)
@@ -876,6 +1076,9 @@ void QCPainter::arc(float centerX, float centerY, float radius, float a0, float 
     When \a isConnected is set to false, arc does not add line from the previous
     path position to the start of the arc.
     Angles are specified in radians.
+
+    \note While HTML canvas 2D context uses arc() for painting circles, with
+    QCPainter it is recommended to use \l circle() or \l ellipse() for those.
 */
 
 void QCPainter::arc(QPointF centerPoint, float radius, float a0, float a1, PathWinding direction, bool isConnected)
@@ -889,6 +1092,17 @@ void QCPainter::arc(QPointF centerPoint, float radius, float a0, float a1, PathW
 /*!
     Creates new rectangle shaped sub-path in position \a x, \a y with
     size \a width, \a height.
+    \table
+    \row
+    \li \inlineimage qcpainter-rect.webp
+    \li
+    \code
+    p->beginPath();
+    p->rect(20, 20, 160, 160);
+    p->fill();
+    p->stroke();
+    \endcode
+    \endtable
 */
 
 void QCPainter::rect(float x, float y, float width, float height)
@@ -915,6 +1129,17 @@ void QCPainter::rect(const QRectF &rect)
 /*!
     Creates new rounded rectangle shaped sub-path in position \a x, \a y with
     size \a width, \a height. Corners rounding will be \a radius.
+    \table
+    \row
+    \li \inlineimage qcpainter-roundrect.webp
+    \li
+    \code
+    p->beginPath();
+    p->roundRect(20, 20, 160, 160, 30);
+    p->fill();
+    p->stroke();
+    \endcode
+    \endtable
 */
 
 void QCPainter::roundRect(float x, float y, float width, float height, float radius)
@@ -945,6 +1170,18 @@ void QCPainter::roundRect(const QRectF &rect, float radius)
     Creates new rounded rectangle shaped sub-path in position \a x, \a y with
     size \a width, \a height. Corners rounding can be varying per-corner, with
     \a radiusTopLeft, \a radiusTopRight, \a radiusBottomRight, \a radiusBottomLeft.
+    \table
+    \row
+    \li \inlineimage qcpainter-roundrect2.webp
+    \li
+    \code
+    p->beginPath();
+    p->roundRect(20, 20, 160, 160,
+                 0, 40, 20, 80);
+    p->fill();
+    p->stroke();
+    \endcode
+    \endtable
 */
 
 void QCPainter::roundRect(float x, float y, float width, float height, float radiusTopLeft, float radiusTopRight, float radiusBottomRight, float radiusBottomLeft)
@@ -972,6 +1209,17 @@ void QCPainter::roundRect(const QRectF &rect, float radiusTopLeft, float radiusT
 
 /*!
     Creates new ellipse shaped sub-path into ( \a centerX, \a centerY) with \a radiusX and \a radiusY.
+    \table
+    \row
+    \li \inlineimage qcpainter-ellipse.webp
+    \li
+    \code
+    p->beginPath();
+    p->ellipse(100, 100, 80, 60);
+    p->fill();
+    p->stroke();
+    \endcode
+    \endtable
 */
 
 void QCPainter::ellipse(float centerX, float centerY, float radiusX, float radiusY)
@@ -999,6 +1247,18 @@ void QCPainter::ellipse(QPointF centerPoint, float radiusX, float radiusY)
 
     Creates new ellipse shaped sub-path into \a rect.
     This ellipse will cover the \a rect area.
+    \table
+    \row
+    \li \inlineimage qcpainter-ellipse2.webp
+    \li
+    \code
+    QRectF rect(40, 20, 120, 160);
+    p->fillRect(rect);
+    p->beginPath();
+    p->ellipse(rect);
+    p->stroke();
+    \endcode
+    \endtable
 */
 
 void QCPainter::ellipse(const QRectF &rect)
@@ -1011,6 +1271,17 @@ void QCPainter::ellipse(const QRectF &rect)
 
 /*!
     Creates new circle shaped sub-path into ( \a centerX, \a centerY) with \a radius.
+    \table
+    \row
+    \li \inlineimage qcpainter-circle.webp
+    \li
+    \code
+    p->beginPath();
+    p->circle(100, 100, 80);
+    p->fill();
+    p->stroke();
+    \endcode
+    \endtable
 */
 
 void QCPainter::circle(float centerX, float centerY, float radius)
@@ -1053,6 +1324,21 @@ void QCPainter::addPath(const QPainterPath &path)
     Adds \a path into the current path, optionally using \a transform to
     alter the path points. When \a transform is not provided (or it is
     identity matrix), this operation is very fast as it reuses the path data.
+    \table
+    \row
+    \li \inlineimage qcpainter-addpath.webp
+    \li
+    \code
+    // m_path is QCPainterPath
+    if (m_path.isEmpty())
+        m_path.circle(60, 60, 40);
+    p->beginPath();
+    p->addPath(m_path);
+    p->addPath(m_path, QTransform::fromTranslate(80, 80));
+    p->fill();
+    p->stroke();
+    \endcode
+    \endtable
 */
 
 void QCPainter::addPath(const QCPainterPath &path, const QTransform &transform)
@@ -1069,6 +1355,26 @@ void QCPainter::addPath(const QCPainterPath &path, const QTransform &transform)
     accessed more than \l QCPainterPath::commandsSize().
     In case the path shouldn't continue from the current path position, call
     first \l moveTo() e.g. with \c{path.positionAt(start - 1)}.
+    \table
+    \row
+    \li \inlineimage qcpainter-addpath2.webp
+    \li
+    \code
+    // m_path is QCPainterPath
+    if (m_path.isEmpty()) {
+        m_path.moveTo(20, 60);
+        for (int i = 1; i < 160; i++) {
+            m_path.lineTo(20 + i,
+                          60 + 20 * sin(0.1 * i));
+        }
+    }
+    p->stroke(m_path);
+    p->beginPath();
+    p->addPath(m_path, 20, 100,
+               QTransform::fromTranslate(0, 80));
+    p->stroke();
+    \endcode
+    \endtable
 */
 
 void QCPainter::addPath(const QCPainterPath &path,
@@ -1083,6 +1389,22 @@ void QCPainter::addPath(const QCPainterPath &path,
 /*!
     Sets the current sub-path \a winding to either CounterClockWise (default) or ClockWise.
     CounterClockWise draws solid subpaths while ClockWise draws holes.
+    \table
+    \row
+    \li \inlineimage qcpainter-pathwinding.webp
+    \li
+    \code
+    p->beginPath();
+    p->roundRect(20, 20, 160, 160, 40);
+    p->setPathWinding(QCPainter::PathWinding::ClockWise);
+    p->circle(140, 60, 20);
+    p->rect(60, 120, 80, 30);
+    p->fill();
+    p->stroke();
+    \endcode
+    \endtable
+
+    \sa beginHoleSubPath(), beginSolidSubPath()
 */
 
 void QCPainter::setPathWinding(PathWinding winding)
@@ -1094,6 +1416,7 @@ void QCPainter::setPathWinding(PathWinding winding)
 /*!
     Start a solid subpath. This is equivalent to
     \c setPathWinding(QCPainter::PathWinding::CounterClockWise))
+    \sa beginHoleSubPath()
 */
 
 void QCPainter::beginSolidSubPath()
@@ -1105,6 +1428,23 @@ void QCPainter::beginSolidSubPath()
 /*!
     Start a hole subpath. This is equivalent to
     \c setPathWinding(QCPainter::PathWinding::ClockWise))
+    \table
+    \row
+    \li \inlineimage qcpainter-beginhole.webp
+    \li
+    \code
+    p->beginPath();
+    p->circle(100, 100, 80);
+    p->beginHoleSubPath();
+    p->rect(60, 60, 80, 80);
+    p->beginSolidSubPath();
+    p->circle(100, 100, 20);
+    p->fill();
+    p->stroke();
+    \endcode
+    \endtable
+
+    \sa beginSolidSubPath()
 */
 
 void QCPainter::beginHoleSubPath()
@@ -1116,6 +1456,18 @@ void QCPainter::beginHoleSubPath()
 /*!
     Fills the current path with current fill style.
     \sa setFillStyle()
+    \table
+    \row
+    \li \inlineimage qcpainter-fill.webp
+    \li
+    \code
+    p->beginPath();
+    p->rect(20, 20, 40, 160);
+    p->rect(140, 20, 40, 160);
+    p->circle(100, 100, 60);
+    p->fill();
+    \endcode
+    \endtable
 */
 
 void QCPainter::fill()
@@ -1127,6 +1479,18 @@ void QCPainter::fill()
 /*!
     Strokes the current path with current stroke style.
     \sa setStrokeStyle()
+    \table
+    \row
+    \li \inlineimage qcpainter-stroke.webp
+    \li
+    \code
+    p->beginPath();
+    p->rect(20, 20, 40, 160);
+    p->rect(140, 20, 40, 160);
+    p->circle(100, 100, 60);
+    p->stroke();
+    \endcode
+    \endtable
 */
 
 void QCPainter::stroke()
@@ -1139,10 +1503,30 @@ void QCPainter::stroke()
     \overload
 
     Fills the \a path with current fill style and belonging
-    into \a pathGroup. By default, \a pathGroup is \c 0, so using the
+    into \a pathGroup. Painting through QCPainterPath is optimal when
+    the path contains more commands is mostly static.
+    By default, \a pathGroup is \c 0, so using the
     first group. When \a pathGroup is \c -1, the path will not be cached
     on GPU side. More information about using path cache group in {TODO: LINK}.
-    This does not require calling beginPath().
+    Calling beginPath() before this method is not required.
+    \table
+    \row
+    \li \inlineimage qcpainter-fill2.webp
+    \li
+    \code
+    // m_path is QCPainterPath
+    if (m_path.isEmpty()) {
+        for (int i = 0; i < 16; i++) {
+            float w = 100 + 60 * sin(i);
+            m_path.rect(100 - w * 0.5,
+                        22 + i * 10,
+                        w, 6);
+        }
+    }
+    p->fill(m_path);
+    \endcode
+    \endtable
+
     \sa setFillStyle()
 */
 
@@ -1156,10 +1540,30 @@ void QCPainter::fill(const QCPainterPath &path, int pathGroup)
     \overload
 
     Strokes the \a path with current stroke style and belonging
-    into \a pathGroup. By default, \a pathGroup is \c 0, so using the
+    into \a pathGroup. Painting through QCPainterPath is optimal when
+    the path contains more commands is mostly static.
+    By default, \a pathGroup is \c 0, so using the
     first group. When \a pathGroup is \c -1, the path will not be cached
     on GPU side. More information about using path cache group in {TODO: LINK}.
-    This does not require calling beginPath().
+    Calling beginPath() before this method is not required.
+    \table
+    \row
+    \li \inlineimage qcpainter-stroke2.webp
+    \li
+    \code
+    // m_path is QCPainterPath
+    if (m_path.isEmpty()) {
+        for (int i = 0; i < 16; i++) {
+            int h = 100 + 60 * sin(i);
+            m_path.rect(22 + i * 10,
+                        180 - h,
+                        6, h);
+        }
+    }
+    p->stroke(m_path);
+    \endcode
+    \endtable
+
     \sa setStrokeStyle()
 */
 
@@ -1175,6 +1579,18 @@ void QCPainter::stroke(const QCPainterPath &path, int pathGroup)
     Draws a filled rectangle into specified position ( \a x, \a y) at size \a width, \a height.
     \note This is provided for convenience. When filling more than just a single rect,
     prefer using rect().
+    \table
+    \row
+    \li \inlineimage qcpainter-fillrect.webp
+    \li
+    \code
+    p->fillRect(20, 20, 160, 160);
+    // The above code does same as:
+    //  p->beginPath();
+    //  p->rect(20, 20, 160, 160);
+    //  p->fill();
+    \endcode
+    \endtable
 */
 
 void QCPainter::fillRect(float x, float y, float width, float height)
@@ -1203,10 +1619,23 @@ void QCPainter::fillRect(const QRectF &rect)
 }
 
 /*!
-    Fills the rectangle specified by \a x, \a y, \a width, \a height with
-    transparent black. As clearing does not need blending, it can be faster
-    than fillRect().
+    Erases the pixels in a rectangular area by filling the rectangle
+    specified by \a x, \a y, \a width, \a height with transparent black.
+    As clearing does not need blending, it can be faster than fillRect().
+    \table
+    \row
+    \li \inlineimage qcpainter-clearrect.webp
+    \li
+    \code
+    p->beginPath();
+    p->circle(100, 100, 80);
+    p->fill();
+    p->stroke();
+    p->clearRect(60, 0, 80, 120);
+    \endcode
+    \endtable
 */
+
 void QCPainter::clearRect(float x, float y, float width, float height)
 {
     Q_D(QCPainter);
@@ -1217,9 +1646,12 @@ void QCPainter::clearRect(float x, float y, float width, float height)
 
 /*!
     \overload
-    Fills \a rect with transparent black.
+
+    Erases the pixels in a rectangular area by filling the rectangle
+    specified by \a rect with transparent black.
     This is an overloaded method using QRectF.
 */
+
 void QCPainter::clearRect(const QRectF &rect)
 {
     clearRect(float(rect.x()),
@@ -1232,6 +1664,18 @@ void QCPainter::clearRect(const QRectF &rect)
     Draws a stoked rectangle into specified position ( \a x, \a y) at size \a width, \a height.
     \note This is provided for convenience. When stroking more than just a single rect,
     prefer using rect().
+    \table
+    \row
+    \li \inlineimage qcpainter-strokerect.webp
+    \li
+    \code
+    p->strokeRect(20, 20, 160, 160);
+    // The above code does same as:
+    // p->beginPath();
+    // p->rect(20, 20, 160, 160);
+    // p->stroke();
+    \endcode
+    \endtable
 */
 
 void QCPainter::strokeRect(float x, float y, float width, float height)
@@ -1264,6 +1708,23 @@ void QCPainter::strokeRect(const QRectF &rect)
 /*!
     Draws a box \a shadow. The shadow will be painted with the
     position, size, color, blur etc. set in the \a shadow.
+    Calling beginPath() before this method is not required.
+    \table
+    \row
+    \li \inlineimage qcpainter-shadowbox.webp
+    \li
+    \code
+    QRectF rect(40, 40, 120, 120);
+    QRectF shadowRect = rect.translated(-2, 4);
+    QCBoxShadow shadow(shadowRect, 0, 30);
+    p->drawBoxShadow(shadow);
+    p->beginPath();
+    p->roundRect(rect, 30);
+    p->setFillStyle("#2CDE85");
+    p->fill();
+    \endcode
+    \endtable
+
     \sa QCBoxShadow
 */
 
@@ -1289,6 +1750,18 @@ void QCPainter::drawBoxShadow(const QCBoxShadow &shadow)
 
 /*!
     Draw \a image into \a x, \a y, at its default size.
+    \table
+    \row
+    \li \inlineimage qcpainter-drawimage.webp
+    \li
+    \code
+    static QImage logo(":/qt_logo.png");
+    QCImage image = p->addImage(logo);
+    p->drawImage(image, 36, 36);
+    \endcode
+    \endtable
+
+    \sa addImage()
 */
 
 void QCPainter::drawImage(const QCImage &image, float x, float y)
@@ -1302,6 +1775,18 @@ void QCPainter::drawImage(const QCImage &image, float x, float y)
     \overload
 
     Draw \a image into \a x, \a y, at given \a width and \a height.
+    \table
+    \row
+    \li \inlineimage qcpainter-drawimage2.webp
+    \li
+    \code
+    static QImage logo(":/qt_logo.png");
+    QCImage image = p->addImage(logo);
+    p->drawImage(image, 50, 0, 100, 200);
+    \endcode
+    \endtable
+
+    \sa addImage()
 */
 
 void QCPainter::drawImage(const QCImage &image, float x, float y, float width, float height)
@@ -1315,6 +1800,7 @@ void QCPainter::drawImage(const QCImage &image, float x, float y, float width, f
     \overload
 
     Draw \a image into position and size of \a destinationRect.
+    \sa addImage()
 */
 
 void QCPainter::drawImage(const QCImage &image, const QRectF &destinationRect)
@@ -1330,6 +1816,20 @@ void QCPainter::drawImage(const QCImage &image, const QRectF &destinationRect)
     \overload
 
     Draw \a image into position and size of \a destinationRect, from \a sourceRect area of image.
+    \table
+    \row
+    \li \inlineimage qcpainter-drawimage3.webp
+    \li
+    \code
+    static QImage logo(":/qt_logo.png");
+    QCImage image = p->addImage(logo);
+    QRectF sourceRect(20, 30, 54, 76);
+    QRectF destinationRect(0, 0, 200, 200);
+    p->drawImage(image, sourceRect, destinationRect);
+    \endcode
+    \endtable
+
+    \sa addImage()
 */
 
 void QCPainter::drawImage(const QCImage &image, const QRectF &sourceRect, const QRectF &destinationRect)
@@ -1372,6 +1872,28 @@ void QCPainter::setFont(const QFont &font)
 /*!
     Sets the horizontal alignment of text to \a align.
     The default alignment is \c QCPainter::TextAlign::Start.
+    \table
+    \row
+    \li \inlineimage qcpainter-textalign.webp
+    \li
+    \code
+    QFont font("Titillium Web", 22);
+    p->setFont(font);
+    p->fillRect(100, 0, 1, 200);
+    p->setTextAlign(QCPainter::TextAlign::Left);
+    p->fillText("Left", 100, 40);
+    p->setTextAlign(QCPainter::TextAlign::Center);
+    p->fillText("Center", 100, 70);
+    p->setTextAlign(QCPainter::TextAlign::Right);
+    p->fillText("Right", 100, 100);
+    p->setTextAlign(QCPainter::TextAlign::Start);
+    p->fillText("Start", 100, 130);
+    p->setTextAlign(QCPainter::TextAlign::End);
+    p->fillText("End", 100, 160);
+    \endcode
+    \endtable
+
+    \sa setTextBaseline()
 */
 
 void QCPainter::setTextAlign(QCPainter::TextAlign align)
@@ -1383,6 +1905,29 @@ void QCPainter::setTextAlign(QCPainter::TextAlign align)
 /*!
     Sets the vertical alignment (baseline) of text to \a baseline.
     The default alignment is \c QCPainter::TextBaseline::Alphabetic.
+    \table
+    \row
+    \li \inlineimage qcpainter-textbaseline.webp
+    \li
+    \code
+    QFont font("Titillium Web", 16);
+    p->setFont(font);
+    p->fillRect(0, 60, 200, 1);
+    p->fillRect(0, 140, 200, 1);
+    p->setTextBaseline(QCPainter::TextBaseline::Bottom);
+    p->fillText("Bottom", 40, 60);
+    p->setTextBaseline(QCPainter::TextBaseline::Middle);
+    p->fillText("Middle", 100, 60);
+    p->setTextBaseline(QCPainter::TextBaseline::Top);
+    p->fillText("Top", 160, 60);
+    p->setTextBaseline(QCPainter::TextBaseline::Alphabetic);
+    p->fillText("Alphabetic", 50, 140);
+    p->setTextBaseline(QCPainter::TextBaseline::Hanging);
+    p->fillText("Hanging", 150, 140);
+    \endcode
+    \endtable
+
+    \sa setTextAlign()
 */
 
 void QCPainter::setTextBaseline(QCPainter::TextBaseline baseline)
@@ -1392,7 +1937,7 @@ void QCPainter::setTextBaseline(QCPainter::TextBaseline baseline)
 }
 
 /*!
-    Sets the direction (baseline) of text to \a direction.
+    Sets the direction of text to \a direction.
     The default direction is \c QCPainter::TextDirection::Inherit.
 */
 
@@ -1405,6 +1950,26 @@ void QCPainter::setTextDirection(QCPainter::TextDirection direction)
 /*!
     Sets the text wrap mode to \a wrapMode.
     The default wrap mode is \c QCPainter::WrapMode::NoWrap.
+    \table
+    \row
+    \li \inlineimage qcpainter-textwrapmode.webp
+    \li
+    \code
+    QRectF r1(50, 5, 100, 60);
+    QRectF r2(50, 70, 100, 60);
+    QRectF r3(50, 135, 100, 60);
+    p->strokeRect(r1);
+    p->strokeRect(r2);
+    p->strokeRect(r3);
+    QString s("This is a long string.");
+    p->setTextWrapMode(QCPainter::WrapMode::NoWrap);
+    p->fillText(s, r1);
+    p->setTextWrapMode(QCPainter::WrapMode::Wrap);
+    p->fillText(s, r2);
+    p->setTextWrapMode(QCPainter::WrapMode::WrapAnywhere);
+    p->fillText(s, r3);
+    \endcode
+    \endtable
 */
 
 void QCPainter::setTextWrapMode(QCPainter::WrapMode wrapMode)
@@ -1416,6 +1981,25 @@ void QCPainter::setTextWrapMode(QCPainter::WrapMode wrapMode)
 /*!
     Sets the line height adjustment in pixels to \a height
     for wrapped text. The default line height is \c 0.
+    \table
+    \row
+    \li \inlineimage qcpainter-textlineheight.webp
+    \li
+    \code
+    QRectF r1(40, 5, 120, 60);
+    QRectF r2(40, 70, 120, 60);
+    QRectF r3(40, 135, 120, 60);
+    p->strokeRect(r1);
+    p->strokeRect(r2);
+    p->strokeRect(r3);
+    p->setTextLineHeight(-10);
+    p->fillText("Text with line height: -10", r1);
+    p->setTextLineHeight(0);
+    p->fillText("Text with line height: 0", r2);
+    p->setTextLineHeight(10);
+    p->fillText("Text with line height: 10", r3);
+    \endcode
+    \endtable
 */
 
 void QCPainter::setTextLineHeight(float height)
@@ -1432,6 +2016,23 @@ void QCPainter::setTextLineHeight(float height)
     \note Due to the used text antialiasing technique (SDF),
     the maximum antialiasing amount is quite limited and this
     affects less when the font size is small.
+    \table
+    \row
+    \li \inlineimage qcpainter-textantialias.webp
+    \li
+    \code
+    QFont font("Titillium Web", 20);
+    p->setFont(font);
+    p->setTextAntialias(1.0);
+    p->fillText("Antialiasing: 1.0", 100, 25);
+    p->setTextAntialias(2.0);
+    p->fillText("Antialiasing: 2.0", 100, 75);
+    p->setTextAntialias(3.0);
+    p->fillText("Antialiasing: 3.0", 100, 125);
+    p->setTextAntialias(4.0);
+    p->fillText("Antialiasing: 4.0", 100, 175);
+    \endcode
+    \endtable
 */
 
 void QCPainter::setTextAntialias(float antialias)
@@ -1492,6 +2093,24 @@ void QCPainter::fillText(const QString &text, const QRectF &rect)
     To measure multi-line text, set optional \a maxWidth parameter to preferred row width in pixels.
     Returns QRectF with values [xmin, ymin, width, height].
     Measured values are returned in local coordinate space.
+    \table
+    \row
+    \li \inlineimage qcpainter-textboundingbox.webp
+    \li
+    \code
+    QString s("Built with Qt");
+    QPointF pos1(20, 20);
+    QRectF box1 = p->textBoundingBox(s, pos1);
+    p->strokeRect(box1);
+    p->fillText(s, pos1);
+    p->setTextWrapMode(QCPainter::WrapMode::WordWrap);
+    p->setTextAlign(QCPainter::TextAlign::Center);
+    QPointF pos2(100, 80);
+    QRectF box2 = p->textBoundingBox(s, pos2, 100);
+    p->strokeRect(box2);
+    p->fillText(s, pos2, 100);
+    \endcode
+    \endtable
 */
 
 QRectF QCPainter::textBoundingBox(const QString &text, float x, float y, float maxWidth)
@@ -1536,8 +2155,25 @@ QRectF QCPainter::textBoundingBox(const QString &text, const QRectF &rect)
     The default value is \c 1.0.
 
     Antialiasing can be modified per-path so it can be set before each stroke/fill.
-    To disable antialiasing from the whole QQuickCPainterItem, use
+    To disable antialiasing from the whole canvas painter, use
     QCPainter::RenderHint::Antialiasing render hint.
+    \table
+    \row
+    \li \inlineimage qcpainter-antialias.webp
+    \li
+    \code
+    p->setLineWidth(6);
+    for (int i = 0; i < 9 ; i++) {
+        p->setAntialias(i);
+        int y = 20 + i * 20;
+        p->beginPath();
+        p->moveTo(20, y);
+        p->lineTo(180, y);
+        p->stroke();
+    }
+    \endcode
+    \endtable
+
     \sa setRenderHints()
 */
 
@@ -1650,7 +2286,7 @@ float QCPainter::ptToPx(float pt)
     top-level, then calling this function is essential in order to re-create the
     native graphics textures from \a image.
 
-    \sa removeImage
+    \sa drawImage(), removeImage()
 */
 
 QCImage QCPainter::addImage(const QImage &image, QCPainter::ImageFlags flags)
@@ -1668,7 +2304,7 @@ QCImage QCPainter::addImage(const QImage &image, QCPainter::ImageFlags flags)
 
     \note The ownership of \a texture is \b not taken.
 
-    \sa removeImage
+    \sa drawImage(), removeImage()
 */
 
 QCImage QCPainter::addImage(QRhiTexture *texture, QCPainter::ImageFlags flags)
@@ -1686,7 +2322,7 @@ QCImage QCPainter::addImage(QRhiTexture *texture, QCPainter::ImageFlags flags)
     \note \a canvas continues to manage the underlying native graphics
     resources, meaning removeImage() does not render \a canvas invalid.
 
-    \sa removeImage
+    \sa drawImage(), removeImage()
 */
 
 QCImage QCPainter::addImage(const QCOffscreenCanvas &canvas, QCPainter::ImageFlags flags)
@@ -1701,7 +2337,8 @@ QCImage QCPainter::addImage(const QCOffscreenCanvas &canvas, QCPainter::ImageFla
     in the painter destructor. Only use this to reduce memory
     usage when \a imageId is not needed anymore.
     \note Removed images can not be used in paint operations anymore.
-    \sa addImage
+
+    \sa addImage()
 */
 
 void QCPainter::removeImage(int imageId)
@@ -1749,6 +2386,7 @@ qsizetype QCPainter::cacheTextureAmount() const
     usage when \a pathGroup is not needed anymore or e.g. when the path
     has a lot less commands that it has had in the past and buffer size
     should be reduced.
+
     \sa fill(), stroke()
 */
 
@@ -2021,12 +2659,12 @@ QRectF QCPainterPrivate::textBoundingBox(const QString &text, const QRectF &rect
     widget or Qt Quick item classes.
 
     Normally the contents of the canvas is cleared when painting to it. To
-    disable this, pass \l{Flag::}{PreserveContents} in \a flags.
+    disable this, pass \l{QCOffscreenCanvas::Flag::}{PreserveContents} in \a flags.
 
     To request multisample rendering onto the canvas (multisample antialiasing,
     MSAA), set a sample count larger than 1, such as 4 or 8. Preserving the
     canvas contents between render passes is not supported however when
-    multisampling is enabled, and the \l{Flag::}{PreserveContents} flag will not
+    multisampling is enabled, and the \l{QCOffscreenCanvas::Flag::}{PreserveContents} flag will not
     work in this case.
  */
 QCOffscreenCanvas QCPainter::createCanvas(QSize pixelSize, int sampleCount, QCOffscreenCanvas::Flags flags)
