@@ -86,6 +86,9 @@ public:
     void circle(QPointF centerPoint, float radius);
 
     void setPathWinding(QCPainter::PathWinding winding);
+    void beginSolidSubPath();
+    void beginHoleSubPath();
+
     void addPath(const QCPainterPath &path, const QTransform &transform = QTransform());
     void addPath(const QCPainterPath &path, qsizetype start, qsizetype count, const QTransform &transform = QTransform());
 

@@ -793,6 +793,28 @@ void QCPainterPath::setPathWinding(QCPainter::PathWinding winding)
 }
 
 /*!
+    Start a solid subpath. This is equivalent to
+    \c setPathWinding(QCPainter::PathWinding::CounterClockWise))
+    \sa beginHoleSubPath()
+*/
+
+void QCPainterPath::beginSolidSubPath()
+{
+    setPathWinding(QCPainter::PathWinding::CounterClockWise);
+}
+
+/*!
+    Start a hole subpath. This is equivalent to
+    \c setPathWinding(QCPainter::PathWinding::ClockWise))
+    \sa beginSolidSubPath()
+*/
+
+void QCPainterPath::beginHoleSubPath()
+{
+    setPathWinding(QCPainter::PathWinding::ClockWise);
+}
+
+/*!
     Adds \a path into this path, optionally using \a transform to
     alter the path points. When \a transform is not provided (or it is
     identity matrix), this operation is very fast as it reuses the path data.
