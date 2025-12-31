@@ -12,7 +12,9 @@ QT_BEGIN_NAMESPACE
  *
  * It has some similarities to QPainterPath, but prioritizes performance and simplicity over features.
  * Some differences:
- * - No elementAt() or elementCount() methods. Elements format is private so it can be more optimal.
+ * - Elements format is private so it can be more optimal.
+ * - No setElementPositionAt() method. No ability to adjust existing path elements makes
+ *   it simpler to detect when the path has changed (commandsCount or pathIterations has changed).
  * - No length(), percentAtLength() or pointAtPercent() methods. The length of the path is not calculated.
  * - No contains(), intersects() or subtracted() methods. The path area is not calculated.
  * - No translate() or translated() methods. Instead of translating all path elements one-by-one,
@@ -39,16 +41,62 @@ QT_BEGIN_NAMESPACE
     \brief QCPainterPath is the native path format of QCPainter.
     \inmodule QtCanvasPainter
 
-    QCPainterPath provides a way to specify paths in the format that QCPainter
-    uses internally. This gives better performance than using QPainterPath.
+    A painter path is an object composed of a number of graphical building blocks,
+    such as rectangles, ellipses, lines, and curves. QCPainterPath API matches to
+    QCPainter path painting, making it easy to adjust code between paintind directly
+    or painting into a path. The main reason use QCPainterPath is to avoid recreating
+    the (static) paths and be able to cache the paths GPU buffers.
 
-    QCPainterPath has limited functionality compared to QPainterPath. In particular:
+    Compared to QPainterPath, QCPainterPath is more optimized for rendering with fewer
+    features for comparing or adjusting the paths. In particular:
     \list
     \li There are no methods for intersection or subtraction between two paths.
     \li There is no method for translating the path.
     \li There is no method for adding text.
-    \li The fillrule is always \c WindingFill (nonzero), \c OddEvenFill is not supported.
+    \li The fill rule is always \c WindingFill (nonzero), \c OddEvenFill is not supported.
     \endlist
+
+    From a functionality point of view, QCPainterPath is more similar to HTML Canvas
+    \l{https://developer.mozilla.org/en-US/docs/Web/API/Path2D} {Path2D},
+    with some additions and the API matching to QCPainter.
+
+    \section1 PathGroups and caching
+
+    Painting paths through QCPainterPath allows the engine to cache the path
+    geometry (vertices). This improves the performance of static paths,
+    while potentially increasing GPU memory consumption.
+
+    When painting paths using \l{QCPainter::}{fill()} or \l{QCPainter::}{stroke()}
+    that take \l QCPainterPath as a parameter, it is possible to set a \c pathGroup
+    as a second parameter. This defines the GPU buffer where the path is cached.
+    By default, \c pathGroup is \c 0, meaning that the first buffer is used.
+    Setting the \c pathGroup to \c -1 means that the path does not allocate its own
+    buffer, and the same dynamic buffer is used as with direct painting using
+    beginPath() followed by commands and fill/stroke.
+
+    Arranging paths into path groups allows efficient optimization of the rendering
+    performance and the GPU memory usage. Paths that belong together and often change
+    at the same time should be in the same group for optimal buffer usage.
+
+    When the path changes, its geometry (vertex buffer) is automatically updated.
+    Things that cause a geometry update of the path group are:
+    \list
+    \li Clearing the path elements or adding new elements.
+    \li Changing the stroke line width (\l{QCPainter::setLineWidth()}).
+    \li Adjusting antialiasing amount (\l{QCPainter::setAntialias()}).
+    \li Changing line cap or line join type (\l{QCPainter::setLineCap()}, \l{QCPainter::setLineJoin()}).
+    \endlist
+
+    Note that changing the state transform (\l{QCPainter::transform()}, \l{QCPainter::rotate()} etc.)
+    does not invalidate the path, so moving/scaling/rotating a cached path is very efficient.
+
+    In cases where the path does not need to be painted anymore, or the application
+    should release GPU memory, the cache can be released by calling
+    \l{QCPainter::removePathGroup()}. This isn't usually needed, as the cached paths
+    are automatically released during the painter destructor.
+
+    \sa QCPainter::addPath(), QCPainter::removePathGroup()
+
 */
 
 /*!
@@ -69,7 +117,7 @@ QCPainterPath::QCPainterPath()
 
     Reserving correct space is an optimization for path creation and
     memory usage. It isn't mandatory as sufficient space will automatically
-    be ensured while adding commands into the path.
+    be ensured while adding commands to the path.
 
     \sa reserve()
 */
@@ -835,7 +883,7 @@ bool QCPainterPath::isEmpty() const
     Clears the path commands and data.
 
     Call this when the path commands change to recreate the path.
-    This does not affect the memory usage, use  reserve() and squeeze() for that.
+    This does not affect the memory usage, use reserve() and squeeze() for that.
 
     \sa reserve(), squeeze()
 */

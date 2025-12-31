@@ -1507,7 +1507,8 @@ void QCPainter::stroke()
     the path contains more commands is mostly static.
     By default, \a pathGroup is \c 0, so using the
     first group. When \a pathGroup is \c -1, the path will not be cached
-    on GPU side. More information about using path cache group in {TODO: LINK}.
+    on GPU side. More information about using path cache groups in
+    \l{QCPainterPath} documentation.
     Calling beginPath() before this method is not required.
     \table
     \row
@@ -1544,7 +1545,8 @@ void QCPainter::fill(const QCPainterPath &path, int pathGroup)
     the path contains more commands is mostly static.
     By default, \a pathGroup is \c 0, so using the
     first group. When \a pathGroup is \c -1, the path will not be cached
-    on GPU side. More information about using path cache group in {TODO: LINK}.
+    on GPU side. More information about using path cache groups in
+    \l{QCPainterPath} documentation.
     Calling beginPath() before this method is not required.
     \table
     \row
