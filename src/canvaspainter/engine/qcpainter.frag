@@ -59,7 +59,8 @@ float clipMask() {
 #endif
 #ifdef EDGE_AA
 float antialiasingAlpha() {
-    return min(1.0, (1.0 - abs(texCoord.x * 2.0 - 1.0)) * alphaMult) * min(1.0, texCoord.y);
+    float a = min(1.0, (1.0 - abs(texCoord.x * 2.0 - 1.0)) * alphaMult) * min(1.0, texCoord.y);
+    return smoothstep(0.0, 1.0, a);
 }
 #endif
 
