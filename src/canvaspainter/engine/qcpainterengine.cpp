@@ -133,6 +133,7 @@ void QCPainterEngine::reset()
     state.textLineHeight = 0.0f;
     state.textAntialias = 1.0f;
     state.font = QFont();
+    state.winding = QCPainter::PathWinding::CounterClockWise;
 
     // Blending is almost always enabled, so e.g. antialiasing,
     // non-opaque colors and composition modes work.
@@ -1180,8 +1181,7 @@ void QCPainterEngine::appendCommandsData(const float commandsData[], int dCount,
 
 void QCPainterEngine::handleSetPathWinding(QCPainter::PathWinding winding)
 {
-    if (auto *path = ctx.currentPath)
-        path->winding = winding;
+    state.winding = winding;
 }
 
 void QCPainterEngine::handleClosePath()
@@ -1202,6 +1202,7 @@ void QCPainterEngine::handleMoveTo()
     QCPath *path = &paths[ctx.pathsCount++];
     *path = {};
     path->pointsOffset = ctx.pointsCount;
+    path->winding = state.winding;
     ctx.currentPath = path;
 }
 
@@ -1352,7 +1353,8 @@ void QCPainterEngine::commandsToPaths()
             path.isClosed = true;
         }
 
-        enforceWinding(path.pointsOffset, path.pointsCount, path.winding);
+        if (!ctx.renderHints.testFlag(QCPainter::RenderHint::DisableWindingEnforce))
+            enforceWinding(path.pointsOffset, path.pointsCount, path.winding);
 
         int p0Index = path.pointsOffset + path.pointsCount - 1;
         int p1Index = path.pointsOffset;

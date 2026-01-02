@@ -66,6 +66,7 @@ public:
     enum class RenderHint {
         Antialiasing = 1 << 0,
         HighQualityStroking = 1 << 1,
+        DisableWindingEnforce = 1 << 2,
     };
     Q_DECLARE_FLAGS(RenderHints, RenderHint)
 
