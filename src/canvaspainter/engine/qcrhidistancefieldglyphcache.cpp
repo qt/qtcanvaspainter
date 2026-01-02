@@ -298,7 +298,8 @@ QCRhiDistanceFieldGlyphCache::Metrics QCRhiDistanceFieldGlyphCache::glyphMetrics
 
 qreal QCRhiDistanceFieldGlyphCache::fontScale(qreal pixelSize) const
 {
-    return pixelSize / QT_DISTANCEFIELD_BASEFONTSIZE(m_doubleGlyphResolution);
+    return pixelSize
+           / QT_DISTANCEFIELD_BASEFONTSIZE(m_rawFontCache[m_referenceFont].doubleGlyphResolution);
 }
 
 bool QCRhiDistanceFieldGlyphCache::populate(const QList<glyph_t> &glyphs)
@@ -306,9 +307,12 @@ bool QCRhiDistanceFieldGlyphCache::populate(const QList<glyph_t> &glyphs)
     QSet<glyph_t> referencedGlyphs;
     QSet<glyph_t> newGlyphs;
     int count = glyphs.size();
+
+    const auto glyphCount = m_rawFontCache[m_referenceFont].glyphCount;
+
     for (int i = 0; i < count; ++i) {
         glyph_t glyphIndex = glyphs.at(i);
-        if ((int) glyphIndex >= m_glyphCount && m_glyphCount > 0) {
+        if ((int) glyphIndex >= glyphCount && glyphCount > 0) {
             qWarning("Warning: distance-field glyph is not available with index %d", glyphIndex);
             continue;
         }
@@ -354,8 +358,11 @@ void QCRhiDistanceFieldGlyphCache::update()
             qCeil(gd.texCoord.width + gd.texCoord.xMargin * 2),
             qCeil(gd.texCoord.height + gd.texCoord.yMargin * 2));
 
-        distanceFields.append(
-            QDistanceField(size, gd.path, m_pendingGlyphs.at(i), m_doubleGlyphResolution));
+        distanceFields.append(QDistanceField(
+            size,
+            gd.path,
+            m_pendingGlyphs.at(i),
+            m_rawFontCache[m_referenceFont].doubleGlyphResolution));
         gd.path = QPainterPath(); // no longer needed, so release memory used by the painter path
     }
 
@@ -371,18 +378,26 @@ void QCRhiDistanceFieldGlyphCache::setRawFont(const QRawFont &font)
 
     Q_ASSERT(font.isValid());
 
-    QRawFontPrivate *fontD = QRawFontPrivate::get(font);
-    m_glyphCount = fontD->fontEngine->glyphCount();
+    if (!m_rawFontCache.contains(font)) {
+        auto refFont = ReferenceFont{};
+        refFont.mutatedFont = font;
+        QRawFontPrivate *fontD = QRawFontPrivate::get(font);
+        refFont.glyphCount = fontD->fontEngine->glyphCount();
 
-    m_doubleGlyphResolution = qt_fontHasNarrowOutlines(font)
-                              && m_glyphCount < QT_DISTANCEFIELD_HIGHGLYPHCOUNT();
+        refFont.doubleGlyphResolution = qt_fontHasNarrowOutlines(font)
+                                        && refFont.glyphCount < QT_DISTANCEFIELD_HIGHGLYPHCOUNT();
+
+        refFont.pixelSize = QT_DISTANCEFIELD_BASEFONTSIZE(refFont.doubleGlyphResolution)
+                            * QT_DISTANCEFIELD_SCALE(refFont.doubleGlyphResolution);
+
+        // we set the same pixel size as used by the distance field internally.
+        // this allows us to call pathForGlyph once and reuse the result.
+        refFont.mutatedFont.setPixelSize(refFont.pixelSize);
+        m_rawFontCache.insert(font, refFont);
+    }
 
     m_referenceFont = font;
-    // we set the same pixel size as used by the distance field internally.
-    // this allows us to call pathForGlyph once and reuse the result.
-    m_referenceFont.setPixelSize(
-        QT_DISTANCEFIELD_BASEFONTSIZE(m_doubleGlyphResolution)
-        * QT_DISTANCEFIELD_SCALE(m_doubleGlyphResolution));
+
     Q_ASSERT(m_referenceFont.isValid());
 }
 
@@ -466,6 +481,9 @@ void QCRhiDistanceFieldGlyphCache::setGlyphsPosition(const QList<GlyphPosition> 
     QList<quint32> invalidatedGlyphs;
 
     int count = glyphs.size();
+
+    const auto dgResolution = m_rawFontCache[m_referenceFont].doubleGlyphResolution;
+
     for (int i = 0; i < count; ++i) {
         GlyphPosition glyph = glyphs.at(i);
         GlyphData &gd = glyphData(glyph.glyph);
@@ -473,10 +491,10 @@ void QCRhiDistanceFieldGlyphCache::setGlyphsPosition(const QList<GlyphPosition> 
         if (!gd.texCoord.isNull())
             invalidatedGlyphs.append(glyph.glyph);
 
-        gd.texCoord.xMargin = QT_DISTANCEFIELD_RADIUS(m_doubleGlyphResolution)
-                              / qreal(QT_DISTANCEFIELD_SCALE(m_doubleGlyphResolution));
-        gd.texCoord.yMargin = QT_DISTANCEFIELD_RADIUS(m_doubleGlyphResolution)
-                              / qreal(QT_DISTANCEFIELD_SCALE(m_doubleGlyphResolution));
+        gd.texCoord.xMargin = QT_DISTANCEFIELD_RADIUS(dgResolution)
+                              / qreal(QT_DISTANCEFIELD_SCALE(dgResolution));
+        gd.texCoord.yMargin = QT_DISTANCEFIELD_RADIUS(dgResolution)
+                              / qreal(QT_DISTANCEFIELD_SCALE(dgResolution));
         gd.texCoord.x = glyph.position.x();
         gd.texCoord.y = glyph.position.y();
         gd.texCoord.width = gd.boundingRect.width();
@@ -551,9 +569,9 @@ QCRhiDistanceFieldGlyphCache::GlyphData &QCRhiDistanceFieldGlyphCache::glyphData
     auto data = m_glyphsData.find(glyph);
     if (data == m_glyphsData.end()) {
         GlyphData &gd = emptyData(glyph);
-        gd.path = m_referenceFont.pathForGlyph(glyph);
+        gd.path = m_rawFontCache[m_referenceFont].mutatedFont.pathForGlyph(glyph);
         // need bounding rect in base font size scale
-        qreal scaleFactor = qreal(1) / QT_DISTANCEFIELD_SCALE(m_doubleGlyphResolution);
+        qreal scaleFactor = qreal(1) / QT_DISTANCEFIELD_SCALE(m_rawFontCache[m_referenceFont].doubleGlyphResolution);
         QTransform scaleDown;
         scaleDown.scale(scaleFactor, scaleFactor);
         gd.boundingRect = scaleDown.mapRect(gd.path.boundingRect());
