@@ -1711,6 +1711,8 @@ void QCPainter::strokeRect(const QRectF &rect)
     Draws a box \a shadow. The shadow will be painted with the
     position, size, color, blur etc. set in the \a shadow.
     Calling beginPath() before this method is not required.
+    \note To visually see the area covered by drawBoxShadow(), set
+    \c QCPAINTER_DEBUG_SHADOW_RECT environment variable.
     \table
     \row
     \li \inlineimage qcpainter-shadowbox.webp
@@ -1739,10 +1741,9 @@ void QCPainter::drawBoxShadow(const QCBoxShadow &shadow)
     d->m_e->addRect(r.x(), r.y(), r.width(), r.height());
     d->m_e->setFillPaint(shadow.createPaint(this));
     d->m_e->fill();
-    // TODO: Remove this or add debugging API.
-    const bool shadowRectDebug = false;
+    static bool shadowRectDebug = qEnvironmentVariableIsSet("QCPAINTER_DEBUG_SHADOW_RECT");
     if (shadowRectDebug) {
-        d->m_e->setStrokeColor("#60ff0000");
+        d->m_e->setStrokeColor(QColorConstants::Red);
         strokeRect(r);
     }
     d->m_e->restore();
