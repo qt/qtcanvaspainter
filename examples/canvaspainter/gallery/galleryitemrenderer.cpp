@@ -1150,39 +1150,39 @@ void GalleryItemRenderer::drawRectangularShadows() {
     auto *p = painter();
 
     int rects = 3;
-    float margin = width() * 0.1f;
+    float margin = width() * 0.15f;
     float w = width() / rects - margin;
-    float h = height() * 0.15;
+    float h = w;
     float posX = margin/2;
-    float posY = m_topMargin + margin;
+    float posY = m_topMargin + margin * 0.5;
 
     QRectF rect1(posX, posY, w, h);
     QCBoxShadow bs1(rect1);
     p->drawBoxShadow(bs1);
     rect1.translate(w + margin, 0);
     bs1.setRect(rect1);
-    bs1.setBlur(0.2 * w);
+    bs1.setBlur(0.15 * w);
     p->drawBoxShadow(bs1);
     rect1.translate(w + margin, 0);
     bs1.setRect(rect1);
-    bs1.setBlur(0.4 * w);
+    bs1.setBlur(0.3 * w);
     p->drawBoxShadow(bs1);
 
-    posY += h + margin;
+    posY += h + margin * 0.5;
     QRectF rect2(posX, posY, w, h);
     QCBoxShadow bs2(rect2);
     bs2.setRadius(h/2);
     p->drawBoxShadow(bs2);
     rect2.translate(w + margin, 0);
     bs2.setRect(rect2);
-    bs2.setBlur(0.2 * w);
+    bs2.setBlur(0.15 * w);
     p->drawBoxShadow(bs2);
     rect2.translate(w + margin, 0);
     bs2.setRect(rect2);
-    bs2.setBlur(0.4 * w);
+    bs2.setBlur(0.3 * w);
     p->drawBoxShadow(bs2);
 
-    posY += h + margin;
+    posY += h + margin * 0.5;
     QRectF rect3(posX, posY, w, h);
     QCBoxShadow bs3(rect3);
     bs3.setBlur(h/8);
@@ -1201,8 +1201,8 @@ void GalleryItemRenderer::drawRectangularShadows() {
     bs3.setRect(rect3);
     p->drawBoxShadow(bs3);
 
-    posY += h + margin;
-    float blur = 30;
+    posY += h + margin * 0.5;
+    float blur = w * 0.3;
     float radius = 5 + m_animationSine * (h / 2 - 5);
     float shadowOffsetX = blur * 0.3;
     float shadowOffsetY = blur * 0.3;
@@ -1213,7 +1213,7 @@ void GalleryItemRenderer::drawRectangularShadows() {
     QColor c("#222831");
     QColor cl = c.lighter(200);
     QColor cd = c.darker(250);
-    cl.setAlphaF(0.2);
+    cl.setAlphaF(0.3);
     cd.setAlphaF(0.8);
     shadow.setBlur(blur);
     shadow.setRadius(radius);
@@ -1235,7 +1235,7 @@ void GalleryItemRenderer::drawRectangularShadows() {
     shadow2Rect.translate(w + margin, 0);
     radius = h / 8;
     shadow.setRadius(radius);
-    shadow.setBlur(h/16 + m_animationSine * h/2);
+    shadow.setBlur(h/16 + m_animationSine * h/4);
     // Double shadows
     shadow.setRect(shadow1Rect);
     shadow.setColor(cd);
@@ -1254,13 +1254,15 @@ void GalleryItemRenderer::drawRectangularShadows() {
     shadow2Rect.translate(w + margin, 0);
     radius = h / 8;
     shadow.setRadius(radius);
-    shadow.setBlur(h/4);
+    shadow.setBlur(h * 0.2);
     // Double shadows
-    shadow1Rect.translate(h/8 * sin(m_animationTime), 0);
+    float t1 = shadowOffsetX * sin(m_animationTime);
+    shadow1Rect.translate(t1, -t1);
     shadow.setRect(shadow1Rect);
     shadow.setColor(cd);
     p->drawBoxShadow(shadow);
-    shadow2Rect.translate(h/8 * sin(m_animationTime + M_PI), 0);
+    float t2 = shadowOffsetX * sin(m_animationTime + M_PI);
+    shadow2Rect.translate(t2, -t2);
     shadow.setRect(shadow2Rect);
     shadow.setColor(cl);
     p->drawBoxShadow(shadow);
