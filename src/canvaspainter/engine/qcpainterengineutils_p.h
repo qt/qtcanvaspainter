@@ -127,6 +127,7 @@ struct QCState {
     QCPainter::CompositeOperation compositeOperation;
     QCPainter::LineJoin lineJoin;
     QCPainter::LineCap lineCap;
+    QCPainter::PathWinding winding;
     float strokeWidth;
     float miterLimit;
     float alpha;

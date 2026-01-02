@@ -116,6 +116,56 @@ Q_LOGGING_CATEGORY(QC_INFO, "qt.qcpainter.general")
     \li Qt Widgets: Use \l QCPainterWidget.
     \li QRhi-based QWindow, or offscreen QRhi buffers: Use \l QCPainterFactory and \c QCRhiPaintDriver.
     \endlist
+
+    \section1 Winding rules
+    QCPainter uses \c nonzero (\c{WindingFill}) fillrule. To select the filling
+    based on the path points direction, disable the winding forcing by setting
+    \c DisableWindingEnforce rendering hint with \l setRenderHint().
+
+    \table
+    \row
+    \li \inlineimage qcpainter-pathwinding2.webp
+    \li
+    \code
+    p->setRenderHint(QCPainter::RenderHint::DisableWindingEnforce);
+    p->beginPath();
+    // Outer shape, counterclockwise
+    p->moveTo(20, 20);
+    p->lineTo(100, 180);
+    p->lineTo(180, 20);
+    p->closePath();
+    // Inner shape, clockwise
+    p->moveTo(100, 40);
+    p->lineTo(125, 90);
+    p->lineTo(75, 90);
+    p->closePath();
+    p->fill();
+    p->stroke();
+    \endcode
+    \endtable
+
+    However, a more common case is relying on winding enforcing and setting
+    the preferred winding using \l setPathWinding() or \l beginHoleSubPath()
+    and \l beginSolidSubPath() helpers.
+
+    \table
+    \row
+    \li \inlineimage qcpainter-pathwinding3.webp
+    \li
+    \code
+    p->beginPath();
+    p->roundRect(20, 20, 160, 160, 30);
+    // Start painting holes
+    p->beginHoleSubPath();
+    p->roundRect(40, 40, 120, 120, 10);
+    // Start painting solid
+    p->beginSolidSubPath();
+    p->rect(60, 60, 80, 20);
+    p->circle(100, 120, 20);
+    p->fill();
+    p->stroke();
+    \endcode
+    \endtable
 */
 
 /*!
@@ -272,6 +322,11 @@ Q_LOGGING_CATEGORY(QC_INFO, "qt.qcpainter.general")
     rendering in some less common cases where stroking overlaps and
     doesn't have full opacity. Enabling it results into higher rendering cost.
     The default value is false.
+
+    \value DisableWindingEnforce Setting this to true disables enforcing
+    of path winding to match what has been set into setPathWinding().
+    Disabling allows e.g. creating holes into paths by adding the points
+    in clock wise order. Disabling can also increase the performance.
 */
 
 /*!
