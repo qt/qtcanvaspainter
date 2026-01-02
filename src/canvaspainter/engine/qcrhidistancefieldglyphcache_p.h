@@ -128,6 +128,14 @@ public:
     GlyphData &glyphData(glyph_t glyph);
 
 private:
+
+    struct ReferenceFont {
+        QRawFont mutatedFont;
+        qreal pixelSize;
+        bool doubleGlyphResolution;
+        int glyphCount;
+    };
+
     static TextureInfo s_emptyTexture;
 
     QRhi *m_rhi;
@@ -137,10 +145,8 @@ private:
     QPointF m_position;
     QGlyphRun m_glyphs;
     QRawFont m_referenceFont;
-    int m_glyphCount;
     mutable int m_maxTextureSize = 1024;
     int m_maxTextureCount = 1;
-    bool m_doubleGlyphResolution = false;
 
     QHash<glyph_t, GlyphData> m_glyphsData;
     QSet<glyph_t> m_populatingGlyphs;
@@ -148,6 +154,7 @@ private:
     QHash<glyph_t, TextureInfo *> m_glyphsTexture;
     QList<TextureInfo> m_textures;
     QDataBuffer<glyph_t> m_pendingGlyphs;
+    QHash<QRawFont, ReferenceFont> m_rawFontCache;
 
     GlyphData &emptyData(glyph_t glyph);
     int maxTextureSize() const;
@@ -160,8 +167,10 @@ private:
 
     qreal distanceFieldRadius() const
     {
-        return QT_DISTANCEFIELD_RADIUS(m_doubleGlyphResolution)
-               / qreal(QT_DISTANCEFIELD_SCALE(m_doubleGlyphResolution));
+        auto doubleRes = m_rawFontCache[m_referenceFont].doubleGlyphResolution;
+
+        return QT_DISTANCEFIELD_RADIUS(doubleRes)
+               / qreal(QT_DISTANCEFIELD_SCALE(doubleRes));
     }
 
     TextureInfo *textureInfo(int index)
