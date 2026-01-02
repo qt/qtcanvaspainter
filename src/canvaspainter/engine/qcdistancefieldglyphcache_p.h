@@ -53,6 +53,7 @@ public:
         QCPainter::WrapMode wrapMode;
         float pixelSize;
         float lineWidth;
+        float lineHeight;
         float letterSpacing;
         float wordSpacing;
     };
@@ -113,6 +114,7 @@ inline bool operator==(
     return a.fontKey == b.fontKey && qFuzzyCompare(a.pixelSize, b.pixelSize)
            && a.text == b.text && a.textAlign == b.textAlign
            && a.wrapMode == b.wrapMode && qFuzzyCompare(a.lineWidth, b.lineWidth)
+           && qFuzzyCompare(a.lineHeight, b.lineHeight)
            && qFuzzyCompare(a.letterSpacing, b.letterSpacing)
            && qFuzzyCompare(a.wordSpacing, b.wordSpacing);
 }
@@ -126,7 +128,7 @@ inline bool operator!=(
 inline size_t qHash(const QCDistanceFieldGlyphCache::GlyphCacheKey &k, size_t seed = 0)
 {
     return qHashMulti(seed, k.fontKey, k.text, k.textAlign, k.wrapMode, k.lineWidth,
-                      k.letterSpacing, k.wordSpacing, k.pixelSize);
+                      k.lineHeight, k.letterSpacing, k.wordSpacing, k.pixelSize);
 }
 
 QT_END_NAMESPACE
