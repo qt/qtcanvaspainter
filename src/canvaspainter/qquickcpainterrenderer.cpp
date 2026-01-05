@@ -190,7 +190,7 @@ bool QQuickCPainterRenderer::hasSharedPainter() const
     enabled, they can use images or canvases created by the other item, because
     they both use the same QCPainter.
 
-    \note Even when \a enable is true, painters are not shared when between
+    \note Even when \a enable is true, painters are not shared between
     items belonging to different QQuickWindow instances, and by extension, to
     different scene graphs.
 
