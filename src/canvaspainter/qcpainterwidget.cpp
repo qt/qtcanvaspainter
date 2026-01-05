@@ -129,7 +129,7 @@ bool QCPainterWidget::hasSharedPainter() const
     is enabled, they can use images or canvases created by the other widget,
     because they both use the same QCPainter.
 
-    \note Even when \a enable is true, painters are not shared when between
+    \note Even when \a enable is true, painters are not shared between
     widgets belonging to different windows (top-level widgets).
 
     \sa hasSharedPainter
