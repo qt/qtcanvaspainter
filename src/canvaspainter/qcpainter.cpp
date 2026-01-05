@@ -32,28 +32,67 @@ Q_LOGGING_CATEGORY(QC_INFO, "qt.qcpainter.general")
     Context specification, ported to Qt C++. It is also influenced by QPainter,
     but with a more compact API.
 
-    Here's a simple example of using QCPainter.
+    Here is a simple example of using QCPainter to create a round button.
+    \table
+    \row
+    \li \inlineimage qcpainter-buttonexample.webp
+    \li
     \code
-    QRectF rect(50, 50, 120, 60);
+    QRectF rect(40, 70, 120, 60);
     QRectF shadowRect = rect.translated(2, 4);
     // Paint shadow
     QCBoxShadow shadow(shadowRect, 30, 15, "#60373F26");
-    painter.drawBoxShadow(shadow);
+    p->drawBoxShadow(shadow);
     // Paint rounded rect
-    painter.beginPath();
-    painter.roundRect(rect, 30);
-    painter.setFillStyle("#DBEB00");
-    painter.fill();
+    p->beginPath();
+    p->roundRect(rect, 30);
+    p->setFillStyle("#DBEB00");
+    p->fill();
     // Paint text
-    painter.setTextAlign(QCPainter::TextAlign::Center);
-    painter.setTextBaseline(QCPainter::TextBaseline::Middle);
+    p->setTextAlign(QCPainter::TextAlign::Center);
+    p->setTextBaseline(QCPainter::TextBaseline::Middle);
     QFont font("Titillium Web", 18);
-    painter.setFont(font);
-    painter.setFillStyle("#373F26");
-    painter.fillText("HELLO!", rect);
+    p->setFont(font);
+    p->setFillStyle("#373F26");
+    p->fillText("CLICK!", rect);
     \endcode
+    \endtable
 
-    \image hello_qcpainter.png
+    Here is another example of painting a simple graph.
+    \table
+    \row
+    \li \inlineimage qcpainter-graphexample.webp
+    \li
+    \code
+    // Paint grid
+    QCGridPattern grid(0, 0, 10, 10, "#404040", "#202020");
+    p->setFillStyle(grid);
+    p->fillRect(0, 0, width(), height());
+    // Paint axis
+    p->setFillStyle(QColorConstants::White);
+    p->fillRect(0, 0.5 * height() - 1, width(), 2);
+    p->fillRect(0.5 * width() - 1, 0, 2, height());
+    // Paint shadowed graph
+    p->beginPath();
+    p->moveTo(20, height() * 0.8);
+    p->bezierCurveTo(width() * 0.2, height() * 0.4,
+                     width() * 0.5, height() * 0.8,
+                     width() - 20, height() * 0.2);
+    p->setAntialias(10);
+    p->setLineWidth(12);
+    p->setStrokeStyle("#D0000000");
+    p->stroke();
+    p->setAntialias(1);
+    p->setLineWidth(6);
+    QCLinearGradient lg(0, 0, 0, height());
+    lg.setStartColor(QColorConstants::Red);
+    lg.setEndColor(QColorConstants::Green);
+    p->setStrokeStyle(lg);
+    p->stroke();
+    \endcode
+    \endtable
+
+    \section1 Features
 
     For the most parts and from the naming perspective, QCPainter follow closely the
     HTML Canvas 2D Context (https://html.spec.whatwg.org/multipage/canvas.html#2dcontext).
