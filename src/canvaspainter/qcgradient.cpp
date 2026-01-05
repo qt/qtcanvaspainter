@@ -12,6 +12,7 @@
 #include "qdatastream.h"
 #include "qvariant.h"
 #include <qdebug.h>
+#include <limits>
 
 QT_BEGIN_NAMESPACE
 
@@ -401,16 +402,26 @@ QCGradientPrivate::QCGradientPrivate(QCBrush::BrushType type)
 {
 }
 
+// Convert quint64 into qint64
+static constexpr qint64 toInt64(quint64 value) noexcept
+{
+    constexpr qint64 QINT64_MAX = std::numeric_limits<qint64>::max();
+    if (value <= quint64(QINT64_MAX))
+        return qint64(value);
+    else
+        return -qint64(~value) - 1;
+}
+
 // Create unique id hash for the gradient
 // Required for caching the gradient textures
-qint64 QCGradientPrivate::generateGradientId() const
+qint64 QCGradientPrivate::generateGradientKey() const
 {
-    qint64 id = 0;
+    quint64 id = 0;
     for (const auto &v : std::as_const(gradientStops)) {
-        id ^= qHash(int(v.first * QCPAINTER_GRADIENT_SIZE))
+        id += qHash(int(v.first * QCPAINTER_GRADIENT_SIZE))
               ^ qHash(v.second.rgba());
     }
-    return id;
+    return toInt64(id);
 }
 
 void QCGradientPrivate::gradientColorSpan(quint32 *data, const QColor &color1, const QColor &color2, float offset1, float offset2)
@@ -446,7 +457,7 @@ void QCGradientPrivate::updateGradientTexture(QCPainter *painter)
     if (!(dirty & QCGradientPrivate::DirtyFlag::Stops))
         return;
 
-    const qint64 key = generateGradientId();
+    const qint64 key = generateGradientKey();
     auto *painterPriv = QCPainterPrivate::get(painter);
     if (painterPriv->m_dataCache.contains(key)) {
         // Texture for the current stops is available in the cache
