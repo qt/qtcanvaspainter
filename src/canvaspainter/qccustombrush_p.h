@@ -62,8 +62,6 @@ public:
         float unused2[8];
     };
 
-    // TODO: Should we store only shader filename strings here
-    // and QShaders on the renderer side?
     QShader fragmentShader;
     QShader vertexShader;
     bool timeRunning = false;

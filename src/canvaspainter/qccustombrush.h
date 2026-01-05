@@ -14,7 +14,7 @@ QT_BEGIN_NAMESPACE
 
 class QCCustomBrushPrivate;
 class QCCustomBrush;
-struct FragUniforms;
+class QShader;
 
 // TODO: Should this have QDataStream support?
 
@@ -23,7 +23,7 @@ class Q_CANVASPAINTER_EXPORT QCCustomBrush : public QCBrush
 public:
     QCCustomBrush();
     QCCustomBrush(const QString &fragmentShader,
-                  const QString &vertexShader);
+                  const QString &vertexShader = {});
     ~QCCustomBrush();
 
     bool operator==(const QCCustomBrush &brush) const;
@@ -31,7 +31,9 @@ public:
     operator QVariant() const;
 
     void setFragmentShader(const QString &fragmentShader);
+    void setFragmentShader(const QShader &fragmentShader);
     void setVertexShader(const QString &vertexShader);
+    void setVertexShader(const QShader &vertexShader);
 
     bool timeRunning() const;
     void setTimeRunning(bool running);
