@@ -17,6 +17,7 @@ QT_BEGIN_NAMESPACE
 
 /*!
     \class QCGradient
+    \since 6.11
     \brief QCGradient is the base class for all QCPainter gradient brushes.
     \inmodule QtCanvasPainter
 

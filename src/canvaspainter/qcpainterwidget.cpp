@@ -18,6 +18,7 @@ QAtomicInt QCPainterWidgetPrivate::m_rendered;
 
 /*!
     \class QCPainterWidget
+    \since 6.11
     \brief QCPainterWidget is a widget for rendering using QCPainter.
     \inmodule QtCanvasPainter
 

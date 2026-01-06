@@ -24,6 +24,7 @@ Q_LOGGING_CATEGORY(QC_INFO, "qt.qcpainter.general")
 
 /*!
     \class QCPainter
+    \since 6.11
     \brief The QCPainter class performs hardware-accelerated painting on QRhi.
     \inmodule QtCanvasPainter
 

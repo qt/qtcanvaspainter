@@ -10,6 +10,7 @@ QT_BEGIN_NAMESPACE
 
 /*!
     \class QCRhiPaintDriver
+    \since 6.11
     \brief The QCRhiPaintDriver class manages the lower level aspects of QCPainter-based rendering for QRhi render targets and offscreen canvases.
     \inmodule QtCanvasPainter
 

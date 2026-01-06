@@ -10,6 +10,7 @@ QT_BEGIN_NAMESPACE
 
 /*!
     \class QQuickCPainterItem
+    \since 6.11
     \brief The QQuickCPainterItem class provides a way to use the Qt Canvas Painter API in the
     QML Scene Graph.
     \inmodule QtCanvasPainter

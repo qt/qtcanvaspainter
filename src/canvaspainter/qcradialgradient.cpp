@@ -11,6 +11,7 @@ QT_BEGIN_NAMESPACE
 
 /*!
     \class QCRadialGradient
+    \since 6.11
     \brief QCRadialGradient is a brush for radial gradient painting.
     \inmodule QtCanvasPainter
 

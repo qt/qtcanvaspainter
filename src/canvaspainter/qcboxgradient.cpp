@@ -11,6 +11,7 @@ QT_BEGIN_NAMESPACE
 
 /*!
     \class QCBoxGradient
+    \since 6.11
     \brief QCBoxGradient is a brush for box gradient painting.
     \inmodule QtCanvasPainter
 

@@ -10,6 +10,7 @@ QT_BEGIN_NAMESPACE
 
 /*!
     \class QCConicalGradient
+    \since 6.11
     \brief QCConicalGradient is a brush for conical gradient painting.
     \inmodule QtCanvasPainter
 

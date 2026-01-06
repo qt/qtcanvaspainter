@@ -10,6 +10,7 @@ QT_BEGIN_NAMESPACE
 
 /*!
     \class QCGridPattern
+    \since 6.11
     \brief QCGridPattern is a brush for painting grid patterns.
     \inmodule QtCanvasPainter
 

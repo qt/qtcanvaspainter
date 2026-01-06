@@ -10,6 +10,7 @@ QT_BEGIN_NAMESPACE
 
 /*!
     \class QCImagePattern
+    \since 6.11
     \brief QCImagePattern is a brush for painting image patterns.
     \inmodule QtCanvasPainter
 
