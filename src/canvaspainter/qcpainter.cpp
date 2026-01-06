@@ -153,7 +153,7 @@ Q_LOGGING_CATEGORY(QC_INFO, "qt.qcpainter.general")
     \list
     \li Qt Quick: Use \l QQuickCPainterItem and \l QQuickCPainterRenderer.
     \li Qt Widgets: Use \l QCPainterWidget.
-    \li QRhi-based QWindow, or offscreen QRhi buffers: Use \l QCPainterFactory and \c QCRhiPaintDriver.
+    \li QRhi-based QWindow, or offscreen QRhi buffers: Use \l QCPainterFactory and \l QCRhiPaintDriver.
     \endlist
 
     \section1 Winding rules
