@@ -21,6 +21,7 @@ QAtomicInt QQuickCPainterRendererPrivate::m_rendered;
 
 /*!
     \class QQuickCPainterRenderer
+    \since 6.11
     \brief The QQuickCPainterRenderer handles all painting for a QQuickCPainterItem.
     \inmodule QtCanvasPainter
 

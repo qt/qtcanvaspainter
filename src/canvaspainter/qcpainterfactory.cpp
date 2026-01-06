@@ -14,6 +14,7 @@ QT_BEGIN_NAMESPACE
 
 /*!
     \class QCPainterFactory
+    \since 6.11
     \brief QCPainterFactory manages instances of QCPainter and the associated rendering engine.
     \inmodule QtCanvasPainter
 

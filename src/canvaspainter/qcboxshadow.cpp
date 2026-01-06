@@ -11,6 +11,7 @@ static const float QCPAINTER_BOX_SHADOW_MULTIPLIER = 1.0f;
 
 /*!
     \class QCBoxShadow
+    \since 6.11
     \brief QCBoxShadow is a brush for painting rectangle shadows / glows.
     \inmodule QtCanvasPainter
 

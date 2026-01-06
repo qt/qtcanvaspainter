@@ -9,6 +9,7 @@ QT_BEGIN_NAMESPACE
 
 /*!
     \class QCImage
+    \since 6.11
     \brief QCImage is the image class for QCPainter.
     \inmodule QtCanvasPainter
 

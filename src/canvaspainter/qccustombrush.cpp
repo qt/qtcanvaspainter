@@ -28,6 +28,7 @@ static QShader getCustomShader(const QString &name)
 
 /*!
     \class QCCustomBrush
+    \since 6.11
     \brief QCCustomBrush is a brush with custom shaders.
     \inmodule QtCanvasPainter
 

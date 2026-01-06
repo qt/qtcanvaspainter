@@ -11,6 +11,7 @@ QT_BEGIN_NAMESPACE
 
 /*!
     \class QCLinearGradient
+    \since 6.11
     \brief QCLinearGradient is a brush for linear gradient painting.
     \inmodule QtCanvasPainter
 

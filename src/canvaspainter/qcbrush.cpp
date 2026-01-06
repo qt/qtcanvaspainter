@@ -12,6 +12,7 @@ QT_BEGIN_NAMESPACE
 
 /*!
     \class QCBrush
+    \since 6.11
     \brief QCBrush is the base class for all QCPainter fill / stroke brushes.
     \inmodule QtCanvasPainter
 

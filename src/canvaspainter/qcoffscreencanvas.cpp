@@ -8,6 +8,7 @@ QT_BEGIN_NAMESPACE
 
 /*!
     \class QCOffscreenCanvas
+    \since 6.11
     \brief QCOffscreenCanvas represents an offscreen canvas that QCPainter can target.
     \inmodule QtCanvasPainter
 

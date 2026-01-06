@@ -38,6 +38,7 @@ QT_BEGIN_NAMESPACE
 
 /*!
     \class QCPainterPath
+    \since 6.11
     \brief QCPainterPath is the native path format of QCPainter.
     \inmodule QtCanvasPainter
 
