@@ -27,11 +27,14 @@ QT_BEGIN_NAMESPACE
     widget or Qt Quick item classes.
 
     Similarly to QCImage and QCBrush, QCOffscreenCanvas is explicitly shared.
-    See \l{Implicit Data Sharing} and \l QSharedDataPointer for details. As with
-    QCImage, a QCOffscreenCanvas object can be seen as containing handles to
-    graphics resources. Even when a detach occurs, the actual resources, i.e.
-    the image data in the underlying texture, are never actually copied or
-    duplicated.
+    See \l{Implicit Data Sharing} and \l QSharedDataPointer for details.
+
+    \note As with QCImage, a QCOffscreenCanvas can be seen as an object merely
+    containing handles. Even when a detach occurs, the actual resources, e.g.
+    the underlying texture and the image data in it, are never actually copied
+    or duplicated. The actual owner of any real graphics resources (e.g., a
+    QRhiTexture) is the QCPainter that handed out the QCOffscreenCanvas via
+    \l{QCPainter::}{createCanvas()}.
 
     A canvas always belongs to the QCPainter that created it. Manually
     destroying canvases is done by calling \l{QCPainter::}{destroyCanvas()}. In

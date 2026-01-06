@@ -43,6 +43,21 @@ QT_BEGIN_NAMESPACE
     uploads it again as a texture. But a more common approac is having
     QCImage variables as class members and calling \l QCPainter::addImage()
     e.g. in \l QQuickCPainterRenderer::initializeResources().
+
+    Similarly to QCBrush and QCOffscreenCanvas, QCImage is explicitly shared.
+    See \l{Implicit Data Sharing} and \l QSharedDataPointer for details.
+
+    \note A QCImage object contains only a handle to a graphics resource, such
+    as a texture. Even when a detach occurs, the actual resource, i.e. the
+    underlying texture and the image data in it, is never actually copied or
+    duplicated. The actual owner of the real graphics resource (e.g., a
+    QRhiTexture) is the QCPainter that handed out the QCImage via
+    \l{QCPainter::}{addImage()}.
+
+    A QCImage always belongs to the QCPainter that created it. Manually
+    removing images is done by calling \l{QCPainter::}{removeImage()}. In
+    most cases this will not be necessary, however, since the painter will
+    automatically destroy any images during its own destruction.
 */
 
 /*!
