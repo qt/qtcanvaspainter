@@ -40,6 +40,7 @@ QT_BEGIN_NAMESPACE
 static const float QCPAINTER_MAX_STROKE_WIDTH = 1000.0f;
 static const float QCPAINTER_MAX_ANTIALIAS_WIDTH = 10.0f;
 static const int QCPAINTER_MAX_TESSELATE_LEVEL = 11;
+static const float QCPAINTER_ANTIALIAS_MULTIPLIER = 1.25f;
 
 QCContext* QCPainterEngine::initialize(QCPainterRhiRenderer *renderer)
 {
@@ -1056,7 +1057,7 @@ QCDrawDebug QCPainterEngine::drawDebug() const
 void QCPainterEngine::setAntialias(float antialias)
 {
     antialias = std::clamp(antialias, 0.0f, QCPAINTER_MAX_ANTIALIAS_WIDTH);
-    ctx.edgeAAWidth = antialias / ctx.devicePxRatio;
+    ctx.edgeAAWidth = QCPAINTER_ANTIALIAS_MULTIPLIER * antialias / ctx.devicePxRatio;
 }
 
 void QCPainterEngine::setMiterLimit(float limit)
@@ -1105,7 +1106,7 @@ void QCPainterEngine::setDevicePixelRatio(float ratio)
         ctx.distTol = 0.01f / ratio;
         // Note: This is not called during the paint operations,
         // so it can set edgeAAWidth to default value.
-        ctx.edgeAAWidth = 1.0f / ratio;
+        ctx.edgeAAWidth = QCPAINTER_ANTIALIAS_MULTIPLIER / ratio;
         ctx.devicePxRatio = ratio;
     }
 }
@@ -2113,7 +2114,7 @@ QCPaint QCPainterEngine::getStrokePaint(float *strokeWidth, bool ignoreTransform
     float expa = 1.0f;
     if (*strokeWidth < ctx.edgeAAWidth) {
         // If the stroke width is less than pixel size, use alpha to emulate coverage.
-        float alpha = std::clamp(*strokeWidth / ctx.edgeAAWidth, 0.0f, 1.0f);
+        float alpha = std::clamp((*strokeWidth * QCPAINTER_ANTIALIAS_MULTIPLIER) / ctx.edgeAAWidth, 0.0f, 1.0f);
         // Since coverage is area, scale by alpha*alpha.
         expa = alpha * alpha;
         *strokeWidth = ctx.edgeAAWidth;

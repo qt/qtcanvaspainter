@@ -561,15 +561,17 @@ void QCPainter::setMiterLimit(float limit)
 
 /*!
     Sets the line width of stroke to \a width in pixels.
-    The default line width is \c 1.0.
+    The default line width is \c 1.0. When the antialiasing is enabled,
+    the line widths under a single pixel automatically fade the
+    opacity, creating a smooth output.
     \table
     \row
     \li \inlineimage qcpainter-linewidth.webp
     \li
     \code
-    for (int i = 1; i < 9 ; i++) {
+    for (int i = 1; i < 10 ; i++) {
         int y = i * 20;
-        p->setLineWidth(i);
+        p->setLineWidth(0.5 * i);
         p->beginPath();
         p->moveTo(20, y);
         p->bezierCurveTo(80, y + 20, 120,
@@ -2250,7 +2252,7 @@ QRectF QCPainter::textBoundingBox(const QString &text, const QRectF &rect)
     Set the current antialiasing amount to \a antialias in pixels.
     More antialias means smoother painting. This only affects fill and stroke painting,
     not images or texts.
-    The default value is \c 1.0.
+    The default value is \c 1.0 and the maximum value is \c 10.0.
 
     Antialiasing can be modified per-path so it can be set before each stroke/fill.
     To disable antialiasing from the whole canvas painter, use
@@ -2261,12 +2263,13 @@ QRectF QCPainter::textBoundingBox(const QString &text, const QRectF &rect)
     \li
     \code
     p->setLineWidth(6);
-    for (int i = 0; i < 9 ; i++) {
+    for (int i = 1; i < 10 ; i++) {
+        int y = i * 20;
         p->setAntialias(i);
-        int y = 20 + i * 20;
         p->beginPath();
         p->moveTo(20, y);
-        p->lineTo(180, y);
+        p->bezierCurveTo(80, y + 20, 120,
+                         y - 20, 180, y);
         p->stroke();
     }
     \endcode
