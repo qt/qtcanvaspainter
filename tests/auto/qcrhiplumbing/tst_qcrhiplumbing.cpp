@@ -111,6 +111,8 @@ private:
 #ifdef FRAME_CAPTURE
     std::unique_ptr<QGraphicsFrameCapture> m_cap;
 #endif
+
+    QRhi::Flags rhiCreateFlags;
 };
 
 #ifdef FRAME_CAPTURE
@@ -228,6 +230,10 @@ void tst_CanvasRhiRendering::rhiTestData()
 #endif
 #ifdef TST_MTL
     QTest::newRow("Metal") << QRhi::Metal << static_cast<QRhiInitParams *>(&initParams.mtl);
+#endif
+
+#ifdef FRAME_CAPTURE
+    rhiCreateFlags |= QRhi::EnableDebugMarkers;
 #endif
 }
 
@@ -369,6 +375,27 @@ static void drawCircleInCenter(QCPainter *painter, const QCImage &imageForPatter
     painter->fill();
 }
 
+static void drawCircleAndTextInCenter(QCPainter *painter)
+{
+    const QPointF center(RT_WIDTH / 2, RT_HEIGHT / 2);
+    painter->beginPath();
+    painter->circle(center.x(), center.y(), std::min(RT_WIDTH, RT_HEIGHT) / 2);
+    painter->setStrokeStyle(Qt::green);
+    painter->setLineWidth(4);
+    painter->stroke();
+    painter->setFillStyle("#ff0000");
+    painter->fill();
+    painter->setTextAlign(QCPainter::TextAlign::Center);
+    painter->setTextBaseline(QCPainter::TextBaseline::Middle);
+    QFont font1;
+    font1.setWeight(QFont::Weight::Bold);
+    font1.setItalic(true);
+    font1.setPixelSize(24);
+    painter->setFont(font1);
+    painter->setFillStyle(Qt::blue);
+    painter->fillText("Hello", center.x(), center.y());
+}
+
 static bool testColor(const QImage &image, int x, int y, const QColor &expected)
 {
     const int maxFuzz = 1;
@@ -418,7 +445,7 @@ void tst_CanvasRhiRendering::render()
     QFETCH(QRhi::Implementation, impl);
     QFETCH(QRhiInitParams *, initParams);
 
-    std::unique_ptr<QRhi> rhi(QRhi::create(impl, initParams, QRhi::EnableDebugMarkers));
+    std::unique_ptr<QRhi> rhi(QRhi::create(impl, initParams, rhiCreateFlags));
     if (!rhi)
         QSKIP("Failed to create QRhi, skip");
 
@@ -478,7 +505,7 @@ void tst_CanvasRhiRendering::canvasRender()
     QFETCH(QRhi::Implementation, impl);
     QFETCH(QRhiInitParams *, initParams);
 
-    std::unique_ptr<QRhi> rhi(QRhi::create(impl, initParams, QRhi::EnableDebugMarkers));
+    std::unique_ptr<QRhi> rhi(QRhi::create(impl, initParams, rhiCreateFlags));
     if (!rhi)
         QSKIP("Failed to create QRhi, skip");
 
@@ -544,6 +571,39 @@ void tst_CanvasRhiRendering::canvasRender()
         QVERIFY(testColor(image, x - 100, y, Qt::red));
     }
 
+    // Now render some text.
+    rhi->beginOffscreenFrame(&cb);
+    pd->resetForNewFrame();
+    pd->beginPaint(cb, rt->rt);
+    drawCircleAndTextInCenter(painter);
+    pd->endPaint();
+    rhi->endOffscreenFrame();
+
+    if (impl != QRhi::Null) {
+        QImage image = imageFromReadback(rhi.get(), rt->tex);
+        int x = RT_WIDTH / 2;
+        int y = RT_HEIGHT / 2;
+        // the image only has red, green, blue, and black
+        int redCount = 0, greenCount = 0, blueCount = 0;
+        for (int y = 0; y < image.height(); ++y) {
+            for (int x = 0; x < image.width(); ++x) {
+                if (qRed(image.pixel(x, y)) > 240)
+                    ++redCount;
+                else if (qGreen(image.pixel(x, y)) > 240)
+                    ++greenCount;
+                else if (qBlue(image.pixel(x, y)) > 240)
+                    ++blueCount;
+            }
+        }
+        // the fill
+        QCOMPARE_GT(redCount, 400000);
+        // the border
+        QCOMPARE_GT(greenCount, 2000);
+        // the text, use a low threshold since the font may differ between
+        // platforms, and so it may mean fewer or more blue pixels.
+        QCOMPARE_GT(blueCount, 200);
+    }
+
     QCOffscreenCanvas canvas2 = canvas;
     QCOMPARE(canvas, canvas2);
     canvas2.setFillColor(Qt::red);
@@ -580,7 +640,7 @@ void tst_CanvasRhiRendering::canvasRenderHqStroking()
     QFETCH(QRhi::Implementation, impl);
     QFETCH(QRhiInitParams *, initParams);
 
-    std::unique_ptr<QRhi> rhi(QRhi::create(impl, initParams, QRhi::EnableDebugMarkers));
+    std::unique_ptr<QRhi> rhi(QRhi::create(impl, initParams, rhiCreateFlags));
     if (!rhi)
         QSKIP("Failed to create QRhi, skip");
 
