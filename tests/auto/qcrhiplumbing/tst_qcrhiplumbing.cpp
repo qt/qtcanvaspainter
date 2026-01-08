@@ -61,6 +61,8 @@ private slots:
     void render();
     void canvasRender_data();
     void canvasRender();
+    void canvasRenderHqStroking_data();
+    void canvasRenderHqStroking();
 
 private:
     void setWindowType(QWindow *window, QRhi::Implementation impl);
@@ -562,6 +564,66 @@ void tst_CanvasRhiRendering::canvasRender()
     QVERIFY(canvas.texture());
 
     // let the painter destroy 'canvas' automatically
+
+#ifdef FRAME_CAPTURE
+    endFrameCapture(m_cap.get());
+#endif
+}
+
+void tst_CanvasRhiRendering::canvasRenderHqStroking_data()
+{
+    rhiTestData();
+}
+
+void tst_CanvasRhiRendering::canvasRenderHqStroking()
+{
+    QFETCH(QRhi::Implementation, impl);
+    QFETCH(QRhiInitParams *, initParams);
+
+    std::unique_ptr<QRhi> rhi(QRhi::create(impl, initParams, QRhi::EnableDebugMarkers));
+    if (!rhi)
+        QSKIP("Failed to create QRhi, skip");
+
+#ifdef FRAME_CAPTURE
+    configureFrameCapture(m_cap.get(), rhi.get());
+    startFrameCapture(m_cap.get(), rhi.get(), "canvasRenderHqStroking");
+#endif
+
+    std::unique_ptr<QCPainterFactory> factory(new QCPainterFactory);
+    QCPainter *painter = factory->create(rhi.get());
+    QCRhiPaintDriver *pd = factory->paintDriver();
+    QVERIFY(pd && painter);
+
+    QCOffscreenCanvas canvas;
+    canvas = painter->createCanvas(QSize(RT_WIDTH, RT_HEIGHT));
+    QVERIFY(!canvas.isNull());
+    canvas.setFillColor(Qt::black);
+
+    // this triggers using the stencil buffer
+    painter->setRenderHint(QCPainter::RenderHint::HighQualityStroking);
+
+    QRhiCommandBuffer *cb;
+    rhi->beginOffscreenFrame(&cb);
+    pd->resetForNewFrame();
+    pd->beginPaint(canvas, cb);
+    drawCircleInCenter(painter);
+    pd->endPaint();
+    rhi->endOffscreenFrame();
+
+    if (impl != QRhi::Null) {
+        QImage image = imageFromReadback(rhi.get(), canvas.texture());
+        QVERIFY(testColor(image, 1, 1, Qt::black));
+        QVERIFY(testColor(image, RT_WIDTH / 2, RT_HEIGHT / 2, Qt::red));
+        int greenCount = 0;
+        for (int y = 0; y < image.height(); ++y) {
+            for (int x = 0; x < image.width(); ++x) {
+                if (qGreen(image.pixel(x, y)) > 250)
+                    ++greenCount;
+            }
+        }
+        // ca. 2068 green pixels, the rest is either black or red
+        QCOMPARE_GT(greenCount, 2000);
+    }
 
 #ifdef FRAME_CAPTURE
     endFrameCapture(m_cap.get());
