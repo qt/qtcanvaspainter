@@ -809,7 +809,10 @@ void QCPainter::translate(QPointF point)
 }
 
 /*!
-    Rotates current coordinate system by \a angle. Angle is specified in radians.
+    Rotates current coordinate system clockwise by \a angle.
+
+    The angle is specified in radians. Use qDegreesToRadians() to convert from
+    degrees to radians.
 */
 
 void QCPainter::rotate(float angle)
