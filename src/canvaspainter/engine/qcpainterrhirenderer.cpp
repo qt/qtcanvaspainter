@@ -93,6 +93,7 @@ struct QCRHIBlend
     QRhiGraphicsPipeline::BlendFactor dstAlpha;
 };
 
+// Note: memset-zeroed in allocCall(), so must set non-zero default values in that function, not here.
 struct QCRHICall {
     QCRHICallType type;
     int image;
@@ -112,8 +113,9 @@ struct QCRHICall {
     QRhiGraphicsPipeline *ps[4];
     QShader customFragShader;
     QShader customVertShader;
-    QCPainterPath *painterPath = nullptr;
-    int pathGroup = -1;
+    QCPainterPath *painterPath;
+    int pathGroup;
+    bool textTriangleOffsetBakedInToIndices;
 };
 
 struct QCRHIPath {
@@ -1712,10 +1714,19 @@ void QCPainterRhiRenderer::renderTextFill(
     call->indexOffset = allocIndices(indicesCount);
     call->indexCount = indicesCount;
 
-    memcpy(
-        &rhiCtx->indices[call->indexOffset],
-        indices.data(),
-        sizeof(uint32_t) * indicesCount);
+    if (rhiCtx->rhi->isFeatureSupported(QRhi::BaseVertex)) {
+        memcpy(&rhiCtx->indices[call->indexOffset],
+               indices.data(),
+               sizeof(uint32_t) * indicesCount);
+    } else {
+        const uint32_t *idxSrc = indices.data();
+        uint32_t *idxDst = &rhiCtx->indices[call->indexOffset];
+        for (int idx = 0; idx < indicesCount; ++idx) {
+            *idxDst++ = *idxSrc + call->triangleOffset;
+            ++idxSrc;
+        }
+        call->textTriangleOffsetBakedInToIndices = true;
+    }
 
     // Fill shader
     call->commonUniformBufferOffset = allocCommonUniforms(1);
@@ -1762,10 +1773,19 @@ void QCPainterRhiRenderer::renderTextFillCustom(
     call->indexOffset = allocIndices(indicesCount);
     call->indexCount = indicesCount;
 
-    memcpy(
-        &rhiCtx->indices[call->indexOffset],
-        indices.data(),
-        sizeof(uint32_t) * indicesCount);
+    if (rhiCtx->rhi->isFeatureSupported(QRhi::BaseVertex)) {
+        memcpy(&rhiCtx->indices[call->indexOffset],
+               indices.data(),
+               sizeof(uint32_t) * indicesCount);
+    } else {
+        const uint32_t *idxSrc = indices.data();
+        uint32_t *idxDst = &rhiCtx->indices[call->indexOffset];
+        for (int idx = 0; idx < indicesCount; ++idx) {
+            *idxDst++ = *idxSrc + call->triangleOffset;
+            ++idxSrc;
+        }
+        call->textTriangleOffsetBakedInToIndices = true;
+    }
 
     // Fill shader
     call->commonUniformBufferOffset = allocCommonUniforms(1);
@@ -2445,8 +2465,11 @@ void QCPainterRhiRenderer::render()
             bindPipeline(call, 0, 0, vertDynamicOffsetForCall, dynamicOffsetForCall, true, &needsViewport);
 
             const int iCount = (call->triangleCount / 2) * 3;
-            rhiCtx->cb->drawIndexed(
-                    iCount, 1, call->indexOffset, call->triangleOffset);
+            if (call->textTriangleOffsetBakedInToIndices)
+                rhiCtx->cb->drawIndexed(iCount, 1, call->indexOffset);
+            else
+                rhiCtx->cb->drawIndexed(iCount, 1, call->indexOffset, call->triangleOffset);
+
             logTextDrawCallCount++;
             logTextTriCount += iCount / 3;
 #endif
