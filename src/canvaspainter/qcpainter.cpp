@@ -391,6 +391,23 @@ QCPainter::~QCPainter()
 /*!
     Pushes and saves the current render state into a state stack.
     A matching restore() must be used to restore the state.
+    \table
+    \row
+    \li \inlineimage qcpainter-save.webp
+    \li
+    \code
+    p->strokeRect(20, 20, 160, 40);
+    // Save and adjust the paint state
+    p->save();
+    p->setStrokeStyle(QColorConstants::Black);
+    p->setLineWidth(3);
+    p->rotate(0.1);
+    p->strokeRect(20, 80, 180, 20);
+    // Restore the saved paint state
+    p->restore();
+    p->strokeRect(20, 140, 160, 40);
+    \endcode
+    \endtable
 
     \sa restore()
 */
@@ -406,6 +423,7 @@ void QCPainter::save()
     So previously saved state will be restored.
     If save() has not been called and the state stack
     is empty, calling this does nothing.
+
     \sa save()
 */
 
@@ -417,6 +435,31 @@ void QCPainter::restore()
 
 /*!
     Resets the current painter state to default values.
+    \note This method differs from the HTML canvas 2D context reset() method
+    so that it doesn't visually clear the canvas buffers.
+    \table
+    \row
+    \li \inlineimage qcpainter-reset.webp
+    \li
+    \code
+    // Adjust the paint state
+    p->setStrokeStyle("#00414A");
+    p->setFillStyle("#2CDE85");
+    p->setLineWidth(10);
+    QRectF rect(20, 40, 160, 50);
+    p->translate(rect.center());
+    p->rotate(qDegreesToRadians(-25));
+    p->translate(-rect.center());
+    p->beginPath();
+    p->roundRect(rect, 20);
+    p->fill();
+    p->stroke();
+    // Reset to default paint state
+    p->reset();
+    p->fillRect(20, 140, 60, 40);
+    p->strokeRect(120, 140, 60, 40);
+    \endcode
+    \endtable
 
     \sa save(), restore()
 */
@@ -593,6 +636,24 @@ void QCPainter::setLineWidth(float width)
 /*!
     Sets the end of the line of stoke to \a cap.
     The default line cap is \c QCPainter::LineCap::Butt.
+    \table
+    \row
+    \li \inlineimage qcpainter-linecap.webp
+    \li
+    \code
+    QCPainterPath path;
+    path.moveTo(40, 60);
+    path.lineTo(160, 60);
+    p->setLineCap(QCPainter::LineCap::Butt);
+    p->stroke(path, -1);
+    p->setLineCap(QCPainter::LineCap::Square);
+    p->translate(0, 40);
+    p->stroke(path, -1);
+    p->setLineCap(QCPainter::LineCap::Round);
+    p->translate(0, 40);
+    p->stroke(path, -1);
+    \endcode
+    \endtable
 */
 
 void QCPainter::setLineCap(LineCap cap)
@@ -604,6 +665,26 @@ void QCPainter::setLineCap(LineCap cap)
 /*!
     Sets the line join of stroke to \a join.
     The default line join is \c QCPainter::LineJoin::Miter.
+    \table
+    \row
+    \li \inlineimage qcpainter-linejoin.webp
+    \li
+    \code
+    QCPainterPath path;
+    path.moveTo(40, 20);
+    path.lineTo(100, 80);
+    path.lineTo(160, 40);
+    path.lineTo(160, 70);
+    p->setLineJoin(QCPainter::LineJoin::Miter);
+    p->stroke(path, -1);
+    p->setLineJoin(QCPainter::LineJoin::Bevel);
+    p->translate(0, 50);
+    p->stroke(path, -1);
+    p->setLineJoin(QCPainter::LineJoin::Round);
+    p->translate(0, 50);
+    p->stroke(path, -1);
+    \endcode
+    \endtable
 
     \sa setMiterLimit()
 */
