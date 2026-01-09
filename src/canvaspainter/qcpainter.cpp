@@ -849,6 +849,26 @@ void QCPainter::resetTransform()
 
 /*!
     Resets the current transform and uses \a transform instead.
+    \table
+    \row
+    \li \inlineimage qcpainter-transform.webp
+    \li
+    \code
+    p->beginPath();
+    p->roundRect(80, 20, 40, 40, 10);
+    p->fill();
+    p->stroke();
+    QTransform t;
+    t.translate(100, 20);
+    t.rotate(45);
+    t.scale(2.0, 2.0);
+    p->setTransform(t);
+    p->beginPath();
+    p->roundRect(20, 20, 40, 40, 10);
+    p->fill();
+    p->stroke();
+    \endcode
+    \endtable
 */
 
 void QCPainter::setTransform(const QTransform &transform)
@@ -859,6 +879,24 @@ void QCPainter::setTransform(const QTransform &transform)
 
 /*!
     Multiplies the current coordinate system by specified \a transform.
+    \table
+    \row
+    \li \inlineimage qcpainter-transform2.webp
+    \li
+    \code
+    QTransform t;
+    t.translate(100, 100);
+    t.rotate(36);
+    t.translate(-100, -100);
+    for (int i = 0; i < 10; i++) {
+        p->transform(t);
+        p->beginPath();
+        p->roundRect(80, 15, 40, 20, 10);
+        p->fill();
+        p->stroke();
+    }
+    \endcode
+    \endtable
 */
 
 void QCPainter::transform(const QTransform &transform)
@@ -869,6 +907,22 @@ void QCPainter::transform(const QTransform &transform)
 
 /*!
     Translates current coordinate system by \a x and \a y.
+    \table
+    \row
+    \li \inlineimage qcpainter-translate.webp
+    \li
+    \code
+    auto paintRect = [p]() {
+        p->beginPath();
+        p->roundRect(20, 20, 160, 60, 10);
+        p->fill();
+        p->stroke();
+    };
+    paintRect();
+    p->translate(0, 100);
+    paintRect();
+    \endcode
+    \endtable
 */
 
 void QCPainter::translate(float x, float y)
@@ -894,6 +948,23 @@ void QCPainter::translate(QPointF point)
 
     The angle is specified in radians. Use qDegreesToRadians() to convert from
     degrees to radians.
+    \table
+    \row
+    \li \inlineimage qcpainter-rotate.webp
+    \li
+    \code
+    QRectF rect(20, 70, 160, 60);
+    p->translate(rect.center());
+    p->rotate(-M_PI / 4);
+    p->translate(-rect.center());
+    p->beginPath();
+    p->roundRect(rect, 10);
+    p->fill();
+    p->stroke();
+    p->setFillStyle(QColorConstants::Black);
+    p->fillText("Cute!", rect);
+    \endcode
+    \endtable
 */
 
 void QCPainter::rotate(float angle)
@@ -905,6 +976,23 @@ void QCPainter::rotate(float angle)
 /*!
     Skews (shears) the current coordinate system along X axis by \a angleX
     and along Y axis by \a angleY. Angles are specifid in radians.
+    \table
+    \row
+    \li \inlineimage qcpainter-skew.webp
+    \li
+    \code
+    QRectF rect(40, 70, 120, 60);
+    p->translate(rect.center());
+    p->skew(-0.6);
+    p->translate(-rect.center());
+    p->beginPath();
+    p->roundRect(rect, 10);
+    p->fill();
+    p->stroke();
+    p->setFillStyle(QColorConstants::Black);
+    p->fillText("Cute!", rect);
+    \endcode
+    \endtable
 */
 
 void QCPainter::skew(float angleX, float angleY)
@@ -916,22 +1004,28 @@ void QCPainter::skew(float angleX, float angleY)
 /*!
     Scales the current coordinat system by \a scale. Both x and y coordinates
     are scaled evenly.
+    \table
+    \row
+    \li \inlineimage qcpainter-scale.webp
+    \li
+    \code
+    QRectF rect(20, 20, 160, 160);
+    for (int i = 0; i < 20; i++) {
+        p->beginPath();
+        p->roundRect(rect, 10);
+        p->stroke();
+        p->translate(rect.center());
+        p->scale(0.8);
+        p->translate(-rect.center());
+    }
+    \endcode
+    \endtable
 */
 
 void QCPainter::scale(float scale)
 {
     Q_D(QCPainter);
     d->m_e->scale(scale, scale);
-}
-
-/*!
-    Sets the current brush transform to \a transform. This transform is
-    applied to both stroke and fill brushes.
-*/
-void QCPainter::setBrushTransform(const QTransform &transform)
-{
-    Q_D(QCPainter);
-    d->m_e->setBrushTransform(transform);
 }
 
 /*!
@@ -954,6 +1048,17 @@ const QTransform QCPainter::getTransform() const
 {
     Q_D(const QCPainter);
     return d->m_e->currentTransform();
+}
+
+/*!
+    Sets the current brush transform to \a transform. This transform is
+    applied to both stroke and fill brushes.
+*/
+
+void QCPainter::setBrushTransform(const QTransform &transform)
+{
+    Q_D(QCPainter);
+    d->m_e->setBrushTransform(transform);
 }
 
 // *** Clipping ***
