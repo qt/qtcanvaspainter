@@ -144,6 +144,7 @@ public:
     // Internal
     QCContext* initialize(QCPainterRhiRenderer *renderer);
     void cleanup();
+    void releaseUnusedResources();
 
 #ifdef QCPAINTER_PERF_DEBUG
     QCPerfLogging *perfLogger() { return &perf; }
@@ -210,6 +211,11 @@ private:
 
 #ifdef QCPAINTER_PERF_DEBUG
     QCPerfLogging perf;
+#endif
+
+#ifndef QCPAINTER_DISABLE_TEXT_SUPPORT
+    QCRhiDistanceFieldGlyphCache::VertexList textVertices;
+    QCRhiDistanceFieldGlyphCache::IndexList textIndices;
 #endif
 };
 

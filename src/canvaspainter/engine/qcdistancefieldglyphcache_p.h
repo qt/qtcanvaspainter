@@ -68,8 +68,8 @@ public:
     QCDistanceFieldGlyphCache(QRhi *rhi);
     ~QCDistanceFieldGlyphCache();
 
-    std::tuple<std::vector<QCRhiDistanceFieldGlyphCache::TexturedPoint2D>, std::vector<uint32_t>>
-    generate(const QString &text, const QRectF &rect, const QFont &font, QCState *state, QCPainter::TextAlign alignment);
+    void generate(const QString &text, const QRectF &rect, const QFont &font, QCState *state, QCPainter::TextAlign alignment,
+                  QCRhiDistanceFieldGlyphCache::VertexList *verts, QCRhiDistanceFieldGlyphCache::IndexList *indices);
 
     void commitResourceUpdates(QRhiResourceUpdateBatch *batch);
 

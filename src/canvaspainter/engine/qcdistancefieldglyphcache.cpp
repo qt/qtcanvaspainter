@@ -50,12 +50,9 @@ QList<QGlyphRun> QCDistanceFieldGlyphCache::generateGlyphRuns(
     return m_layout.glyphRuns();
 }
 
-std::tuple<std::vector<QCRhiDistanceFieldGlyphCache::TexturedPoint2D>, std::vector<uint32_t>>
-QCDistanceFieldGlyphCache::generate(const QString &text, const QRectF &rect, const QFont &font, QCState *state, QCPainter::TextAlign alignment)
+void QCDistanceFieldGlyphCache::generate(const QString &text, const QRectF &rect, const QFont &font, QCState *state, QCPainter::TextAlign alignment,
+                                         QCRhiDistanceFieldGlyphCache::VertexList *verts, QCRhiDistanceFieldGlyphCache::IndexList *indices)
 {
-    std::vector<QCRhiDistanceFieldGlyphCache::TexturedPoint2D> textVerts{};
-    std::vector<uint32_t> textIndices{};
-
     // Remove raw fonts
     auto rFont = QRawFont::fromFont(font);
     FontKeyData *data;
@@ -111,28 +108,20 @@ QCDistanceFieldGlyphCache::generate(const QString &text, const QRectF &rect, con
     textY = QCTextLayout::calculateVerticalAlignment(state->textBaseline, rect, metrics, m_layout.boundingRect());
 #endif
 
-    qsizetype index = 0;
+    // use clear(), so that the containers' allocations are potentially kept
+    verts->clear();
+    indices->clear();
+
     const QPointF glyphPos(rect.x(), rect.y() + textY);
     for (const auto &run : std::as_const(glyphRuns)) {
         cache->setRawFont(run.rawFont());
         cache->addGlyphs(glyphPos, run);
         cache->update();
 
-        QVarLengthArray<QCRhiDistanceFieldGlyphCache::TexturedPoint2D, 256> verts{};
-        QVarLengthArray<ushort, 384> indices{};
         // TODO: Add proper bounding box
         QRectF box{};
-        cache->generateVertices(&verts, &indices, state->transform, &box);
-
-        for (const auto t : verts)
-            textVerts.push_back(t);
-
-        for (const auto t : indices)
-            textIndices.push_back(t + index);
-
-        index += verts.size();
+        cache->generateVertices(verts, indices, state->transform, &box);
     }
-    return {textVerts, textIndices};
 }
 
 void QCDistanceFieldGlyphCache::commitResourceUpdates(QRhiResourceUpdateBatch *batch)

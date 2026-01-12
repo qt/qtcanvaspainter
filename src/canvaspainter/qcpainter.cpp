@@ -2639,13 +2639,19 @@ void QCPainter::removeImage(int imageId)
 }
 
 /*!
-    Removes all temporary textures from the cache.
+    Schedules dropping unused textures from the cache.
+
+    Additionally, other caches and pools may get shrunk upon
+    calling this function, in order to minimize memory usage.
+    This may potentially lead to more expensive drawing calls
+    afterwards.
 */
 
 void QCPainter::cleanupResources()
 {
     Q_D(QCPainter);
     d->m_dataCache.removeTemporaryResources();
+    d->m_e->releaseUnusedResources();
 }
 
 /*!

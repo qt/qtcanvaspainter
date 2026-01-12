@@ -126,8 +126,8 @@ void QCRhiDistanceFieldGlyphCache::setGlyphTexture(
 }
 
 void QCRhiDistanceFieldGlyphCache::generateVertices(
-    QVarLengthArray<TexturedPoint2D, 256> *verts,
-    QVarLengthArray<ushort, 384> *indices,
+    VertexList *verts,
+    IndexList *indices,
     const QTransform &transform,
     QRectF *boundingRect)
 {
@@ -138,8 +138,6 @@ void QCRhiDistanceFieldGlyphCache::generateVertices(
     const QList<QPointF> positions = m_glyphs.positions();
     qreal fontPixelSize = m_glyphs.rawFont().pixelSize();
 
-    *verts = QVarLengthArray<TexturedPoint2D, 256>{};
-    *indices = QVarLengthArray<ushort, 384>{};
     const qsizetype maxIndexCount = (std::numeric_limits<quint16>::max() - 1)
                                     / 4; // 16383 (see below: 0xFFFF is not allowed)
     const auto likelyGlyphCount = qMin(indexes.size(), maxIndexCount);
@@ -191,7 +189,7 @@ void QCRhiDistanceFieldGlyphCache::generateVertices(
         float ty1 = c.y + c.yMargin;
         float ty2 = ty1 + c.height;
 
-        int o = verts->size();
+        qsizetype baseIndex = verts->size();
 
         // transform
         auto p1 = QPointF{cx1, cy1};
@@ -220,12 +218,12 @@ void QCRhiDistanceFieldGlyphCache::generateVertices(
         verts->append(v3);
         verts->append(v4);
 
-        indices->append(o + 0);
-        indices->append(o + 2);
-        indices->append(o + 3);
-        indices->append(o + 3);
-        indices->append(o + 1);
-        indices->append(o + 0);
+        indices->append(baseIndex + 0);
+        indices->append(baseIndex + 2);
+        indices->append(baseIndex + 3);
+        indices->append(baseIndex + 3);
+        indices->append(baseIndex + 1);
+        indices->append(baseIndex + 0);
     }
 }
 

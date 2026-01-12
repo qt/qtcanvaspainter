@@ -1694,8 +1694,8 @@ void QCPainterRhiRenderer::renderStroke(const QCPaint &paint, const QCState &sta
 void QCPainterRhiRenderer::renderTextFill(
     const QCPaint &paint,
     const QCState &state,
-    const std::vector<QCRhiDistanceFieldGlyphCache::TexturedPoint2D> &verts,
-    const std::vector<uint32_t> &indices)
+    const QCRhiDistanceFieldGlyphCache::VertexList &verts,
+    const QCRhiDistanceFieldGlyphCache::IndexList &indices)
 {
     QCRHICall *call = allocCall();
     auto &ctx = m_e->ctx;
@@ -1748,8 +1748,8 @@ void QCPainterRhiRenderer::renderTextFillCustom(
     const QCPaint &paint,
     const QCState &state,
     QCCustomBrush *brush,
-    const std::vector<QCRhiDistanceFieldGlyphCache::TexturedPoint2D> &verts,
-    const std::vector<uint32_t> &indices)
+    const QCRhiDistanceFieldGlyphCache::VertexList &verts,
+    const QCRhiDistanceFieldGlyphCache::IndexList &indices)
 {
     QCRHICall *call = allocCall();
     auto &ctx = m_e->ctx;
@@ -2222,8 +2222,8 @@ int QCPainterRhiRenderer::populateFont(
     const QFont &font,
     const QRectF &rect,
     const QString &text,
-    std::vector<QCRhiDistanceFieldGlyphCache::TexturedPoint2D> &vertices,
-    std::vector<uint32_t> &indices,
+    QCRhiDistanceFieldGlyphCache::VertexList &vertices,
+    QCRhiDistanceFieldGlyphCache::IndexList &indices,
     int *textureWidth,
     int *textureHeight)
 {
@@ -2231,7 +2231,7 @@ int QCPainterRhiRenderer::populateFont(
     QCRHITexture *tex = nullptr;
 
     auto effectiveAlign = m_e->effectiveTextAlign(text);
-    auto [vertCoords, indexCoords] = rc->fontCache->generate(text, rect, font, &(m_e->state), effectiveAlign);
+    rc->fontCache->generate(text, rect, font, &(m_e->state), effectiveAlign, &vertices, &indices);
 
     QRhiResourceUpdateBatch *u = resourceUpdateBatch();
 
@@ -2265,13 +2265,11 @@ int QCPainterRhiRenderer::populateFont(
     *textureHeight = tex->tex->pixelSize().height();
 
     //Convert UVs to 0..1
-    // for (int i = 0; i < vertCoords.size(); ++i) {
-    //     vertCoords[i].tx /= *textureWidth;
-    //     vertCoords[i].ty /= *textureHeight;
+    // for (int i = 0; i < vertices.size(); ++i) {
+    //     vertices[i].tx /= *textureWidth;
+    //     vertices[i].ty /= *textureHeight;
     // }
 
-    vertices = vertCoords;
-    indices = indexCoords;
 
     tex->width = *textureWidth;
     tex->height = *textureHeight;
