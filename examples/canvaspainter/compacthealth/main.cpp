@@ -3,6 +3,7 @@
 
 #include <QGuiApplication>
 #include <QCommandLineParser>
+#include <QSurfaceFormat>
 #include "mainwindow.h"
 
 int main(int argc, char *argv[])
@@ -50,6 +51,17 @@ int main(int argc, char *argv[])
         graphicsApi = QRhi::D3D12;
     if (cmdLineParser.isSet(mtlOption))
         graphicsApi = QRhi::Metal;
+
+#if QT_CONFIG(opengl)
+    QSurfaceFormat fmt;
+    fmt.setDepthBufferSize(24);
+    fmt.setStencilBufferSize(8);
+#ifdef Q_OS_MACOS
+    fmt.setVersion(4, 1);
+    fmt.setProfile(QSurfaceFormat::CoreProfile);
+#endif
+    QSurfaceFormat::setDefaultFormat(fmt);
+#endif
 
     MainWindow window(graphicsApi);
     window.resize(1920 / 2, 1080 / 2);
