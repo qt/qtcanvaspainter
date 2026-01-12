@@ -36,6 +36,10 @@ QT_BEGIN_NAMESPACE
 #ifndef QCPAINTER_MAX_STATES
 #define QCPAINTER_MAX_STATES 32
 #endif
+#ifndef QCPAINTER_TEXT_VERTEX_INDEX_LIST_REUSE_CAPACITY
+// 1 MB for vertices (16 byte each), 256 KB for indices (4 byte each)
+#define QCPAINTER_TEXT_VERTEX_INDEX_LIST_REUSE_CAPACITY (64 * 1024)
+#endif
 
 static const float QCPAINTER_MAX_STROKE_WIDTH = 1000.0f;
 static const float QCPAINTER_MAX_ANTIALIAS_WIDTH = 10.0f;
@@ -64,6 +68,20 @@ void QCPainterEngine::cleanup()
     ctx.paths.clear();
     ctx.points.clear();
     ctx.currentPath = nullptr;
+}
+
+void QCPainterEngine::releaseUnusedResources()
+{
+#ifndef QCPAINTER_DISABLE_TEXT_SUPPORT
+    textVertices = {};
+    textIndices = {};
+#endif
+
+    ctx.commands.squeeze();
+    ctx.commandsData.squeeze();
+    ctx.vertices.squeeze();
+    ctx.paths.squeeze();
+    ctx.points.squeeze();
 }
 
 QCPainterEngine::QCPainterEngine()
@@ -975,21 +993,25 @@ void QCPainterEngine::setTextDirection(QCPainter::TextDirection direction)
 void QCPainterEngine::fillText(const QString &text, const QRectF &rect)
 {
 #ifndef QCPAINTER_DISABLE_TEXT_SUPPORT
-    std::vector<QCRhiDistanceFieldGlyphCache::TexturedPoint2D> verts{};
-    std::vector<uint32_t> indices{};
     int width, height;
-    auto tex = m_renderer->populateFont(state.font, rect, text, verts, indices, &width, &height);
+    auto tex = m_renderer->populateFont(state.font, rect, text, textVertices, textIndices, &width, &height);
 
     const QCPaint p = getFillPaint();
     ctx.fontId = tex;
     updateStateFontVars();
 
     if (!state.customFill) {
-        m_renderer->renderTextFill(p, state, verts, indices);
+        m_renderer->renderTextFill(p, state, textVertices, textIndices);
     } else {
         m_renderer->renderTextFillCustom(
-                p, state, state.customFill, verts, indices);
+                p, state, state.customFill, textVertices, textIndices);
     }
+
+    // simple memory usage cap; drawing huge texts will not reuse the containers (and their allocations)
+    if (textVertices.capacity() > QCPAINTER_TEXT_VERTEX_INDEX_LIST_REUSE_CAPACITY)
+        textVertices = {};
+    if (textIndices.capacity() > QCPAINTER_TEXT_VERTEX_INDEX_LIST_REUSE_CAPACITY)
+        textIndices = {};
 #endif
 }
 

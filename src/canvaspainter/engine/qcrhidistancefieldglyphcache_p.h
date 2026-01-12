@@ -94,6 +94,9 @@ public:
         QPointF position;
     };
 
+    using VertexList = QVarLengthArray<TexturedPoint2D, 256>;
+    using IndexList = QVarLengthArray<uint32_t, 384>;
+
 public:
     QCRhiDistanceFieldGlyphCache(QRhi *rhi);
     ~QCRhiDistanceFieldGlyphCache();
@@ -117,8 +120,8 @@ public:
     void setGlyphTexture(const QList<glyph_t> &glyphs, const TextureInfo &tex);
 
     void generateVertices(
-        QVarLengthArray<TexturedPoint2D, 256> *verts,
-        QVarLengthArray<ushort, 384> *indices,
+        VertexList *verts,
+        IndexList *indices,
         const QTransform &transform,
         QRectF *boundingRect);
 
