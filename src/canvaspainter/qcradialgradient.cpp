@@ -19,21 +19,24 @@ QT_BEGIN_NAMESPACE
     a circle shaped gradient. The gradient is controlled with \l centerPosition(),
     \l outerRadius() and \l innerRadius().
 
+    \image qcradialgradient-gallery.webp
+
     Here is a simple example:
+    \table
+    \row
+    \li \inlineimage qcradialgradient-example.webp
+    \li
     \code
-    QRectF rect1(50, 50, 200, 200);
-    QCRadialGradient rg(rect1.center(), 100, 50);
-    rg.setStartColor("#fdbb2d");
-    rg.setEndColor("#b21f1f");
-    painter.setFillStyle(rg);
-    painter.beginPath();
-    painter.ellipse(rect1);
-    painter.fill();
+    QRectF rect1(0, 0, 200, 200);
+    QCRadialGradient rg(rect1.center(), 100, 0);
+    rg.setColorAt(0.0, "#fdbb2d");
+    rg.setColorAt(0.6, "#b21f1f");
+    rg.setColorAt(1.0, "#1a2a6c");
+    p->setFillStyle(rg);
+    p->fillRect(rect1);
     \endcode
-
+    \endtable
 */
-
-// TODO:     \image radialgradient_example_1.png
 
 #define G_D() auto *d = QCGradientPrivate::get(this)
 #define DECONST(d) const_cast<QCRadialGradientPrivate *>(d)

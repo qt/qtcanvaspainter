@@ -283,14 +283,14 @@ void GalleryItemRenderer::drawRectsWithConicalGradients() {
 
     QRectF rect1(posX,posY,w,w);
     QCConicalGradient g1;
-    g1.setCenterPosition(rect1.x(), rect1.y());
+    g1.setCenterPosition(rect1.center());
     painter()->setFillStyle(g1);
     painter()->fillRect(rect1);
     posX += w + margin;
 
     QRectF rect2(posX,posY,w,w);
     QCConicalGradient g2;
-    g2.setCenterPosition(rect2.x() + rect2.width()/2, rect2.y() + rect2.height()/2);
+    g2.setCenterPosition(rect2.center());
     g2.setStartColor(QColor(0,255,0,255));
     g2.setEndColor(QColor(255,0,0,255));
     painter()->setFillStyle(g2);
@@ -299,7 +299,8 @@ void GalleryItemRenderer::drawRectsWithConicalGradients() {
 
     QRectF rect3(posX,posY,w,w);
     QCConicalGradient g3;
-    g3.setCenterPosition(rect3.x() + rect3.width()/2, rect3.y() + rect3.height()/2);
+    g3.setCenterPosition(rect3.center());
+    g3.setAngle(-0.5 * M_PI);
     g3.setStartColor(QColor(m_animationSine*255, 255, 255));
     g3.setEndColor(QColor(255, m_animationSine*255, 255, 255-m_animationSine*255));
     painter()->setFillStyle(g3);

@@ -18,17 +18,25 @@ QT_BEGIN_NAMESPACE
     around a point with given coordinates. The angle starts from a line
     going horizontally right from the center, and proceeds clockwise.
 
+    \image qcconicalgradient-gallery.webp
+
     Here is a simple example:
+    \table
+    \row
+    \li \inlineimage qcconicalgradient-example.webp
+    \li
     \code
-    QCConicalGradient cg(200, 200, 0);
-    cg.setStartColor(Qt::blue);
-    cg.setEndColor(Qt::darkYellow);
-    painter.setFillStyle(cg);
-    painter.fillRect(100, 100, 200, 200);
+    QRectF rect(20, 20, 160, 160);
+    QCConicalGradient cg(rect.center(), 1.75 * M_PI);
+    cg.setColorAt(0.0, "#fdbb2d");
+    cg.setColorAt(0.5, "#1a2a6c");
+    cg.setColorAt(1.0, "#fdbb2d");
+    p->setFillStyle(cg);
+    p->beginPath();
+    p->ellipse(rect);
+    p->fill();
     \endcode
-
-    \image conicalgradient_example_1.png
-
+    \endtable
 */
 
 #define G_D() auto *d = QCGradientPrivate::get(this)
