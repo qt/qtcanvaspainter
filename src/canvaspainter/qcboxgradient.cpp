@@ -20,18 +20,23 @@ QT_BEGIN_NAMESPACE
     \l setFeather() the roundness and softness of the gradient can be
     controlled.
 
-    Here is a simple example:
-    \code
-    QRectF rect(50, 50, 200, 100);
-    QCBoxGradient bg(rect, 20, 50);
-    bg.setColorAt(0.0, Qt::darkBlue);
-    bg.setColorAt(0.2, Qt::darkYellow);
-    bg.setColorAt(1.0, Qt::transparent);
-    painter.setFillStyle(bg);
-    painter.fillRect(rect);
-    \endcode
+    \image qcboxgradient-gallery.webp
 
-    \image boxgradient_example_1.png
+    Here is a simple example:
+    \table
+    \row
+    \li \inlineimage qcboxgradient-example.webp
+    \li
+    \code
+    QRectF rect(20, 20, 160, 160);
+    QCBoxGradient bg(rect, 20, 50);
+    bg.setColorAt(0.0, "#1a2a6c");
+    bg.setColorAt(0.2, "#fdbb2d");
+    bg.setColorAt(1.0, QColorConstants::Transparent);
+    p->setFillStyle(bg);
+    p->fillRect(rect);
+    \endcode
+    \endtable
 
     \note When QCBoxGradient is used to paint round rectangle, it is usually
     better to use \l QCPainter::rect() than \l QCPainter::roundRect() as the

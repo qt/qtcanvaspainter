@@ -20,19 +20,24 @@ QT_BEGIN_NAMESPACE
     The gradient starts from \a startPosition() and ends to \a endPosition().
     Outside this area, the colors are the starting and the ending color.
 
+    \image qclineargradient-gallery.webp
+
     Here is a simple example:
+    \table
+    \row
+    \li \inlineimage qclineargradient-example.webp
+    \li
     \code
-    QRectF rect1(50, 50, 200, 200);
+    QRectF rect1(0, 0, 200, 200);
     QCLinearGradient lg(rect1.topLeft(),
                         rect1.bottomRight());
     lg.setColorAt(0.0, "#1a2a6c");
     lg.setColorAt(0.5, "#b21f1f");
     lg.setColorAt(1.0, "#fdbb2d");
-    painter.setFillStyle(lg);
-    painter.fillRect(rect1);
+    p->setFillStyle(lg);
+    p->fillRect(rect1);
     \endcode
-
-    \image lineargradient_example_1.png
+    \endtable
 */
 
 #define G_D() auto *d = QCGradientPrivate::get(this)
