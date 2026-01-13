@@ -141,10 +141,8 @@ QVariantMap QQuickCPainterItem::debug()
     Q_D(QQuickCPainterItem);
     if (d->m_debug.isEmpty()) {
         // Initialize debug data
-        d->m_debug.insert(QLatin1String("drawCallCount"), 0);
-        d->m_debug.insert(QLatin1String("strokeTriCount"), 0);
-        d->m_debug.insert(QLatin1String("fillTriCount"), 0);
-        d->m_debug.insert(QLatin1String("textTriCount"), 0);
+        QCDrawDebug emptyDebug;
+        d->updateDebugData(emptyDebug);
     }
     return d->m_debug;
 }
