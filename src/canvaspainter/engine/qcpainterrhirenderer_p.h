@@ -120,12 +120,12 @@ public:
     bool renderUpdateTexture(int image, int x, int y, int w, int h, const uchar* data);
     void setViewport(float x, float y, float width, float height);
     void renderFill(const QCPaint &paint, const QCState &state,
-                    float aa, const QRectF &bounds,
+                    const QRectF &bounds,
                     const QCPaths &paths, int pathsCount,
                     QCPainterPath *painterPath, int pathGroup,
                     const QTransform &pathTransform);
     void renderStroke(const QCPaint &paint, const QCState &state,
-                      float aa, float strokeWidth,
+                      float strokeWidth,
                       const QCPaths &paths, int pathsCount,
                       QCPainterPath *painterPath, int pathGroup,
                       const QTransform &pathTransform);
