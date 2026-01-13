@@ -555,10 +555,12 @@ void QCPainterPath::roundRect(float x, float y, float width, float height, float
         rect(x, y, width, height);
     } else {
         Q_D(QCPainterPath);
-        const float halfSize = std::min(std::abs(width), std::abs(height)) * 0.5f;
-        const float maxRad = std::min(radius, halfSize);
-        const float rX = maxRad * sign(width);
-        const float rY = maxRad * sign(height);
+        // The maximum radius is slightly less than half of smaller side of the rect,
+        // to not grow too big even with some float rounding errors.
+        const float maxRad = std::min(std::abs(width), std::abs(height)) * 0.4999f;
+        const float cornerRad = std::min(radius, maxRad);
+        const float rX = cornerRad * sign(width);
+        const float rY = cornerRad * sign(height);
         const float xW = x + width;
         const float yH = y + height;
         const float rYCK = rY * COMP_KAPPA90;
