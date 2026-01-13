@@ -129,6 +129,7 @@ struct QCState {
     QCPainter::LineCap lineCap;
     QCPainter::PathWinding winding;
     float strokeWidth;
+    float antialias;
     float miterLimit;
     float alpha;
     float brightness;
@@ -197,7 +198,6 @@ struct QCContext {
     float dpr;
     float tessTol;
     float distTol;
-    float edgeAAWidth;
     float devicePxRatio;
     float prevX;
     float prevY;

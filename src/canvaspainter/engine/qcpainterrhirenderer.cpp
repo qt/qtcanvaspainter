@@ -1201,7 +1201,10 @@ void QCPainterRhiRenderer::preparePaint(QCRHICommonUniforms *frag, const QCPaint
                                         float fontAlphaMin, float fontAlphaMax)
 {
     memset((void*)frag, 0, sizeof(*frag));
+    // If antialiasing is disabled, both aa and width must be at least 0.01
+    // so alphaMult becomes >= 1.
     aa = std::max(aa, 0.01f);
+    width = std::max(width, 0.01f);
     frag->innerCol = premulColor(paint.innerColor);
     if (paint.brushType == BrushBoxShadow)
         frag->outerCol = paint.outerColor; // Used for corner radius
@@ -1316,7 +1319,10 @@ void QCPainterRhiRenderer::prepareCustomPaint(QCCustomBrushPrivate::CommonUnifor
     const bool isTextRed = rhiCtx->rhi->isFeatureSupported(QRhi::RedOrAlpha8IsRed);
     frag->alphaIsRed = isTextRed;
 
+    // If antialiasing is disabled, both aa and width must be at least 0.01
+    // so alphaMult becomes >= 1.
     aa = std::max(aa, 0.01f);
+    width = std::max(width, 0.01f);
 
     // Custom brush always contains clipping uniforms?
     const auto &clip = state.clip;
@@ -1355,13 +1361,14 @@ void QCPainterRhiRenderer::prepareCustomPaint(QCCustomBrushPrivate::CommonUnifor
     }
 }
 
-void QCPainterRhiRenderer::renderFill(const QCPaint &paint, const QCState &state, float aa,
+void QCPainterRhiRenderer::renderFill(const QCPaint &paint, const QCState &state,
                                       const QRectF &bounds, const QCPaths &paths, int pathsCount,
                                       QCPainterPath *painterPath, int pathGroup,
                                       const QTransform &pathTransform)
 {
     QCRHICall *call = allocCall();
     auto &ctx = m_e->ctx;
+    const float aa = state.antialias;
 
     call->type = CallFill;
     call->renderFlags = rhiCtx->flags;
@@ -1564,13 +1571,14 @@ void QCPainterRhiRenderer::renderFill(const QCPaint &paint, const QCState &state
     }
 }
 
-void QCPainterRhiRenderer::renderStroke(const QCPaint &paint, const QCState &state, float aa,
+void QCPainterRhiRenderer::renderStroke(const QCPaint &paint, const QCState &state,
                                         float strokeWidth, const QCPaths &paths, int pathsCount,
                                         QCPainterPath *painterPath, int pathGroup,
                                         const QTransform &pathTransform)
 {
     QCRHICall *call = allocCall();
     auto &ctx = m_e->ctx;
+    const float aa = state.antialias;
     call->type = CallStroke;
     call->renderFlags = rhiCtx->flags;
     if (state.customStroke) {

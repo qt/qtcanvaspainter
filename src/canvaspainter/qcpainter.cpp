@@ -2138,6 +2138,7 @@ void QCPainter::drawImage(const QCImage &image, const QRectF &sourceRect, const 
     float endY = dh * image.height() / sh;
     QCPaint ip = d->m_e->createImagePattern(startX, startY, endX, endY, image.id(), 0.0f, image.tintColor());
     d->m_e->save();
+    d->m_e->setAntialias(0);
     d->m_e->beginPath();
     d->m_e->addRect(dx, dy, dw, dh);
     d->m_e->setFillPaint(ip);
@@ -2464,7 +2465,7 @@ QRectF QCPainter::textBoundingBox(const QString &text, const QRectF &rect)
     \endcode
     \endtable
 
-    \sa setRenderHints()
+    \sa setRenderHints(), setTextAntialias()
 */
 
 void QCPainter::setAntialias(float antialias)

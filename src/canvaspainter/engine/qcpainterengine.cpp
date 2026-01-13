@@ -113,6 +113,7 @@ void QCPainterEngine::reset()
     state.fill = QCPaint();
     state.stroke = QCPaint();
     state.strokeWidth = 1.0f;
+    state.antialias = 1.0f;
     state.miterLimit = 10.0f;
     state.lineCap = QCPainter::LineCap::Butt;
     state.lineJoin = QCPainter::LineJoin::Miter;
@@ -310,6 +311,7 @@ void QCPainterEngine::drawImageId(int imageId, float x, float y, float width, fl
 {
     QCPaint ip = createImagePattern(x, y, width, height, imageId, 0.0f, tintColor);
     save();
+    setAntialias(0);
     beginPath();
     addRect(x, y, width, height);
     setFillPaint(ip);
@@ -745,7 +747,7 @@ void QCPainterEngine::fill()
 
     const bool ignoreTransform = (ctx.currentPathGroup != -1);
     const QCPaint fillPaint = getFillPaint(ignoreTransform);
-    m_renderer->renderFill(fillPaint, state, ctx.edgeAAWidth,
+    m_renderer->renderFill(fillPaint, state,
                            ctx.bounds, ctx.paths, ctx.pathsCount,
                            ctx.currentPainterPath, ctx.currentPathGroup,
                            ctx.currentPathTransform);
@@ -771,7 +773,7 @@ void QCPainterEngine::fillForClear()
 
     const bool wasBlendEnabled = state.blendEnable;
     state.blendEnable = false;
-    m_renderer->renderFill(fillPaint, state, ctx.edgeAAWidth,
+    m_renderer->renderFill(fillPaint, state,
                            ctx.bounds, ctx.paths, ctx.pathsCount,
                            ctx.currentPainterPath, ctx.currentPathGroup,
                            ctx.currentPathTransform);
@@ -797,7 +799,7 @@ void QCPainterEngine::stroke()
 
     commandsToPaths();
     expandStroke(strokeWidth * 0.5f, state.lineCap, state.lineJoin, state.miterLimit);
-    m_renderer->renderStroke(strokePaint, state, ctx.edgeAAWidth,
+    m_renderer->renderStroke(strokePaint, state,
                              strokeWidth, ctx.paths, ctx.pathsCount,
                              ctx.currentPainterPath, ctx.currentPathGroup,
                              ctx.currentPathTransform);
@@ -840,7 +842,7 @@ void QCPainterEngine::fill(const QCPainterPath &path, int pathGroup)
         const QCPaint fillPaint = getFillPaint(true);
 
         // Uses pathsCount 0, meaning that previous path data can be reused.
-        m_renderer->renderFill(fillPaint, state, ctx.edgeAAWidth,
+        m_renderer->renderFill(fillPaint, state,
                                ctx.bounds, ctx.paths, 0,
                                p, pathGroup, state.transform);
     }
@@ -880,7 +882,7 @@ void QCPainterEngine::stroke(const QCPainterPath &path, int pathGroup)
         float strokeWidth;
         const QCPaint strokePaint = getStrokePaint(&strokeWidth, true);
         // Uses pathsCount 0, meaning that previous path data can be reused.
-        m_renderer->renderStroke(strokePaint, state, ctx.edgeAAWidth,
+        m_renderer->renderStroke(strokePaint, state,
                                  strokeWidth, ctx.paths, 0,
                                  p, pathGroup, state.transform);
     }
@@ -1059,7 +1061,7 @@ QCDrawDebug QCPainterEngine::drawDebug() const
 void QCPainterEngine::setAntialias(float antialias)
 {
     antialias = std::clamp(antialias, 0.0f, QCPAINTER_MAX_ANTIALIAS_WIDTH);
-    ctx.edgeAAWidth = QCPAINTER_ANTIALIAS_MULTIPLIER * antialias / ctx.devicePxRatio;
+    state.antialias = QCPAINTER_ANTIALIAS_MULTIPLIER * antialias / ctx.devicePxRatio;
 }
 
 void QCPainterEngine::setMiterLimit(float limit)
@@ -1107,8 +1109,8 @@ void QCPainterEngine::setDevicePixelRatio(float ratio)
         ctx.tessTol = 0.25f / ratio;
         ctx.distTol = 0.01f / ratio;
         // Note: This is not called during the paint operations,
-        // so it can set edgeAAWidth to default value.
-        ctx.edgeAAWidth = QCPAINTER_ANTIALIAS_MULTIPLIER / ratio;
+        // so it can set antialias to default value.
+        state.antialias = QCPAINTER_ANTIALIAS_MULTIPLIER / ratio;
         ctx.devicePxRatio = ratio;
     }
 }
@@ -1425,7 +1427,7 @@ void QCPainterEngine::tesselateBezier(float x1, float y1, float x2, float y2,
 
 void QCPainterEngine::expandFill()
 {
-    const float aa = ctx.antialiasingEnabled ? ctx.edgeAAWidth : 0.0f;
+    const float aa = ctx.antialiasingEnabled ? state.antialias : 0.0f;
     // Hardcoded miterLimit for fill.
     const float miterLimit = 2.4f;
     calculateJoins(aa, QCPainter::LineJoin::Miter, miterLimit);
@@ -1540,7 +1542,7 @@ void QCPainterEngine::expandFill()
 void QCPainterEngine::expandStroke(float w, QCPainter::LineCap cap, QCPainter::LineJoin join, float miterLimit)
 {
     // w is half of stroke width + aa
-    const float aa = ctx.antialiasingEnabled ? ctx.edgeAAWidth : 0.0f;
+    const float aa = ctx.antialiasingEnabled ? state.antialias : 0.0f;
     w += aa * 0.5f;
     calculateJoins(w, join, miterLimit);
     const int pCount = ctx.pathsCount;
@@ -2050,14 +2052,14 @@ bool QCPainterEngine::fillPathUpdateRequired(QCPainterPath *path, int pathGroup)
     if (pathGroup != cp.pathGroup ||
         pathd->pathIterations != cp.pathIterations ||
         pathd->commandsCount != cp.commandsCount ||
-        !qFuzzyCompare(ctx.edgeAAWidth, cp.edgeAAWidth) ||
+        !qFuzzyCompare(state.antialias, cp.edgeAAWidth) ||
         !m_renderer->isPathCached(path, pathGroup)) {
         updateRequired = true;
         // Reset cache states
         cp.pathGroup = pathGroup;
         cp.pathIterations = pathd->pathIterations;
         cp.commandsCount = pathd->commandsCount;
-        cp.edgeAAWidth = ctx.edgeAAWidth;
+        cp.edgeAAWidth = state.antialias;
     }
     return updateRequired;
 }
@@ -2072,7 +2074,7 @@ bool QCPainterEngine::strokePathUpdateRequired(QCPainterPath *path, int pathGrou
     if (pathGroup != cp.pathGroup ||
         pathd->pathIterations != cp.pathIterations ||
         pathd->commandsCount != cp.commandsCount ||
-        !qFuzzyCompare(ctx.edgeAAWidth, cp.edgeAAWidth) ||
+        !qFuzzyCompare(state.antialias, cp.edgeAAWidth) ||
         !qFuzzyCompare(state.strokeWidth, cp.strokeWidth) ||
         state.lineCap != cp.lineCap ||
         state.lineJoin != cp.lineJoin ||
@@ -2082,7 +2084,7 @@ bool QCPainterEngine::strokePathUpdateRequired(QCPainterPath *path, int pathGrou
         cp.pathGroup = pathGroup;
         cp.pathIterations = pathd->pathIterations;
         cp.commandsCount = pathd->commandsCount;
-        cp.edgeAAWidth = ctx.edgeAAWidth;
+        cp.edgeAAWidth = state.antialias;
         cp.strokeWidth = state.strokeWidth;
         cp.lineCap = state.lineCap;
         cp.lineJoin = state.lineJoin;
@@ -2114,12 +2116,12 @@ QCPaint QCPainterEngine::getStrokePaint(float *strokeWidth, bool ignoreTransform
     float scale = getAverageScale(state.transform);
     *strokeWidth = std::clamp(state.strokeWidth * scale, 0.0f, QCPAINTER_MAX_STROKE_WIDTH);
     float expa = 1.0f;
-    if (*strokeWidth < ctx.edgeAAWidth) {
+    if (*strokeWidth < state.antialias) {
         // If the stroke width is less than pixel size, use alpha to emulate coverage.
-        float alpha = std::clamp((*strokeWidth * QCPAINTER_ANTIALIAS_MULTIPLIER) / ctx.edgeAAWidth, 0.0f, 1.0f);
+        float alpha = std::clamp((*strokeWidth * QCPAINTER_ANTIALIAS_MULTIPLIER) / state.antialias, 0.0f, 1.0f);
         // Since coverage is area, scale by alpha*alpha.
         expa = alpha * alpha;
-        *strokeWidth = ctx.edgeAAWidth;
+        *strokeWidth = state.antialias;
     }
 
     QCPaint strokePaint = state.stroke;
