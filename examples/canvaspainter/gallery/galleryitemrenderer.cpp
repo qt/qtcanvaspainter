@@ -1446,7 +1446,7 @@ void GalleryItemRenderer::drawTextsBrushes() {
     g1.setStartColor(QColor(255,255,255));
     g1.setEndColor(QColor(0,0,0));
     g1.setStartPosition(posX + (w*0.5f * m_animationSine), 0);
-    g1.setEndPosition(posX + w - (w*0.5f * m_animationSine), 0);
+    g1.setEndPosition(posX + w + 1 - (w*0.5f * m_animationSine), 0);
     painter()->setFillStyle(g1);
     painter()->fillText("Text with linear gradient", posX, posY);
 
