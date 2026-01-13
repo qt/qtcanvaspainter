@@ -1,15 +1,10 @@
 // Copyright (C) 2025 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
 
-#include "engine/qcdistancefieldglyphcache_p.h"
 #include "qctextlayout_p.h"
-#include "engine/qcrhidistancefieldglyphcache_p.h"
-#include <qtransform.h>
-#include <qvarlengtharray.h>
+#include <QTransform>
 
 QT_BEGIN_NAMESPACE
-
-QCTextLayout::QCTextLayout() {}
 
 QTextOption::WrapMode QCTextLayout::convertToQtWrapMode(QCPainter::WrapMode mode)
 {
@@ -46,22 +41,6 @@ Qt::Alignment QCTextLayout::convertToQtAlignment(QCPainter::TextAlign alignment)
         break;
     }
     return Qt::AlignLeft;
-}
-
-const QRectF QCTextLayout::bounds() const
-{
-    return m_bounds;
-}
-
-void QCTextLayout::generateVertexData(QCRhiDistanceFieldGlyphCache *cache)
-{
-    m_initialized = true;
-
-    for (const auto &run : m_runs) {
-        cache->addGlyphs({0, 0}, run);
-        cache->update();
-        cache->generateVertices(&verts, &indices, QTransform(), &m_bounds);
-    }
 }
 
 float QCTextLayout::calculateVerticalAlignment(QCPainter::TextBaseline baseline, const QRectF &rect,
