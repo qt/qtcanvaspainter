@@ -59,6 +59,8 @@ private slots:
     void createShared();
     void render_data();
     void render();
+    void renderWithDepthTest_data();
+    void renderWithDepthTest();
     void canvasRender_data();
     void canvasRender();
     void canvasRenderHqStroking_data();
@@ -396,7 +398,7 @@ static void drawCircleAndTextInCenter(QCPainter *painter)
     painter->fillText("Hello", center.x(), center.y());
 }
 
-static bool testColor(const QImage &image, int x, int y, const QColor &expected)
+static bool testColor(const QImage &image, int x, int y, const QColor &expected, bool warnOnMismatch = true)
 {
     const int maxFuzz = 1;
     QRgb c1 = image.pixel(x, y);
@@ -405,7 +407,7 @@ static bool testColor(const QImage &image, int x, int y, const QColor &expected)
                   && qAbs(qGreen(c1) - qGreen(c2)) <= maxFuzz
                   && qAbs(qBlue(c1) - qBlue(c2)) <= maxFuzz
                   && qAbs(qAlpha(c1) - qAlpha(c2)) <= maxFuzz;
-    if (!result)
+    if (!result && warnOnMismatch)
         qWarning() << "Color mismatch at" << x << "," << y << ": got" << QColor(c1) << "expected" << QColor(c2);
     return result;
 }
@@ -493,6 +495,86 @@ void tst_CanvasRhiRendering::render()
 
     QVERIFY(testColor(image, 1, 1, Qt::black));
     QVERIFY(testColor(image, RT_WIDTH / 2, RT_HEIGHT / 2, Qt::red));
+}
+
+void tst_CanvasRhiRendering::renderWithDepthTest_data()
+{
+    rhiTestData();
+}
+
+void tst_CanvasRhiRendering::renderWithDepthTest()
+{
+    QFETCH(QRhi::Implementation, impl);
+    QFETCH(QRhiInitParams *, initParams);
+
+    std::unique_ptr<QRhi> rhi(QRhi::create(impl, initParams, rhiCreateFlags));
+    if (!rhi)
+        QSKIP("Failed to create QRhi, skip");
+
+    RenderTargetPtr rt = createRenderTarget(rhi.get());
+    QVERIFY(rt);
+
+    const int centerX = RT_WIDTH / 2;
+    const int centerY = RT_HEIGHT / 2;
+
+    std::unique_ptr<QCPainterFactory> factory(new QCPainterFactory);
+    QCPainter *painter = factory->create(rhi.get());
+    QCRhiPaintDriver *pd = factory->paintDriver();
+
+    QRhiCommandBuffer *cb;
+    rhi->beginOffscreenFrame(&cb);
+    pd->resetForNewFrame();
+    pd->beginPaint(cb, rt->rt, Qt::black, QSize(), 0.0f, QCRhiPaintDriver::BeginPaintFlag::DepthTest);
+    drawCircleInCenter(painter);
+    pd->endPaint(QCRhiPaintDriver::EndPaintFlag::DoNotRecordRenderPass);
+    // Depth buffer is cleared to the usual 1.0, so the the circle should show up normally.
+    cb->beginPass(rt->rt, Qt::black, { 1.0f, 0 });
+    pd->renderPaint();
+    cb->endPass();
+    rhi->endOffscreenFrame();
+
+    if (impl != QRhi::Null) {
+        const QImage image = imageFromReadback(rhi.get(), rt->tex);
+        QVERIFY(testColor(image, 1, 1, Qt::black));
+        QVERIFY(testColor(image, centerX, centerY, Qt::red));
+    }
+
+    // Now clear the depth buffer to 0, so that the default Less comparison
+    // fails. First verify however that rendering without the DepthTest flag
+    // still does what it should (ignoring the depth buffer contents).
+    rhi->beginOffscreenFrame(&cb);
+    pd->resetForNewFrame();
+    pd->beginPaint(cb, rt->rt);
+    drawCircleInCenter(painter);
+    pd->endPaint(QCRhiPaintDriver::EndPaintFlag::DoNotRecordRenderPass);
+    cb->beginPass(rt->rt, Qt::black, { 0.0f, 0 }); // note that depth is cleared to 0
+    pd->renderPaint();
+    cb->endPass();
+    rhi->endOffscreenFrame();
+
+    if (impl != QRhi::Null) {
+        const QImage image = imageFromReadback(rhi.get(), rt->tex);
+        QVERIFY(testColor(image, 1, 1, Qt::black));
+        QVERIFY(testColor(image, centerX, centerY, Qt::red));
+    }
+
+    // Now repeat with the DepthTest flag
+    rhi->beginOffscreenFrame(&cb);
+    pd->resetForNewFrame();
+    pd->beginPaint(cb, rt->rt, Qt::black, QSize(), 0.0f, QCRhiPaintDriver::BeginPaintFlag::DepthTest);
+    drawCircleInCenter(painter);
+    pd->endPaint(QCRhiPaintDriver::EndPaintFlag::DoNotRecordRenderPass);
+    cb->beginPass(rt->rt, Qt::black, { 0.0f, 0 }); // note that depth is cleared to 0
+    pd->renderPaint();
+    cb->endPass();
+    rhi->endOffscreenFrame();
+
+    if (impl != QRhi::Null) {
+        const QImage image = imageFromReadback(rhi.get(), rt->tex);
+        QVERIFY(testColor(image, 1, 1, Qt::black));
+        // the red circle should not be there
+        QVERIFY(!testColor(image, centerX, centerY, Qt::red, false));
+    }
 }
 
 void tst_CanvasRhiRendering::canvasRender_data()

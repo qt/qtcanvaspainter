@@ -65,6 +65,12 @@ void QCRhiPaintDriver::resetForNewFrame()
     d->renderer->resetForNewFrame();
 }
 
+static inline void setRendererFlags(QCPainterRhiRenderer *renderer, QCRhiPaintDriver::BeginPaintFlags flags)
+{
+    renderer->setFlag(QCPainterRhiRenderer::RenderFlag::DepthTest,
+                      flags.testFlag(QCRhiPaintDriver::BeginPaintFlag::DepthTest));
+}
+
 /*!
     Begins painting onto the render target \a rt, recording rendering commands
     to the command buffer \a cb.
@@ -91,9 +97,13 @@ void QCRhiPaintDriver::resetForNewFrame()
     or \l QRhi::beginOffscreenFrame() must have been called), but it should not
     be in render pass recording state when this function is called.
 
+    \a flags specifies the optional flags that control rendering.
+
     \overload
  */
-void QCRhiPaintDriver::beginPaint(QRhiCommandBuffer *cb, QRhiRenderTarget *rt, const QColor &fillColor, QSize logicalSize, float dpr)
+void QCRhiPaintDriver::beginPaint(QRhiCommandBuffer *cb, QRhiRenderTarget *rt,
+                                  const QColor &fillColor, QSize logicalSize, float dpr,
+                                  BeginPaintFlags flags)
 {
     if (d->currentCb) {
         qWarning("Attempted to begin painting without ending the previous one first");
@@ -118,6 +128,7 @@ void QCRhiPaintDriver::beginPaint(QRhiCommandBuffer *cb, QRhiRenderTarget *rt, c
     QCPainterPrivate::get(d->painter)->handleCleanupTextures();
 
     d->renderer->beginPrepareAndPaint(d->currentCb, d->currentRt, d->mainLogicalWidth, d->mainLogicalHeight, d->mainDpr);
+    setRendererFlags(d->renderer, flags);
 }
 
 /*!
@@ -137,9 +148,11 @@ void QCRhiPaintDriver::beginPaint(QRhiCommandBuffer *cb, QRhiRenderTarget *rt, c
     or \l QRhi::beginOffscreenFrame() must have been called), but it should not
     be in render pass recording state when this function is called.
 
+    \a flags specifies the optional flags that control rendering.
+
     \overload
  */
-void QCRhiPaintDriver::beginPaint(QCOffscreenCanvas &canvas, QRhiCommandBuffer *cb)
+void QCRhiPaintDriver::beginPaint(QCOffscreenCanvas &canvas, QRhiCommandBuffer *cb, BeginPaintFlags flags)
 {
     if (canvas.isNull()) {
         qWarning("Cannot paint on null canvas");
@@ -161,7 +174,19 @@ void QCRhiPaintDriver::beginPaint(QCOffscreenCanvas &canvas, QRhiCommandBuffer *
     d->currentRt = d->renderer->canvasRenderTarget(canvas);
 
     d->renderer->beginPrepareAndPaint(d->currentCb, d->currentRt);
+    setRendererFlags(d->renderer, flags);
 }
+
+/*!
+    \enum QCRhiPaintDriver::BeginPaintFlag
+
+    Specifies the flags for beginPaint().
+
+    \value DepthTest Indicates that depth testing should be enabled when rendering.
+    Normally QCPainter does not write or test the depth buffer. If there is a need
+    to test against values written by another renderer, set this flag. The depth
+    comparison function used is \l{QRhiGraphicsPipeline::}{Less}.
+ */
 
 /*!
     \enum QCRhiPaintDriver::EndPaintFlag
