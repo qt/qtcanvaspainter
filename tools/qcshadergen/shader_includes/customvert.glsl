@@ -9,6 +9,7 @@ layout(location = 1) out vec2 fragCoord;
 layout(std140, binding = 0) uniform vertUBuf {
     vec4 viewRect;
     int ndcIsYDown;
+    vec4 customMatrix;
 };
 
 layout(std140, binding = 4) uniform vertUBuf2 {

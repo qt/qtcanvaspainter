@@ -80,6 +80,19 @@ qc_internal_add_shaders(CanvasPainter "qcshaders"
         engine/qcpainter.frag
 )
 
+qc_internal_add_shaders(CanvasPainter "qcshaders_v_custommatrix"
+    PREFIX
+        "/qcshaders"
+    BASE
+        engine
+    OUTPUTS
+        qcpainter_custommat.vert.qsb
+    FILES
+        engine/qcpainter.vert
+    DEFINES
+        CUSTOM_MATRIX
+)
+
 qc_internal_add_shaders(CanvasPainter "qcshaders_t"
     PREFIX
         "/qcshaders"

@@ -18,6 +18,7 @@
 #include <QtGui/qcolor.h>
 #include <QtGui/qtransform.h>
 #include <QtGui/qpainterpath.h>
+#include <QtGui/qmatrix4x4.h>
 #include <QtCore/qrect.h>
 #include <QtCore/qlist.h>
 #include "qcpainter.h"
@@ -42,6 +43,7 @@ public:
 
     // State
     void beginPaint(float logicalWidth, float logicalHeight, float dpr = 1.0f);
+    void setCustomMatrix(const QMatrix4x4 &matrix);
     void endPaint();
     void save();
     void restore();

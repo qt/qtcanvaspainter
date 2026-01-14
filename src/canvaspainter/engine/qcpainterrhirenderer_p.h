@@ -68,6 +68,7 @@ public:
         TransformedClipping = 1 << 3,
         SimpleClipping = 1 << 4,
         DepthTest = 1 << 5,
+        CustomMatrix = 1 << 6,
     };
     Q_DECLARE_FLAGS(RenderFlags, RenderFlag)
 
@@ -98,6 +99,7 @@ public:
     void beginPrepareAndPaint(QRhiCommandBuffer *cb,
                               QRhiRenderTarget *rt,
                               float logicalWidth, float logicalHeight, float dpr);
+    void setCustomMatrix(const QMatrix4x4 &matrix);
     void endPrepareAndPaint();
 
     // then when recording the render pass, call render()
@@ -166,6 +168,8 @@ public:
     void grabCanvas(const QCOffscreenCanvas &canvas, std::function<void(const QImage &)> callback, QRhiCommandBuffer *maybeCb);
 
     void recordRenderPass(QRhiCommandBuffer *cb, QRhiRenderTarget *rt, const QColor &clearColor);
+
+    bool isYUpInNDC() const;
 
 private:
     QRhiGraphicsPipeline *pipeline(const QCRHIPipelineStateKey &key,

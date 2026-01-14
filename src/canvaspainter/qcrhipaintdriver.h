@@ -7,8 +7,9 @@
 
 #include <QtCanvasPainter/qtcanvaspainterglobal.h>
 #include <QtCore/qsize.h>
-#include <functional>
+#include <QtGui/qmatrix4x4.h>
 #include <QtCanvasPainter/qcoffscreencanvas.h>
+#include <functional>
 
 QT_BEGIN_NAMESPACE
 
@@ -36,6 +37,7 @@ public:
     void beginPaint(QRhiCommandBuffer *cb, QRhiRenderTarget *rt,
                     const QColor &fillColor = Qt::black, QSize logicalSize = QSize(), float dpr = 1.0f,
                     BeginPaintFlags flags = {});
+    void beginPaint(QRhiCommandBuffer *cb, QRhiRenderTarget *rt, const QMatrix4x4 &matrix, BeginPaintFlags flags = {});
     void beginPaint(QCOffscreenCanvas &canvas, QRhiCommandBuffer *cb, BeginPaintFlags flags = {});
     void endPaint(EndPaintFlags flags = {});
     void renderPaint();
