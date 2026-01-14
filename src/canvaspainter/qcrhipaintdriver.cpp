@@ -69,7 +69,8 @@ void QCRhiPaintDriver::resetForNewFrame()
     Begins painting onto the render target \a rt, recording rendering commands
     to the command buffer \a cb.
 
-    \a fillColor specifies the color used for clearing the color buffer.
+    \a fillColor specifies the color used for clearing the color buffer. This
+    value is ignored when the flags for endPaint() contain EndPaintFlag::DoNotRecordRenderPass.
 
     \note A beginPaint() must always be followed by an endPaint(). Nesting is
     not currently supported.
