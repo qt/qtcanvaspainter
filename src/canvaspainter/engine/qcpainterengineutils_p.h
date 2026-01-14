@@ -196,6 +196,8 @@ struct QCContext {
     QRectF bounds;
     QCPainter::RenderHints renderHints = QCPainter::RenderHint::Antialiasing;
     float dpr;
+    QMatrix4x4 customMatrix;
+    bool customMatrixValid;
     float tessTol;
     float distTol;
     float devicePxRatio;

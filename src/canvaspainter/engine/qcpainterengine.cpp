@@ -104,6 +104,13 @@ void QCPainterEngine::beginPaint(float logicalWidth, float logicalHeight, float 
 
     ctx.view = { 0.0f, 0.0f, logicalWidth, logicalHeight };
     ctx.dpr = dpr;
+    ctx.customMatrixValid = false;
+}
+
+void QCPainterEngine::setCustomMatrix(const QMatrix4x4 &matrix)
+{
+    ctx.customMatrix = matrix;
+    ctx.customMatrixValid = true;
 }
 
 void QCPainterEngine::endPaint()
@@ -925,11 +932,36 @@ void QCPainterEngine::resetClipRect()
     m_renderer->setFlag(QCPainterRhiRenderer::TransformedClipping, false);
 }
 
-void QCPainterEngine::setClipRect(const QRectF &rect)
+void QCPainterEngine::setClipRect(const QRectF &clipRect)
 {
+    QRectF rect = clipRect;
     if (rect.isEmpty()) {
         resetClipRect();
     } else {
+        if (ctx.customMatrixValid) {
+            const QMatrix4x4 &m(ctx.customMatrix);
+            // Basic local clip rect -> scissor rect logic, matching the Qt
+            // Quick scenegraph renderer. Only correct for an orthographic,
+            // translation-only customMatrix. Rotations are currently not
+            // supported, and full 3D projections are definitely out of scope.
+            const float invW = 1 / m(3, 3);
+            float fx1 = (rect.left() * m(0, 0) + m(0, 3)) * invW;
+            float fy1 = (rect.top() * m(1, 1) + m(1, 3)) * invW;
+            float fx2 = (rect.right() * m(0, 0) + m(0, 3)) * invW;
+            float fy2 = (rect.bottom() * m(1, 1) + m(1, 3)) * invW;
+            if (fx1 > fx2)
+                std::swap(fx1, fx2);
+            if (fy1 > fy2)
+                std::swap(fy1, fy2);
+            const int ix1 = qRound((fx1 + 1) * ctx.view.width() * 0.5f);
+            const int iy1 = qRound((fy1 + 1) * ctx.view.height() * 0.5f);
+            const int ix2 = qRound((fx2 + 1) * ctx.view.width() * 0.5f);
+            const int iy2 = qRound((fy2 + 1) * ctx.view.height() * 0.5f);
+            if (m_renderer->isYUpInNDC())
+                rect = QRect(ix1, ctx.view.height() - iy1 - (iy2 - iy1), ix2 - ix1, iy2 - iy1);
+            else
+                rect = QRect(ix1, iy1, ix2 - ix1, iy2 - iy1);
+        }
         if (state.transform.isIdentity()) {
             // Simple clipping of rectangular area without transform
             state.clip.transform.reset();

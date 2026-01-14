@@ -132,6 +132,50 @@ void QCRhiPaintDriver::beginPaint(QRhiCommandBuffer *cb, QRhiRenderTarget *rt,
 }
 
 /*!
+    Begins painting onto the render target \a rt, recording rendering commands
+    to the command buffer \a cb.
+
+    This overload takes a custom \a matrix, which is used to transform the
+    vertices. The matrix must be suitable to deal with vertices where the
+    coordinates are given in pixels. A common use case is to pass in Qt Quick's
+    modelview-projection matrix when implementing QCPainter-pased rendering
+    within a QSGRenderNode subclass.
+
+    The viewport size and device pixel ratio are taken from the render target.
+
+    This overload does not take a fill color since in practice it is expected to be followed
+    by an endPaint() with the flag EndPaintFlag::DoNotRecordRenderPass set.
+
+    \note Support for clipping is limited when a custom matrix is used.
+    Rectangular, non-transformed clips are supported when the matrix specifies
+    an orthographic projection without any added scaling or rotation. It is
+    generally recommended to avoid drawing relying on clipping in this mode.
+
+    \note A beginPaint() must always be followed by an endPaint(). Nesting is
+    not currently supported.
+
+    \note \a rt is expected to have both a color and depth-stencil attachment.
+    In case there are multiple color attachments, only the color buffer for
+    attachment 0 is written. QCPainter requires the presence of a depth-stencil
+    buffer. Currently only stencil is utilized, depth testing and writing are
+    always disabled.
+
+    \note The associated QRhi must be recording a frame (\l QRhi::beginFrame()
+    or \l QRhi::beginOffscreenFrame() must have been called), but it should not
+    be in render pass recording state when this function is called.
+
+    \a flags specifies the optional flags that control rendering.
+
+    \overload
+ */
+void QCRhiPaintDriver::beginPaint(QRhiCommandBuffer *cb, QRhiRenderTarget *rt, const QMatrix4x4 &matrix, BeginPaintFlags flags)
+{
+    beginPaint(cb, rt, Qt::black, {}, 1.0f);
+    setRendererFlags(d->renderer, flags);
+    d->renderer->setCustomMatrix(matrix);
+}
+
+/*!
     Begins painting onto the specified offscreen \a canvas, recording rendering
     commands to the command buffer \a cb.
 

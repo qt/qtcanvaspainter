@@ -341,6 +341,7 @@ struct QCRHIShaders
 {
     QCRHIShaders() {
         vs = getShader(QLatin1String(":/qcshaders/qcpainter.vert.qsb"));
+        vsCustomMat = getShader(QLatin1String(":/qcshaders/qcpainter_custommat.vert.qsb"));
         fs = getShader(QLatin1String(":/qcshaders/qcpainter.frag.qsb"));
         fsTA = getShader(QLatin1String(":/qcshaders/qcpainter_t.frag.qsb"));
         fsSC = getShader(QLatin1String(":/qcshaders/qcpainter_sc.frag.qsb"));
@@ -354,7 +355,7 @@ struct QCRHIShaders
         fsAASSSC = getShader(QLatin1String(":/qcshaders/qcpainter_aa_ss_sc.frag.qsb"));
         fsAASSSCT = getShader(QLatin1String(":/qcshaders/qcpainter_aa_ss_sct.frag.qsb"));
 
-        if (!vs.isValid() || !fsTA.isValid()  || !fs.isValid() || !fsAA.isValid() || !fsAAT.isValid() || !fsSC.isValid() ||
+        if (!vs.isValid() || !vsCustomMat.isValid() || !fsTA.isValid()  || !fs.isValid() || !fsAA.isValid() || !fsAAT.isValid() || !fsSC.isValid() ||
             !fsSCT.isValid() || !fsAASS.isValid() || !fsAASST.isValid() || !fsAASC.isValid() || !fsAASCT.isValid() ||
             !fsAASSSC.isValid() || !fsAASSSCT.isValid()) {
             qFatal("Failed to load shaders!");
@@ -370,6 +371,7 @@ struct QCRHIShaders
     }
 
     QShader vs;
+    QShader vsCustomMat;
     QShader fs;
     QShader fsTA; // For APIs where the text glyph texture is generated using single Alpha insteand of single red
     QShader fsAA; // EDGE_AA enabled
@@ -503,10 +505,14 @@ QRhiGraphicsPipeline *QCPainterRhiRenderer::pipeline(const QCRHIPipelineStateKey
     QShader const *fs = nullptr;
     QShader const *vs = nullptr;
 
-    if (key.state.customVertShader.isValid())
+    if (key.state.customVertShader.isValid()) {
         vs = &key.state.customVertShader;
-    else
-        vs = &shaders->vs;
+    } else {
+        if (key.state.renderFlags & RenderFlag::CustomMatrix)
+            vs = &shaders->vsCustomMat;
+        else
+            vs = &shaders->vs;
+    }
 
     if (key.state.customFragShader.isValid()) {
         // Use custom brush shader
@@ -1841,7 +1847,7 @@ void QCPainterRhiRenderer::endPrepare()
             }
         }
         if (!ppd->vsUniformBuffer) {
-            ppd->vsUniformBuffer = rhiCtx->rhi->newBuffer(QRhiBuffer::Dynamic, QRhiBuffer::UniformBuffer, 20);
+            ppd->vsUniformBuffer = rhiCtx->rhi->newBuffer(QRhiBuffer::Dynamic, QRhiBuffer::UniformBuffer, 96);
             ppd->vsUniformBuffer->setName("qc vs uniform buffer");
             if (!ppd->vsUniformBuffer->create()) {
                 qWarning("Failed to create uniform buffer 0");
@@ -1868,10 +1874,15 @@ void QCPainterRhiRenderer::endPrepare()
         // Static vs uniform buffer, shared for every call
         constexpr int sizeOfViewRect = 4 * sizeof(float);
         constexpr int sizeOfYDown = sizeof(qint32);
-        ensureBufferCapacity(&ppd->vsUniformBuffer, sizeOfViewRect + sizeOfYDown);
+        // the size of this buffer is fixed (96 bytes) and is already correct, no need for ensureBufferCapacity
         u->updateDynamicBuffer(ppd->vsUniformBuffer, 0, sizeOfViewRect, rhiCtx->viewRect);
         const qint32 ndcIsYDown = !rhiCtx->rhi->isYUpInNDC();
-        u->updateDynamicBuffer(ppd->vsUniformBuffer, sizeOfViewRect, sizeOfYDown, &ndcIsYDown);
+        u->updateDynamicBuffer(ppd->vsUniformBuffer, 16, sizeOfYDown, &ndcIsYDown);
+        if (m_e->ctx.customMatrixValid) {
+            // mat4 is 16 aligned, hence the offset is 32, not 20
+            u->updateDynamicBuffer(ppd->vsUniformBuffer, 32, 64, m_e->ctx.customMatrix.constData());
+        }
+
         // Dynamic vs uniform buffer
         const quint32 sizeOfVUBuf = rhiCtx->vertUniformsCount * rhiCtx->oneVertUniformBufferSize;
         ensureBufferCapacity(&ppd->vsUniformBuffer2, sizeOfVUBuf);
@@ -1979,6 +1990,8 @@ void QCPainterRhiRenderer::endPrepare()
             // Set antialiasing mode.
             basePs.renderFlags.setFlag(QCPainterRhiRenderer::Antialiasing,
                                        call->renderFlags & QCPainterRhiRenderer::Antialiasing);
+
+            basePs.renderFlags.setFlag(QCPainterRhiRenderer::CustomMatrix, m_e->ctx.customMatrixValid);
 
             // Custom shader
             basePs.customFragShader = call->customFragShader;
@@ -2119,6 +2132,11 @@ void QCPainterRhiRenderer::beginPrepareAndPaint(QRhiCommandBuffer *cb, QRhiRende
 {
     beginPrepare(cb, rt, dpr);
     m_e->beginPaint(logicalWidth, logicalHeight, dpr);
+}
+
+void QCPainterRhiRenderer::setCustomMatrix(const QMatrix4x4 &matrix)
+{
+    m_e->setCustomMatrix(matrix);
 }
 
 void QCPainterRhiRenderer::endPrepareAndPaint()
@@ -3023,6 +3041,11 @@ void QCPainterRhiRenderer::recordRenderPass(QRhiCommandBuffer *cb, QRhiRenderTar
     render();
     cb->endPass();
     cb->debugMarkEnd();
+}
+
+bool QCPainterRhiRenderer::isYUpInNDC() const
+{
+    return rhiCtx->rhi->isYUpInNDC();
 }
 
 QT_END_NAMESPACE
