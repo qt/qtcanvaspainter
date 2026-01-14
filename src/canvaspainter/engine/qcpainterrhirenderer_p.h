@@ -67,6 +67,7 @@ public:
         StencilStrokes = 1 << 1,
         TransformedClipping = 1 << 3,
         SimpleClipping = 1 << 4,
+        DepthTest = 1 << 5,
     };
     Q_DECLARE_FLAGS(RenderFlags, RenderFlag)
 

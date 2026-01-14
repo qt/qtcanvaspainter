@@ -555,15 +555,16 @@ QRhiGraphicsPipeline *QCPainterRhiRenderer::pipeline(const QCRHIPipelineStateKey
 
     ps->setSampleCount(key.state.sampleCount);
 
-    // Depth test and write are always OFF. We do require a depth-stencil buffer
-    // though, due to relying on stencil, but the depth part of the buffer is
-    // not used for anything. If this would be needed for some feature in the
-    // future, note that enabling depth buffer usage is not trivial, since it
-    // can cause various conflicts in applications integrating QCPainter
-    // rendering in 3D scenes, if they also use the depth buffer while rendering
-    // the 2D drawing inline, targeting the same main color and depth-stencil
-    // buffers the 3D rendering also targets.
-    ps->setDepthTest(false);
+    // Depth test and write are generally OFF, but test can be requested with a flag.
+    //
+    // We do require a depth-stencil buffer though, due to relying on stencil,
+    // but the depth part of the buffer is not written by QCPainter. If this
+    // would be needed for some feature in the future, note that enabling depth
+    // buffer usage is not trivial, since it can cause various conflicts in
+    // applications integrating QCPainter rendering in 3D scenes, if they also
+    // use the depth buffer while rendering the 2D drawing inline, targeting the
+    // same main color and depth-stencil buffers the 3D rendering also targets.
+    ps->setDepthTest(key.state.renderFlags & RenderFlag::DepthTest);
     ps->setDepthWrite(false);
 
     ps->setStencilTest(key.state.stencilTestEnable);
