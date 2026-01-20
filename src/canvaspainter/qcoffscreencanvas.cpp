@@ -52,6 +52,15 @@ QT_BEGIN_NAMESPACE
     performance, depending on the GPU architecture. See
     \l{QRhiTextureRenderTarget::PreserveColorContents} for details. Setting
     this flag is not supported when the sample count is greater than 1.
+
+    \value MipMaps Indicates that the canvas' backing texture should have
+    mipmapping enabled. Setting this flag is not supported when the sample count
+    is greater than 1. Note that the mipmap sequence is generated when calling
+    \l{QCPainter::}{addImage()} with the
+    \l{QCPainter::ImageFlag::}{GenerateMipmaps} flag set. This implies that
+    addImage() must be called every time after the canvas' content changes, so
+    that the mipmap chain is regenerated. Frequent mipmap generation can have a
+    negative effect on performance.
  */
 
 /*!

@@ -22,10 +22,8 @@ class Q_CANVASPAINTER_EXPORT QCOffscreenCanvas
 
 public:
     enum class Flag {
-        // Requests preserving (no clearing) of the color texture.
-        // There's a catch: this will not always work with MSAA, depending on underlying details (on GLES, with certain extensions present) .
-        // So probably going to be limited to non-multisample canvases.
-        PreserveContents = 0x01
+        PreserveContents = 0x01,
+        MipMaps = 0x02
     };
     Q_DECLARE_FLAGS(Flags, Flag)
 
@@ -44,9 +42,6 @@ public:
 
     bool isNull() const;
 
-    // flags and settings such as multisample count must be controlled by the
-    // canvas factory function, we cannot have simple setters here, since under
-    // the hood everything is immutable...
     Flags flags() const;
 
     QColor fillColor() const;
