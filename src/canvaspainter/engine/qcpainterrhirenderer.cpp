@@ -2854,13 +2854,22 @@ QCOffscreenCanvas QCPainterRhiRenderer::createCanvas(QSize pixelSize, int sample
         return canvas;
     }
 
-    if (flags.testFlag(QCOffscreenCanvas::Flag::PreserveContents)) {
-        qWarning("PreserveContents is not supported for multisample canvas");
-        flags.setFlag(QCOffscreenCanvas::Flag::PreserveContents, false);
+    if (sampleCount > 1) {
+        if (flags.testFlag(QCOffscreenCanvas::Flag::PreserveContents)) {
+            qWarning("PreserveContents is not supported for multisample canvas");
+            flags.setFlag(QCOffscreenCanvas::Flag::PreserveContents, false);
+        }
+        if (flags.testFlag(QCOffscreenCanvas::Flag::MipMaps)) {
+            qWarning("MipMaps are not supported for multisample canvas");
+            flags.setFlag(QCOffscreenCanvas::Flag::MipMaps, false);
+        }
     }
 
-    std::unique_ptr<QRhiTexture> tex(rhiCtx->rhi->newTexture(QRhiTexture::RGBA8, pixelSize, 1,
-                                                             QRhiTexture::RenderTarget | QRhiTexture::UsedAsTransferSource));
+    QRhiTexture::Flags textureFlags = QRhiTexture::RenderTarget | QRhiTexture::UsedAsTransferSource;
+    if (flags.testFlag(QCOffscreenCanvas::Flag::MipMaps))
+        textureFlags |= QRhiTexture::MipMapped | QRhiTexture::UsedWithGenerateMips;
+
+    std::unique_ptr<QRhiTexture> tex(rhiCtx->rhi->newTexture(QRhiTexture::RGBA8, pixelSize, 1, textureFlags));
     if (!tex->create())
         return canvas;
 

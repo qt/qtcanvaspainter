@@ -63,6 +63,8 @@ private slots:
     void renderWithDepthTest();
     void canvasRender_data();
     void canvasRender();
+    void canvasRenderMipMap_data();
+    void canvasRenderMipMap();
     void canvasRenderHqStroking_data();
     void canvasRenderHqStroking();
 
@@ -710,6 +712,95 @@ void tst_CanvasRhiRendering::canvasRender()
 #ifdef FRAME_CAPTURE
     endFrameCapture(m_cap.get());
 #endif
+}
+
+void tst_CanvasRhiRendering::canvasRenderMipMap_data()
+{
+    rhiTestData();
+}
+
+void tst_CanvasRhiRendering::canvasRenderMipMap()
+{
+    QFETCH(QRhi::Implementation, impl);
+    QFETCH(QRhiInitParams *, initParams);
+
+    std::unique_ptr<QRhi> rhi(QRhi::create(impl, initParams, rhiCreateFlags));
+    if (!rhi)
+        QSKIP("Failed to create QRhi, skip");
+
+    std::unique_ptr<QCPainterFactory> factory(new QCPainterFactory);
+    QCPainter *painter = factory->create(rhi.get());
+    QVERIFY(painter);
+    QCRhiPaintDriver *pd = factory->paintDriver();
+    QVERIFY(pd);
+
+#ifdef FRAME_CAPTURE
+    configureFrameCapture(m_cap.get(), rhi.get());
+    startFrameCapture(m_cap.get(), rhi.get(), "canvasRenderMipMap_part1");
+#endif
+
+    QCOffscreenCanvas canvas;
+    QVERIFY(canvas.isNull());
+    canvas = painter->createCanvas(QSize(RT_WIDTH, RT_HEIGHT), 1, QCOffscreenCanvas::Flag::MipMaps);
+    QVERIFY(!canvas.isNull());
+    canvas.setFillColor(Qt::black);
+
+    QRhiCommandBuffer *cb;
+    rhi->beginOffscreenFrame(&cb);
+    pd->resetForNewFrame();
+    pd->beginPaint(canvas, cb);
+    drawCircleInCenter(painter);
+    pd->endPaint();
+    rhi->endOffscreenFrame();
+
+#ifdef FRAME_CAPTURE
+    endFrameCapture(m_cap.get());
+#endif
+
+    QVERIFY(canvas.texture());
+    QCOMPARE(canvas.texture()->pixelSize().width(), RT_WIDTH);
+    QCOMPARE(canvas.texture()->pixelSize().height(), RT_HEIGHT);
+    if (impl != QRhi::Null) {
+        QImage image = imageFromReadback(rhi.get(), canvas.texture());
+        QVERIFY(testColor(image, 1, 1, Qt::black));
+        QVERIFY(testColor(image, RT_WIDTH / 2, RT_HEIGHT / 2, Qt::red));
+    }
+
+#ifdef FRAME_CAPTURE
+    startFrameCapture(m_cap.get(), rhi.get(), "canvasRenderMipMap_part2");
+#endif
+
+    RenderTargetPtr rt = createRenderTarget(rhi.get());
+    QVERIFY(rt);
+
+    rhi->beginOffscreenFrame(&cb);
+    pd->resetForNewFrame();
+    pd->beginPaint(cb, rt->rt);
+    QCImage canvasImage;
+    QVERIFY(canvasImage.isNull());
+    // request addImage to generate the mimap sequence
+    canvasImage = painter->addImage(canvas, QCPainter::ImageFlag::Repeat | QCPainter::ImageFlag::GenerateMipmaps);
+    QVERIFY(!canvasImage.isNull());
+    drawCircleInCenter(painter, canvasImage);
+    pd->endPaint();
+    rhi->endOffscreenFrame();
+
+#ifdef FRAME_CAPTURE
+    endFrameCapture(m_cap.get());
+#endif
+
+    // won't verify here that the linear mipmap filtering works, since the result is the same anyway
+    if (impl != QRhi::Null) {
+        QImage image = imageFromReadback(rhi.get(), rt->tex);
+        int x = RT_WIDTH / 2;
+        int y = RT_HEIGHT / 2;
+        // the distorted circle in the middle
+        QVERIFY(testColor(image, x, y, Qt::red));
+        // black between columns and rows
+        QVERIFY(testColor(image, x - 50, y, Qt::black));
+        // the distorted circle to the left
+        QVERIFY(testColor(image, x - 100, y, Qt::red));
+    }
 }
 
 void tst_CanvasRhiRendering::canvasRenderHqStroking_data()
