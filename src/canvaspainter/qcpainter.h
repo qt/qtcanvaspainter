@@ -7,7 +7,6 @@
 
 #include <QtCanvasPainter/qtcanvaspainterglobal.h>
 #include <QtGui/qcolor.h>
-#include <QtCore/qobject.h>
 #include <QtCore/qrect.h>
 #include <QtGui/qtransform.h>
 #include <QtGui/qfont.h>
@@ -24,10 +23,10 @@ class QCBoxShadow;
 class QRhiTexture;
 class QCPainterPrivate;
 
-class Q_CANVASPAINTER_EXPORT QCPainter : public QObject
+class Q_CANVASPAINTER_EXPORT QCPainter
 {
 public:
-    QCPainter(QObject *parent = nullptr);
+    QCPainter();
     ~QCPainter();
 
     enum class PathWinding { CounterClockWise, ClockWise };
@@ -256,7 +255,9 @@ public:
     void grabCanvas(const QCOffscreenCanvas &canvas, std::function<void(const QImage &)> callback);
 
 private:
+    Q_DISABLE_COPY(QCPainter)
     Q_DECLARE_PRIVATE(QCPainter)
+    std::unique_ptr<QCPainterPrivate> d_ptr;
 };
 
 Q_DECLARE_OPERATORS_FOR_FLAGS(QCPainter::ImageFlags)

@@ -370,11 +370,11 @@ Q_LOGGING_CATEGORY(QC_INFO, "qt.qcpainter.general")
 */
 
 /*!
-    Constructs a painter with \a parent.
+    Constructs a painter.
 */
 
-QCPainter::QCPainter(QObject *parent)
- : QObject(*new QCPainterPrivate, parent)
+QCPainter::QCPainter()
+ : d_ptr(new QCPainterPrivate)
 {
 }
 
@@ -383,8 +383,7 @@ QCPainter::QCPainter(QObject *parent)
 */
 
 QCPainter::~QCPainter()
-{
-}
+    = default;
 
 // *** State Handling ***
 

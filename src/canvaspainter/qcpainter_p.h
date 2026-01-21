@@ -20,7 +20,6 @@
 #include "qcimage.h"
 #include <QtGui/qfont.h>
 #include <QtCore/qstring.h>
-#include <QtCore/private/qobject_p.h>
 #include <QtCore/qhash.h>
 #include <QtCore/qloggingcategory.h>
 
@@ -64,9 +63,8 @@ private:
 
 class QRhi;
 
-class QCPainterPrivate : public QObjectPrivate
+class QCPainterPrivate
 {
-    Q_DECLARE_PUBLIC(QCPainter)
 public:
     QCPainterPrivate();
     ~QCPainterPrivate();
