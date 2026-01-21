@@ -34,7 +34,6 @@ public:
     { return static_cast<QCGradientPrivate*>(brush->baseData.get()); }
 
     qint64 generateGradientKey() const;
-    static void gradientColorSpan(quint32 *data, const QColor &color0, const QColor &color1, float offset0, float offset1);
     void updateGradientTexture(QCPainter *painter);
 
     enum class DirtyFlag {
