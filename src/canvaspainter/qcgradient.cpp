@@ -13,6 +13,7 @@
 #include "qvariant.h"
 #include <qdebug.h>
 #include <limits>
+#include <QtGui/private/qpixellayout_p.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -424,30 +425,33 @@ qint64 QCGradientPrivate::generateGradientKey() const
     return toInt64(id);
 }
 
-void QCGradientPrivate::gradientColorSpan(quint32 *data, const QColor &color1, const QColor &color2, float offset1, float offset2)
+// Fills gradient span from offset1 at color1 to offset2 at color2.
+// The color2 is not fully reached, as it will be used as the starting color
+// of the next span. So e.g. black -> red span from 0.0 to 0.02 will normally
+// take 0.02 * 256 = 5 pixels and then last pixel will be 4/5 = 80% red. Next
+// span (so pixel 6) will then start from 100% red.
+static void gradientColorSpan(quint32 *data, QRgb color1, QRgb color2, float offset1, float offset2) noexcept
 {
     int s = offset1 * QCPAINTER_GRADIENT_SIZE;
     int e = offset2 * QCPAINTER_GRADIENT_SIZE;
     int d = e - s;
-    float a = color1.alphaF();
-    float r = color1.redF();
-    float g = color1.greenF();
-    float b = color1.blueF();
-    float da = (color2.alphaF() - a) / d;
-    float dr = (color2.redF() - r) / d;
-    float dg = (color2.greenF() - g) / d;
-    float db = (color2.blueF() - b) / d;
-    for (int i = s; i < e; i++)
-    {
-        quint8 ua = quint8(a * 255);
-        quint8 ur = quint8(r * 255);
-        quint8 ug = quint8(g * 255);
-        quint8 ub = quint8(b * 255);
-        data[i] = (ua << 24) | (ub << 16) | (ug << 8) | ur;
-        a += da;
-        r += dr;
-        g += dg;
-        b += db;
+    if (d < 1)
+        return;
+    constexpr float m = 1.0f / 256;
+    float a = qAlpha(color1) * m;
+    float r = qRed(color1) * m;
+    float g = qGreen(color1) * m;
+    float b = qBlue(color1) * m;
+    float da = (qAlpha(color2) * m - a) / d;
+    float dr = (qRed(color2) * m - r) / d;
+    float dg = (qGreen(color2) * m - g) / d;
+    float db = (qBlue(color2) * m - b) / d;
+    for (int i = 0; i < d; i++) {
+        QRgb rgba = qRgba((r + i * dr) * 256,
+                          (g + i * dg) * 256,
+                          (b + i * db) * 256,
+                          (a + i * da) * 256);
+        data[s + i] = ARGB2RGBA(rgba);
     }
 }
 
@@ -470,21 +474,19 @@ void QCGradientPrivate::updateGradientTexture(QCPainter *painter)
         {
             const auto &grad1 = gradientStops[i];
             const auto &grad2 = gradientStops[i + 1];
-            QColor c1 = grad1.second;
-            QColor c2 = grad2.second;
             // Premultipled alpha
-            c1 = QColor(c1.alphaF() * c1.red(),
-                        c1.alphaF() * c1.green(),
-                        c1.alphaF() * c1.blue(),
-                        c1.alpha());
-            c2 = QColor(c2.alphaF() * c2.red(),
-                        c2.alphaF() * c2.green(),
-                        c2.alphaF() * c2.blue(),
-                        c2.alpha());
+            QRgb c1 = qPremultiply(grad1.second.rgba());
+            QRgb c2 = qPremultiply(grad2.second.rgba());
             float o1 = std::clamp(grad1.first, 0.0f, 1.0f);
             float o2 = std::clamp(grad2.first, 0.0f, 1.0f);
             gradientColorSpan(data, c1, c2, o1, o2);
         }
+        // Make the first & last pixels to contain the colors
+        // of the first & last stops
+        data[0] = ARGB2RGBA(qPremultiply(gradientStops.constFirst().second.rgba()));
+        data[QCPAINTER_GRADIENT_SIZE - 1] = ARGB2RGBA(qPremultiply(gradientStops.constLast().second.rgba()));
+
+        // Create image texture
         QImage gradientTexture = QImage((uchar*)data, QCPAINTER_GRADIENT_SIZE, 1, QImage::Format_RGBA8888_Premultiplied);
         QCPainter::ImageFlags flags = {QCPainter::ImageFlag::Premultiplied};
         imageId = painterPriv->getQCImage(gradientTexture, flags, key).id();
