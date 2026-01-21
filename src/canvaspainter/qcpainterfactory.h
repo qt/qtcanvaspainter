@@ -17,11 +17,6 @@ class QCPainterFactoryPrivate;
 class QCRhiPaintDriver;
 class QRhi;
 
-// A factory owns a set of painter (+ engine) + renderer.
-//
-// sharedInstance possibly returns an already initialized factory with all
-// these, if it was called for the same QRhi before.
-
 class Q_CANVASPAINTER_EXPORT QCPainterFactory
 {
 public:
