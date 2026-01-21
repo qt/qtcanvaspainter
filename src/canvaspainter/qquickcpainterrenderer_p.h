@@ -24,7 +24,7 @@ QT_BEGIN_NAMESPACE
 class QCPainterFactory;
 class QRhiCommandBuffer;
 
-class QQuickCPainterRendererPrivate : public QObject
+class QQuickCPainterRendererPrivate
 {
     Q_DECLARE_PUBLIC(QQuickCPainterRenderer)
 public:
