@@ -118,7 +118,7 @@ void main()
                 color = mix(innerCol, outerCol, d);
         } else if (type == 5 || type == 6) { // Conical gradient
             pt = rotate2d(radius) * pt;
-            float d = 1.0 - (atan(pt.x, pt.y) + PI) * 0.5 / PI;
+            float d = 0.5 - atan(pt.x, pt.y) * PI2_INV;
             if (type == 6)
                 color = texture(tex, vec2(d, 0.5));
             else

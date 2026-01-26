@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only WITH Qt-GPL-exception-1.0
 
 #define PI 3.14159265359
+#define PI2_INV 0.15915494309
 
 layout(std140, binding = 1) uniform fragUBuf {
     mat3 scissorMat;
