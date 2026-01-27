@@ -2,11 +2,14 @@
 // Copyright (C) 2015 QUIt Coding <info@quitcoding.com>
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR BSD-3-Clause
 
+pragma ComponentBehavior: Bound
+
 import QtQuick 2.0
 
 Item {
     id: root
 
+    property real dp: height / 60
     property int currentIndex: 0
     property real visibilityState: 0
     property int itemCount: 0
@@ -82,31 +85,32 @@ Item {
         id: groupTextItem
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.bottom: titleTextItem.top
-        font.pixelSize: 12 * dp
+        font.pixelSize: 12 * root.dp
         color: "#DFD0B8"
-        text: groupTitle
+        text: root.groupTitle
     }
     Text {
         id: titleTextItem
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.verticalCenter: parent.verticalCenter
-        anchors.verticalCenterOffset: 8 * dp
-        font.pixelSize: 20 * dp
+        anchors.verticalCenterOffset: 8 * root.dp
+        font.pixelSize: 20 * root.dp
         color: "#DFD0B8"
-        text: title
+        text: root.title
     }
     Row {
         anchors.top: titleTextItem.bottom
-        anchors.topMargin: 6 * dp
+        anchors.topMargin: 6 * root.dp
         anchors.horizontalCenter: parent.horizontalCenter
-        spacing: 4 * dp
+        spacing: 4 * root.dp
         Repeater {
             model: root.itemCount
             Rectangle {
                 // Between 0..1 when the page indicator is highligted
+                required property int index
                 readonly property real animState: Math.max(0, (1.0 - Math.abs(root.visibilityState - index)))
-                width: height + 16 * dp * animState
-                height: 8 * dp
+                width: height + 16 * root.dp * animState
+                height: 8 * root.dp
                 radius: width/2
                 color: "#948979"
                 border.width: 1

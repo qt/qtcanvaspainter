@@ -2,6 +2,8 @@
 // Copyright (C) 2015 QUIt Coding <info@quitcoding.com>
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR BSD-3-Clause
 
+pragma ComponentBehavior: Bound
+
 import QtQuick
 import QtQuick.Window
 import GalleryExample
@@ -47,7 +49,7 @@ Window {
     TopBar {
         id: topBar
         width: parent.width
-        height: Math.floor(60 * dp)
+        height: Math.floor(60 * mainView.dp)
         currentIndex: listView.currentIndex
         itemCount: listView.count
         visibilityState: (listView.visibleArea.xPosition * (listView.delegateWidth * listView.count + listView.width)) / listView.delegateWidth
@@ -78,7 +80,7 @@ Window {
         id: listView
         readonly property real delegateWidth: height * 0.75
         anchors.top: topBar.bottom
-        anchors.topMargin: Math.floor(20 * dp)
+        anchors.topMargin: Math.floor(20 * mainView.dp)
         anchors.bottom: parent.bottom
         width: parent.width
         orientation: ListView.Horizontal
@@ -93,6 +95,8 @@ Window {
         preferredHighlightEnd: preferredHighlightBegin + 1
         Component.onCompleted: currentIndex = 0;
         delegate: GalleryItem {
+            id: galleryItemDelegate
+            required property int index
             readonly property bool animationsOn: index >= listView.currentIndex - 1 &&
                                                  index <= listView.currentIndex + 1
             width: listView.delegateWidth
