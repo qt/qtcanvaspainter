@@ -9,6 +9,7 @@
 #include <QQuickItem>
 #include "galleryitemrenderer.h"
 
+//![0]
 class GalleryItem : public QQuickCPainterItem
 {
     Q_OBJECT
@@ -17,7 +18,7 @@ class GalleryItem : public QQuickCPainterItem
     Q_PROPERTY(float animationTime READ animationTime WRITE setAnimationTime NOTIFY animationTimeChanged)
     Q_PROPERTY(float animationSine READ animationSine WRITE setAnimationSine NOTIFY animationSineChanged)
     Q_PROPERTY(float animState READ animState WRITE setAnimState NOTIFY animStateChanged)
-
+//![0]
 public:
 
     GalleryItem(QQuickItem *parent = nullptr);
