@@ -23,8 +23,7 @@ public:
 
     GalleryItem(QQuickItem *parent = nullptr);
 
-    // Reimplement
-    QQuickCPainterRenderer *createItemRenderer() const;
+    QQuickCPainterRenderer *createItemRenderer() const override;
 
     int galleryView() const { return m_galleryView; }
     float animationTime() const { return m_animationTime; }
