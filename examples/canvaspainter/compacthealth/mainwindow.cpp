@@ -108,6 +108,7 @@ void MainWindow::updateRespData()
     m_respData.append(resp);
 }
 
+//![paint-1]
 void MainWindow::paint(QCPainter *p)
 {
     if (!m_initialized) {
@@ -122,7 +123,7 @@ void MainWindow::paint(QCPainter *p)
         m_sImageDark = p->addImage(QImage(":/images/icon_run_dark.png"), flags);
         m_initialized = true;
     }
-
+//![paint-1]
     int textIndex = 0;
 
     m_painter = p;
@@ -253,6 +254,7 @@ void MainWindow::paint(QCPainter *p)
         auto &b2Icon = m_theme.isDark() ? m_b2ImageLight : m_b2ImageDark;
         p->drawImage(b2Icon, b2Rect);
     }
+//![paint-2]
     // Highlight pressed button
     if (m_selectedButton) {
         p->beginPath();
@@ -261,6 +263,7 @@ void MainWindow::paint(QCPainter *p)
         p->setStrokeStyle(m_theme.highlight());
         p->stroke();
     }
+//![paint-2]
 
     // At this point nothing in backgrounds is dirty
     m_dirty.setFlag(Dirty::ViewBackgrounds, false);

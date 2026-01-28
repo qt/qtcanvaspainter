@@ -6,6 +6,7 @@
 #include <QSurfaceFormat>
 #include "mainwindow.h"
 
+//![main]
 int main(int argc, char *argv[])
 {
     QGuiApplication app(argc, argv);
@@ -69,3 +70,4 @@ int main(int argc, char *argv[])
 
     return app.exec();
 }
+//![main]
