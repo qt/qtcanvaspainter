@@ -2162,6 +2162,10 @@ void QCPainterRhiRenderer::bindPipeline(QCRHICall *call,
         const QSize size = rhiCtx->rt->pixelSize();
         rhiCtx->cb->setViewport({ 0.0f, 0.0f, float(size.width()), float(size.height()) });
     }
+
+    if (call->renderFlags & QCPainterRhiRenderer::SimpleClipping)
+        rhiCtx->cb->setScissor(call->scissor);
+
     QCRHIContext::PerPassData *ppd = rhiCtx->currentPerPassData();
     QRhiCommandBuffer::VertexInput vbufBinding(ppd->vertexBuffer, 0);
     QRhiBuffer *indexBuffer = ppd->indexBuffer;
@@ -2396,9 +2400,6 @@ void QCPainterRhiRenderer::render()
         }
         QRhiCommandBuffer::DynamicOffset dynamicOffsetForCall(1, call->commonUniformBufferOffset);
         QRhiCommandBuffer::DynamicOffset dynamicOffsetForCallPlusOne(1, call->commonUniformBufferOffset + rhiCtx->oneCommonUniformBufferSize);
-
-        if (call->renderFlags & QCPainterRhiRenderer::SimpleClipping)
-            rhiCtx->cb->setScissor(call->scissor);
 
         if (call->type == CallFill) {
             // 1. Draw shapes
