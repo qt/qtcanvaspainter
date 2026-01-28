@@ -163,12 +163,12 @@ void PainterWindow::init()
 
     if (!m_rhi)
         qFatal("Failed to create RHI backend");
-
+//![painterfactory]
     if (!m_factory) {
         m_factory = new QCPainterFactory;
         m_factory->create(m_rhi.get());
     }
-
+//![painterfactory]
     m_sc.reset(m_rhi->newSwapChain());
     m_ds.reset(m_rhi->newRenderBuffer(QRhiRenderBuffer::DepthStencil,
                                       QSize(),
@@ -193,6 +193,7 @@ void PainterWindow::releaseSwapChain()
     }
 }
 
+//![renderloop]
 void PainterWindow::render()
 {
     if (!m_factory || !m_factory->isValid() || !m_rhi || !m_sc)
@@ -234,6 +235,7 @@ void PainterWindow::render()
 
     m_rhi->endFrame(m_sc.get());
 }
+//![renderloop]
 
 void PainterWindow::paint(QCPainter *painter)
 {

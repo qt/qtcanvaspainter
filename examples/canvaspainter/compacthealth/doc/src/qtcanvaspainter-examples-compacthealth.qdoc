@@ -17,4 +17,64 @@
     The application sets up accelerated 3D rendering using QRhi, and renders all
     content in the window with QCPainter. The rendering and QCPainter's
     integration with QRhi is managed via QCRhiPaintDriver.
+
+    \section1 Walkthrough
+
+    While choosing a 3D API to use based on the platform, the application also offers
+    the possibility of requesting one using command-line arguments.
+
+    \snippet compacthealth/main.cpp main
+
+    MainWindow is a subclass of PainterWindow, which is a QWindow. PainterWindow
+    implements a window that shows content rendered via \l QRhi, Qt's 3D
+    graphics abstraction. Its task is to initialize a QRhi instance upon
+    receiving an expose event, i.e., when the window is shown, manage a
+    swapchain and a depth-stencil buffer, while also taking care of acting when
+    the window is resized, and to invoke a virtual paint() function that is
+    implemented in MainWindow.
+
+    For a better understanding of the PainterWindow implementation, it is
+    recommended to check out the \l {RHI Window Example}, since in essence it is
+    very similar to the RhiWindow class in that example.
+
+    One QCPainter-specific step is to retrieve a \l QCPainterFactory instance once
+    a \l QRhi is successfully initialized:
+
+    \snippet compacthealth/painterwindow.cpp painterfactory
+
+    Rendering a new frame happens in the render() function, which is invoked
+    when the window is shown, resized, and in response to update requests
+    scheduled via \l{QWindow::}{requestUpdate()}.
+
+    Unlike in the \l {RHI Window Example}, we will not create vertex and uniform
+    buffers or graphics pipelines via the \l QRhi API, and issue draw calls
+    directly. Instead, \l QCRhiPaintDriver is used to record a render pass with
+    the QCPainter-generated rendering.
+
+    \snippet compacthealth/painterwindow.cpp renderloop
+
+    MainWindow's paint() implementation works with the QCPainter API, and does not
+    need to worry about low-level details such as the \l QRhi.
+
+    First, it loads and registers images if not yet done:
+
+    \snippet compacthealth/mainwindow.cpp paint-1
+
+    This is followed by the actual drawing, involving the filling and stroking
+    of paths, rendering text, and drawing images. For example:
+
+    \snippet compacthealth/mainwindow.cpp paint-2
+
+    The QCPainter fill and stroke calls prepare vertex, index, uniform data and
+    QRhi-based draw calls internally. The stream of commands is flushed when
+    \l{QCRhiPaintDriver::}{endPaint()} is called in PainterWindow::render().
+    That is where a render pass is recorded on the associated \l
+    QRhiCommandBuffer.
+
+    Before returning, MainWindow::paint() calls requestUpdate(), a QWindow
+    function that requests a new frame, synchronized with the display's
+    presentation rate. This is what ensures that the window content is
+    continuously updated and so it can animate.
+
+    Check the full example source code linked below for details.
 */
