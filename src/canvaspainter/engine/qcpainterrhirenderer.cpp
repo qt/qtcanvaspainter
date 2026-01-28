@@ -2533,6 +2533,8 @@ void QCPainterRhiRenderer::resetForPass()
     // Note: There is always 1 dynamic vert uniform, with the default transformation.
     rhiCtx->vertUniformsCount = 1;
 
+    rhiCtx->flags &= ~(QCPainterRhiRenderer::SimpleClipping | QCPainterRhiRenderer::TransformedClipping);
+
     QCRHIContext::PerPassData *ppd = rhiCtx->currentPerPassData();
     for (auto i = ppd->cachedPaths.begin(), end = ppd->cachedPaths.end(); i != end; ++i) {
         // Reset cached path groups
