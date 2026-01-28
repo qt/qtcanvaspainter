@@ -30,11 +30,11 @@ GalleryItemRenderer::~GalleryItemRenderer()
 {
 }
 
+// TODO: Currently all resources are added to all views.
+// Consider instead adding only when m_viewIndex matches.
 //![initialize]
 void GalleryItemRenderer::initializeResources(QCPainter *painter)
 {
-    // TODO: Currently these resources are added to all views.
-    // Consider instead adding only when m_viewIndex matches.
     QCPainter::ImageFlags flags = QCPainter::ImageFlag::Repeat | QCPainter::ImageFlag::GenerateMipmaps;
     m_patternImage = painter->addImage(QImage(":/images/pattern1.png"), flags);
     m_patternImage2 = painter->addImage(QImage(":/images/pattern2.png"), flags);
@@ -95,7 +95,6 @@ void GalleryItemRenderer::paint(QCPainter *painter)
     painter->setGlobalAlpha(m_viewAlpha);
     painter->setGlobalSaturate(m_viewSaturate);
     m_topMargin = height() * 0.02f;
-    // Draw similarly colored rectangles
     switch (m_viewIndex) {
     case 0:
         drawRectsWithLinearGradient();
@@ -365,7 +364,8 @@ void GalleryItemRenderer::drawRectsWithImagePattern() {
 }
 
 //![draw]
-void GalleryItemRenderer::drawRectsWithBrushStroke() {
+void GalleryItemRenderer::drawRectsWithBrushStroke()
+{
     int rects = 3;
     float margin = width()*0.02f;
     float border = margin + margin * m_animationSine;

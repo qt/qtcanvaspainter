@@ -21,7 +21,6 @@ public:
     explicit GalleryItemRenderer();
     ~GalleryItemRenderer();
 
-    // Reimplement
     void initializeResources(QCPainter *painter) override;
     void synchronize(QQuickCPainterItem *item) override;
     void paint(QCPainter *painter) override;
