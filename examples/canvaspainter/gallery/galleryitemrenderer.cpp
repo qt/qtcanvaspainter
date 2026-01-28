@@ -30,6 +30,7 @@ GalleryItemRenderer::~GalleryItemRenderer()
 {
 }
 
+//![initialize]
 void GalleryItemRenderer::initializeResources(QCPainter *painter)
 {
     // TODO: Currently these resources are added to all views.
@@ -58,7 +59,9 @@ void GalleryItemRenderer::initializeResources(QCPainter *painter)
     m_customBrush3.setTimeRunning(true);
     m_customBrush4.setTimeRunning(true);
 }
+//![initialize]
 
+//![synchronize]
 void GalleryItemRenderer::synchronize(QQuickCPainterItem *item)
 {
     // Setting values here synchronized
@@ -78,7 +81,9 @@ void GalleryItemRenderer::synchronize(QQuickCPainterItem *item)
         }
     }
 }
+//![synchronize]
 
+//![paint]
 void GalleryItemRenderer::paint(QCPainter *painter)
 {
     Q_UNUSED(painter)
@@ -106,6 +111,7 @@ void GalleryItemRenderer::paint(QCPainter *painter)
     case 2:
         drawGridPatterns();
         break;
+//![paint]
     case 3:
         drawRectangularShadows();
         break;
@@ -358,6 +364,7 @@ void GalleryItemRenderer::drawRectsWithImagePattern() {
     painter()->fillRect(rect3);
 }
 
+//![draw]
 void GalleryItemRenderer::drawRectsWithBrushStroke() {
     int rects = 3;
     float margin = width()*0.02f;
@@ -379,6 +386,7 @@ void GalleryItemRenderer::drawRectsWithBrushStroke() {
     painter()->fill();
     painter()->stroke();
     posX += w + margin;
+//![draw]
 
     QRectF rect2(posX,posY,w2,w2);
     g1.setStartPosition(posX, posY);

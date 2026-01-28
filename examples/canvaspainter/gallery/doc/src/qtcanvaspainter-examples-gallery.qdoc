@@ -9,4 +9,50 @@
     \brief Demonstrates the QCPainter features in a Qt Quick application.
 
     \image gallery-example.webp
+
+    Gallery example is a Qt Quick application, showcasing a wide variety of
+    features offered by \l QCPainter.
+
+    The user interface is essentially a \l ListView, where the delegate is \c
+    GalleryItem, a type implemented in C++ and exposed to QML.
+
+    \snippet gallery/galleryitem.h 0
+
+    With Qt 5 and OpenGL, GalleryItem could have been a subclass of \l
+    QQuickPaintedItem. With Qt 6 and Canvas Painter, we will subclass
+    QQuickCPainterItem, which provides accelerated rendering via \l QCPainter,
+    instead of using plain software rendering of \l QQuickPaintedItem and \l
+    QPainter.
+
+    The GalleryItem implementation is simple. Reimplementing the virtual
+    function \l{QQuickCPainterItem::}{createItemRenderer()}, we create an
+    instance of GalleryItemRenderer, which subclasses \l QQuickCPainterRenderer.
+
+    \snippet gallery/galleryitem.cpp 0
+
+    The actual drawing is implemented in this class:
+
+    \snippet gallery/galleryitemrenderer.h 0
+
+    initializeResources() registers images, loaded via \l QImage, and shaders for the
+    custom brushes.
+
+    \snippet gallery/galleryitemrenderer.cpp initialize
+
+    synchronize() takes care of copying GalleryItem data so that it can be
+    safely accessed on the \l {Scene Graph and Rendering}{Qt Quick scene graph's
+    render thread} later on:
+
+    \snippet gallery/galleryitemrenderer.cpp synchronize
+
+    The paint() implementation renders using \l QCPainter, depending on the current index
+    provided by the \l ListView:
+
+    \snippet gallery/galleryitemrenderer.cpp paint
+
+    The functions invoked from here use the \l QCPainter API to perform the rendering. For example:
+
+    \snippet gallery/galleryitemrenderer.cpp draw
+
+    Check the full example source code linked below for details.
 */

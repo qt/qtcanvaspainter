@@ -14,6 +14,7 @@
 
 #include <QQuickItem>
 
+//![0]
 class GalleryItemRenderer : public QQuickCPainterRenderer
 {
 public:
@@ -24,6 +25,7 @@ public:
     void initializeResources(QCPainter *painter) override;
     void synchronize(QQuickCPainterItem *item) override;
     void paint(QCPainter *painter) override;
+//![0]
 
 private:
 

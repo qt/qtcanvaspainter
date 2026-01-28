@@ -4,6 +4,7 @@
 
 #include "galleryitem.h"
 
+//![0]
 GalleryItem::GalleryItem(QQuickItem *parent)
 :  QQuickCPainterItem(parent)
 {
@@ -13,4 +14,4 @@ QQuickCPainterRenderer* GalleryItem::createItemRenderer() const
 {
     return new GalleryItemRenderer();
 }
-
+//![0]
