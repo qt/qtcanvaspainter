@@ -1405,6 +1405,8 @@ void QCPainterEngine::commandsToPaths()
     // Calculate the direction and length of line segments.
     for (int j = 0; j < pCount; j++) {
         QCPath &path = ctx.paths[j];
+        if (path.pointsCount == 0)
+            continue;
         // If the first and last points are the same, remove the last, mark as closed path.
         // In expandStroke() the closed paths will then add vertices to beginning.
         QCPoint ptFirst = ctx.points.at(path.pointsOffset);
