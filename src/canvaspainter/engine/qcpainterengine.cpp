@@ -1,6 +1,8 @@
 // Copyright (C) 2025 The Qt Company Ltd.
 // Copyright (C) 2013 Mikko Mononen memon@inside.org
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
+// Qt-Security score:significant reason:default
+
 
 #include "qcpainterengine_p.h"
 #include "qcpainterrhirenderer_p.h"

@@ -1,6 +1,8 @@
 // Copyright (C) 2025 The Qt Company Ltd.
 // Copyright (C) 2013 Mikko Mononen memon@inside.org
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
+// Qt-Security score:significant reason:default
+
 
 #include "engine/qcpainterengineutils_p.h"
 #ifndef QCPAINTER_DISABLE_TEXT_SUPPORT
