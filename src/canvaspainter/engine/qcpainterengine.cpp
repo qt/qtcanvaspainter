@@ -43,6 +43,10 @@ QT_BEGIN_NAMESPACE
 #define QCPAINTER_TEXT_VERTEX_INDEX_LIST_REUSE_CAPACITY (64 * 1024)
 #endif
 
+#ifndef QCPAINTER_STRICT_CONVEX_PATH_CHECK
+#define QCPAINTER_STRICT_CONVEX_PATH_CHECK 1
+#endif
+
 static const float QCPAINTER_MAX_STROKE_WIDTH = 1000.0f;
 static const float QCPAINTER_MAX_ANTIALIAS_WIDTH = 10.0f;
 static const int QCPAINTER_MAX_TESSELATE_LEVEL = 11;
@@ -1730,14 +1734,34 @@ void QCPainterEngine::calculateJoins(float w, QCPainter::LineJoin join, float mi
     for (int i = 0; i < pCount; i++) {
         QCPath &path = ctx.paths[i];
         const int pointsCount = path.pointsCount;
+        if (Q_UNLIKELY(pointsCount == 0))
+            continue;
+
         int p0Index = path.pointsOffset + pointsCount - 1;
         int p1Index = path.pointsOffset;
         int leftCount = 0;
         int bevelCount = 0;
+#if QCPAINTER_STRICT_CONVEX_PATH_CHECK
+        bool prevPosX = ctx.points[p0Index].dx > 0;
+        bool prevPosY = ctx.points[p0Index].dy > 0;
+        int xFlips = 0;
+        int yFlips = 0;
+#endif
 
         for (int j = 0; j < pointsCount; j++) {
             const QCPoint &p0 = ctx.points[p0Index];
             QCPoint &p1 = ctx.points[p1Index];
+#if QCPAINTER_STRICT_CONVEX_PATH_CHECK
+            // Count the number of times the path changes direction
+            const bool posX = p1.dx > 0;
+            const bool posY = p1.dy > 0;
+            if (posX != prevPosX)
+                xFlips++;
+            if (posY != prevPosY)
+                yFlips++;
+            prevPosX = posX;
+            prevPosY = posY;
+#endif
             // Calculate extrusions
             p1.dmx = (p0.dy + p1.dy) * 0.5f;
             p1.dmy = (-p0.dx - p1.dx) * 0.5f;
@@ -1776,8 +1800,13 @@ void QCPainterEngine::calculateJoins(float w, QCPainter::LineJoin join, float mi
             p0Index = path.pointsOffset + j;
             p1Index = p0Index + 1;
         }
-
-        path.isConvex = (leftCount == pointsCount);
+#if QCPAINTER_STRICT_CONVEX_PATH_CHECK
+        // A truly convex path with no self-intersections will only change direction
+        // twice along the x-axis and twice along the y-axis
+        path.isConvex = leftCount == pointsCount && xFlips <= 2 && yFlips <= 2;
+#else
+        path.isConvex = leftCount == pointsCount;
+#endif
         path.bevelCount = bevelCount;
     }
 }
