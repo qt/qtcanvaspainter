@@ -1,6 +1,8 @@
 // Copyright (C) 2025 The Qt Company Ltd.
 // Copyright (C) 2015 QUIt Coding <info@quitcoding.com>
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
+// Qt-Security score:significant reason:default
+
 
 #ifndef QCRADIALGRADIENT_H
 #define QCRADIALGRADIENT_H
