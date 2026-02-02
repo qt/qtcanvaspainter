@@ -23,18 +23,18 @@
 
 QT_BEGIN_NAMESPACE
 
-struct QCDrawDebug;
+struct QCDebugCounters;
 
 class QQuickCPainterItemPrivate : public QQuickRhiItemPrivate
 {
     Q_DECLARE_PUBLIC(QQuickCPainterItem)
 public:
-    void updateDebugData(QCDrawDebug drawDebug);
+    void updateDebugData(const QCDebugCounters &debugCounters);
     void updateDebug();
 
     QQuickCPainterRenderer *m_renderer = nullptr;
     QColor m_fillColor = Qt::black;
-    QVariantMap m_debug;
+    QVariantMap m_debugData;
     QTimer m_debugUpdateTimer;
     bool m_debugDataChanged = false;
 };

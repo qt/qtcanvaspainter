@@ -1109,9 +1109,21 @@ QRectF QCPainterEngine::textBoundingBox(const QString &text, const QRectF &rect)
 
 // ***** Other *****
 
-QCDrawDebug QCPainterEngine::drawDebug() const
+void QCPainterEngine::resetDebugCounters()
 {
-    return ctx.drawDebug;
+    m_renderer->resetDebugCounters();
+}
+
+void QCPainterEngine::syncDebugCounters()
+{
+    // Get the numbers from the renderer into ctx.debugCounters. This assumes that
+    // we are called after render(), i.e. after endPaint().
+    m_renderer->syncDebugCounters();
+}
+
+QCDebugCounters QCPainterEngine::debugCounters() const
+{
+    return ctx.debugCounters;
 }
 
 void QCPainterEngine::setAntialias(float antialias)

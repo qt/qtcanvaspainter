@@ -25,15 +25,14 @@
 
 QT_BEGIN_NAMESPACE
 
-class QCDebug
+class QCDebugCounterVisualizer
 {
 public:
-    QCDebug();
+    QCDebugCounterVisualizer();
     void start();
-    void paintDrawDebug(QCPainter *painter, float width, float height);
+    void paint(QCPainter *painter, float width, float height, const QCDebugCounters &debugCounters);
 
 private:
-    QCDrawDebug m_drawDebug;
     QElapsedTimer m_debugTimer;
     QElapsedTimer m_debugUpdateTimer;
     qint64 m_debugNsElapsed;
