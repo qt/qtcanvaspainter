@@ -25,6 +25,7 @@
 #include <QObject>
 #include <QDebug>
 #include <QMetaEnum>
+#include <QVariantMap>
 #include "qcpainter.h"
 #ifndef QCPAINTER_DISABLE_TEXT_SUPPORT
 #include "engine/qcrhidistancefieldglyphcache_p.h"
@@ -34,6 +35,7 @@ QT_BEGIN_NAMESPACE
 
 class QCPainterRhiRenderer;
 class QCCustomBrush;
+struct QCDebugCounters;
 
 // Enable this to get performance logging outputs
 //#define QCPAINTER_PERF_DEBUG
@@ -381,6 +383,12 @@ inline int curveDivs(float r, float tol = 0.25f)
     float da = std::acos(r / (r + tol)) * 2.0f;
     return std::max(2, (int)ceilf(float(M_PI) / da));
 }
+
+namespace QCPainterDebugCounterUtils {
+
+void fillDebugCounters(QVariantMap *dst, const QCDebugCounters &src);
+
+} // namespace QQCPainterDebugCounterUtils
 
 QT_END_NAMESPACE
 

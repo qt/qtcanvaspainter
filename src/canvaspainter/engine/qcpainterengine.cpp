@@ -2298,4 +2298,25 @@ void QCPainterEngine::updateStateFontVars()
 // *** From QSGDistanceFieldGlyphNode - End ***
 #endif
 
+namespace QCPainterDebugCounterUtils {
+
+void fillDebugCounters(QVariantMap *dst, const QCDebugCounters &src)
+{
+    // The keys and the related environment variables are documented. See e.g.
+    // the docs for QQuickCPainterItem::debug. Therefore, keys should never be
+    // removed. If some future logic change dictates that something does not
+    // make sense anymore, set the value to zero, but keep the entry in the map.
+
+    dst->insert(QStringLiteral(u"fillDrawCallCount"), src.fillDrawCallCount);
+    dst->insert(QStringLiteral(u"strokeDrawCallCount"), src.strokeDrawCallCount);
+    dst->insert(QStringLiteral(u"textDrawCallCount"), src.textDrawCallCount);
+    dst->insert(QStringLiteral(u"fillTriangleCount"), src.fillTriangleCount);
+    dst->insert(QStringLiteral(u"strokeTriangleCount"), src.strokeTriangleCount);
+    dst->insert(QStringLiteral(u"textTriangleCount"), src.textTriangleCount);
+    dst->insert(QStringLiteral(u"drawCallCount"), src.drawCallCount);
+    dst->insert(QStringLiteral(u"triangleCount"), src.triangleCount);
+}
+
+} // namespace QQCPainterDebugCounterUtils
+
 QT_END_NAMESPACE
