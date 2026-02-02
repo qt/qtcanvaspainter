@@ -4,34 +4,27 @@
 // Qt-Security score:significant reason:default
 
 
-#include "qcdebug_p.h"
+#include "qcdebugcountervisualizer_p.h"
 #include "qcpainter_p.h"
-#include "engine/qcpainterengine_p.h"
 
 QT_BEGIN_NAMESPACE
 
-QCDebug::QCDebug()
+QCDebugCounterVisualizer::QCDebugCounterVisualizer()
     : m_debugNsElapsed(0)
     , m_debugCounter(0)
     , m_debugMsElapsed(QLatin1String("0.000"))
 {
 }
 
-void QCDebug::start()
+void QCDebugCounterVisualizer::start()
 {
     m_debugTimer.start();
 }
 
-void QCDebug::paintDrawDebug(QCPainter *painter, float width, float height)
+void QCDebugCounterVisualizer::paint(QCPainter *painter, float width, float height, const QCDebugCounters &debugCounters)
 {
     if (!painter)
         return;
-
-    auto *painterPriv = QCPainterPrivate::get(painter);
-    if (!painterPriv->m_e)
-        return;
-
-    m_drawDebug = painterPriv->m_e->drawDebug();
 
     qint64 elapsed = m_debugTimer.nsecsElapsed();
     m_debugNsElapsed += elapsed;
@@ -90,23 +83,23 @@ void QCDebug::paintDrawDebug(QCPainter *painter, float width, float height)
     painter->fillText(debugText5, margin + 5.0f * cellWidth, textY);
     textY += fontSize + margin;
     painter->fillText(debugText1, margin, textY);
-    painter->fillText(QString::number(m_drawDebug.fillDrawCallCount),
+    painter->fillText(QString::number(debugCounters.fillDrawCallCount),
                       margin + 2.0f * cellWidth, textY);
-    painter->fillText(QString::number(m_drawDebug.strokeDrawCallCount),
+    painter->fillText(QString::number(debugCounters.strokeDrawCallCount),
                       margin + 3.0f * cellWidth, textY);
-    painter->fillText(QString::number(m_drawDebug.textDrawCallCount),
+    painter->fillText(QString::number(debugCounters.textDrawCallCount),
                       margin + 4.0f * cellWidth, textY);
-    painter->fillText(QString::number(m_drawDebug.drawCallCount),
+    painter->fillText(QString::number(debugCounters.drawCallCount),
                       margin + 5.0f * cellWidth, textY);
     textY += fontSize + margin;
     painter->fillText(debugText6, margin, textY);
-    painter->fillText(QString::number(m_drawDebug.fillTriangleCount),
+    painter->fillText(QString::number(debugCounters.fillTriangleCount),
                       margin + 2.0f * cellWidth, textY);
-    painter->fillText(QString::number(m_drawDebug.strokeTriangleCount),
+    painter->fillText(QString::number(debugCounters.strokeTriangleCount),
                       margin + 3.0f * cellWidth, textY);
-    painter->fillText(QString::number(m_drawDebug.textTriangleCount),
+    painter->fillText(QString::number(debugCounters.textTriangleCount),
                       margin + 4.0f * cellWidth, textY);
-    painter->fillText(QString::number(m_drawDebug.triangleCount),
+    painter->fillText(QString::number(debugCounters.triangleCount),
                       margin + 5.0f * cellWidth, textY);
     // Textures and timing info
     textY = height - fontSize * 1.5f;

@@ -6,6 +6,7 @@
 
 #include "qcpainterwidget_p.h"
 #include "qcpainter_p.h"
+#include "qcpainterfactory_p.h"
 #include "engine/qcpainterengine_p.h"
 #include "engine/qcpainterrhirenderer_p.h"
 #include "qcpainterfactory.h"
@@ -186,14 +187,20 @@ void QCPainterWidget::render(QRhiCommandBuffer *cb)
     d->m_currentCb = cb;
 
     static bool renderDebug = qEnvironmentVariableIsSet("QCPAINTER_DEBUG_RENDER");
+    QCPainterEngine *engine = QCPainterFactoryPrivate::get(d->m_factory)->renderer.engine();
     if (renderDebug)
-        d->m_debug.start();
+        d->m_debugVis.start();
 
     QCRhiPaintDriver *pd = d->m_factory->paintDriver();
     QCPainter *painter = d->m_factory->painter();
 
-    if (!d->m_sharedPainter)
+    if (!d->m_sharedPainter) {
         pd->resetForNewFrame();
+    } else {
+        // Draw statistics should only reflect this widget's drawing, not all
+        // widgets that use the same painter.
+        engine->resetDebugCounters();
+    }
 
     prePaint(painter);
 
@@ -202,15 +209,20 @@ void QCPainterWidget::render(QRhiCommandBuffer *cb)
     paint(painter);
 
     if (renderDebug) {
-        d->m_debug.paintDrawDebug(painter, width(), height());
-        // Re-render once to show the initial rendering data.
-        if (d->m_firstRender) {
-            update();
-            d->m_firstRender = false;
-        }
+        // This will show the numbers from the previous frame, because
+        // m_debugCounters only gets the new numbers from the above prePaint()
+        // and paint() once the content is rendered in endPaint()...
+        d->m_debugVis.paint(painter, width(), height(), d->m_debugCounters);
+        // ...so make it render continously to remedy this.
+        update();
     }
 
     pd->endPaint();
+
+    if (renderDebug) {
+        engine->syncDebugCounters();
+        d->m_debugCounters = engine->debugCounters();
+    }
 
     d->m_currentCb = nullptr;
 

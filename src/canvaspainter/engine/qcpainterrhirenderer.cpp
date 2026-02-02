@@ -2565,21 +2565,29 @@ void QCPainterRhiRenderer::resetForNewFrame()
 
     resetForPass();
 
-    ctx->drawDebug.fillDrawCallCount = logFillDrawCallCount;
-    ctx->drawDebug.strokeDrawCallCount = logStrokeDrawCallCount;
-    ctx->drawDebug.textDrawCallCount = logTextDrawCallCount;
-    ctx->drawDebug.fillTriangleCount = logFillTriCount;
-    ctx->drawDebug.strokeTriangleCount = logStrokeTriCount;
-    ctx->drawDebug.textTriangleCount = logTextTriCount;
-    ctx->drawDebug.drawCallCount = logFillDrawCallCount + logStrokeDrawCallCount + logTextDrawCallCount;
-    ctx->drawDebug.triangleCount = logFillTriCount + logStrokeTriCount + logTextTriCount;
+    resetDebugCounters();
+}
 
+void QCPainterRhiRenderer::resetDebugCounters()
+{
     logFillDrawCallCount = 0;
     logStrokeDrawCallCount = 0;
     logTextDrawCallCount = 0;
     logFillTriCount = 0;
     logStrokeTriCount = 0;
     logTextTriCount = 0;
+}
+
+void QCPainterRhiRenderer::syncDebugCounters()
+{
+    ctx->debugCounters.fillDrawCallCount = logFillDrawCallCount;
+    ctx->debugCounters.strokeDrawCallCount = logStrokeDrawCallCount;
+    ctx->debugCounters.textDrawCallCount = logTextDrawCallCount;
+    ctx->debugCounters.fillTriangleCount = logFillTriCount;
+    ctx->debugCounters.strokeTriangleCount = logStrokeTriCount;
+    ctx->debugCounters.textTriangleCount = logTextTriCount;
+    ctx->debugCounters.drawCallCount = logFillDrawCallCount + logStrokeDrawCallCount + logTextDrawCallCount;
+    ctx->debugCounters.triangleCount = logFillTriCount + logStrokeTriCount + logTextTriCount;
 }
 
 // When hasDrawCalls() is false, it effectively means that

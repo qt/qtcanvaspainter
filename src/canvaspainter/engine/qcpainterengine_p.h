@@ -138,7 +138,9 @@ public:
     QRectF textBoundingBox(const QString &text, const QRectF &rect);
 
     // Other
-    QCDrawDebug drawDebug() const;
+    void resetDebugCounters();
+    void syncDebugCounters();
+    QCDebugCounters debugCounters() const;
     void setAntialias(float antialias);
     void setMiterLimit(float limit);
     void removePathGroup(int pathGroup);

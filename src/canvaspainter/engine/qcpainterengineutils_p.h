@@ -65,7 +65,7 @@ struct QCPaint {
     float alpha = 1.0f;
 };
 
-struct QCDrawDebug {
+struct QCDebugCounters {
     int fillDrawCallCount = 0;
     int strokeDrawCallCount = 0;
     int textDrawCallCount = 0;
@@ -211,7 +211,7 @@ struct QCContext {
     int verticesCount = 0;
     int pointsCount = 0;
     int pathsCount = 0;
-    QCDrawDebug drawDebug;
+    QCDebugCounters debugCounters;
     bool antialiasingEnabled = true;
     int fontId;
     float fontAlphaMin;

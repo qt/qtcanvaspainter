@@ -19,7 +19,7 @@
 
 #include "qquickcpainterrenderer.h"
 #include "engine/qcpainterengineutils_p.h"
-#include "qcdebug_p.h"
+#include "qcdebugcountervisualizer_p.h"
 
 QT_BEGIN_NAMESPACE
 
@@ -52,13 +52,12 @@ public:
     bool m_antialiasing = true;
     bool m_highQualityRendering = false;
     bool m_renderedOnce = false;
-    QCDrawDebug m_drawDebug;
-    QCDebug m_debug;
+    QCDebugCounters m_debugCounters;
+    QCDebugCounterVisualizer m_debugVis;
     QRhi *m_rhi = nullptr;
     QRhiRenderTarget *m_rt = nullptr;
     bool m_initialized = false;
     bool m_initializeResourcesCalled = false;
-    bool m_firstRender = true;
     static QAtomicInt m_rendered;
 };
 

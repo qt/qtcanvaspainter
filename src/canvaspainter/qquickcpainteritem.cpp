@@ -67,8 +67,8 @@ QQuickCPainterItem::QQuickCPainterItem(QQuickItem *parent)
         d->m_debugUpdateTimer.start();
     }
     // Initial debug values
-    QCDrawDebug emptyDebug;
-    d->updateDebugData(emptyDebug);
+    QCDebugCounters zeroCounters;
+    d->updateDebugData(zeroCounters);
 }
 
 /*!
@@ -141,12 +141,11 @@ void QQuickCPainterItem::setFillColor(const QColor &color)
 QVariantMap QQuickCPainterItem::debug()
 {
     Q_D(QQuickCPainterItem);
-    if (d->m_debug.isEmpty()) {
-        // Initialize debug data
-        QCDrawDebug emptyDebug;
-        d->updateDebugData(emptyDebug);
+    if (d->m_debugData.isEmpty()) {
+        QCDebugCounters zeroCounters;
+        d->updateDebugData(zeroCounters);
     }
-    return d->m_debug;
+    return d->m_debugData;
 }
 
 /*!
@@ -167,16 +166,16 @@ void QQuickCPainterItemPrivate::updateDebug()
    \internal
 */
 
-void QQuickCPainterItemPrivate::updateDebugData(QCDrawDebug drawDebug)
+void QQuickCPainterItemPrivate::updateDebugData(const QCDebugCounters &debugCounters)
 {
-    m_debug.insert(QStringLiteral(u"fillDrawCallCount"), drawDebug.fillDrawCallCount);
-    m_debug.insert(QStringLiteral(u"strokeDrawCallCount"), drawDebug.strokeDrawCallCount);
-    m_debug.insert(QStringLiteral(u"textDrawCallCount"), drawDebug.textDrawCallCount);
-    m_debug.insert(QStringLiteral(u"fillTriangleCount"), drawDebug.fillTriangleCount);
-    m_debug.insert(QStringLiteral(u"strokeTriangleCount"), drawDebug.strokeTriangleCount);
-    m_debug.insert(QStringLiteral(u"textTriangleCount"), drawDebug.textTriangleCount);
-    m_debug.insert(QStringLiteral(u"drawCallCount"), drawDebug.drawCallCount);
-    m_debug.insert(QStringLiteral(u"triangleCount"), drawDebug.triangleCount);
+    m_debugData.insert(QStringLiteral(u"fillDrawCallCount"), debugCounters.fillDrawCallCount);
+    m_debugData.insert(QStringLiteral(u"strokeDrawCallCount"), debugCounters.strokeDrawCallCount);
+    m_debugData.insert(QStringLiteral(u"textDrawCallCount"), debugCounters.textDrawCallCount);
+    m_debugData.insert(QStringLiteral(u"fillTriangleCount"), debugCounters.fillTriangleCount);
+    m_debugData.insert(QStringLiteral(u"strokeTriangleCount"), debugCounters.strokeTriangleCount);
+    m_debugData.insert(QStringLiteral(u"textTriangleCount"), debugCounters.textTriangleCount);
+    m_debugData.insert(QStringLiteral(u"drawCallCount"), debugCounters.drawCallCount);
+    m_debugData.insert(QStringLiteral(u"triangleCount"), debugCounters.triangleCount);
     m_debugDataChanged = true;
 }
 

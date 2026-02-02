@@ -274,9 +274,9 @@ void QQuickCPainterRenderer::synchronize(QQuickRhiItem * item)
     static bool renderDebug = qEnvironmentVariableIsSet("QCPAINTER_DEBUG_RENDER");
 
     if (collectDebug && d->m_renderedOnce)
-        realItem->d_func()->updateDebugData(d->m_drawDebug);
+        realItem->d_func()->updateDebugData(d->m_debugCounters);
     if (renderDebug)
-        d->m_debug.start();
+        d->m_debugVis.start();
 
     if (!d->m_initializeResourcesCalled) {
         d->m_initializeResourcesCalled = true;
@@ -365,9 +365,20 @@ void QQuickCPainterRenderer::render(QRhiCommandBuffer *cb)
 
     QCPainterPrivate::get(painter)->m_devicePixelRatio = d->m_itemData.devicePixelRatio;
 
-    if (!d->m_sharedPainter)
+    static bool collectDebug = qEnvironmentVariableIsSet("QCPAINTER_DEBUG_COLLECT");
+    static bool renderDebug = qEnvironmentVariableIsSet("QCPAINTER_DEBUG_RENDER");
+    QCPainterEngine *engine = QCPainterFactoryPrivate::get(d->m_factory)->renderer.engine();
+
+    if (!d->m_sharedPainter) {
         pd->resetForNewFrame();
-    // otherwise this is hooked up to the QQuickWindow's signal
+    } else {
+        // resetForNewFrame is hooked up to the QQuickWindow's signal when using
+        // a shared painter.
+        //
+        // Draw statistics should only reflect this item's drawing, not all
+        // items that use the same painter.
+        engine->resetDebugCounters();
+    }
 
     if ((d->m_itemData.width > 0 && d->m_itemData.height > 0)) {
         d->m_renderedOnce = true;
@@ -385,17 +396,13 @@ void QQuickCPainterRenderer::render(QRhiCommandBuffer *cb)
         paint(painter);
         d->m_currentCb = nullptr;
 
-        static bool collectDebug = qEnvironmentVariableIsSet("QCPAINTER_DEBUG_COLLECT");
-        static bool renderDebug = qEnvironmentVariableIsSet("QCPAINTER_DEBUG_RENDER");
-        if (collectDebug)
-            d->m_drawDebug = QCPainterFactoryPrivate::get(d->m_factory)->renderer.engine()->drawDebug();
         if (renderDebug) {
-            d->m_debug.paintDrawDebug(painter, width(), height());
-            // Re-render once to show the initial rendering data.
-            if (d->m_firstRender) {
-                update();
-                d->m_firstRender = false;
-            }
+            // This will show the numbers from the previous frame, because
+            // m_debugCounters only gets the new numbers from the above prePaint()
+            // and paint() once the content is rendered in endPaint()...
+            d->m_debugVis.paint(painter, width(), height(), d->m_debugCounters);
+            // ...so make it render continously to remedy this.
+            update();
         }
 
         pd->endPaint();
@@ -403,6 +410,11 @@ void QQuickCPainterRenderer::render(QRhiCommandBuffer *cb)
 #ifdef QCPAINTER_PERF_DEBUG
         QCPainterFactoryPrivate::get(d->m_factory)->renderer.engine()->perfLogger()->logEnd(QCPerfLogging::PAINT);
 #endif
+
+        if (collectDebug || renderDebug) {
+            engine->syncDebugCounters();
+            d->m_debugCounters = engine->debugCounters();
+        }
 
         QQuickCPainterRendererPrivate::m_rendered.storeRelease(1);
     }

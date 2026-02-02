@@ -11,7 +11,7 @@ qt_internal_add_module(CanvasPainter
         qcboxgradient.cpp qcboxgradient.h
         qcboxshadow.cpp qcboxshadow.h qcboxshadow_p.h
         qcimage.cpp qcimage.h qcimage_p.h
-        qcdebug.cpp qcdebug_p.h
+        qcdebugcountervisualizer.cpp qcdebugcountervisualizer_p.h
         qcbrush.cpp qcbrush.h qcbrush_p.h
         qcgradient.cpp qcgradient.h qcgradient_p.h
         qcconicalgradient.cpp qcconicalgradient.h

@@ -109,6 +109,8 @@ public:
 
     void resetForNewFrame(); // to be called once for the whole frame
     void resetForPass(); // called by beginPrepare()
+    void syncDebugCounters();
+    void resetDebugCounters();
 
     bool hasDrawCalls() const;
 

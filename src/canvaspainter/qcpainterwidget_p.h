@@ -20,7 +20,7 @@
 #include <QtWidgets/private/qrhiwidget_p.h>
 #include "qcpainterwidget.h"
 #include "engine/qcpainterengineutils_p.h"
-#include "qcdebug_p.h"
+#include "qcdebugcountervisualizer_p.h"
 #include <QAtomicInt>
 
 QT_BEGIN_NAMESPACE
@@ -35,8 +35,8 @@ public:
     bool m_sharedPainter = true;
     QCPainterFactory *m_factory = nullptr;
     QColor m_fillColor = Qt::black;
-    QCDebug m_debug;
-    bool m_firstRender = true;
+    QCDebugCounterVisualizer m_debugVis;
+    QCDebugCounters m_debugCounters;
     QRhiCommandBuffer *m_currentCb = nullptr;
     static QAtomicInt m_rendered;
 };
