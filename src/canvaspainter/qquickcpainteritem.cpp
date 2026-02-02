@@ -40,7 +40,33 @@ QT_BEGIN_NAMESPACE
 
 /*!
     \property QQuickCPainterItem::debug
-    \internal
+
+    Contains a key - value map of rendering statistics. The data is only
+    collected when the environment variable \c{QCPAINTER_DEBUG_COLLECT} is set
+    to a non-zero value.
+
+    The data is updated periodically, not every time the item repaints. The
+    interval is currently one second. Therefore, the data received will in many
+    cases refer to a previous drawing of the item. This is not usually an issue
+    when displaying the statistics interactively, but it is important to be
+    aware of.
+
+    To automatically show the data within the item in form of an overlay, set
+    the environment variable \c{QCPAINTER_DEBUG_RENDER} instead. This provides a
+    convenient shortcut when the intention is anyway to show the values
+    on-screen.
+
+    The list of keys is currently the following:
+    \list
+    \li fillDrawCallCount
+    \li strokeDrawCallCount
+    \li textDrawCallCount
+    \li fillTriangleCount
+    \li strokeTriangleCount
+    \li textTriangleCount
+    \li drawCallCount
+    \li triangleCount
+    \endlist
 */
 
 /*!
@@ -168,14 +194,7 @@ void QQuickCPainterItemPrivate::updateDebug()
 
 void QQuickCPainterItemPrivate::updateDebugData(const QCDebugCounters &debugCounters)
 {
-    m_debugData.insert(QStringLiteral(u"fillDrawCallCount"), debugCounters.fillDrawCallCount);
-    m_debugData.insert(QStringLiteral(u"strokeDrawCallCount"), debugCounters.strokeDrawCallCount);
-    m_debugData.insert(QStringLiteral(u"textDrawCallCount"), debugCounters.textDrawCallCount);
-    m_debugData.insert(QStringLiteral(u"fillTriangleCount"), debugCounters.fillTriangleCount);
-    m_debugData.insert(QStringLiteral(u"strokeTriangleCount"), debugCounters.strokeTriangleCount);
-    m_debugData.insert(QStringLiteral(u"textTriangleCount"), debugCounters.textTriangleCount);
-    m_debugData.insert(QStringLiteral(u"drawCallCount"), debugCounters.drawCallCount);
-    m_debugData.insert(QStringLiteral(u"triangleCount"), debugCounters.triangleCount);
+    QCPainterDebugCounterUtils::fillDebugCounters(&m_debugData, debugCounters);
     m_debugDataChanged = true;
 }
 
