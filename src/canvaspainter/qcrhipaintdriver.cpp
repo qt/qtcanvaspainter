@@ -127,6 +127,8 @@ void QCRhiPaintDriver::beginPaint(QRhiCommandBuffer *cb, QRhiRenderTarget *rt,
         d->mainDpr = dpr;
     }
 
+    // This is what triggers the releasing of textures for images the user
+    // unregistered by calling removeImage().
     QCPainterPrivate::get(d->painter)->handleCleanupTextures();
 
     d->renderer->beginPrepareAndPaint(d->currentCb, d->currentRt, d->mainLogicalWidth, d->mainLogicalHeight, d->mainDpr);

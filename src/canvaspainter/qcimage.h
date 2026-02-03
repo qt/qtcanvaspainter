@@ -49,6 +49,7 @@ public:
 protected:
     friend class QCDataCache;
     friend class QCPainterPrivate;
+    friend class QCImagePrivate;
 
     QExplicitlySharedDataPointer<QCImagePrivate> d;
 };
