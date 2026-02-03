@@ -465,9 +465,9 @@ void QCGradientPrivate::updateGradientTexture(QCPainter *painter)
 
     const qint64 key = generateGradientKey();
     auto *painterPriv = QCPainterPrivate::get(painter);
-    if (painterPriv->m_dataCache.contains(key)) {
+    if (painterPriv->m_imageTracker.contains(key)) {
         // Texture for the current stops is available in the cache
-        imageId = painterPriv->m_dataCache.image(key).id();
+        imageId = painterPriv->m_imageTracker.image(key).id();
     } else {
         const int gradStops = gradientStops.size();
         Q_ASSERT(gradStops >= 3); // Only gets called for gradients with more stops

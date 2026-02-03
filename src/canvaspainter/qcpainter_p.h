@@ -35,7 +35,9 @@ Q_DECLARE_LOGGING_CATEGORY(QC_INFO)
 
 // Keeps count of the texture id's and the total size of textures.
 // This doesn't cache the actual texture data.
-class QCDataCache
+// Only used for QCImages created from QImage (gradient or user-supplied).
+// Does not track QCImages created from native textures (offscreen canvas or user-supplied).
+class QCImageTracker
 {
 public:
     inline bool contains(qint64 key) const { return m_data.contains(key); }
@@ -91,7 +93,7 @@ public:
     QRectF textBoundingBox(const QString &text, float x, float y, float maxWidth = -1);
     QRectF textBoundingBox(const QString &text, const QRectF &rect);
 
-    QCDataCache m_dataCache;
+    QCImageTracker m_imageTracker;
     QHash<quint64, QCImage> m_nativeTextureCache; // QRhiTexture::globalResourceId -> QCImage
     QSet<int> m_pendingNativeTextureDelete;
     float m_devicePixelRatio = 1.0f;
