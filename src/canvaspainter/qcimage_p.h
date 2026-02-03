@@ -27,10 +27,14 @@ class QCImagePrivate : public QSharedData
 public:
     QCImagePrivate();
 
+    static QCImagePrivate *get(QCImage *image) { return image->d.get(); }
+    static const QCImagePrivate *get(const QCImage *image) { return image->d.get(); }
+
     enum class DataType {
         Unknown,
-        GradientTexture,
-        UserTexture
+        GradientTextureFromImage,
+        TextureFromImage,
+        ImportedTexture
     };
 
     int id;

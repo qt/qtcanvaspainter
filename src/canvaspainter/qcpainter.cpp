@@ -2634,13 +2634,39 @@ QCImage QCPainter::addImage(const QCOffscreenCanvas &canvas, QCPainter::ImageFla
 
     \note Removed images can not be used in paint operations anymore.
 
+    \note Resources such as the textures created with the underlying 3D API may
+    not get released immediately. Such operations may get defered to subsequent
+    frames, typically when this QCPainter begins painting again after the active
+    set of draw calls has been submitted.
+
     \sa addImage()
 */
 
 void QCPainter::removeImage(const QCImage &image)
 {
     Q_D(QCPainter);
-    d->m_dataCache.removeTextureId(image.id());
+    if (image.isNull())
+        return;
+
+    const int id = image.id();
+    switch (QCImagePrivate::get(&image)->type) {
+    case QCImagePrivate::DataType::GradientTextureFromImage:
+    case QCImagePrivate::DataType::TextureFromImage:
+        d->m_dataCache.removeTextureId(id);
+        break;
+    case QCImagePrivate::DataType::ImportedTexture:
+        for (auto it = d->m_nativeTextureCache.cbegin(); it != d->m_nativeTextureCache.cend(); ) {
+            if (it->id() == id)
+                it = d->m_nativeTextureCache.erase(it);
+            else
+                ++it;
+        }
+        d->m_pendingNativeTextureDelete.insert(id);
+        break;
+    case QCImagePrivate::DataType::Unknown:
+        Q_UNREACHABLE();
+        break;
+    }
 }
 
 /*!
@@ -2731,7 +2757,7 @@ void QCDataCache::handleRemoveTextures()
         QCImagePrivate *ip = (*it).d.get();
         bool remove = m_cleanupTextures.contains(*it);
         bool removeUnusedGradients = m_doingResourcesRemoval &&
-                                     ip->type == QCImagePrivate::DataType::GradientTexture &&
+                                     ip->type == QCImagePrivate::DataType::GradientTextureFromImage &&
                                      !m_usedTextureIDs.contains(ip->id);
         if (remove || removeUnusedGradients) {
             m_painterPrivate->m_e->deleteImage(ip->id);
@@ -2806,8 +2832,13 @@ static QRectF textAlignedRectFromPoint(QCPainter::TextAlign textAlignment, float
 // of (gradient) textures in control.
 void QCPainterPrivate::handleCleanupTextures()
 {
-    if (m_renderer && m_renderer->ctx)
+    if (m_renderer && m_renderer->ctx) {
         m_dataCache.handleRemoveTextures();
+
+        for (int id : std::as_const(m_pendingNativeTextureDelete))
+            m_e->deleteImage(id); // does not destroy the actual QRhiTexture since it is not owned
+        m_pendingNativeTextureDelete.clear();
+    }
 }
 
 // Removes all data from m_dataCache, does not destroy the actual textures. To
@@ -2838,12 +2869,11 @@ QCImage QCPainterPrivate::getQCImage(const QImage &image, QCPainter::ImageFlags 
     Q_ASSERT(m_renderer);
     QCImage qcimage;
     qint64 key = imageKey;
-    QCImagePrivate::DataType type = QCImagePrivate::DataType::GradientTexture;
+    // the imageKey is 0 except when coming from QCGradient
+    QCImagePrivate::DataType type = QCImagePrivate::DataType::GradientTextureFromImage;
     if (imageKey == 0) {
         key = generateImageKey(image, flags);
-        // Currently when this method is called without imageKey it means that
-        // the image is user defined (and not internal gradient texture).
-        type = QCImagePrivate::DataType::UserTexture;
+        type = QCImagePrivate::DataType::TextureFromImage;
     }
     if (m_dataCache.contains(key)) {
         // Image is in cache
@@ -2900,7 +2930,7 @@ QCImage QCPainterPrivate::getQCImage(QRhiTexture *texture, QCPainter::ImageFlags
         quint32 byteSize = 0;
         QCPainterRhiRenderer::textureFormatInfo(texture->format(), texture->pixelSize(), nullptr, &byteSize, nullptr);
         ip->size = byteSize;
-        ip->type = QCImagePrivate::DataType::UserTexture;
+        ip->type = QCImagePrivate::DataType::ImportedTexture;
         m_nativeTextureCache.insert(key, qcimage);
     }
     return qcimage;
@@ -2914,6 +2944,8 @@ QCImage QCPainterPrivate::getQCImage(const QCOffscreenCanvas &canvas, QCPainter:
     if (m_renderer->isOffscreenCanvasYUp())
         flags.setFlag(QCPainter::ImageFlag::FlipY, !flags.testFlag(QCPainter::ImageFlag::FlipY));
 
+    // From the QCImage and painter perspective an offscreen canvas is no
+    // different from a QDCImage created directly from a QRhiTexture.
     return getQCImage(canvas.texture(), flags);
 }
 

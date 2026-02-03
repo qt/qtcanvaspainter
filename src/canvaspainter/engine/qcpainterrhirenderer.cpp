@@ -889,7 +889,7 @@ bool QCPainterRhiRenderer::renderDeleteTexture(int image)
     for (int i = 0; i < rhiCtx->texturesCount; i++) {
         QCRHITexture *tex = &rhiCtx->textures[i];
         if (tex->id == image) {
-            // Delete QRhiTexture, but leave QCRHITexture
+            // Delete QRhiTexture (unless not owned), but leave QCRHITexture
             // to be reused.
             if (!tex->flags.testFlag(QCPainter::ImageFlag::NativeTexture))
                 delete tex->tex;

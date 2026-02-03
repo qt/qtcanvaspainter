@@ -23,6 +23,7 @@
 #include <QtGui/qfont.h>
 #include <QtCore/qstring.h>
 #include <QtCore/qhash.h>
+#include <QtCore/qset.h>
 #include <QtCore/qloggingcategory.h>
 
 QT_BEGIN_NAMESPACE
@@ -91,7 +92,8 @@ public:
     QRectF textBoundingBox(const QString &text, const QRectF &rect);
 
     QCDataCache m_dataCache;
-    QHash<quint64, QCImage> m_nativeTextureCache;
+    QHash<quint64, QCImage> m_nativeTextureCache; // QRhiTexture::globalResourceId -> QCImage
+    QSet<int> m_pendingNativeTextureDelete;
     float m_devicePixelRatio = 1.0f;
     QCPainterRhiRenderer *m_renderer = nullptr;
     QCPainterEngine *m_e = nullptr;
