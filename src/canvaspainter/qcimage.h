@@ -47,11 +47,8 @@ public:
     // TODO: Add API for image rotation angle? Or rely only on state transformation?
 
 protected:
-    friend class QCDataCache;
-    friend class QCPainterPrivate;
-    friend class QCImagePrivate;
-
     QExplicitlySharedDataPointer<QCImagePrivate> d;
+    friend class QCImagePrivate;
 };
 
 Q_DECLARE_SHARED(QCImage)
