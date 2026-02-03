@@ -260,8 +260,6 @@ void QQuickCPainterRenderer::synchronize(QQuickRhiItem * item)
     if (!d->m_initialized)
         initialize(nullptr);
 
-    auto *painterPriv = QCPainterPrivate::get(d->m_factory->painter());
-    painterPriv->handleCleanupTextures();
     d->m_fillColor = realItem->fillColor();
     bool antialiasing = realItem->antialiasing();
     if (antialiasing != d->m_antialiasing) {
