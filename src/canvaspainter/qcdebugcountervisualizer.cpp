@@ -52,9 +52,7 @@ void QCDebugCounterVisualizer::paint(QCPainter *painter, float width, float heig
     // Note: Returning these state settings back
     // shouldn't be needed as this debug is painted
     // as the very last thing.
-    painter->resetTransform();
-    painter->setAntialias(1.0f);
-    painter->setGlobalCompositeOperation(QCPainter::CompositeOperation::SourceOver);
+    painter->reset();
     painter->resetClipping();
 
     // Background
