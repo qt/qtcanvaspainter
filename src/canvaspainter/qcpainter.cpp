@@ -2686,20 +2686,47 @@ void QCPainter::cleanupResources()
 }
 
 /*!
-    Returns the memory usage of texture images in kilobytes.
+    \return an approximation in kilobytes of the memory used by the image
+    (pixel) data for all active QCImage instances for this painter that were
+    created by the addImage() overload taking a QImage. It also includes the
+    data from internally created images for \l{QCGradient}{gradients}.
+
+    QCPainter does not keep copies of the CPU-side QImage data once
+    addImage() has returned. Therefore, the result of this function is an
+    approximation of the GPU memory that is used for textures.
+
+    \note The value is only an estimate based on the image format and
+    dimensions. Qt has no knowledge of how the data for textures is stored and
+    laid out in memory on the GPU side.
+
+    Offscreen canvases and externally managed textures registered via the other
+    addImage() overloads are not taken into account by this function.
+
+    For every valid QCImage, the individual size in bytes can always be queried
+    by calling \l{QCImage::}{size()}. That function returns valid results also
+    when the QCImage was created from a QCOffscreenCanvas or QRhiTexture.
+
+    \sa activeImageCount(), addImage(), removeImage()
 */
 
-qsizetype QCPainter::cacheMemoryUsage() const
+qsizetype QCPainter::activeImageMemoryUsage() const
 {
     Q_D(const QCPainter);
     return d->m_imageTracker.dataAmount() * 0.001;
 }
 
 /*!
-    Returns the amount of images in the cache.
+    \return the number of active QCImage objects registered with this QCPainter.
+    This also includes the internally created images for
+    \l{QCGradient}{gradients}.
+
+    QCImage objects created by registering QCOffscreenCanvas instances or
+    externally managed textures are not taken into account by this function.
+
+    \sa activeImageMemoryUsage(), addImage(), removeImage()
 */
 
-qsizetype QCPainter::cacheTextureAmount() const
+qsizetype QCPainter::activeImageCount() const
 {
     Q_D(const QCPainter);
     return d->m_imageTracker.size();

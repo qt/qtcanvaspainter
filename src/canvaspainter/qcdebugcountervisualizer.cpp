@@ -101,8 +101,8 @@ void QCDebugCounterVisualizer::paint(QCPainter *painter, float width, float heig
                       margin + 5.0f * cellWidth, textY);
     // Textures and timing info
     textY = height - fontSize * 1.5f;
-    int textures = painter->cacheTextureAmount();
-    int textureMem = painter->cacheMemoryUsage();
+    int textures = painter->activeImageCount();
+    int textureMem = painter->activeImageMemoryUsage();
     QString debugText7 = QStringLiteral("IMAGES: %1, MEM: %2 kB, TIME: %3 ms")
                              .arg(textures).arg(textureMem).arg(m_debugMsElapsed);
     painter->fillText(debugText7, margin, textY);
