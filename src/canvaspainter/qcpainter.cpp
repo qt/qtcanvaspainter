@@ -2754,7 +2754,7 @@ void QCDataCache::handleRemoveTextures()
     }
     auto it = m_data.begin();
     while (it != m_data.end()) {
-        QCImagePrivate *ip = (*it).d.get();
+        QCImagePrivate *ip = QCImagePrivate::get(&*it);
         bool remove = m_cleanupTextures.contains(*it);
         bool removeUnusedGradients = m_doingResourcesRemoval &&
                                      ip->type == QCImagePrivate::DataType::GradientTextureFromImage &&
@@ -2893,7 +2893,7 @@ QCImage QCPainterPrivate::getQCImage(const QImage &image, QCPainter::ImageFlags 
                 flags |= QCPainter::ImageFlag::Premultiplied;
             else
                 flags &= ~int(QCPainter::ImageFlag::Premultiplied);
-            QCImagePrivate *ip = qcimage.d.get();
+            QCImagePrivate *ip = QCImagePrivate::get(&qcimage);
             ip->id = m_e->createImage(image.width(), image.height(), flags, convertedImage.constBits());
             ip->width = convertedImage.width();
             ip->height = convertedImage.height();
@@ -2918,12 +2918,12 @@ QCImage QCPainterPrivate::getQCImage(QRhiTexture *texture, QCPainter::ImageFlags
     const quint64 key = texture->globalResourceId();
     if (m_nativeTextureCache.contains(key)) {
         qcimage = m_nativeTextureCache.value(key);
-        QCImagePrivate *ip = qcimage.d.get();
+        QCImagePrivate *ip = QCImagePrivate::get(&qcimage);
         if (ip->width != texture->pixelSize().width() || ip->height != texture->pixelSize().height())
             qcimage = {};
     }
     if (qcimage.isNull()) {
-        QCImagePrivate *ip = qcimage.d.get();
+        QCImagePrivate *ip = QCImagePrivate::get(&qcimage);
         ip->id = m_renderer->renderCreateNativeTexture(texture, flags)->id;
         ip->width = texture->pixelSize().width();
         ip->height = texture->pixelSize().height();
