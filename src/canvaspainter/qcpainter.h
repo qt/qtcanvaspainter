@@ -246,7 +246,7 @@ public:
     QCImage addImage(const QImage &image, QCPainter::ImageFlags flags = {});
     QCImage addImage(QRhiTexture *texture, QCPainter::ImageFlags flags = {});
     QCImage addImage(const QCOffscreenCanvas &canvas, QCPainter::ImageFlags flags = {});
-    void removeImage(int imageId);
+    void removeImage(const QCImage &image);
     void cleanupResources();
     qsizetype cacheMemoryUsage() const;
     qsizetype cacheTextureAmount() const;
