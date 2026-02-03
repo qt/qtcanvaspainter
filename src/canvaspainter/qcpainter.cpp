@@ -2652,7 +2652,7 @@ void QCPainter::removeImage(const QCImage &image)
     switch (QCImagePrivate::get(&image)->type) {
     case QCImagePrivate::DataType::GradientTextureFromImage:
     case QCImagePrivate::DataType::TextureFromImage:
-        d->m_dataCache.removeTextureId(id);
+        d->m_imageTracker.removeTextureId(id);
         break;
     case QCImagePrivate::DataType::ImportedTexture:
         for (auto it = d->m_nativeTextureCache.cbegin(); it != d->m_nativeTextureCache.cend(); ) {
@@ -2681,7 +2681,7 @@ void QCPainter::removeImage(const QCImage &image)
 void QCPainter::cleanupResources()
 {
     Q_D(QCPainter);
-    d->m_dataCache.removeTemporaryResources();
+    d->m_imageTracker.removeTemporaryResources();
     d->m_e->releaseUnusedResources();
 }
 
@@ -2692,7 +2692,7 @@ void QCPainter::cleanupResources()
 qsizetype QCPainter::cacheMemoryUsage() const
 {
     Q_D(const QCPainter);
-    return d->m_dataCache.dataAmount() * 0.001;
+    return d->m_imageTracker.dataAmount() * 0.001;
 }
 
 /*!
@@ -2702,7 +2702,7 @@ qsizetype QCPainter::cacheMemoryUsage() const
 qsizetype QCPainter::cacheTextureAmount() const
 {
     Q_D(const QCPainter);
-    return d->m_dataCache.size();
+    return d->m_imageTracker.size();
 }
 
 /*!
@@ -2727,13 +2727,13 @@ void QCPainter::removePathGroup(int pathGroup)
 // ***** Private *****
 
 // Marks all unused temporary textures to be removed.
-void QCDataCache::removeTemporaryResources()
+void QCImageTracker::removeTemporaryResources()
 {
     m_doingResourcesRemoval = true;
 }
 
 // Marks a texture with imageId to be removed
-void QCDataCache::removeTextureId(int imageId)
+void QCImageTracker::removeTextureId(int imageId)
 {
     for (auto i = m_data.cbegin(), end = m_data.cend(); i != end; ++i) {
         if (i.value().id() == imageId) {
@@ -2744,7 +2744,7 @@ void QCDataCache::removeTextureId(int imageId)
 }
 
 // Handles texture removal from GPU and from the cache
-void QCDataCache::handleRemoveTextures()
+void QCImageTracker::handleRemoveTextures()
 {
     Q_ASSERT(m_painterPrivate);
     if (m_cleanupTextures.isEmpty() && !m_doingResourcesRemoval) {
@@ -2773,7 +2773,7 @@ void QCDataCache::handleRemoveTextures()
     m_doingResourcesRemoval = false;
 }
 
-void QCDataCache::clear()
+void QCImageTracker::clear()
 {
     m_data.clear();
     m_cleanupTextures.clear();
@@ -2783,7 +2783,8 @@ void QCDataCache::clear()
 }
 
 // Marks imageId as being currently used.
-void QCDataCache::markTextureIdUsed(int imageId) {
+void QCImageTracker::markTextureIdUsed(int imageId)
+{
     if (imageId > 0 && !m_usedTextureIDs.contains(imageId))
         m_usedTextureIDs << imageId;
 }
@@ -2791,7 +2792,7 @@ void QCDataCache::markTextureIdUsed(int imageId) {
 
 QCPainterPrivate::QCPainterPrivate()
 {
-    m_dataCache.m_painterPrivate = this;
+    m_imageTracker.m_painterPrivate = this;
     m_e = new QCPainterEngine();
     const int defaultMaxTextures = 1024;
     static int maxTexturesEnv = qEnvironmentVariableIntValue("QCPAINTER_MAX_TEXTURES");
@@ -2833,7 +2834,7 @@ static QRectF textAlignedRectFromPoint(QCPainter::TextAlign textAlignment, float
 void QCPainterPrivate::handleCleanupTextures()
 {
     if (m_renderer && m_renderer->ctx) {
-        m_dataCache.handleRemoveTextures();
+        m_imageTracker.handleRemoveTextures();
 
         for (int id : std::as_const(m_pendingNativeTextureDelete))
             m_e->deleteImage(id); // does not destroy the actual QRhiTexture since it is not owned
@@ -2841,12 +2842,12 @@ void QCPainterPrivate::handleCleanupTextures()
     }
 }
 
-// Removes all data from m_dataCache, does not destroy the actual textures. To
+// Removes all data from m_imageTracker, does not destroy the actual textures. To
 // be called when the renderer is going away (and so all rhi textures are going
 // to be deleted by it).
 void QCPainterPrivate::clearTextureCache()
 {
-    m_dataCache.clear();
+    m_imageTracker.clear();
 
     m_nativeTextureCache.clear(); // these we do not own anyway
 }
@@ -2854,7 +2855,7 @@ void QCPainterPrivate::clearTextureCache()
 // Marks that this imageId was used during the paint operation.
 void QCPainterPrivate::markTextureIdUsed(int imageId) {
     if (!m_trackingDisabled)
-        m_dataCache.markTextureIdUsed(imageId);
+        m_imageTracker.markTextureIdUsed(imageId);
 }
 
 qint64 QCPainterPrivate::generateImageKey(const QImage &image, QCPainter::ImageFlags flags) const
@@ -2875,9 +2876,9 @@ QCImage QCPainterPrivate::getQCImage(const QImage &image, QCPainter::ImageFlags 
         key = generateImageKey(image, flags);
         type = QCImagePrivate::DataType::TextureFromImage;
     }
-    if (m_dataCache.contains(key)) {
+    if (m_imageTracker.contains(key)) {
         // Image is in cache
-        qcimage = m_dataCache.image(key);
+        qcimage = m_imageTracker.image(key);
     } else {
         if (image.isNull()) {
             qWarning() << "Empty image";
@@ -2899,12 +2900,12 @@ QCImage QCPainterPrivate::getQCImage(const QImage &image, QCPainter::ImageFlags 
             ip->height = convertedImage.height();
             ip->size = convertedImage.sizeInBytes();
             ip->type = type;
-            m_dataCache.insert(key, qcimage);
+            m_imageTracker.insert(key, qcimage);
             // When the amount of cache reaches the limit and tracking is enabled,
             // remove all the unused temporary textures automatically.
-            if (!m_trackingDisabled && m_dataCache.size() > m_maxTextures) {
+            if (!m_trackingDisabled && m_imageTracker.size() > m_maxTextures) {
                 qCDebug(QC_INFO) << "Removing temporary gradient textures as max amount of" << m_maxTextures << "was reached.";
-                m_dataCache.removeTemporaryResources();
+                m_imageTracker.removeTemporaryResources();
             }
         }
     }
