@@ -54,7 +54,6 @@ public:
 private:
     QExplicitlySharedDataPointer<QCOffscreenCanvasPrivate> d;
     friend class QCOffscreenCanvasPrivate;
-    friend class QCPainterRhiRenderer;
 };
 
 Q_DECLARE_OPERATORS_FOR_FLAGS(QCOffscreenCanvas::Flags)
