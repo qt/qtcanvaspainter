@@ -71,9 +71,9 @@ void ImageTestingRenderer::synchronize(QQuickCPainterItem *item)
     m_animateGradient = realItem->m_animateGradient;
 
     // Update data values for the item
-    realItem->m_dataAmount = p->cacheMemoryUsage();
+    realItem->m_dataAmount = p->activeImageMemoryUsage();
     realItem->dataAmountChanged();
-    realItem->m_imageAmount = p->cacheTextureAmount();
+    realItem->m_imageAmount = p->activeImageCount();
     realItem->imageAmountChanged();
     if (memDataUpdated) {
         // This is needed for cache amounts to update from the item side

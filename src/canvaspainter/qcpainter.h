@@ -248,8 +248,8 @@ public:
     QCImage addImage(const QCOffscreenCanvas &canvas, QCPainter::ImageFlags flags = {});
     void removeImage(const QCImage &image);
     void cleanupResources();
-    qsizetype cacheMemoryUsage() const;
-    qsizetype cacheTextureAmount() const;
+    qsizetype activeImageMemoryUsage() const;
+    qsizetype activeImageCount() const;
     void removePathGroup(int pathGroup);
 
     QCOffscreenCanvas createCanvas(QSize pixelSize, int sampleCount = 1, QCOffscreenCanvas::Flags flags = {});
