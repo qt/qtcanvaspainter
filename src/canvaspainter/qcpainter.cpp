@@ -2624,19 +2624,23 @@ QCImage QCPainter::addImage(const QCOffscreenCanvas &canvas, QCPainter::ImageFla
 }
 
 /*!
-    Removes image with \a imageId from the painter.
-    \note This does not need to be normally called as images are removed
-    in the painter destructor. Only use this to reduce memory
-    usage when \a imageId is not needed anymore.
+    Releases the resources associated with \a image and removes the image from
+    the painter.
+
+    \note This does not need to be normally called, because resources such as
+    textures are released in the painter destructor anyway. This function is
+    useful when there is a need to reduce memory usage due to having a lot
+    images, and some of them are not used anymore.
+
     \note Removed images can not be used in paint operations anymore.
 
     \sa addImage()
 */
 
-void QCPainter::removeImage(int imageId)
+void QCPainter::removeImage(const QCImage &image)
 {
     Q_D(QCPainter);
-    d->m_dataCache.removeTextureId(imageId);
+    d->m_dataCache.removeTextureId(image.id());
 }
 
 /*!
