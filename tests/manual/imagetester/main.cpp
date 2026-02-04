@@ -10,6 +10,8 @@ int main(int argc, char *argv[])
 {
     QGuiApplication app(argc, argv);
 
+    qputenv("QT_RHI_LEAK_CHECK", "1");
+
     QQmlApplicationEngine engine;
     qmlRegisterType<ImageTestingItem>("ImageTestingItem", 1, 0, "ImageTestingItem");
     engine.load(QUrl(QStringLiteral("qrc:/main.qml")));

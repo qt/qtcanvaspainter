@@ -25,7 +25,11 @@ public:
         CleanupResources = 8,
         RemoveHidden = 16,
         ShowHidden = 32,
-        RemoveAll = 64
+        RemoveAll = 64,
+        GenerateCanvas = 128,
+        UnregisterNewestCanvas = 256,
+        ReregisterCanvases = 512,
+        RemoveNewestCanvas = 1024
     };
     Q_DECLARE_FLAGS(Actions, Action)
 
@@ -56,6 +60,22 @@ public:
     }
     Q_INVOKABLE void clearResources() {
         m_actions ^= Action::CleanupResources;
+        update();
+    }
+    Q_INVOKABLE void generateCanvas() {
+        m_actions ^= Action::GenerateCanvas;
+        update();
+    }
+    Q_INVOKABLE void unregisterNewestCanvas() {
+        m_actions ^= Action::UnregisterNewestCanvas;
+        update();
+    }
+    Q_INVOKABLE void reregisterCanvases() {
+        m_actions ^= Action::ReregisterCanvases;
+        update();
+    }
+    Q_INVOKABLE void removeNewestCanvas() {
+        m_actions ^= Action::RemoveNewestCanvas;
         update();
     }
 

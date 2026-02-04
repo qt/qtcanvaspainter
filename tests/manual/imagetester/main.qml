@@ -95,6 +95,46 @@ Window {
             Button {
                 text: "Cleanup resources"
                 onClicked: testingItem.clearResources();
+                ToolTip.delay: 500; ToolTip.visible: hovered
+                ToolTip.text: "This is expected to remove all not currently visible gradient textures."
+            }
+        }
+        Item {
+            width: 1
+            height: 5
+        }
+        Text {
+            anchors.horizontalCenter: parent.horizontalCenter
+            font.pixelSize: 16
+            color: "#ffffff"
+            text: "Offscreen Canvas"
+        }
+        Row {
+            anchors.horizontalCenter: parent.horizontalCenter
+            spacing: 10
+            Button {
+                text: "Generate one"
+                onClicked: testingItem.generateCanvas();
+                ToolTip.delay: 500; ToolTip.visible: hovered
+                ToolTip.text: "NB! Offscreen canvases are not included in the textures/mem statistics."
+            }
+            Button {
+                text: "Unregister newest"
+                onClicked: testingItem.unregisterNewestCanvas();
+                ToolTip.delay: 500; ToolTip.visible: hovered
+                ToolTip.text: "Calls removeImage() only. The canvas is not destroyed."
+            }
+            Button {
+                text: "Re-register all"
+                onClicked: testingItem.reregisterCanvases();
+                ToolTip.delay: 500; ToolTip.visible: hovered
+                ToolTip.text: "Calls addImage() for all canvases that do not have a valid image."
+            }
+            Button {
+                text: "Remove newest"
+                onClicked: testingItem.removeNewestCanvas();
+                ToolTip.delay: 500; ToolTip.visible: hovered
+                ToolTip.text: "Calls destroyCanvas()."
             }
         }
     }
@@ -107,12 +147,12 @@ Window {
         Text {
             font.pixelSize: 20
             color: "#ffffff"
-            text: "textures: " + testingItem.imageAmount
+            text: "User+gradient textures: " + testingItem.imageAmount
         }
         Text {
             font.pixelSize: 20
             color: "#ffffff"
-            text: "mem (kb): " + testingItem.dataAmount
+            text: "User+gradient mem (kb): " + testingItem.dataAmount
         }
     }
 }
