@@ -2057,6 +2057,9 @@ void QCPainter::drawBoxShadow(const QCBoxShadow &shadow)
 void QCPainter::drawImage(const QCImage &image, float x, float y)
 {
     Q_D(QCPainter);
+    if (image.isNull())
+        return;
+
     d->m_e->drawImageId(image.id(), x, y, image.width(), image.height(), image.tintColor());
     d->markTextureIdUsed(image.id());
 }
@@ -2082,6 +2085,9 @@ void QCPainter::drawImage(const QCImage &image, float x, float y)
 void QCPainter::drawImage(const QCImage &image, float x, float y, float width, float height)
 {
     Q_D(QCPainter);
+    if (image.isNull())
+        return;
+
     d->m_e->drawImageId(image.id(), x, y, width, height, image.tintColor());
     d->markTextureIdUsed(image.id());
 }
@@ -2125,6 +2131,9 @@ void QCPainter::drawImage(const QCImage &image, const QRectF &destinationRect)
 void QCPainter::drawImage(const QCImage &image, const QRectF &sourceRect, const QRectF &destinationRect)
 {
     Q_D(QCPainter);
+    if (image.isNull())
+        return;
+
     float sx = float(sourceRect.x());
     float sy = float(sourceRect.y());
     float sw = float(sourceRect.width());
