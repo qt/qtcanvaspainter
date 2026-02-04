@@ -67,6 +67,25 @@ void ImageTestingRenderer::synchronize(QQuickCPainterItem *item)
         p->cleanupResources();
         memDataUpdated = true;
     }
+    if (actions.testFlag(ImageTestingItem::Action::GenerateCanvas)) {
+        m_newCanvasPending += 1;
+    }
+    if (actions.testFlag(ImageTestingItem::Action::ReregisterCanvases)) {
+        m_reregisterPending = true;
+    }
+    if (actions.testFlag(ImageTestingItem::Action::UnregisterNewestCanvas)) {
+        if (!m_canvases.isEmpty()) {
+            p->removeImage(m_canvases.last().image);
+            m_canvases.last().image = {}; // now QCImage::isNull() == true
+        }
+    }
+    if (actions.testFlag(ImageTestingItem::Action::RemoveNewestCanvas)) {
+        if (!m_canvases.isEmpty()) {
+            auto canvas = m_canvases.takeLast().canvas;
+            p->destroyCanvas(canvas);
+        }
+    }
+
     m_showGradient = realItem->m_showGradient;
     m_animateGradient = realItem->m_animateGradient;
 
@@ -82,12 +101,50 @@ void ImageTestingRenderer::synchronize(QQuickCPainterItem *item)
     realItem->m_actions = {};
 }
 
+void ImageTestingRenderer::prePaint(QCPainter *painter)
+{
+    if (m_reregisterPending) {
+        m_reregisterPending = false;
+        for (auto &canvas : m_canvases) {
+            if (canvas.image.isNull())
+                canvas.image = painter->addImage(canvas.canvas);
+        }
+    }
+
+    while (m_newCanvasPending > 0) {
+        const int canvasWidth = 1024;
+        const int canvasHeight = 1024;
+        QCOffscreenCanvas canvas = painter->createCanvas({ canvasWidth, canvasHeight });
+        if (canvas.isNull())
+            qFatal("createCanvas() failed");
+
+        CanvasData canvasData;
+        canvasData.canvas = canvas;
+        canvasData.image = painter->addImage(canvas);
+        m_canvases << canvasData;
+
+        auto *rand = QRandomGenerator::global();
+        beginCanvasPainting(canvas);
+        painter->setFillStyle(qRgba(rand->generate() % 255, rand->generate() % 255, rand->generate() % 255, 255));
+        painter->fillRect({ 0, 0, canvasWidth, canvasHeight });
+        QFont font;
+        font.setPixelSize(40);
+        painter->setFont(font);
+        painter->setFillStyle(QColorConstants::Black);
+        painter->fillText(QString::asprintf("This is an offscreen canvas of pixel size %dx%d", canvasWidth, canvasHeight), 50, 500);
+        painter->fillText(QString::asprintf("using ca. %d KB", canvasData.image.size() / 1024), 50, 600);
+        endCanvasPainting();
+
+        m_newCanvasPending -= 1;
+    }
+}
+
 void ImageTestingRenderer::paint(QCPainter *painter)
 {
     const float w = width();
     const float h = height();
     // Render all visible images
-    int imageCount = m_images.size();
+    int imageAndCanvasCount = m_images.size() + m_canvases.size();
     const float imageW = w * 0.5;
     const float imageH = h * 0.5;
     int index = 0;
@@ -97,18 +154,32 @@ void ImageTestingRenderer::paint(QCPainter *painter)
     float fontSize = imageH * 0.08;
     font.setPixelSize(fontSize);
     painter->setFont(font);
+
+    auto calculateRect = [=](int index) {
+        const float movPos = (float(index + 0.5) / imageAndCanvasCount - 0.5);
+        const float movX = imageW * movPos;
+        const float movY = imageH * movPos;
+        QRectF pos(w * 0.5 - imageW * 0.5 + movX,
+                    h * 0.5 - imageH * 0.5 + movY,
+                    imageW, imageH);
+        return pos;
+    };
+
     for (auto &image : std::as_const(m_images)) {
         if (image.visible) {
-            const float movPos = (float(index + 0.5) / imageCount - 0.5);
-            const float movX = imageW * movPos;
-            const float movY = imageH * movPos;
-            QRectF pos(w * 0.5 - imageW * 0.5 + movX,
-                       h * 0.5 - imageH * 0.5 + movY,
-                       imageW, imageH);
+            const QRectF pos = calculateRect(index);
             painter->drawImage(image.image, pos);
-            // Paint image index
-            painter->fillText(QStringLiteral("INDEX: %1").arg(QString::number(index)), pos);
+            painter->fillText(QStringLiteral("IMAGE INDEX: %1").arg(QString::number(index)), pos);
         }
+        index++;
+    }
+    for (auto &canvas : std::as_const(m_canvases)) {
+        const QRectF pos = calculateRect(index);
+        painter->setStrokeStyle(QColorConstants::Red);
+        painter->setLineWidth(4);
+        painter->strokeRect(pos);
+        painter->drawImage(canvas.image, pos);
+        painter->fillText(QStringLiteral("CANVAS INDEX: %1").arg(QString::number(index - m_images.size())), pos);
         index++;
     }
 
