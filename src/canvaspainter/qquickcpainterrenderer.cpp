@@ -358,6 +358,8 @@ void QQuickCPainterRenderer::render(QRhiCommandBuffer *cb)
     if (!d->m_initialized)
         return;
 
+    d->m_currentCb = cb;
+
     QCRhiPaintDriver *pd = d->m_factory->paintDriver();
     QCPainter *painter = d->m_factory->painter();
 
@@ -390,9 +392,7 @@ void QQuickCPainterRenderer::render(QRhiCommandBuffer *cb)
         const QSize outputLogicalSize = d->m_rt->pixelSize() / dpr;
         pd->beginPaint(cb, d->m_rt, d->m_fillColor, outputLogicalSize, dpr);
 
-        d->m_currentCb = cb;
         paint(painter);
-        d->m_currentCb = nullptr;
 
         if (renderDebug) {
             // This will show the numbers from the previous frame, because
@@ -416,6 +416,8 @@ void QQuickCPainterRenderer::render(QRhiCommandBuffer *cb)
 
         QQuickCPainterRendererPrivate::m_rendered.storeRelease(1);
     }
+
+    d->m_currentCb = nullptr;
 }
 
 /*!
