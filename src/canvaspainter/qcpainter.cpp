@@ -2713,7 +2713,8 @@ void QCPainter::cleanupResources()
 
     For every valid QCImage, the individual size in bytes can always be queried
     by calling \l{QCImage::}{size()}. That function returns valid results also
-    when the QCImage was created from a QCOffscreenCanvas or QRhiTexture.
+    when the QCImage was created from a QCOffscreenCanvas or QRhiTexture, but it
+    does not consider mipmap or multisample data.
 
     \sa activeImageCount(), addImage(), removeImage()
 */
