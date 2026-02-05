@@ -33,7 +33,7 @@ QCBrush::QCBrush()
 /*!
     Constructs a brush that is a copy of the given \a brush.
 */
-QCBrush::QCBrush(const QCBrush &brush) noexcept
+QCBrush::QCBrush(const QCBrush &brush)
     : baseData(brush.baseData)
 {
 }

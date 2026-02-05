@@ -31,7 +31,7 @@ class Q_CANVASPAINTER_EXPORT QCBrush
     Q_GADGET
 public:
     QCBrush();
-    QCBrush(const QCBrush &brush) noexcept;
+    QCBrush(const QCBrush &brush);
     ~QCBrush();
 
     QCBrush &operator=(const QCBrush &brush) noexcept;

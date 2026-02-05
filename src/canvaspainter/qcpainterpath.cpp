@@ -140,7 +140,7 @@ QCPainterPath::QCPainterPath(qsizetype commandsSize, qsizetype commandsDataSize)
     Constructs a path that is a copy of the given \a path.
 */
 
-QCPainterPath::QCPainterPath(const QCPainterPath &path) noexcept
+QCPainterPath::QCPainterPath(const QCPainterPath &path)
     : d_ptr(new QCPainterPathPrivate(*path.d_ptr))
 {
 }

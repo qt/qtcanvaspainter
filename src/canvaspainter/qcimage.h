@@ -21,7 +21,7 @@ class Q_CANVASPAINTER_EXPORT QCImage {
     Q_GADGET
 public:
     QCImage();
-    QCImage(const QCImage &image) noexcept;
+    QCImage(const QCImage &image);
     ~QCImage();
 
     QCImage &operator=(const QCImage &image) noexcept;
