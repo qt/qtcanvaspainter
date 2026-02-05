@@ -49,6 +49,9 @@ public:
 protected:
     QExplicitlySharedDataPointer<QCImagePrivate> d;
     friend class QCImagePrivate;
+#ifndef QT_NO_DEBUG_STREAM
+    friend Q_CANVASPAINTER_EXPORT QDebug operator<<(QDebug, const QCImage &);
+#endif
 };
 
 Q_DECLARE_SHARED(QCImage)

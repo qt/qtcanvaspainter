@@ -63,6 +63,10 @@ protected:
     QCGradient(QCGradientPrivate *);
 private:
     friend class QCGradientPrivate;
+#ifndef QT_NO_DEBUG_STREAM
+    friend Q_CANVASPAINTER_EXPORT QDebug operator<<(QDebug dbg, const QCGradientStop &stop);
+    friend Q_CANVASPAINTER_EXPORT QDebug operator<<(QDebug, const QCGradient &);
+#endif
 };
 
 #ifndef QT_NO_DEBUG_STREAM
