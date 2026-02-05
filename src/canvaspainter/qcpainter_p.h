@@ -40,16 +40,16 @@ Q_DECLARE_LOGGING_CATEGORY(QC_INFO)
 class QCImageTracker
 {
 public:
-    inline bool contains(qint64 key) const { return m_data.contains(key); }
-    inline QCImage image(qint64 key) const { return m_data.value(key); }
-    inline int textureId(qint64 key) const { return m_data.value(key).id(); }
-    inline void insert(qint64 key, const QCImage &image)
+    bool contains(qint64 key) const { return m_data.contains(key); }
+    QCImage image(qint64 key) const { return m_data.value(key); }
+    int textureId(qint64 key) const { return m_data.value(key).id(); }
+    void insert(qint64 key, const QCImage &image)
     {
         m_dataAmount += image.size();
         m_data.insert(key, image);
     }
-    inline qsizetype dataAmount() const { return m_dataAmount; }
-    inline qsizetype size() const { return m_data.size(); }
+    qsizetype dataAmount() const { return m_dataAmount; }
+    qsizetype size() const { return m_data.size(); }
     void removeTemporaryResources();
     void removeTextureId(int imageId);
     void handleRemoveTextures();

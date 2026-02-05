@@ -29,7 +29,7 @@ public:
     ~QCBoxShadow();
 
     bool operator==(const QCBoxShadow &shadow) const;
-    inline bool operator!=(const QCBoxShadow &shadow) const { return !(operator==(shadow)); }
+    bool operator!=(const QCBoxShadow &shadow) const { return !(operator==(shadow)); }
     operator QVariant() const;
 
     QRectF rect() const;
