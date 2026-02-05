@@ -75,7 +75,7 @@ QCImage::QCImage()
     Constructs an image that is a copy of the given \a image.
 */
 
-QCImage::QCImage(const QCImage &image) noexcept
+QCImage::QCImage(const QCImage &image)
     : d(image.d)
 {
 }

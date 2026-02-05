@@ -22,7 +22,7 @@ public:
 
     QCPainterPath();
     explicit QCPainterPath(qsizetype commandsSize, qsizetype commandsDataSize = -1);
-    QCPainterPath(const QCPainterPath &path) noexcept;
+    QCPainterPath(const QCPainterPath &path);
     ~QCPainterPath();
 
     QCPainterPath &operator=(const QCPainterPath &path) noexcept;

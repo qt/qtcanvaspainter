@@ -76,7 +76,7 @@ QCOffscreenCanvas::QCOffscreenCanvas()
 /*!
     Copy constructor.
 */
-QCOffscreenCanvas::QCOffscreenCanvas(const QCOffscreenCanvas &canvas) noexcept
+QCOffscreenCanvas::QCOffscreenCanvas(const QCOffscreenCanvas &canvas)
     : d(canvas.d)
 {
 }

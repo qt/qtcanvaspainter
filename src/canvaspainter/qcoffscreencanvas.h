@@ -30,7 +30,7 @@ public:
     Q_DECLARE_FLAGS(Flags, Flag)
 
     QCOffscreenCanvas();
-    QCOffscreenCanvas(const QCOffscreenCanvas &canvas) noexcept;
+    QCOffscreenCanvas(const QCOffscreenCanvas &canvas);
     ~QCOffscreenCanvas();
     QCOffscreenCanvas &operator=(const QCOffscreenCanvas &canvas) noexcept;
     QCOffscreenCanvas(QCOffscreenCanvas &&other) noexcept = default;
