@@ -17,10 +17,27 @@ QT_BEGIN_NAMESPACE
 class QCGradientPrivate;
 class QCGradient;
 
-typedef std::pair<float, QColor> QCGradientStop;
+struct QCGradientStop
+{
+    float position;
+    QColor color;
+
+    friend bool operator==(const QCGradientStop &a, const QCGradientStop &b) noexcept
+    {
+        return qFuzzyCompare(a.position, b.position) && a.color == b.color;
+    }
+
+    friend bool operator!=(const QCGradientStop &a, const QCGradientStop &b) noexcept
+    {
+        return !(a == b);
+    }
+};
+
 typedef QList<QCGradientStop> QCGradientStops;
 
 #ifndef QT_NO_DATASTREAM
+Q_CANVASPAINTER_EXPORT QDataStream &operator<<(QDataStream &, const QCGradientStop &);
+Q_CANVASPAINTER_EXPORT QDataStream &operator>>(QDataStream &, QCGradientStop &);
 Q_CANVASPAINTER_EXPORT QDataStream &operator<<(QDataStream &, const QCGradient &);
 Q_CANVASPAINTER_EXPORT QDataStream &operator>>(QDataStream &, QCGradient &);
 #endif
@@ -49,6 +66,7 @@ private:
 };
 
 #ifndef QT_NO_DEBUG_STREAM
+Q_CANVASPAINTER_EXPORT QDebug operator<<(QDebug dbg, const QCGradientStop &stop);
 Q_CANVASPAINTER_EXPORT QDebug operator<<(QDebug, const QCGradient &);
 #endif
 

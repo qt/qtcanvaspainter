@@ -201,11 +201,11 @@ QCPaint QCLinearGradientPrivate::createPaint(QCPainter *painter) const
             QColor ocol = { 0, 0, 0, 0 };
             createLinearGradient(icol, ocol, 0);
         } else if (d->gradientStops.size() == 1) {
-            QColor c = d->gradientStops.first().second;
+            QColor c = d->gradientStops.first().color;
             createLinearGradient(c, c, 0);
         } else if (d->gradientStops.size() == 2) {
-            QColor ic = d->gradientStops.first().second;
-            QColor oc = d->gradientStops.last().second;
+            QColor ic = d->gradientStops.first().color;
+            QColor oc = d->gradientStops.last().color;
             createLinearGradient(ic, oc, 0);
         } else {
             DECONST(d)->updateGradientTexture(painter);

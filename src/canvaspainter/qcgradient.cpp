@@ -145,6 +145,16 @@ bool QCGradient::operator==(const QCGradient &g) const
 /*!
   \internal
 */
+QDebug operator<<(QDebug dbg, const QCGradientStop &stop)
+{
+    QDebugStateSaver saver(dbg);
+    dbg.nospace() << "QCGradientStop(" << stop.position << ", " << stop.color << ')';
+    return dbg;
+}
+
+/*!
+  \internal
+*/
 QDebug operator<<(QDebug dbg, const QCGradient &g)
 {
     QDebugStateSaver saver(dbg);
@@ -167,6 +177,43 @@ QDebug operator<<(QDebug dbg, const QCGradient &g)
   QCGradient stream functions
  *****************************************************************************/
 #ifndef QT_NO_DATASTREAM
+
+/*!
+    \fn QDataStream &operator<<(QDataStream &stream, const QCGradientStop &stop)
+    \relates QCGradient
+
+    Writes gradient \a stop to the given \a stream and returns a
+    reference to the \a stream.
+
+    \sa {Serializing Qt Data Types}
+*/
+QDataStream &operator<<(QDataStream &s, const QCGradientStop &stop)
+{
+    s << stop.position;
+    s << stop.color;
+    return s;
+}
+
+/*!
+    \fn QDataStream &operator>>(QDataStream &stream, QCGradientStop &stop)
+    \relates QCGradient
+
+    Reads a gradient \a stop from the given \a stream and returns a
+    reference to the \a stream.
+
+    \sa {Serializing Qt Data Types}
+*/
+QDataStream &operator>>(QDataStream &s, QCGradientStop &stop)
+{
+    float position;
+    s >> position;
+    QColor color;
+    s >> color;
+    stop.position = position;
+    stop.color = color;
+    return s;
+}
+
 /*!
     \fn QDataStream &operator<<(QDataStream &stream, const QCGradient &gradient)
     \relates QCGradient
@@ -275,7 +322,7 @@ QColor QCGradient::startColor() const
     G_D();
     if (d->gradientStops.isEmpty())
         return QColor(255, 255, 255);
-    return d->gradientStops.constFirst().second;
+    return d->gradientStops.constFirst().color;
 }
 
 /*!
@@ -301,7 +348,7 @@ QColor QCGradient::endColor() const
 
     if (d->gradientStops.isEmpty())
         return QColor(0, 0, 0, 0);
-    return d->gradientStops.constLast().second;
+    return d->gradientStops.constLast().color;
 }
 
 /*!
@@ -336,12 +383,12 @@ void QCGradient::setColorAt(float position, const QColor &color)
     auto &stops = d->gradientStops;
     // Add or replace stop in the correct index so that stops remains sorted.
     qsizetype index = 0;
-    while (index < stops.size() && stops.at(index).first < position) ++index;
+    while (index < stops.size() && stops.at(index).position < position) ++index;
 
-    if (index < stops.size() && qFuzzyCompare(stops.at(index).first, position))
-        stops[index].second = color;
+    if (index < stops.size() && qFuzzyCompare(stops.at(index).position, position))
+        stops[index].color = color;
     else
-        stops.insert(index, QCGradientStop(position, color));
+        stops.insert(index, { position, color });
 
     d->dirty |= QCGradientPrivate::DirtyFlag::Stops;
 
@@ -383,10 +430,24 @@ QCGradientStops QCGradient::stops() const
 
 
 /*!
-    \typedef QCGradientStop
-    \relates QCGradient
+    \struct QCGradientStop
+    \since 6.11
+    \brief A gradient stop.
+    \inmodule QtCanvasPainter
 
-    Typedef for std::pair<\c float, QColor>.
+    Describes a stop point in a \l{QCGradient}{gradient}.
+*/
+
+/*!
+    \variable QCGradientStop::position
+
+    The position for the stop point.
+*/
+
+/*!
+    \variable QCGradientStop::color
+
+    The color for the stop point.
 */
 
 /*!
@@ -421,8 +482,8 @@ qint64 QCGradientPrivate::generateGradientKey() const
 {
     quint64 id = 0;
     for (const auto &v : std::as_const(gradientStops)) {
-        id += qHash(int(v.first * QCPAINTER_GRADIENT_SIZE))
-              ^ qHash(v.second.rgba());
+        id += qHash(int(v.position * QCPAINTER_GRADIENT_SIZE))
+              ^ qHash(v.color.rgba());
     }
     return toInt64(id);
 }
@@ -477,16 +538,16 @@ void QCGradientPrivate::updateGradientTexture(QCPainter *painter)
             const auto &grad1 = gradientStops[i];
             const auto &grad2 = gradientStops[i + 1];
             // Premultipled alpha
-            QRgb c1 = qPremultiply(grad1.second.rgba());
-            QRgb c2 = qPremultiply(grad2.second.rgba());
-            float o1 = std::clamp(grad1.first, 0.0f, 1.0f);
-            float o2 = std::clamp(grad2.first, 0.0f, 1.0f);
+            QRgb c1 = qPremultiply(grad1.color.rgba());
+            QRgb c2 = qPremultiply(grad2.color.rgba());
+            float o1 = std::clamp(grad1.position, 0.0f, 1.0f);
+            float o2 = std::clamp(grad2.position, 0.0f, 1.0f);
             gradientColorSpan(data, c1, c2, o1, o2);
         }
         // Make the first & last pixels to contain the colors
         // of the first & last stops
-        data[0] = ARGB2RGBA(qPremultiply(gradientStops.constFirst().second.rgba()));
-        data[QCPAINTER_GRADIENT_SIZE - 1] = ARGB2RGBA(qPremultiply(gradientStops.constLast().second.rgba()));
+        data[0] = ARGB2RGBA(qPremultiply(gradientStops.constFirst().color.rgba()));
+        data[QCPAINTER_GRADIENT_SIZE - 1] = ARGB2RGBA(qPremultiply(gradientStops.constLast().color.rgba()));
 
         // Create image texture
         QImage gradientTexture = QImage((uchar*)data, QCPAINTER_GRADIENT_SIZE, 1, QImage::Format_RGBA8888_Premultiplied);
