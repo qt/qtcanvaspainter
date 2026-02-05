@@ -23,7 +23,7 @@ class QQuickCPainterRendererPrivate;
 class Q_CANVASPAINTER_EXPORT QQuickCPainterRenderer : public QQuickRhiItemRenderer
 {
 public:
-    explicit QQuickCPainterRenderer();
+    QQuickCPainterRenderer();
     virtual ~QQuickCPainterRenderer() override;
 
     QColor fillColor() const;

@@ -21,7 +21,7 @@ class Q_CANVASPAINTER_EXPORT QCPainterPath
 public:
 
     QCPainterPath();
-    QCPainterPath(qsizetype commandsSize, qsizetype commandsDataSize = -1);
+    explicit QCPainterPath(qsizetype commandsSize, qsizetype commandsDataSize = -1);
     QCPainterPath(const QCPainterPath &path) noexcept;
     ~QCPainterPath();
 
