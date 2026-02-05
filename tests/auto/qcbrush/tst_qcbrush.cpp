@@ -352,24 +352,24 @@ void tst_QCBrush::testGradientStops()
     g2.setColorAt(0.95f, QColorConstants::Green);
     g2.setColorAt(1.0f, QColorConstants::Black);
     QCOMPARE(g2.stops().size(), 4);
-    QCOMPARE(g2.stops().at(1).second, QColorConstants::Red);
-    QCOMPARE(g2.stops().at(2).second, QColorConstants::Green);
+    QCOMPARE(g2.stops().at(1).color, QColorConstants::Red);
+    QCOMPARE(g2.stops().at(2).color, QColorConstants::Green);
     QCLinearGradient g3;
     g3.setColorAt(1.0f, QColorConstants::Black);
     g3.setColorAt(0.95f, QColorConstants::Green);
     g3.setColorAt(0.5f, QColorConstants::Red);
     g3.setColorAt(0.0f, QColorConstants::Black);
     QCOMPARE(g3.stops().size(), 4);
-    QCOMPARE(g3.stops().at(1).second, QColorConstants::Red);
-    QCOMPARE(g3.stops().at(2).second, QColorConstants::Green);
+    QCOMPARE(g3.stops().at(1).color, QColorConstants::Red);
+    QCOMPARE(g3.stops().at(2).color, QColorConstants::Green);
     QCLinearGradient g4;
     g4.setColorAt(0.5f, QColorConstants::Red);
     g4.setColorAt(1.0f, QColorConstants::Black);
     g4.setColorAt(0.0f, QColorConstants::Black);
     g4.setColorAt(0.95f, QColorConstants::Green);
     QCOMPARE(g4.stops().size(), 4);
-    QCOMPARE(g4.stops().at(1).second, QColorConstants::Red);
-    QCOMPARE(g4.stops().at(2).second, QColorConstants::Green);
+    QCOMPARE(g4.stops().at(1).color, QColorConstants::Red);
+    QCOMPARE(g4.stops().at(2).color, QColorConstants::Green);
 
     // Test setting all stops
     QCLinearGradient lg;

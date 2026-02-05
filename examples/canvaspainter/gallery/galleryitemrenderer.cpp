@@ -20,10 +20,11 @@ GalleryItemRenderer::GalleryItemRenderer()
 {
     QFontDatabase::addApplicationFont(":/fonts/Pacifico.ttf");
 
-    m_radGrad.setStops({QCGradientStop(0.0f, QColor(255, 0, 0, 255)),
-                        QCGradientStop(0.1f, QColor(255, 255, 0, 255)),
-                        QCGradientStop(0.5f, QColor(0, 255, 0, 255)),
-                        QCGradientStop(1.0f, QColor(0, 0, 0, 0)) });
+    m_radGrad.setStops({{ 0.0f, QColor(255, 0, 0, 255) },
+                        { 0.1f, QColor(255, 255, 0, 255) },
+                        { 0.5f, QColor(0, 255, 0, 255) },
+                        { 1.0f, QColor(0, 0, 0, 0) }
+                       });
 }
 
 GalleryItemRenderer::~GalleryItemRenderer()
@@ -229,8 +230,8 @@ void GalleryItemRenderer::drawRectsWithRadialGradient() {
     m_radGrad.setOuterRadius(w/2);
     m_radGrad.setInnerRadius(w/16);
     auto stops = m_radGrad.stops();
-    stops[2].first = 0.2 + 0.6 * m_animationSine;
-    stops[0].second = QColor(255, m_animationSine*255, 0, 255-m_animationSine*255);
+    stops[2].position = 0.2 + 0.6 * m_animationSine;
+    stops[0].color = QColor(255, m_animationSine*255, 0, 255-m_animationSine*255);
     m_radGrad.setStops(stops);
     painter()->setFillStyle(m_radGrad);
     painter()->fillRect(rect4);
