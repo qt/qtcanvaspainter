@@ -32,7 +32,7 @@ public:
     ~QCGridPattern();
 
     bool operator==(const QCGridPattern &pattern) const;
-    inline bool operator!=(const QCGridPattern &pattern) const { return !(operator==(pattern)); }
+    bool operator!=(const QCGridPattern &pattern) const { return !(operator==(pattern)); }
     operator QVariant() const;
 
     QPointF startPosition() const;

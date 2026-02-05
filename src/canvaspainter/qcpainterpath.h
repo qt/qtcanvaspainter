@@ -28,10 +28,10 @@ public:
     QCPainterPath &operator=(const QCPainterPath &path) noexcept;
     QCPainterPath(QCPainterPath &&other) noexcept = default;
     QT_MOVE_ASSIGNMENT_OPERATOR_IMPL_VIA_PURE_SWAP(QCPainterPath)
-    inline void swap(QCPainterPath &other) noexcept { qt_ptr_swap(d_ptr, other.d_ptr); }
+    void swap(QCPainterPath &other) noexcept { qt_ptr_swap(d_ptr, other.d_ptr); }
 
     bool operator==(const QCPainterPath &path) const;
-    inline bool operator!=(const QCPainterPath &path) const { return !(operator==(path)); }
+    bool operator!=(const QCPainterPath &path) const { return !(operator==(path)); }
     operator QVariant() const;
 
     // Path commands

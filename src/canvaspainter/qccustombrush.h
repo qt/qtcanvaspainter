@@ -29,7 +29,7 @@ public:
     ~QCCustomBrush();
 
     bool operator==(const QCCustomBrush &brush) const;
-    inline bool operator!=(const QCCustomBrush &brush) const { return !(operator==(brush)); }
+    bool operator!=(const QCCustomBrush &brush) const { return !(operator==(brush)); }
     operator QVariant() const;
 
     void setFragmentShader(const QString &fragmentShader);

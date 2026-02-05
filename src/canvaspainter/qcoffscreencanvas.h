@@ -38,7 +38,7 @@ public:
     void swap(QCOffscreenCanvas &other) noexcept { d.swap(other.d); }
 
     bool operator==(const QCOffscreenCanvas &canvas) const;
-    inline bool operator!=(const QCOffscreenCanvas &canvas) const { return !(operator==(canvas)); }
+    bool operator!=(const QCOffscreenCanvas &canvas) const { return !(operator==(canvas)); }
 
     void detach();
 

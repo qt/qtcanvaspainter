@@ -30,7 +30,7 @@ public:
     void swap(QCImage &other) noexcept { d.swap(other.d); }
 
     bool operator==(const QCImage &image) const;
-    inline bool operator!=(const QCImage &image) const { return !(operator==(image)); }
+    bool operator!=(const QCImage &image) const { return !(operator==(image)); }
     operator QVariant() const;
 
     void detach();

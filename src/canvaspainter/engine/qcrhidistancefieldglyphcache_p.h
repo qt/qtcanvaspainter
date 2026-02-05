@@ -187,7 +187,7 @@ private:
         return &m_textures[index];
     }
 
-    inline TexCoord glyphTexCoord(glyph_t glyph) { return glyphData(glyph).texCoord; };
+    TexCoord glyphTexCoord(glyph_t glyph) { return glyphData(glyph).texCoord; };
 };
 
 QT_END_NAMESPACE
