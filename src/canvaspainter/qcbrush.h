@@ -60,8 +60,10 @@ protected:
     QExplicitlySharedDataPointer<QCBrushPrivate> baseData;
 private:
     QCPaint createPaint(QCPainter *painter) const;
-private:
     friend class QCPainter;
+#ifndef QT_NO_DEBUG_STREAM
+    friend Q_CANVASPAINTER_EXPORT QDebug operator<<(QDebug, const QCBrush &);
+#endif
 };
 
 Q_DECLARE_SHARED(QCBrush)

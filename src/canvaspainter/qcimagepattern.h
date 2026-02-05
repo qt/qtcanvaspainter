@@ -53,6 +53,9 @@ public:
 
 private:
     friend class QCImagePatternPrivate;
+#ifndef QT_NO_DEBUG_STREAM
+    friend Q_CANVASPAINTER_EXPORT QDebug operator<<(QDebug, const QCImagePattern &);
+#endif
 };
 
 #ifndef QT_NO_DEBUG_STREAM

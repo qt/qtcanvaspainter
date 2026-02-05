@@ -47,6 +47,9 @@ public:
 
 private:
     friend class QCCustomBrushPrivate;
+#ifndef QT_NO_DEBUG_STREAM
+    friend Q_CANVASPAINTER_EXPORT QDebug operator<<(QDebug, const QCCustomBrush &);
+#endif
 };
 
 #ifndef QT_NO_DEBUG_STREAM

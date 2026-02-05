@@ -54,6 +54,13 @@ public:
 
 private:
     friend class QCGridPatternPrivate;
+#ifndef QT_NO_DATASTREAM
+    friend Q_CANVASPAINTER_EXPORT QDataStream &operator<<(QDataStream &, const QCGridPattern &);
+    friend Q_CANVASPAINTER_EXPORT QDataStream &operator>>(QDataStream &, QCGridPattern &);
+#endif
+#ifndef QT_NO_DEBUG_STREAM
+    friend Q_CANVASPAINTER_EXPORT QDebug operator<<(QDebug, const QCGridPattern &);
+#endif
 };
 
 #ifndef QT_NO_DATASTREAM

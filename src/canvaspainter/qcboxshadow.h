@@ -58,6 +58,14 @@ private:
     friend class QCPainter;
     friend class QCPainterPrivate;
     friend class QCBoxShadowPrivate;
+#ifndef QT_NO_DATASTREAM
+    friend Q_CANVASPAINTER_EXPORT QDataStream &operator<<(QDataStream &, const QCBoxShadow &);
+    friend Q_CANVASPAINTER_EXPORT QDataStream &operator>>(QDataStream &, QCBoxShadow &);
+#endif
+#ifndef QT_NO_DEBUG_STREAM
+    friend Q_CANVASPAINTER_EXPORT QDebug operator<<(QDebug, const QCBoxShadow &);
+#endif
+
 };
 
 #ifndef QT_NO_DATASTREAM
