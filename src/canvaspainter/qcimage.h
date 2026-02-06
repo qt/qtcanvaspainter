@@ -29,8 +29,8 @@ public:
     QT_MOVE_ASSIGNMENT_OPERATOR_IMPL_VIA_PURE_SWAP(QCImage)
     void swap(QCImage &other) noexcept { d.swap(other.d); }
 
-    bool operator==(const QCImage &image) const;
-    bool operator!=(const QCImage &image) const { return !(operator==(image)); }
+    bool operator==(const QCImage &image) const noexcept;
+    bool operator!=(const QCImage &image) const noexcept { return !(operator==(image)); }
     operator QVariant() const;
 
     void detach();

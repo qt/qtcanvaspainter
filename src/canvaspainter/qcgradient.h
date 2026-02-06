@@ -45,8 +45,8 @@ Q_CANVASPAINTER_EXPORT QDataStream &operator>>(QDataStream &, QCGradient &);
 class Q_CANVASPAINTER_EXPORT QCGradient : public QCBrush
 {
 public:
-    bool operator==(const QCGradient &gradient) const;
-    bool operator!=(const QCGradient &gradient) const { return !(operator==(gradient)); }
+    bool operator==(const QCGradient &gradient) const noexcept;
+    bool operator!=(const QCGradient &gradient) const noexcept { return !(operator==(gradient)); }
     operator QVariant() const;
 
     QCBrush::BrushType type() const;

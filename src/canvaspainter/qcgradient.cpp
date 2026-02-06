@@ -104,7 +104,7 @@ QCGradient::operator QVariant() const
 
 #define G_D() auto *d = QCGradientPrivate::get(this)
 
-bool QCGradient::operator==(const QCGradient &g) const
+bool QCGradient::operator==(const QCGradient &g) const noexcept
 {
     G_D();
     auto *gd = QCGradientPrivate::get(&g);

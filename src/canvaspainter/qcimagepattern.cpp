@@ -159,7 +159,7 @@ QCImagePattern::operator QVariant() const
     \sa operator!=()
 */
 
-bool QCImagePattern::operator==(const QCImagePattern &p) const
+bool QCImagePattern::operator==(const QCImagePattern &p) const noexcept
 {
     auto *d = QCImagePatternPrivate::get(this);
     auto *pd = QCImagePatternPrivate::get(&p);

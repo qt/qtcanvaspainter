@@ -143,7 +143,7 @@ QCImage::operator QVariant() const
     \sa operator!=()
 */
 
-bool QCImage::operator==(const QCImage &i) const
+bool QCImage::operator==(const QCImage &i) const noexcept
 {
     if (i.d == d)
         return true;

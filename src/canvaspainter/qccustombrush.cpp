@@ -163,7 +163,7 @@ QCCustomBrush::operator QVariant() const
     \sa operator!=()
 */
 
-bool QCCustomBrush::operator==(const QCCustomBrush &b) const
+bool QCCustomBrush::operator==(const QCCustomBrush &b) const noexcept
 {
     if (b.baseData == baseData)
         return true;

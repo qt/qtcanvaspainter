@@ -28,8 +28,8 @@ public:
     QCBoxShadow(float x, float y, float width, float height, float radius = 0.0f, float blur = 0.0f, const QColor &color = QColorConstants::Black);
     ~QCBoxShadow();
 
-    bool operator==(const QCBoxShadow &shadow) const;
-    bool operator!=(const QCBoxShadow &shadow) const { return !(operator==(shadow)); }
+    bool operator==(const QCBoxShadow &shadow) const noexcept;
+    bool operator!=(const QCBoxShadow &shadow) const noexcept { return !(operator==(shadow)); }
     operator QVariant() const;
 
     QRectF rect() const;

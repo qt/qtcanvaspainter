@@ -31,8 +31,8 @@ public:
                   float lineWidth = 1.0f, float feather = 1.0f, float angle = 0.0f);
     ~QCGridPattern();
 
-    bool operator==(const QCGridPattern &pattern) const;
-    bool operator!=(const QCGridPattern &pattern) const { return !(operator==(pattern)); }
+    bool operator==(const QCGridPattern &pattern) const noexcept;
+    bool operator!=(const QCGridPattern &pattern) const noexcept { return !(operator==(pattern)); }
     operator QVariant() const;
 
     QPointF startPosition() const;
