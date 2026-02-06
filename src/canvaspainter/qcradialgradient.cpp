@@ -140,14 +140,11 @@ void QCRadialGradient::setCenterPosition(float x, float y)
 }
 
 /*!
+    \fn void QCRadialGradient::setCenterPosition(QPointF center)
+    \overload
+
     Sets the center point of radial gradient to \a center.
 */
-
-void QCRadialGradient::setCenterPosition(QPointF center)
-{
-    setCenterPosition(float(center.x()),
-                      float(center.y()));
-}
 
 /*!
     Returns the outer radius of radial gradient.

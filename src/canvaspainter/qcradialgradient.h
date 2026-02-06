@@ -23,12 +23,17 @@ public:
 
     QPointF centerPosition() const;
     void setCenterPosition(float x, float y);
-    void setCenterPosition(QPointF center);
+    inline void setCenterPosition(QPointF center);
     float outerRadius() const;
     void setOuterRadius(float radius);
     float innerRadius() const;
     void setInnerRadius(float radius);
 };
+
+inline void QCRadialGradient::setCenterPosition(QPointF center)
+{
+    setCenterPosition(float(center.x()), float(center.y()));
+}
 
 QT_END_NAMESPACE
 

@@ -279,17 +279,14 @@ void QCImagePattern::setStartPosition(float x, float y)
 }
 
 /*!
+    \fn void QCImagePattern::setStartPosition(QPointF point)
+    \overload
+
     Sets the start point of image pattern to \a point.
     Start position means top-left corner of an image in pattern.
     Pattern will then be extended to all positions from here
     (if image \c Repeat flag has been set).
 */
-
-void QCImagePattern::setStartPosition(QPointF point)
-{
-    setStartPosition(float(point.x()),
-                     float(point.y()));
-}
 
 /*!
     Returns the size of a single image in pattern.
@@ -317,14 +314,11 @@ void QCImagePattern::setImageSize(float width, float height)
 }
 
 /*!
+    \fn void QCImagePattern::setImageSize(QSizeF size)
+    \overload
+
     Sets the size of a single image in pattern to \a size.
 */
-
-void QCImagePattern::setImageSize(QSizeF size)
-{
-    setImageSize(float(size.width()),
-                 float(size.height()));
-}
 
 /*!
     Returns the image of the pattern.

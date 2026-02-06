@@ -258,13 +258,12 @@ void QCPainterPath::moveTo(float x, float y)
 }
 
 /*!
+    \fn void QCPainterPath::moveTo(QPointF point)
+    \overload
+
     Moves the current point to the given \a point, implicitly starting
     a new subpath and closing the previous one.
 */
-void QCPainterPath::moveTo(QPointF point)
-{
-    moveTo(float(point.x()), float(point.y()));
-}
 
 /*!
    \overload
@@ -280,16 +279,21 @@ void QCPainterPath::lineTo(float x, float y)
 }
 
 /*!
+    \fn void QCPainterPath::lineTo(QPointF point)
+    \overload
+
     Adds a straight line from the current position to the given \a
     point.  After the line is drawn, the current position is updated
     to be at the end point of the line.
 */
-void QCPainterPath::lineTo(QPointF point)
-{
-    lineTo(float(point.x()), float(point.y()));
-}
 
 /*!
+    Adds a cubic Bezier curve between the current position and the end point
+    specified by \a x and \a y, using the control points specified by \a cp1X,
+    \a cp1Y, \a cp2X, and \a cp2Y.
+
+    After the curve is added, the current position is updated to be at
+    the end point of the curve.
 */
 void QCPainterPath::bezierCurveTo(float cp1X, float cp1Y, float cp2X, float cp2Y, float x, float y)
 {
@@ -300,6 +304,9 @@ void QCPainterPath::bezierCurveTo(float cp1X, float cp1Y, float cp2X, float cp2Y
 }
 
 /*!
+    \fn void QCPainterPath::bezierCurveTo(QPointF controlPoint1, QPointF controlPoint2, QPointF endPoint)
+    \overload
+
     Adds a cubic Bezier curve between the current position and the
     given \a endPoint using the control points specified by \a controlPoint1, and
     \a controlPoint2.
@@ -307,13 +314,6 @@ void QCPainterPath::bezierCurveTo(float cp1X, float cp1Y, float cp2X, float cp2Y
     After the curve is added, the current position is updated to be at
     the end point of the curve.
 */
-void QCPainterPath::bezierCurveTo(
-    QPointF controlPoint1, QPointF controlPoint2, QPointF endPoint)
-{
-    bezierCurveTo(float(controlPoint1.x()), float(controlPoint1.y()),
-                  float(controlPoint2.x()), float(controlPoint2.y()),
-                  float(endPoint.x()), float(endPoint.y()));
-}
 
 /*!
     Adds a quadratic Bezier curve between the current point and the endpoint
@@ -338,14 +338,12 @@ void QCPainterPath::quadraticCurveTo(float cpX, float cpY, float x, float y)
 }
 
 /*!
+    \fn void QCPainterPath::quadraticCurveTo(QPointF controlPoint, QPointF endPoint)
+    \overload
+
     Adds a quadratic Bezier curve between the current position and the
     given \a endPoint with the control point specified by \a controlPoint.
 */
-void QCPainterPath::quadraticCurveTo(QPointF controlPoint, QPointF endPoint)
-{
-    quadraticCurveTo(float(controlPoint.x()), float(controlPoint.y()),
-                     float(endPoint.x()), float(endPoint.y()));
-}
 
 /*!
     Creates an arc using the points QPointF(\a x1, \a y1) and QPointF(\a
@@ -400,14 +398,11 @@ void QCPainterPath::arcTo(float x1, float y1, float x2, float y2, float radius)
 }
 
 /*!
+    \fn void QCPainterPath::arcTo(QPointF point1, QPointF point2, float radius)
+    \overload
+
     Creates an arc using the points \a point1 and \a point2 with the given \a radius.
 */
-void QCPainterPath::arcTo(QPointF point1, QPointF point2, float radius)
-{
-    arcTo(float(point1.x()), float(point1.y()),
-          float(point2.x()), float(point2.y()),
-          radius);
-}
 
 /*!
     Creates an arc centered on QPointF(\a centerX, \a centerY) with the given \a radius,
@@ -490,24 +485,14 @@ void QCPainterPath::arc(
 }
 
 /*!
-   \overload
+    \fn void QCPainterPath::arc(QPointF centerPoint, float radius, float a0, float a1, QCPainter::PathWinding direction, bool isConnected)
+    \overload
 
     Creates an arc centered on \a centerPoint with the given \a radius,
     starting at an angle of \a a0 radians and ending at \a a1 radians. The arc spans the
     given \a direction. If \a isConnected is \c false, the previous path is closed and
     a new sub-path is started.
 */
-void QCPainterPath::arc(
-    QPointF centerPoint,
-    float radius,
-    float a0,
-    float a1,
-    QCPainter::PathWinding direction,
-    bool isConnected)
-{
-    arc(float(centerPoint.x()), float(centerPoint.y()),
-        radius, a0, a1, direction, isConnected);
-}
 
 /*!
    Creates a rectangle positioned at QPointF(\a x, \a y) with the given \a width and \a height.
@@ -533,17 +518,11 @@ void QCPainterPath::rect(float x, float y, float width, float height)
 }
 
 /*!
-   \overload
+    \fn void QCPainterPath::rect(const QRectF &rect)
+    \overload
 
     Creates a rectangle specified by \a rect
 */
-void QCPainterPath::rect(const QRectF &rect)
-{
-    this->rect(float(rect.x()),
-               float(rect.y()),
-               float(rect.width()),
-               float(rect.height()));
-}
 
 /*!
     Adds the given rectangle \a x, \a y, \a width, \a height with rounded corners to the path. The
@@ -597,18 +576,12 @@ void QCPainterPath::roundRect(float x, float y, float width, float height, float
 }
 
 /*!
+    \fn void QCPainterPath::roundRect(const QRectF &rect, float radius)
     \overload
+
     Adds the given rectangle \a rect with rounded corners to the path. The
     corners are quarter circles with the given \a radius.
 */
-void QCPainterPath::roundRect(const QRectF &rect, float radius)
-{
-    roundRect(float(rect.x()),
-              float(rect.y()),
-              float(rect.width()),
-              float(rect.height()),
-              radius);
-}
 
 /*!
     Adds the rectangle \a x, \a y, \a width, \a height with rounded corners to the path. The
@@ -685,25 +658,13 @@ void QCPainterPath::roundRect(
 }
 
 /*!
+    \fn void QCPainterPath::roundRect(const QRectF &rect, float radiusTopLeft, float radiusTopRight, float radiusBottomRight, float radiusBottomLeft)
     \overload
+
     Adds the rectangle \a rect with rounded corners to the path. The
     corners are quarter circles with radius \a radiusTopLeft, \a radiusTopRight
     \a radiusBottomRight and \a radiusBottomLeft, respectively.
 */
-void QCPainterPath::roundRect(
-    const QRectF &rect,
-    float radiusTopLeft,
-    float radiusTopRight,
-    float radiusBottomRight,
-    float radiusBottomLeft)
-{
-    roundRect(float(rect.x()),
-              float(rect.y()),
-              float(rect.width()),
-              float(rect.height()),
-              radiusTopLeft, radiusTopRight,
-              radiusBottomRight, radiusBottomLeft);
-}
 
 /*!
     Creates an ellipse centered at (\a x, \a y), with radii defined by \a radiusX, \a radiusY
@@ -737,17 +698,12 @@ void QCPainterPath::ellipse(float x, float y, float radiusX, float radiusY)
 }
 
 /*!
+    \fn void QCPainterPath::ellipse(const QRectF &rect)
     \overload
+
     Creates an ellipse within the rectangle \a rect
     and adds it to the path as a closed subpath.
 */
-void QCPainterPath::ellipse(const QRectF &rect)
-{
-    ellipse(float(rect.x() + rect.width() * 0.5),
-            float(rect.y() + rect.height() * 0.5),
-            float(rect.width() * 0.5),
-            float(rect.height() * 0.5));
-}
 
 /*!
    Adds a circle with center at QPointF(\a x, \a y) and the given \a radius to the path.
@@ -777,13 +733,11 @@ void QCPainterPath::circle(float x, float y, float radius)
 }
 
 /*!
-   \overload
-   Adds a circle with center at \a centerPoint and the given \a radius to the path.
+    \fn void QCPainterPath::circle(QPointF centerPoint, float radius)
+    \overload
+
+    Adds a circle with center at \a centerPoint and the given \a radius to the path.
 */
-void QCPainterPath::circle(QPointF centerPoint, float radius)
-{
-    circle(float(centerPoint.x()), float(centerPoint.y()), radius);
-}
 
 /*!
     Sets the current sub-path \a winding to either \c QCPainter::CounterClockWise (default)

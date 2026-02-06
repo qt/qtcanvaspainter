@@ -33,7 +33,7 @@ public:
     operator QVariant() const;
 
     QRectF rect() const;
-    void setRect(const QRectF &rect);
+    inline void setRect(const QRectF &rect);
     void setRect(float x, float y, float width, float height);
     QRectF boundingRect() const;
     float radius() const;
@@ -76,6 +76,11 @@ Q_CANVASPAINTER_EXPORT QDataStream &operator>>(QDataStream &, QCBoxShadow &);
 #ifndef QT_NO_DEBUG_STREAM
 Q_CANVASPAINTER_EXPORT QDebug operator<<(QDebug, const QCBoxShadow &);
 #endif
+
+inline void QCBoxShadow::setRect(const QRectF &rect)
+{
+    setRect(float(rect.x()), float(rect.y()), float(rect.width()), float(rect.height()));
+}
 
 QT_END_NAMESPACE
 

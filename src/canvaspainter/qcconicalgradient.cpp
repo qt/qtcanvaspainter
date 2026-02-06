@@ -139,14 +139,11 @@ void QCConicalGradient::setCenterPosition(float x, float y)
 }
 
 /*!
+    \fn void QCConicalGradient::setCenterPosition(QPointF center)
+    \overload
+
     Sets the center point of conical gradient to \a center.
 */
-
-void QCConicalGradient::setCenterPosition(QPointF center)
-{
-    setCenterPosition(float(center.x()),
-                      float(center.y()));
-}
 
 /*!
     Returns the start angle of conical gradient in radians.

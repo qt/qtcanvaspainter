@@ -231,14 +231,11 @@ QRectF QCBoxShadow::rect() const
 }
 
 /*!
-    Sets the rect area of shadow box to \a rect.
-    \sa rect()
-*/
+    \fn void QCBoxShadow::setRect(const QRectF &rect)
+    \overload
 
-void QCBoxShadow::setRect(const QRectF &rect)
-{
-    setRect(rect.x(), rect.y(), rect.width(), rect.height());
-}
+    Sets the rect area of shadow box to \a rect.
+*/
 
 /*!
     Sets the rect area of shadow box to (\a x, \a y, \a width, \a height).

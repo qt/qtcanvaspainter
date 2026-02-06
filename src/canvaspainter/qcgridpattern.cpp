@@ -265,18 +265,15 @@ void QCGridPattern::setStartPosition(float x, float y)
 }
 
 /*!
+    \fn void QCGridPattern::setStartPosition(QPointF point)
     \overload
+
     Sets the start point of grid pattern to \a point.
     Start position means top-left corner of the grid in pattern.
     Pattern will then be extended to all positions from here.
     The default value is \c{(0.0, 0.0)}.
 */
 
-void QCGridPattern::setStartPosition(QPointF point)
-{
-    setStartPosition(float(point.x()),
-                     float(point.y()));
-}
 
 /*!
     Returns the size of a single cell in grid pattern.
@@ -306,17 +303,14 @@ void QCGridPattern::setCellSize(float width, float height)
 }
 
 /*!
+    \fn void QCGridPattern::setCellSize(QSizeF size)
     \overload
+
     Sets the size of a single cell in grid pattern to \a size.
     When width is \c 0, the horizontal bars are not painted.
     When height is \c 0, the vertical bars are not painted.
     The default value is \c{(10, 10)}.
 */
-
-void QCGridPattern::setCellSize(QSizeF size)
-{
-    setCellSize(float(size.width()), float(size.height()));
-}
 
 /*!
     Returns the width of a stroke line in grid pattern.

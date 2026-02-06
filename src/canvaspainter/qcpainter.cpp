@@ -933,16 +933,11 @@ void QCPainter::translate(float x, float y)
 }
 
 /*!
+    \fn void QCPainter::translate(QPointF point)
     \overload
 
     Translates current coordinate system by \a point.
 */
-
-void QCPainter::translate(QPointF point)
-{
-    translate(float(point.x()),
-              float(point.y()));
-}
 
 /*!
     Rotates current coordinate system clockwise by \a angle.
@@ -1095,6 +1090,7 @@ void QCPainter::setClipRect(float x, float y, float width, float height)
 }
 
 /*!
+    \fn void QCPainter::setClipRect(const QRectF &rect)
     \overload
 
     Sets the current scissor rectangle to \a rect.
@@ -1103,14 +1099,6 @@ void QCPainter::setClipRect(float x, float y, float width, float height)
     when needed.
     \sa resetClipping()
 */
-
-void QCPainter::setClipRect(const QRectF &rect)
-{
-    setClipRect(float(rect.x()),
-                float(rect.y()),
-                float(rect.width()),
-                float(rect.height()));
-}
 
 /*!
     Resets and disables clipping.
@@ -1157,16 +1145,11 @@ void QCPainter::moveTo(float x, float y)
 }
 
 /*!
+    \fn void QCPainter::moveTo(QPointF point)
     \overload
 
     Starts new sub-path with \a point as first point.
 */
-
-void QCPainter::moveTo(QPointF point)
-{
-    moveTo(float(point.x()),
-           float(point.y()));
-}
 
 /*!
     Adds line segment from the last point in the path to the ( \a x, \a y) point.
@@ -1191,16 +1174,11 @@ void QCPainter::lineTo(float x, float y)
 }
 
 /*!
+    \fn void QCPainter::lineTo(QPointF point)
     \overload
 
     Adds line segment from the last point in the path to the \a point.
 */
-
-void QCPainter::lineTo(QPointF point)
-{
-    lineTo(float(point.x()),
-           float(point.y()));
-}
 
 /*!
     Adds cubic bezier segment from last point in the path via two
@@ -1225,21 +1203,12 @@ void QCPainter::bezierCurveTo(float cp1X, float cp1Y, float cp2X, float cp2Y, fl
 }
 
 /*!
+    \fn void QCPainter::bezierCurveTo(QPointF controlPoint1, QPointF controlPoint2, QPointF endPoint)
     \overload
 
     Adds cubic bezier segment from last point in the path via two
     control points (\a controlPoint1 and \a controlPoint2) to the specified point \a endPoint.
 */
-
-void QCPainter::bezierCurveTo(QPointF controlPoint1, QPointF controlPoint2, QPointF endPoint)
-{
-    bezierCurveTo(float(controlPoint1.x()),
-                  float(controlPoint1.y()),
-                  float(controlPoint2.x()),
-                  float(controlPoint2.y()),
-                  float(endPoint.x()),
-                  float(endPoint.y()));
-}
 
 /*!
     Adds quadratic bezier segment from last point in the path via
@@ -1266,19 +1235,12 @@ void QCPainter::quadraticCurveTo(float cpX, float cpY, float x, float y)
 }
 
 /*!
+    \fn void QCPainter::quadraticCurveTo(QPointF controlPoint, QPointF endPoint)
     \overload
 
     Adds quadratic bezier segment from last point in the path via
     a \a controlPoint to the specified \a endPoint.
 */
-
-void QCPainter::quadraticCurveTo(QPointF controlPoint, QPointF endPoint)
-{
-    quadraticCurveTo(float(controlPoint.x()),
-                     float(controlPoint.y()),
-                     float(endPoint.x()),
-                     float(endPoint.y()));
-}
 
 /*!
     Adds an arc segment at the corner defined by the last path point,
@@ -1306,6 +1268,7 @@ void QCPainter::arcTo(float x1, float y1, float x2, float y2, float radius)
 }
 
 /*!
+    \fn void QCPainter::arcTo(QPointF controlPoint1, QPointF controlPoint2, float radius)
     \overload
 
     Adds an arc segment at the corner defined by the last path point,
@@ -1313,15 +1276,6 @@ void QCPainter::arcTo(float x1, float y1, float x2, float y2, float radius)
     The arc is automatically connected to the path's latest point with
     a straight line if necessary.
 */
-
-void QCPainter::arcTo(QPointF controlPoint1, QPointF controlPoint2, float radius)
-{
-    arcTo(float(controlPoint1.x()),
-          float(controlPoint1.y()),
-          float(controlPoint2.x()),
-          float(controlPoint2.y()),
-          radius);
-}
 
 /*!
     Creates new circle arc shaped sub-path. The arc center is at \a centerX, \a centerY,
@@ -1355,6 +1309,7 @@ void QCPainter::arc(float centerX, float centerY, float radius, float a0, float 
 }
 
 /*!
+    \fn void QCPainter::arc(QPointF centerPoint, float radius, float a0, float a1, PathWinding direction, bool isConnected)
     \overload
 
     Creates new circle arc shaped sub-path. The arc center is at \a centerPoint,
@@ -1367,14 +1322,6 @@ void QCPainter::arc(float centerX, float centerY, float radius, float a0, float 
     \note While HTML canvas 2D context uses arc() for painting circles, with
     QCPainter it is recommended to use \l circle() or \l ellipse() for those.
 */
-
-void QCPainter::arc(QPointF centerPoint, float radius, float a0, float a1, PathWinding direction, bool isConnected)
-{
-    arc(float(centerPoint.x()),
-        float(centerPoint.y()),
-        radius, a0, a1, direction,
-        isConnected);
-}
 
 /*!
     Creates new rectangle shaped sub-path in position \a x, \a y with
@@ -1399,19 +1346,12 @@ void QCPainter::rect(float x, float y, float width, float height)
 }
 
 /*!
+    \fn void QCPainter::rect(const QRectF &rect)
     \overload
 
     Creates new rectangle shaped sub-path at \a rect.
     This is an overloaded method using QRectF.
 */
-
-void QCPainter::rect(const QRectF &rect)
-{
-    this->rect(float(rect.x()),
-               float(rect.y()),
-               float(rect.width()),
-               float(rect.height()));
-}
 
 /*!
     Creates new rounded rectangle shaped sub-path in position \a x, \a y with
@@ -1436,20 +1376,12 @@ void QCPainter::roundRect(float x, float y, float width, float height, float rad
 }
 
 /*!
+    \fn void QCPainter::roundRect(const QRectF &rect, float radius)
     \overload
 
     Creates new rounded rectangle shaped sub-path at \a rect with \a radius corners.
     This is an overloaded method using QRectF.
 */
-
-void QCPainter::roundRect(const QRectF &rect, float radius)
-{
-    roundRect(float(rect.x()),
-              float(rect.y()),
-              float(rect.width()),
-              float(rect.height()),
-              radius);
-}
 
 /*!
     \overload
@@ -1478,21 +1410,13 @@ void QCPainter::roundRect(float x, float y, float width, float height, float rad
 }
 
 /*!
+    \fn void QCPainter::roundRect(const QRectF &rect, float radiusTopLeft, float radiusTopRight, float radiusBottomRight, float radiusBottomLeft)
     \overload
 
     Creates new rounded rectangle shaped sub-path at \a rect. Corners rounding can be
     varying per-corner, with \a radiusTopLeft, \a radiusTopRight, \a radiusBottomRight,
     \a radiusBottomLeft.
 */
-
-void QCPainter::roundRect(const QRectF &rect, float radiusTopLeft, float radiusTopRight, float radiusBottomRight, float radiusBottomLeft)
-{
-    roundRect(float(rect.x()),
-              float(rect.y()),
-              float(rect.width()),
-              float(rect.height()),
-              radiusTopLeft, radiusTopRight, radiusBottomRight, radiusBottomLeft);
-}
 
 /*!
     Creates new ellipse shaped sub-path into ( \a centerX, \a centerY) with \a radiusX and \a radiusY.
@@ -1516,20 +1440,14 @@ void QCPainter::ellipse(float centerX, float centerY, float radiusX, float radiu
 }
 
 /*!
+    \fn void QCPainter::ellipse(QPointF centerPoint, float radiusX, float radiusY)
     \overload
 
     Creates new ellipse shaped sub-path into \a centerPoint with \a radiusX and \a radiusY.
 */
 
-void QCPainter::ellipse(QPointF centerPoint, float radiusX, float radiusY)
-{
-    ellipse(float(centerPoint.x()),
-            float(centerPoint.y()),
-            radiusX,
-            radiusY);
-}
-
 /*!
+    \fn void QCPainter::ellipse(const QRectF &rect)
     \overload
 
     Creates new ellipse shaped sub-path into \a rect.
@@ -1547,14 +1465,6 @@ void QCPainter::ellipse(QPointF centerPoint, float radiusX, float radiusY)
     \endcode
     \endtable
 */
-
-void QCPainter::ellipse(const QRectF &rect)
-{
-    ellipse(float(rect.x() + rect.width() * 0.5),
-            float(rect.y() + rect.height() * 0.5),
-            float(rect.width() * 0.5),
-            float(rect.height() * 0.5));
-}
 
 /*!
     Creates new circle shaped sub-path into ( \a centerX, \a centerY) with \a radius.
@@ -1578,16 +1488,11 @@ void QCPainter::circle(float centerX, float centerY, float radius)
 }
 
 /*!
+    \fn void QCPainter::circle(QPointF centerPoint, float radius)
     \overload
 
     Creates new circle shaped sub-path into \a centerPoint with \a radius.
 */
-
-void QCPainter::circle(QPointF centerPoint, float radius)
-{
-    circle(float(centerPoint.x()),
-           float(centerPoint.y()), radius);
-}
 
 /*!
     Adds \a path into the current path.
@@ -1891,6 +1796,7 @@ void QCPainter::fillRect(float x, float y, float width, float height)
 }
 
 /*!
+    \fn void QCPainter::fillRect(const QRectF &rect)
     \overload
 
     Draws a filled rectangle into \a rect.
@@ -1898,14 +1804,6 @@ void QCPainter::fillRect(float x, float y, float width, float height)
     \note This is provided for convenience. When filling more than just a single rect,
     prefer using rect().
 */
-
-void QCPainter::fillRect(const QRectF &rect)
-{
-    fillRect(float(rect.x()),
-             float(rect.y()),
-             float(rect.width()),
-             float(rect.height()));
-}
 
 /*!
     Erases the pixels in a rectangular area by filling the rectangle
@@ -1934,20 +1832,13 @@ void QCPainter::clearRect(float x, float y, float width, float height)
 }
 
 /*!
+    \fn void QCPainter::clearRect(const QRectF &rect)
     \overload
 
     Erases the pixels in a rectangular area by filling the rectangle
     specified by \a rect with transparent black.
     This is an overloaded method using QRectF.
 */
-
-void QCPainter::clearRect(const QRectF &rect)
-{
-    clearRect(float(rect.x()),
-              float(rect.y()),
-              float(rect.width()),
-              float(rect.height()));
-}
 
 /*!
     Draws a stoked rectangle into specified position ( \a x, \a y) at size \a width, \a height.
@@ -1976,6 +1867,7 @@ void QCPainter::strokeRect(float x, float y, float width, float height)
 }
 
 /*!
+    \fn void QCPainter::strokeRect(const QRectF &rect)
     \overload
 
     Draws a stoked rectangle into \a rect.
@@ -1983,14 +1875,6 @@ void QCPainter::strokeRect(float x, float y, float width, float height)
     \note This is provided for convenience. When stroking more than just a single rect,
     prefer using rect().
 */
-
-void QCPainter::strokeRect(const QRectF &rect)
-{
-    strokeRect(float(rect.x()),
-               float(rect.y()),
-               float(rect.width()),
-               float(rect.height()));
-}
 
 // *** Shadows ***
 
@@ -2093,20 +1977,12 @@ void QCPainter::drawImage(const QCImage &image, float x, float y, float width, f
 }
 
 /*!
+    \fn void QCPainter::drawImage(const QCImage &image, const QRectF &destinationRect)
     \overload
 
     Draw \a image into position and size of \a destinationRect.
     \sa addImage()
 */
-
-void QCPainter::drawImage(const QCImage &image, const QRectF &destinationRect)
-{
-    drawImage(image,
-              float(destinationRect.x()),
-              float(destinationRect.y()),
-              float(destinationRect.width()),
-              float(destinationRect.height()));
-}
 
 /*!
     \overload
@@ -2355,6 +2231,7 @@ void QCPainter::fillText(const QString &text, float x, float y, float maxWidth)
 }
 
 /*!
+    \fn void QCPainter::fillText(const QString &text, QPointF point, float maxWidth)
     \overload
 
     Draws \a text string at specified \a point, with current textAlign and textBaseline.
@@ -2365,12 +2242,6 @@ void QCPainter::fillText(const QString &text, float x, float y, float maxWidth)
 
     This is an overloaded method using QPointF.
 */
-
-void QCPainter::fillText(const QString &text, QPointF point, float maxWidth)
-{
-    Q_D(QCPainter);
-    d->fillText(text, point.x(), point.y(), maxWidth);
-}
 
 /*!
     \overload
@@ -2420,6 +2291,7 @@ QRectF QCPainter::textBoundingBox(const QString &text, float x, float y, float m
 }
 
 /*!
+    \fn QRectF QCPainter::textBoundingBox(const QString &text, QPointF point, float maxWidth)
     \overload
 
     Measures bounding box of a \a text string at \a point.
@@ -2427,12 +2299,6 @@ QRectF QCPainter::textBoundingBox(const QString &text, float x, float y, float m
     Returns QRectF with values [xmin, ymin, width, height].
     Measured values are returned in local coordinate space.
 */
-
-QRectF QCPainter::textBoundingBox(const QString &text, QPointF point, float maxWidth)
-{
-    Q_D(QCPainter);
-    return d->textBoundingBox(text, point.x(), point.y(), maxWidth);
-}
 
 /*!
     \overload
