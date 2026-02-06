@@ -1011,16 +1011,17 @@ QPointF QCPainterPath::positionAt(qsizetype index) const
 }
 
 /*!
-    Return this path, starting from the command at \a start
-    and including \a count amount of commands. Optionally using \a transform to
-    alter the path points.
+    \return a new path containing the commands from this path, starting from the
+    command at \a start and including \a count amount of commands, optionally
+    using \a transform to alter the path points.
+
     The range of \a start and \a count is checked, so that commands are not
     accessed more than \l commandsSize().
     In case the command at \a start is not \c MoveTo, the first command
     will be replaced with \c MoveTo so that this slice is an individual path.
 */
 
-QCPainterPath QCPainterPath::sliced(qsizetype start, qsizetype count, const QTransform &transform) const &
+QCPainterPath QCPainterPath::sliced(qsizetype start, qsizetype count, const QTransform &transform) const
 {
     Q_D(const QCPainterPath);
     QCPainterPath path;

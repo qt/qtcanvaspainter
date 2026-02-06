@@ -106,7 +106,7 @@ public:
     // Other
     QPointF currentPosition() const;
     QPointF positionAt(qsizetype index) const;
-    [[nodiscard]] QCPainterPath sliced(qsizetype start, qsizetype count, const QTransform &transform = QTransform()) const &;
+    [[nodiscard]] QCPainterPath sliced(qsizetype start, qsizetype count, const QTransform &transform = QTransform()) const;
 
 private:
     friend class QCPainterEngine;
