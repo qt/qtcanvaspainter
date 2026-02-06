@@ -34,8 +34,8 @@ public:
     QCImagePattern(const QCImage &image, float x, float y, float width, float height, float angle = 0.0f, const QColor &tintColor = QColorConstants::White);
     ~QCImagePattern();
 
-    bool operator==(const QCImagePattern &pattern) const;
-    bool operator!=(const QCImagePattern &pattern) const { return !(operator==(pattern)); }
+    bool operator==(const QCImagePattern &pattern) const noexcept;
+    bool operator!=(const QCImagePattern &pattern) const noexcept { return !(operator==(pattern)); }
     operator QVariant() const;
 
     QPointF startPosition() const;

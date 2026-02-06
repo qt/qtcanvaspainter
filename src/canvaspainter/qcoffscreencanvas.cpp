@@ -106,7 +106,7 @@ QCOffscreenCanvas &QCOffscreenCanvas::operator=(const QCOffscreenCanvas &canvas)
     \return true if this and the \a other canvas are the same, meaning their
     fill colors are the same and they reference the same graphics resources.
  */
-bool QCOffscreenCanvas::operator==(const QCOffscreenCanvas &other) const
+bool QCOffscreenCanvas::operator==(const QCOffscreenCanvas &other) const noexcept
 {
     if (other.d == d)
         return true;

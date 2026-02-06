@@ -149,7 +149,7 @@ QCGridPattern::operator QVariant() const
     \sa operator!=()
 */
 
-bool QCGridPattern::operator==(const QCGridPattern &p) const
+bool QCGridPattern::operator==(const QCGridPattern &p) const noexcept
 {
     G_D();
     auto *pd = QCGridPatternPrivate::get(&p);

@@ -121,7 +121,7 @@ QCBoxShadow::operator QVariant() const
     \sa operator!=()
 */
 
-bool QCBoxShadow::operator==(const QCBoxShadow &p) const
+bool QCBoxShadow::operator==(const QCBoxShadow &p) const noexcept
 {
     B_D();
     auto *pd = QCBoxShadowPrivate::get(&p);

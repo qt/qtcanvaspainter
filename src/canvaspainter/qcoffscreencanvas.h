@@ -37,8 +37,8 @@ public:
     QT_MOVE_ASSIGNMENT_OPERATOR_IMPL_VIA_PURE_SWAP(QCOffscreenCanvas)
     void swap(QCOffscreenCanvas &other) noexcept { d.swap(other.d); }
 
-    bool operator==(const QCOffscreenCanvas &canvas) const;
-    bool operator!=(const QCOffscreenCanvas &canvas) const { return !(operator==(canvas)); }
+    bool operator==(const QCOffscreenCanvas &canvas) const noexcept;
+    bool operator!=(const QCOffscreenCanvas &canvas) const noexcept { return !(operator==(canvas)); }
 
     void detach();
 

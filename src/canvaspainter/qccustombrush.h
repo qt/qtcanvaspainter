@@ -28,8 +28,8 @@ public:
                   const QString &vertexShader = {});
     ~QCCustomBrush();
 
-    bool operator==(const QCCustomBrush &brush) const;
-    bool operator!=(const QCCustomBrush &brush) const { return !(operator==(brush)); }
+    bool operator==(const QCCustomBrush &brush) const noexcept;
+    bool operator!=(const QCCustomBrush &brush) const noexcept { return !(operator==(brush)); }
     operator QVariant() const;
 
     void setFragmentShader(const QString &fragmentShader);
