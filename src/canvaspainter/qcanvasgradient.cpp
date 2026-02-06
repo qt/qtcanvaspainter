@@ -135,7 +135,9 @@ bool comparesEqual(const QCanvasGradient &lhs, const QCanvasGradient &rhs) noexc
             || d->data.box.radius != gd->data.box.radius)
             return false;
     }
-    return gd->gradientStops == d->gradientStops;
+    return gd->gradientStops == d->gradientStops
+            && gd->imageId == d->imageId
+            && gd->imageY == d->imageY;
 }
 
 #ifndef QT_NO_DEBUG_STREAM
@@ -468,12 +470,66 @@ QCanvasGradientStops QCanvasGradient::stops() const
     Typedef for QList<QCanvasGradientStop>.
 */
 
+/*!
+    \since 6.12
+    Uses the \a image as the gradient source at the y-coordinate \a index.
+    This is an alternative for setting the gradient stops using e.g.
+    setStops() or setColorAt(). The expected default width of the image
+    is 256 pixels, but it can be adjusted by defining the
+    QCPAINTER_GRADIENT_SIZE. Index parameter is optional and not needed
+    when the height of the image is 1 pixel. The maximum value of index
+    should be image height - 1.
+
+    Possible reasons to use this method instead of setting stops:
+    \list
+    \li Slightly faster to create as stops don't need to be parsed. Also,
+        multiple gradients can be included in a single image using \a index.
+    \li The ability to use gradient from design / image directly, instead
+        of converting it to set of stops.
+    \li The ability to have non-linear gradients, like e.g. Gaussian curve.
+    \endlist
+
+    \note If both the stops and the image have been set, stops will be used.
+
+    Here is a simple example of how to use a \c{256x1} gradient image:
+    \table
+    \row
+    \li {2, 1}
+    \inlineimage gradient1.png
+    \row
+    \li
+    \inlineimage qcgradient-image.webp
+    \li
+    \code
+    static QImage image(":/gradient1.png");
+    QCanvasImage gradImage = p->addImage(image);
+    QRectF rect(0, 0, 200, 200);
+    QCanvasRadialGradient rg(rect.center(), 150, 20);
+    rg.setImage(gradImage);
+    p->setFillStyle(rg);
+    p->fillRect(rect);
+    \endcode
+    \endtable
+
+    \sa setStops()
+*/
+
+void QCanvasGradient::setImage(const QCanvasImage &image, int index)
+{
+    G_D();
+    detach();
+    d->imageId = image.id();
+    // Y-coordinate of the texture is the middle of the pixel at index.
+    d->imageY = (index + 0.5f) / image.height();
+}
+
 // ***** Private *****
 
 QCanvasGradientPrivate::QCanvasGradientPrivate(QCanvasBrush::BrushType type)
     : QCanvasBrushPrivate(type)
     , dirty(DirtyFlag::All)
     , imageId(0)
+    , imageY(0.5f)
 {
 }
 

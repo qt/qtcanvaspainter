@@ -33,6 +33,9 @@ qt_add_qml_module(qcgalleryexample
         images/qt_development_white.png
         images/face-smile-bw.png
         images/tiger.json
+        images/gradient1.png
+        images/gradient2.png
+        images/gradient3.png
     NO_RESOURCE_TARGET_PATH
 )
 

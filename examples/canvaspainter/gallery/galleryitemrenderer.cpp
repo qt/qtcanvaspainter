@@ -44,6 +44,9 @@ void GalleryItemRenderer::initializeResources(QCanvasPainter *painter)
     m_patternImage2 = painter->addImage(QImage(":/images/pattern2.png"), flags);
     m_patternImage3 = painter->addImage(QImage(":/images/pattern3.png"), flags);
     m_testImage = painter->addImage(QImage(":/images/qt_development_white.png"));
+    m_gradientImage1 = painter->addImage(QImage(":/images/gradient1.png"));
+    m_gradientImage2 = painter->addImage(QImage(":/images/gradient2.png"));
+    m_gradientImage3 = painter->addImage(QImage(":/images/gradient3.png"));
     image3Gray = painter->addImage(QImage(":/images/face-smile-bw.png"));
     image3Plain = painter->addImage(QImage(":/images/pattern2.png"));
     image3Nearest = painter->addImage(QImage(":/images/pattern2.png"),
@@ -187,10 +190,10 @@ void GalleryItemRenderer::paint(QCanvasPainter *painter)
 }
 
 void GalleryItemRenderer::drawRectsWithLinearGradient() {
-    int rects = 4;
+    int rects = 5;
     float margin = width()*0.02f;
-    float w = width() / (rects+1) - margin;
-    float posX = w*0.5 + margin;
+    float w = (width() - margin) / rects - margin;
+    float posX = margin;
     float posY = m_topMargin;
 
     QRectF rect1(posX,posY,w,w);
@@ -225,13 +228,20 @@ void GalleryItemRenderer::drawRectsWithLinearGradient() {
     g3.setColorAt(1.0f, QColorConstants::Transparent);
     painter()->setFillStyle(g3);
     painter()->fillRect(rect3);
+    posX += w + margin;
+
+    QRectF rect4(posX,posY,w,w);
+    QCanvasLinearGradient g4(rect4.topLeft(), rect4.bottomRight());
+    g4.setImage(m_gradientImage1);
+    painter()->setFillStyle(g4);
+    painter()->fillRect(rect4);
 }
 
 void GalleryItemRenderer::drawRectsWithRadialGradient() {
-    int rects = 4;
+    int rects = 5;
     float margin = width()*0.02f;
-    float w = width() / (rects+1) - margin;
-    float posX = w*0.5 + margin;
+    float w = (width() - margin) / rects - margin;
+    float posX = margin;
     float posY = m_topMargin + (w+margin);
 
     QRectF rect1(posX,posY,w,w);
@@ -270,13 +280,20 @@ void GalleryItemRenderer::drawRectsWithRadialGradient() {
     m_radGrad.setStops(stops);
     painter()->setFillStyle(m_radGrad);
     painter()->fillRect(rect4);
+    posX += w + margin;
+
+    QRectF rect5(posX,posY,w,w);
+    QCanvasRadialGradient g4(rect5.center(), rect5.width() / 2, rect5.width() * 0.1f);
+    g4.setImage(m_gradientImage3, m_animationSine * 128);
+    painter()->setFillStyle(g4);
+    painter()->fillRect(rect5);
 }
 
 void GalleryItemRenderer::drawRectsWithBoxGradient() {
-    int rects = 4;
+    int rects = 5;
     float margin = width()*0.02f;
-    float w = width() / (rects+1) - margin;
-    float posX = w*0.5 + margin;
+    float w = (width() - margin) / rects - margin;
+    float posX = margin;
     float posY = m_topMargin + 2*(w+margin);
 
     QRectF rect1(posX,posY,w,w);
@@ -313,13 +330,20 @@ void GalleryItemRenderer::drawRectsWithBoxGradient() {
     g4.setColorAt(1.0f, QColor(0, 0, 0, 0));
     painter()->setFillStyle(g4);
     painter()->fillRect(rect4);
+    posX += w + margin;
+
+    QRectF rect5(posX,posY,w,w);
+    QCanvasBoxGradient g5(rect5, w * 0.4f, w * 0.4f);
+    g5.setImage(m_gradientImage3, m_animationSine * 128);
+    painter()->setFillStyle(g5);
+    painter()->fillRect(rect5);
 }
 
 void GalleryItemRenderer::drawRectsWithConicalGradients() {
-    int rects = 4;
+    int rects = 5;
     float margin = width()*0.02f;
-    float w = width() / (rects+1) - margin;
-    float posX = w*0.5 + margin;
+    float w = (width() - margin) / rects - margin;
+    float posX = margin;
     float posY = m_topMargin + 3*(w+margin);
 
     QRectF rect1(posX,posY,w,w);
@@ -359,13 +383,20 @@ void GalleryItemRenderer::drawRectsWithConicalGradients() {
     g4.setEndColor(QColor(255, 255, 0, 255));
     painter()->setFillStyle(g4);
     painter()->fillRect(rect4);
+    posX += w + margin;
+
+    QRectF rect5(posX,posY,w,w);
+    QCanvasConicalGradient g5(rect5.center(), float(0.5 * M_PI));
+    g5.setImage(m_gradientImage2, m_animationSine * 256);
+    painter()->setFillStyle(g5);
+    painter()->fillRect(rect5);
 }
 
 void GalleryItemRenderer::drawRectsWithImagePattern() {
     int rects = 3;
     float margin = width()*0.02f;
-    float w = width() / (rects+2) - margin;
-    float posX = w + margin;
+    float w = (width() - margin) / (rects+2) - margin;
+    float posX = w + 2 * margin;
     float posY = m_topMargin + 4*(w+margin);
 
     QRectF rect1(posX,posY,w,w);
@@ -405,9 +436,9 @@ void GalleryItemRenderer::drawRectsWithBrushStroke()
     int rects = 3;
     float margin = width()*0.02f;
     float border = margin + margin * m_animationSine;
-    float w = width() / (rects+2) - margin;
+    float w = (width() - margin) / (rects+2) - margin;
     float w2 = w - border;
-    float posX = w + margin + border/2;
+    float posX = w + 2 * margin + border/2;
     float posY = m_topMargin + 5*(w+margin) + border/2;
 
     QRectF rect1(posX,posY,w2,w2);

@@ -182,7 +182,8 @@ QCPaint QCanvasConicalGradientPrivate::createPaint(QCanvasPainter *painter) cons
         if (d->gradientStops.size() == 0) {
             QColor icol = { 255, 255, 255, 255 };
             QColor ocol = { 0, 0, 0, 0 };
-            createConicalGradient(icol, ocol, 0);
+            // Note: Without stops, custom image might be used.
+            createConicalGradient(icol, ocol, d->imageId);
         } else if (d->gradientStops.size() == 1) {
             QColor c = d->gradientStops.first().color;
             createConicalGradient(c, c, 0);
@@ -197,7 +198,7 @@ QCPaint QCanvasConicalGradientPrivate::createPaint(QCanvasPainter *painter) cons
         }
         DECONST(d)->dirty = {};
     }
-    if (d->gradientStops.size() > 2) {
+    if (d->imageId > 0) {
         auto *painterPriv = QCanvasPainterPrivate::get(painter);
         painterPriv->markTextureIdUsed(d->imageId);
     }
@@ -221,6 +222,7 @@ void QCanvasConicalGradientPrivate::createConicalGradient(const QColor &iColor, 
     if (imageId != 0) {
         // Multistop gradient
         p.imageId = imageId;
+        p.innerColor.a = d->imageY;
     } else {
         // 2 stops gradient
         p.innerColor = { iColor.redF(), iColor.greenF(), iColor.blueF(), iColor.alphaF() };

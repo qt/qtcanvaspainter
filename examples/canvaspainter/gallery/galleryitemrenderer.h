@@ -96,6 +96,9 @@ private:
     QCanvasImage m_patternImage;
     QCanvasImage m_patternImage2;
     QCanvasImage m_patternImage3;
+    QCanvasImage m_gradientImage1;
+    QCanvasImage m_gradientImage2;
+    QCanvasImage m_gradientImage3;
     QCanvasImage image3Gray;
     QCanvasImage image3Plain;
     QCanvasImage image3Nearest;

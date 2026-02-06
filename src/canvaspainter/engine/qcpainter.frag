@@ -116,25 +116,25 @@ void main()
         if (type == 1 || type == 2) { // Linear Gradient
             float d = clamp(pt.y / feather, 0.0, 1.0);
             if (type == 2)
-                color = texture(tex, vec2(d, 0.5));
+                color = texture(tex, vec2(d, innerCol.a));
             else
                 color = mix(innerCol, outerCol, d);
         } else if (type == 3 || type == 4) { // Radial Gradient
             float d = clamp((length(pt) - radius + feather * 0.5) / feather, 0.0, 1.0);
             if (type == 4)
-                color = texture(tex, vec2(d, 0.5));
+                color = texture(tex, vec2(d, innerCol.a));
             else
                 color = mix(innerCol, outerCol, d);
         } else if (type == 5 || type == 6) { // Conical gradient
             float d = 0.5 - atan(pt.x, pt.y) * PI2_INV;
             if (type == 6)
-                color = texture(tex, vec2(d, 0.5));
+                color = texture(tex, vec2(d, innerCol.a));
             else
                 color = mix(innerCol, outerCol, d);
         } else if (type == 7 || type == 8) { // Box Gradient
             float d = clamp((roundedBox(pt, extent, radius) + feather) / feather, 0.0, 1.0);
             if (type == 8)
-                color = texture(tex, vec2(d, 0.5));
+                color = texture(tex, vec2(d, innerCol.a));
             else
                 color = mix(innerCol, outerCol, d);
         } else if (type == 9) { // Box Shadow
@@ -155,7 +155,7 @@ void main()
         } else { // Entended radial gradient
             float d = extendedRadialGradient(pt);
             if (type == 14)
-                color = texture(tex, vec2(d, 0.5));
+                color = texture(tex, vec2(d, innerCol.a));
             else
                 color = mix(innerCol, outerCol, d);
         }

@@ -66,6 +66,7 @@ public:
     QCPaint paint;
     DirtyFlags dirty;
     int imageId;
+    float imageY;
 };
 
 QT_END_NAMESPACE

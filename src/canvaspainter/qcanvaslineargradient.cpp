@@ -193,7 +193,8 @@ QCPaint QCanvasLinearGradientPrivate::createPaint(QCanvasPainter *painter) const
         if (d->gradientStops.size() == 0) {
             QColor icol = { 255, 255, 255, 255 };
             QColor ocol = { 0, 0, 0, 0 };
-            createLinearGradient(icol, ocol, 0);
+            // Note: Without stops, custom image might be used.
+            createLinearGradient(icol, ocol, d->imageId);
         } else if (d->gradientStops.size() == 1) {
             QColor c = d->gradientStops.first().color;
             createLinearGradient(c, c, 0);
@@ -208,7 +209,7 @@ QCPaint QCanvasLinearGradientPrivate::createPaint(QCanvasPainter *painter) const
         }
         DECONST(d)->dirty = {};
     }
-    if (d->gradientStops.size() > 2) {
+    if (d->imageId > 0) {
         auto *painterPriv = QCanvasPainterPrivate::get(painter);
         painterPriv->markTextureIdUsed(d->imageId);
     }
@@ -245,6 +246,7 @@ void QCanvasLinearGradientPrivate::createLinearGradient(const QColor &iColor, co
     if (imageId != 0) {
         // Multistop gradient
         p.imageId = imageId;
+        p.innerColor.a = d->imageY;
     } else {
         // 2 stops gradient
         p.innerColor = { iColor.redF(), iColor.greenF(), iColor.blueF(), iColor.alphaF() };

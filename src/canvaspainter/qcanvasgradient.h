@@ -16,6 +16,7 @@ QT_BEGIN_NAMESPACE
 
 class QCanvasGradientPrivate;
 class QCanvasGradient;
+class QCanvasImage;
 
 struct QCanvasGradientStop
 {
@@ -60,6 +61,7 @@ public:
     Q_CANVASPAINTER_EXPORT void setColorAt(float position, const QColor &color);
     Q_CANVASPAINTER_EXPORT void setStops(const QCanvasGradientStops &stops);
     Q_CANVASPAINTER_EXPORT QCanvasGradientStops stops() const;
+    Q_CANVASPAINTER_EXPORT void setImage(const QCanvasImage &image, int index = 0);
     inline void addColorStop(float position, const QColor &color);
 
 protected:
