@@ -22,10 +22,15 @@ public:
 
     QPointF centerPosition() const;
     void setCenterPosition(float x, float y);
-    void setCenterPosition(QPointF center);
+    inline void setCenterPosition(QPointF center);
     float angle() const;
     void setAngle(float angle);
 };
+
+inline void QCConicalGradient::setCenterPosition(QPointF center)
+{
+    setCenterPosition(float(center.x()), float(center.y()));
+}
 
 QT_END_NAMESPACE
 

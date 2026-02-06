@@ -142,14 +142,11 @@ void QCLinearGradient::setStartPosition(float x, float y)
 }
 
 /*!
+    \fn void QCLinearGradient::setStartPosition(QPointF start)
+    \overload
+
     Sets the start point of linear gradient to \a start.
 */
-
-void QCLinearGradient::setStartPosition(QPointF start)
-{
-    setStartPosition(float(start.x()),
-                     float(start.y()));
-}
 
 /*!
     Returns the end point of linear gradient.
@@ -176,14 +173,11 @@ void QCLinearGradient::setEndPosition(float x, float y)
 }
 
 /*!
+    \fn void QCLinearGradient::setEndPosition(QPointF end)
+    \overload
+
     Sets the end point of linear gradient to \a end.
 */
-
-void QCLinearGradient::setEndPosition(QPointF end)
-{
-    setEndPosition(float(end.x()),
-                   float(end.y()));
-}
 
 // ***** Private *****
 

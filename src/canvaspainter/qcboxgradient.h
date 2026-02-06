@@ -23,12 +23,17 @@ public:
 
     QRectF rect() const;
     void setRect(float x, float y, float width, float height);
-    void setRect(const QRectF &rect);
+    inline void setRect(const QRectF &rect);
     float feather() const;
     void setFeather(float feather);
     float radius() const;
     void setRadius(float radius);
 };
+
+inline void QCBoxGradient::setRect(const QRectF &rect)
+{
+    setRect(float(rect.x()), float(rect.y()), float(rect.width()), float(rect.height()));
+}
 
 QT_END_NAMESPACE
 

@@ -23,11 +23,21 @@ public:
 
     QPointF startPosition() const;
     void setStartPosition(float x, float y);
-    void setStartPosition(QPointF start);
+    inline void setStartPosition(QPointF start);
     QPointF endPosition() const;
     void setEndPosition(float x, float y);
-    void setEndPosition(QPointF end);
+    inline void setEndPosition(QPointF end);
 };
+
+inline void QCLinearGradient::setStartPosition(QPointF start)
+{
+    setStartPosition(float(start.x()), float(start.y()));
+}
+
+inline void QCLinearGradient::setEndPosition(QPointF end)
+{
+    setEndPosition(float(end.x()), float(end.y()));
+}
 
 QT_END_NAMESPACE
 

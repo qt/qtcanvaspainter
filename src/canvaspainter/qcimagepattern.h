@@ -40,10 +40,10 @@ public:
 
     QPointF startPosition() const;
     void setStartPosition(float x, float y);
-    void setStartPosition(QPointF point);
+    inline void setStartPosition(QPointF point);
     QSizeF imageSize() const;
     void setImageSize(float width, float height);
-    void setImageSize(QSizeF size);
+    inline void setImageSize(QSizeF size);
     QCImage image() const;
     void setImage(const QCImage &image);
     float rotation() const;
@@ -61,6 +61,16 @@ private:
 #ifndef QT_NO_DEBUG_STREAM
 Q_CANVASPAINTER_EXPORT QDebug operator<<(QDebug, const QCImagePattern &);
 #endif
+
+inline void QCImagePattern::setStartPosition(QPointF point)
+{
+    setStartPosition(float(point.x()), float(point.y()));
+}
+
+inline void QCImagePattern::setImageSize(QSizeF size)
+{
+    setImageSize(float(size.width()), float(size.height()));
+}
 
 QT_END_NAMESPACE
 

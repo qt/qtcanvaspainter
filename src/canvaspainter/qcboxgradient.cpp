@@ -160,14 +160,11 @@ void QCBoxGradient::setRect(float x, float y, float width, float height)
 }
 
 /*!
+    \fn void QCBoxGradient::setRect(const QRectF &rect)
+    \overload
+
     Sets the rectangle of box gradient to \a rect.
 */
-
-void QCBoxGradient::setRect(const QRectF &rect)
-{
-    setRect(float(rect.x()), float(rect.y()),
-            float(rect.width()), float(rect.height()));
-}
 
 /*!
     Returns the feather of the box gradient.
