@@ -54,14 +54,14 @@ public:
         float a0,
         float a1,
         QCPainter::PathWinding direction = QCPainter::PathWinding::ClockWise,
-        bool isConnected = true);
+        QCPainter::PathConnection connection = QCPainter::PathConnection::Connected);
     inline void arc(
         QPointF centerPoint,
         float radius,
         float a0,
         float a1,
         QCPainter::PathWinding direction = QCPainter::PathWinding::ClockWise,
-        bool isConnected = true);
+        QCPainter::PathConnection connection = QCPainter::PathConnection::Connected);
     void rect(float x, float y, float width, float height);
     inline void rect(const QRectF &rect);
     void roundRect(float x, float y, float width, float height, float radius);
@@ -153,10 +153,10 @@ inline void QCPainterPath::arc(
     float a0,
     float a1,
     QCPainter::PathWinding direction,
-    bool isConnected)
+    QCPainter::PathConnection connection)
 {
     arc(float(centerPoint.x()), float(centerPoint.y()),
-        radius, a0, a1, direction, isConnected);
+        radius, a0, a1, direction, connection);
 }
 
 inline void QCPainterPath::rect(const QRectF &rect)

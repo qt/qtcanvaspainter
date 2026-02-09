@@ -224,6 +224,21 @@ Q_LOGGING_CATEGORY(QC_INFO, "qt.qcpainter.general")
 */
 
 /*!
+    \enum QCPainter::PathConnection
+
+    With some drawing methods PathConnection is used to specify if the new
+    path should be connected to the last point of the previous path.
+
+    \value NotConnected There is no line drawn from the last point of
+    the previous path to the first point of the current path.
+
+    \value Connected The last point of the previous path will be connected to
+    the first point of the current path.
+
+    \sa arc()
+*/
+
+/*!
     \enum QCPainter::LineCap
 
     LineCap is used to define how the end of the line (cap) is drawn.
@@ -1281,7 +1296,7 @@ void QCPainter::arcTo(float x1, float y1, float x2, float y2, float radius)
     Creates new circle arc shaped sub-path. The arc center is at \a centerX, \a centerY,
     with \a radius, and the arc is drawn from angle \a a0 to \a a1,
     and swept in \a direction (ClockWise or CounterClockWise).
-    When \a isConnected is set to false, arc does not add line from the previous
+    When \a connection is \l{PathConnection::}{NotConnected}, arc does not add a line from the previous
     path position to the start of the arc.
     Angles are specified in radians.
     \table
@@ -1302,20 +1317,21 @@ void QCPainter::arcTo(float x1, float y1, float x2, float y2, float radius)
     QCPainter it is recommended to use \l circle() or \l ellipse() for those.
 */
 
-void QCPainter::arc(float centerX, float centerY, float radius, float a0, float a1, PathWinding direction, bool isConnected)
+void QCPainter::arc(float centerX, float centerY, float radius, float a0, float a1, PathWinding direction, PathConnection connection)
 {
     Q_D(QCPainter);
+    const bool isConnected = connection == PathConnection::Connected;
     d->m_e->addArc(centerX, centerY, radius, a0, a1, direction, isConnected);
 }
 
 /*!
-    \fn void QCPainter::arc(QPointF centerPoint, float radius, float a0, float a1, PathWinding direction, bool isConnected)
+    \fn void QCPainter::arc(QPointF centerPoint, float radius, float a0, float a1, PathWinding direction, PathConnection connection)
     \overload
 
     Creates new circle arc shaped sub-path. The arc center is at \a centerPoint,
     with \a radius, and the arc is drawn from angle \a a0 to \a a1,
     and swept in \a direction (ClockWise or CounterClockWise).
-    When \a isConnected is set to false, arc does not add line from the previous
+    When \a connection is \l{PathConnection::}{NotConnected}, arc does not add a line from the previous
     path position to the start of the arc.
     Angles are specified in radians.
 

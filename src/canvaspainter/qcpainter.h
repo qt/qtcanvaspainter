@@ -32,6 +32,7 @@ public:
     ~QCPainter();
 
     enum class PathWinding { CounterClockWise, ClockWise };
+    enum class PathConnection { NotConnected, Connected };
     enum class LineCap { Butt, Round, Square };
     enum class LineJoin { Round, Bevel, Miter };
     enum class TextAlign { Left, Right, Center, Start, End };
@@ -138,14 +139,14 @@ public:
         float a0,
         float a1,
         PathWinding direction = PathWinding::ClockWise,
-        bool isConnected = true);
+        PathConnection connection = PathConnection::Connected);
     inline void arc(
         QPointF centerPoint,
         float radius,
         float a0,
         float a1,
         PathWinding direction = PathWinding::ClockWise,
-        bool isConnected = true);
+        PathConnection connection = PathConnection::Connected);
     void rect(float x, float y, float width, float height);
     inline void rect(const QRectF &rect);
     void roundRect(float x, float y, float width, float height, float radius);
@@ -315,12 +316,12 @@ inline void QCPainter::arcTo(QPointF controlPoint1, QPointF controlPoint2, float
           radius);
 }
 
-inline void QCPainter::arc(QPointF centerPoint, float radius, float a0, float a1, PathWinding direction, bool isConnected)
+inline void QCPainter::arc(QPointF centerPoint, float radius, float a0, float a1, PathWinding direction, PathConnection connection)
 {
     arc(float(centerPoint.x()),
         float(centerPoint.y()),
         radius, a0, a1, direction,
-        isConnected);
+        connection);
 }
 
 inline void QCPainter::rect(const QRectF &rect)
