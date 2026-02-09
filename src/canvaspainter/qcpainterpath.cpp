@@ -951,10 +951,6 @@ qsizetype QCPainterPath::commandsDataCapacity() const
     Attempts to allocate memory for at least \a commandsSize commands
     and \a commandsDataSize data points. Some path elements require
     multiple commands, see \l commandsSize() and \l commandsDataSize().
-    If \a commandsDataSize parameter is not given, space is automatically
-    reserved for \c{2 * commandsSize} amount of data, which is optimal
-    amount when the path commands are straight lines (\l moveTo(),
-    \l lineTo(), \l rect()).
 
     Reserving correct space is an optimization for path creation and
     memory usage. It isn't mandatory as sufficient space will automatically
@@ -972,6 +968,31 @@ void QCPainterPath::reserve(qsizetype commandsSize, qsizetype commandsDataSize)
     else
         d->commandsData.resize(commandsDataSize);
 
+}
+
+/*!
+    Reserves a given amounts of space in QCPainterPath's internal memory.
+
+    \overload
+
+    Attempts to allocate memory for at least \a commandsSize commands. Some path
+    elements require multiple commands, see \l commandsSize() and \l
+    commandsDataSize().
+
+    Space is automatically reserved for \c{2 * commandsSize} amount of data,
+    which is optimal amount when the path commands are straight lines (\l
+    moveTo(), \l lineTo(), \l rect()).
+
+    Reserving correct space is an optimization for path creation and
+    memory usage. It isn't mandatory as sufficient space will automatically
+    be ensured while adding commands into the path.
+
+    \sa squeeze(), commandsCapacity(), commandsDataCapacity()
+*/
+
+void QCPainterPath::reserve(qsizetype commandsSize)
+{
+    reserve(commandsSize, -1);
 }
 
 /*!
