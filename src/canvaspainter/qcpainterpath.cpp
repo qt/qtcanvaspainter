@@ -394,7 +394,7 @@ void QCPainterPath::arcTo(float x1, float y1, float x2, float y2, float radius)
         a1 = std::atan2(dx1, -dy1);
     }
 
-    arc(cx, cy, radius, a0, a1, direction, true);
+    arc(cx, cy, radius, a0, a1, direction, QCPainter::PathConnection::Connected);
 }
 
 /*!
@@ -405,10 +405,11 @@ void QCPainterPath::arcTo(float x1, float y1, float x2, float y2, float radius)
 */
 
 /*!
-    Creates an arc centered on QPointF(\a centerX, \a centerY) with the given \a radius,
-    starting at an angle of \a a0 radians and ending at \a a1 radians. The arc spans the
-    given \a direction. If \a isConnected is \c false, the previous path is closed and
-    a new sub-path is started.
+    Creates an arc centered on QPointF(\a centerX, \a centerY) with the given \a
+    radius, starting at an angle of \a a0 radians and ending at \a a1 radians.
+    The arc spans the given \a direction. When \a connection is
+    \l{QCPainter::PathConnection::}{NotConnected}, the previous path is closed and a new
+    sub-path is started.
 */
 void QCPainterPath::arc(
     float centerX,
@@ -417,7 +418,7 @@ void QCPainterPath::arc(
     float a0,
     float a1,
     QCPainter::PathWinding direction,
-    bool isConnected)
+    QCPainter::PathConnection connection)
 {
     Q_D(QCPainterPath);
     // Clamp angles
@@ -445,6 +446,7 @@ void QCPainterPath::arc(
     if (direction == QCPainter::PathWinding::CounterClockWise)
         kappa = -kappa;
 
+    const bool isConnected = connection == QCPainter::PathConnection::Connected;
     QCCommand firstCmd = d->commandsCount == 0 || !isConnected ? QCCommand::MoveTo : QCCommand::LineTo;
     float prevtanx = 0, prevtany = 0;
     float prevvx = 0, prevvy = 0;
@@ -485,13 +487,14 @@ void QCPainterPath::arc(
 }
 
 /*!
-    \fn void QCPainterPath::arc(QPointF centerPoint, float radius, float a0, float a1, QCPainter::PathWinding direction, bool isConnected)
+    \fn void QCPainterPath::arc(QPointF centerPoint, float radius, float a0, float a1, QCPainter::PathWinding direction, QCPainter::PathConnection connection)
     \overload
 
-    Creates an arc centered on \a centerPoint with the given \a radius,
-    starting at an angle of \a a0 radians and ending at \a a1 radians. The arc spans the
-    given \a direction. If \a isConnected is \c false, the previous path is closed and
-    a new sub-path is started.
+    Creates an arc centered on \a centerPoint with the given \a radius, starting
+    at an angle of \a a0 radians and ending at \a a1 radians. The arc spans the
+    given \a direction. When \a connection is
+    \l{QCPainter::PathConnection::}{NotConnected}, the previous path is closed
+    and a new sub-path is started.
 */
 
 /*!
