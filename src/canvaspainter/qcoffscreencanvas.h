@@ -37,9 +37,6 @@ public:
     QT_MOVE_ASSIGNMENT_OPERATOR_IMPL_VIA_PURE_SWAP(QCOffscreenCanvas)
     void swap(QCOffscreenCanvas &other) noexcept { d.swap(other.d); }
 
-    bool operator==(const QCOffscreenCanvas &canvas) const noexcept;
-    bool operator!=(const QCOffscreenCanvas &canvas) const noexcept { return !(operator==(canvas)); }
-
     void detach();
 
     bool isNull() const;
@@ -52,6 +49,9 @@ public:
     QRhiTexture *texture() const;
 
 private:
+    friend Q_CANVASPAINTER_EXPORT bool comparesEqual(const QCOffscreenCanvas &lhs, const QCOffscreenCanvas &rhs) noexcept;
+    Q_DECLARE_EQUALITY_COMPARABLE(QCOffscreenCanvas)
+
     QExplicitlySharedDataPointer<QCOffscreenCanvasPrivate> d;
     friend class QCOffscreenCanvasPrivate;
 };

@@ -29,8 +29,6 @@ public:
     QT_MOVE_ASSIGNMENT_OPERATOR_IMPL_VIA_PURE_SWAP(QCImage)
     void swap(QCImage &other) noexcept { d.swap(other.d); }
 
-    bool operator==(const QCImage &image) const noexcept;
-    bool operator!=(const QCImage &image) const noexcept { return !(operator==(image)); }
     operator QVariant() const;
 
     void detach();
@@ -46,7 +44,10 @@ public:
 
     // TODO: Add API for image rotation angle? Or rely only on state transformation?
 
-protected:
+private:
+    friend Q_CANVASPAINTER_EXPORT bool comparesEqual(const QCImage &lhs, const QCImage &rhs) noexcept;
+    Q_DECLARE_EQUALITY_COMPARABLE(QCImage)
+
     QExplicitlySharedDataPointer<QCImagePrivate> d;
     friend class QCImagePrivate;
 #ifndef QT_NO_DEBUG_STREAM

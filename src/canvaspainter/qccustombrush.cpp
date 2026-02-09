@@ -146,30 +146,27 @@ QCCustomBrush::operator QVariant() const
 }
 
 /*!
-    \fn bool QCCustomBrush::operator!=(const QCCustomBrush &brush) const
+    \fn bool QCCustomBrush::operator!=(const QCCustomBrush &lhs, const QCCustomBrush &rhs)
 
-    Returns \c true if the custom brush is different from the given \a brush;
-    otherwise false.
+    \return \c true if the custom brush \a lhs is different from \a rhs; \c false otherwise.
 
     \sa operator==()
 */
 
 /*!
-    \fn bool QCCustomBrush::operator==(const QCCustomBrush &brush) const
+    \fn bool QCCustomBrush::operator==(const QCCustomBrush &lhs, const QCCustomBrush &rhs)
 
-    Returns \c true if the custom brush is equal to the given \a brush;
-    otherwise false.
+    \return \c true if the custom brush \a lhs is equal to \a rhs; \c false otherwise.
 
     \sa operator!=()
 */
-
-bool QCCustomBrush::operator==(const QCCustomBrush &b) const noexcept
+bool comparesEqual(const QCCustomBrush &lhs, const QCCustomBrush &rhs) noexcept
 {
-    if (b.baseData == baseData)
+    auto *d = QCCustomBrushPrivate::get(&lhs);
+    auto *bd = QCCustomBrushPrivate::get(&rhs);
+    if (bd == d)
         return true;
 
-    auto *d = QCCustomBrushPrivate::get(this);
-    auto *bd = QCCustomBrushPrivate::get(&b);
     if (d->fragmentShader != bd->fragmentShader
         || d->vertexShader != bd->vertexShader
         || d->timeRunning != bd->timeRunning

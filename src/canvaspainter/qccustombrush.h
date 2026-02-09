@@ -28,8 +28,6 @@ public:
                   const QString &vertexShader = {});
     ~QCCustomBrush();
 
-    bool operator==(const QCCustomBrush &brush) const noexcept;
-    bool operator!=(const QCCustomBrush &brush) const noexcept { return !(operator==(brush)); }
     operator QVariant() const;
 
     void setFragmentShader(const QString &fragmentShader);
@@ -46,6 +44,9 @@ public:
     void setData4(const QVector4D &data);
 
 private:
+    friend Q_CANVASPAINTER_EXPORT bool comparesEqual(const QCCustomBrush &lhs, const QCCustomBrush &rhs) noexcept;
+    Q_DECLARE_EQUALITY_COMPARABLE(QCCustomBrush)
+
     friend class QCCustomBrushPrivate;
 #ifndef QT_NO_DEBUG_STREAM
     friend Q_CANVASPAINTER_EXPORT QDebug operator<<(QDebug, const QCCustomBrush &);

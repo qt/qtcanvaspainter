@@ -31,8 +31,6 @@ public:
                   float lineWidth = 1.0f, float feather = 1.0f, float angle = 0.0f);
     ~QCGridPattern();
 
-    bool operator==(const QCGridPattern &pattern) const noexcept;
-    bool operator!=(const QCGridPattern &pattern) const noexcept { return !(operator==(pattern)); }
     operator QVariant() const;
 
     QPointF startPosition() const;
@@ -53,6 +51,9 @@ public:
     void setBackgroundColor(const QColor &color);
 
 private:
+    friend Q_CANVASPAINTER_EXPORT bool comparesEqual(const QCGridPattern &lhs, const QCGridPattern &rhs) noexcept;
+    Q_DECLARE_EQUALITY_COMPARABLE(QCGridPattern)
+
     friend class QCGridPatternPrivate;
 #ifndef QT_NO_DATASTREAM
     friend Q_CANVASPAINTER_EXPORT QDataStream &operator<<(QDataStream &, const QCGridPattern &);

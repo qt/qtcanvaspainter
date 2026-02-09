@@ -132,29 +132,27 @@ QCGridPattern::operator QVariant() const
 }
 
 /*!
-    \fn bool QCGridPattern::operator!=(const QCGridPattern &pattern) const
+    \fn bool QCGridPattern::operator!=(const QCGridPattern &lhs, const QCGridPattern &rhs)
 
-    Returns \c true if the grid pattern is different from the given \a pattern;
-    otherwise false.
+    \return \c true if the grid pattern \a lhs is different from \a rhs; \c false otherwise.
 
     \sa operator==()
 */
 
 /*!
-    \fn bool QCGridPattern::operator==(const QCGridPattern &pattern) const
+    \fn bool QCGridPattern::operator==(const QCGridPattern &lhs, const QCGridPattern &rhs)
 
-    Returns \c true if the grid pattern is equal to the given \a pattern; otherwise
-    false.
+    \return \c true if the grid pattern \a lhs is equal to \a rhs; \c false otherwise.
 
     \sa operator!=()
 */
-
-bool QCGridPattern::operator==(const QCGridPattern &p) const noexcept
+bool comparesEqual(const QCGridPattern &lhs, const QCGridPattern &rhs) noexcept
 {
-    G_D();
-    auto *pd = QCGridPatternPrivate::get(&p);
+    auto *d = QCGridPatternPrivate::get(&lhs);
+    auto *pd = QCGridPatternPrivate::get(&rhs);
     if (pd == d)
         return true;
+
     if (d->x != pd->x
         || d->y != pd->y
         || d->width != pd->width

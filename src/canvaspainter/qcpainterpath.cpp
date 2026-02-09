@@ -191,40 +191,39 @@ QCPainterPath::operator QVariant() const
 }
 
 /*!
-    \fn bool QCPainterPath::operator!=(const QCPainterPath &path) const
+    \fn bool QCPainterPath::operator!=(const QCPainterPath &lhs, const QCPainterPath &rhs)
 
-    Returns \c true if the path is different from the given \a path;
-    otherwise false.
+    \return \c true if the path \a lhs is different from \a rhs; \c false otherwise.
 
     \sa operator==()
 */
 
 /*!
-    \fn bool QCPainterPath::operator==(const QCPainterPath &path) const
+    \fn bool QCPainterPath::operator==(const QCPainterPath &lhs, const QCPainterPath &rhs)
 
-    Returns \c true if the path is equal to the given \a path; otherwise
-    false.
+    \return \c true if the path \a lhs is equal to \a rhs; \c false otherwise.
 
     \sa operator!=()
 */
-
-bool QCPainterPath::operator==(const QCPainterPath &p) const
+bool comparesEqual(const QCPainterPath &lhs, const QCPainterPath &rhs) noexcept
 {
-    if (p.d_ptr == d_ptr)
+    auto *d = QCPainterPathPrivate::get(&lhs);
+    auto *pd = QCPainterPathPrivate::get(&rhs);
+    if (pd == d)
         return true;
 
-    if (p.d_ptr->commandsCount != d_ptr->commandsCount ||
-        p.d_ptr->commandsDataCount != d_ptr->commandsDataCount)
+    if (pd->commandsCount != d->commandsCount ||
+        pd->commandsDataCount != d->commandsDataCount)
         return false;
 
     // Note: Check commands and data up to their count, not
     // to full size of the lists.
-    for (qsizetype i = 0; i < d_ptr->commandsCount; ++i) {
-        if (d_ptr->commands.at(i) != p.d_ptr->commands.at(i))
+    for (qsizetype i = 0; i < d->commandsCount; ++i) {
+        if (d->commands.at(i) != pd->commands.at(i))
             return false;
     }
-    for (qsizetype i = 0; i < d_ptr->commandsDataCount; ++i) {
-        if (!qFuzzyCompare(d_ptr->commandsData.at(i), p.d_ptr->commandsData.at(i)))
+    for (qsizetype i = 0; i < d->commandsDataCount; ++i) {
+        if (!qFuzzyCompare(d->commandsData.at(i), pd->commandsData.at(i)))
             return false;
     }
 

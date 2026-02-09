@@ -126,33 +126,37 @@ QCImage::operator QVariant() const
 }
 
 /*!
-    \fn bool QCImage::operator!=(const QCImage &image) const
+    \fn bool QCImage::operator!=(const QCImage &lhs, const QCImage &rhs)
 
-    Returns \c true if the image is different from the given \a image;
-    otherwise false.
+    \return \c true if the image handle \a lhs is different from \a rhs; \c false otherwise.
 
     \sa operator==()
 */
 
 /*!
-    \fn bool QCImage::operator==(const QCImage &image) const
+    \fn bool QCImage::operator==(const QCImage &lhs, const QCImage &rhs)
 
-    Returns \c true if the image is equal to the given \a image; otherwise
-    false.
+    \return \c true if the image handle \a lhs is equal to \a rhs; \c false otherwise.
+
+    \note Equality means that the two image objects reference the same graphics
+    resources and the tint colors are the same. The contents (pixel data) is not
+    compared.
 
     \sa operator!=()
 */
-
-bool QCImage::operator==(const QCImage &i) const noexcept
+bool comparesEqual(const QCImage &lhs, const QCImage &rhs) noexcept
 {
-    if (i.d == d)
+    auto *d = QCImagePrivate::get(&lhs);
+    auto *pd = QCImagePrivate::get(&rhs);
+    if (pd == d)
         return true;
-    if (i.d->id != d->id ||
-        i.d->width != d->width ||
-        i.d->height != d->height ||
-        i.d->size != d->size ||
-        i.d->type != d->type ||
-        i.d->tintColor != d->tintColor)
+
+    if (pd->id != d->id ||
+        pd->width != d->width ||
+        pd->height != d->height ||
+        pd->size != d->size ||
+        pd->type != d->type ||
+        pd->tintColor != d->tintColor)
         return false;
     return true;
 }

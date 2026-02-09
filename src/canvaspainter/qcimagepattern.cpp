@@ -142,27 +142,24 @@ QCImagePattern::operator QVariant() const
 }
 
 /*!
-    \fn bool QCImagePattern::operator!=(const QCImagePattern &pattern) const
+    \fn bool QCImagePattern::operator!=(const QCImagePattern &lhs, const QCImagePattern &rhs)
 
-    Returns \c true if the image pattern is different from the given \a pattern;
-    otherwise false.
+    \return \c true if the image pattern \a lhs is different from \a rhs; \c false otherwise.
 
     \sa operator==()
 */
 
 /*!
-    \fn bool QCImagePattern::operator==(const QCImagePattern &pattern) const
+    \fn bool QCImagePattern::operator==(const QCImagePattern &lhs, const QCImagePattern &rhs)
 
-    Returns \c true if the image pattern is equal to the given \a pattern; otherwise
-    false.
+    \return \c true if the image pattern \a lhs is equal to \a rhs; \c false otherwise.
 
     \sa operator!=()
 */
-
-bool QCImagePattern::operator==(const QCImagePattern &p) const noexcept
+bool comparesEqual(const QCImagePattern &lhs, const QCImagePattern &rhs) noexcept
 {
-    auto *d = QCImagePatternPrivate::get(this);
-    auto *pd = QCImagePatternPrivate::get(&p);
+    auto *d = QCImagePatternPrivate::get(&lhs);
+    auto *pd = QCImagePatternPrivate::get(&rhs);
 
     if (pd == d)
         return true;

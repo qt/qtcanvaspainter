@@ -34,8 +34,6 @@ public:
     QCImagePattern(const QCImage &image, float x, float y, float width, float height, float angle = 0.0f, const QColor &tintColor = QColorConstants::White);
     ~QCImagePattern();
 
-    bool operator==(const QCImagePattern &pattern) const noexcept;
-    bool operator!=(const QCImagePattern &pattern) const noexcept { return !(operator==(pattern)); }
     operator QVariant() const;
 
     QPointF startPosition() const;
@@ -52,6 +50,9 @@ public:
     void setTintColor(const QColor &color);
 
 private:
+    friend Q_CANVASPAINTER_EXPORT bool comparesEqual(const QCImagePattern &lhs, const QCImagePattern &rhs) noexcept;
+    Q_DECLARE_EQUALITY_COMPARABLE(QCImagePattern)
+
     friend class QCImagePatternPrivate;
 #ifndef QT_NO_DEBUG_STREAM
     friend Q_CANVASPAINTER_EXPORT QDebug operator<<(QDebug, const QCImagePattern &);

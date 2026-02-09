@@ -103,16 +103,34 @@ QCOffscreenCanvas &QCOffscreenCanvas::operator=(const QCOffscreenCanvas &canvas)
 }
 
 /*!
-    \return true if this and the \a other canvas are the same, meaning their
-    fill colors are the same and they reference the same graphics resources.
- */
-bool QCOffscreenCanvas::operator==(const QCOffscreenCanvas &other) const noexcept
+    \fn bool QCOffscreenCanvas::operator!=(const QCOffscreenCanvas &lhs, const QCOffscreenCanvas &rhs)
+
+    \return \c true if the canvas handle \a lhs is different from \a rhs; \c false otherwise.
+
+    \sa operator==()
+*/
+
+/*!
+    \fn bool QCOffscreenCanvas::operator==(const QCOffscreenCanvas &lhs, const QCOffscreenCanvas &rhs)
+
+    \return \c true if the canvas handle \a lhs is equal to \a rhs; \c false otherwise.
+
+    \note Equality means that the two canvas objects' fill colors are the same and they
+    reference the same graphics resources. The contents (pixel data) is not
+    compared.
+
+    \sa operator!=()
+*/
+bool comparesEqual(const QCOffscreenCanvas &lhs, const QCOffscreenCanvas &rhs) noexcept
 {
-    if (other.d == d)
+    auto *d = QCOffscreenCanvasPrivate::get(&lhs);
+    auto *pd = QCOffscreenCanvasPrivate::get(&rhs);
+
+    if (pd == d)
         return true;
 
-    if (other.d->rhiCanvas != d->rhiCanvas
-        || other.d->fillColor != d->fillColor)
+    if (pd->rhiCanvas != d->rhiCanvas
+        || pd->fillColor != d->fillColor)
     {
         return false;
     }
