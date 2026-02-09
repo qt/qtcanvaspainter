@@ -85,29 +85,24 @@ QCGradient::operator QVariant() const
 }
 
 /*!
-    \fn bool QCGradient::operator!=(const QCGradient &gradient) const
+    \fn bool QCGradient::operator!=(const QCGradient &lhs, const QCGradient &rhs)
 
-    Returns \c true if the gradient is different from the given \a gradient;
-    otherwise false.
+    \return \c true if the gradient \a lhs is different from \a rhs; \c false otherwise.
 
     \sa operator==()
 */
 
 /*!
-    \fn bool QCGradient::operator==(const QCGradient &gradient) const
+    \fn bool QCGradient::operator==(const QCGradient &lhs, const QCGradient &rhs)
 
-    Returns \c true if the gradient is equal to the given \a gradient; otherwise
-    false.
+    \return \c true if the gradient \a lhs is equal to \a rhs; \c false otherwise.
 
     \sa operator!=()
 */
-
-#define G_D() auto *d = QCGradientPrivate::get(this)
-
-bool QCGradient::operator==(const QCGradient &g) const noexcept
+bool comparesEqual(const QCGradient &lhs, const QCGradient &rhs) noexcept
 {
-    G_D();
-    auto *gd = QCGradientPrivate::get(&g);
+    auto *d = QCGradientPrivate::get(&lhs);
+    auto *gd = QCGradientPrivate::get(&rhs);
     if (gd == d)
         return true;
     if (gd->type != d->type)
@@ -299,6 +294,8 @@ QDataStream &operator>>(QDataStream &s, QCGradient &g)
 }
 
 #endif // QT_NO_DATASTREAM
+
+#define G_D() auto *d = QCGradientPrivate::get(this)
 
 /*!
     Returns the type of gradient.

@@ -22,15 +22,11 @@ struct QCGradientStop
     float position;
     QColor color;
 
-    friend bool operator==(const QCGradientStop &a, const QCGradientStop &b) noexcept
+    friend constexpr bool comparesEqual(const QCGradientStop &lhs, const QCGradientStop &rhs) noexcept
     {
-        return qFuzzyCompare(a.position, b.position) && a.color == b.color;
+        return qFuzzyCompare(lhs.position, rhs.position) && lhs.color == rhs.color;
     }
-
-    friend bool operator!=(const QCGradientStop &a, const QCGradientStop &b) noexcept
-    {
-        return !(a == b);
-    }
+    Q_DECLARE_EQUALITY_COMPARABLE_LITERAL_TYPE(QCGradientStop)
 };
 
 typedef QList<QCGradientStop> QCGradientStops;
@@ -45,8 +41,6 @@ Q_CANVASPAINTER_EXPORT QDataStream &operator>>(QDataStream &, QCGradient &);
 class Q_CANVASPAINTER_EXPORT QCGradient : public QCBrush
 {
 public:
-    bool operator==(const QCGradient &gradient) const noexcept;
-    bool operator!=(const QCGradient &gradient) const noexcept { return !(operator==(gradient)); }
     operator QVariant() const;
 
     QCBrush::BrushType type() const;
@@ -61,7 +55,11 @@ public:
 
 protected:
     QCGradient(QCGradientPrivate *);
+
 private:
+    friend Q_CANVASPAINTER_EXPORT bool comparesEqual(const QCGradient &lhs, const QCGradient &rhs) noexcept;
+    Q_DECLARE_EQUALITY_COMPARABLE(QCGradient)
+
     friend class QCGradientPrivate;
 #ifndef QT_NO_DEBUG_STREAM
     friend Q_CANVASPAINTER_EXPORT QDebug operator<<(QDebug dbg, const QCGradientStop &stop);

@@ -28,8 +28,6 @@ public:
     QCBoxShadow(float x, float y, float width, float height, float radius = 0.0f, float blur = 0.0f, const QColor &color = QColorConstants::Black);
     ~QCBoxShadow();
 
-    bool operator==(const QCBoxShadow &shadow) const noexcept;
-    bool operator!=(const QCBoxShadow &shadow) const noexcept { return !(operator==(shadow)); }
     operator QVariant() const;
 
     QRectF rect() const;
@@ -55,6 +53,9 @@ public:
     void setBottomRightRadius(float radius);
 
 private:
+    friend Q_CANVASPAINTER_EXPORT bool comparesEqual(const QCBoxShadow &lhs, const QCBoxShadow &rhs) noexcept;
+    Q_DECLARE_EQUALITY_COMPARABLE(QCBoxShadow)
+
     friend class QCPainter;
     friend class QCPainterPrivate;
     friend class QCBoxShadowPrivate;

@@ -104,27 +104,24 @@ QCBoxShadow::operator QVariant() const
 }
 
 /*!
-    \fn bool QCBoxShadow::operator!=(const QCBoxShadow &shadow) const
+    \fn bool QCBoxShadow::operator!=(const QCBoxShadow &lhs, const QCBoxShadow &rhs)
 
-    Returns \c true if the box shadow is different from the given \a shadow;
-    otherwise false.
+    \return \c true if the box shadow \a lhs is different from \a rhs; \c false otherwise.
 
     \sa operator==()
 */
 
 /*!
-    \fn bool QCBoxShadow::operator==(const QCBoxShadow &shadow) const
+    \fn bool QCBoxShadow::operator==(const QCBoxShadow &lhs, const QCBoxShadow &rhs)
 
-    Returns \c true if the box shadow is equal to the given \a shadow;
-    otherwise false.
+    \return \c true if the box shadow \a lhs is equal to \a rhs; \c false otherwise.
 
     \sa operator!=()
 */
-
-bool QCBoxShadow::operator==(const QCBoxShadow &p) const noexcept
+bool comparesEqual(const QCBoxShadow &lhs, const QCBoxShadow &rhs) noexcept
 {
-    B_D();
-    auto *pd = QCBoxShadowPrivate::get(&p);
+    auto *d = QCBoxShadowPrivate::get(&lhs);
+    auto *pd = QCBoxShadowPrivate::get(&rhs);
     if (pd == d)
         return true;
 

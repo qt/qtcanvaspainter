@@ -30,8 +30,6 @@ public:
     QT_MOVE_ASSIGNMENT_OPERATOR_IMPL_VIA_PURE_SWAP(QCPainterPath)
     void swap(QCPainterPath &other) noexcept { qt_ptr_swap(d_ptr, other.d_ptr); }
 
-    bool operator==(const QCPainterPath &path) const;
-    bool operator!=(const QCPainterPath &path) const { return !(operator==(path)); }
     operator QVariant() const;
 
     // Path commands
@@ -109,6 +107,9 @@ public:
     [[nodiscard]] QCPainterPath sliced(qsizetype start, qsizetype count, const QTransform &transform = QTransform()) const;
 
 private:
+    friend Q_CANVASPAINTER_EXPORT bool comparesEqual(const QCPainterPath &lhs, const QCPainterPath &rhs) noexcept;
+    Q_DECLARE_EQUALITY_COMPARABLE(QCPainterPath)
+
     friend class QCPainterEngine;
     friend class QCPainterRhiRenderer;
 
