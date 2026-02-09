@@ -25,7 +25,7 @@ public:
     ~QCImage();
 
     QCImage &operator=(const QCImage &image) noexcept;
-    QCImage(QCImage &&other) noexcept = default;
+    QCImage(QCImage &&other) = default;
     QT_MOVE_ASSIGNMENT_OPERATOR_IMPL_VIA_PURE_SWAP(QCImage)
     void swap(QCImage &other) noexcept { d.swap(other.d); }
 

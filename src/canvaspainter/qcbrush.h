@@ -35,7 +35,7 @@ public:
     ~QCBrush();
 
     QCBrush &operator=(const QCBrush &brush) noexcept;
-    QCBrush(QCBrush &&other) noexcept = default;
+    QCBrush(QCBrush &&other) = default;
     QT_MOVE_ASSIGNMENT_OPERATOR_IMPL_VIA_PURE_SWAP(QCBrush)
     void swap(QCBrush &other) noexcept { baseData.swap(other.baseData); }
 

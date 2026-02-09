@@ -33,7 +33,7 @@ public:
     QCOffscreenCanvas(const QCOffscreenCanvas &canvas);
     ~QCOffscreenCanvas();
     QCOffscreenCanvas &operator=(const QCOffscreenCanvas &canvas) noexcept;
-    QCOffscreenCanvas(QCOffscreenCanvas &&other) noexcept = default;
+    QCOffscreenCanvas(QCOffscreenCanvas &&other) = default;
     QT_MOVE_ASSIGNMENT_OPERATOR_IMPL_VIA_PURE_SWAP(QCOffscreenCanvas)
     void swap(QCOffscreenCanvas &other) noexcept { d.swap(other.d); }
 
