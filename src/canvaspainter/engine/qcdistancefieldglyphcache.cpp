@@ -29,6 +29,7 @@ QList<QGlyphRun> QCDistanceFieldGlyphCache::generateGlyphRuns(
     const QFontMetrics &metrics, QCState *state, QCPainter::TextAlign alignment)
 {
     QTextOption option;
+    option.setFlags(QTextOption::DisableEmojiParsing);
     option.setWrapMode(QCTextLayout::convertToQtWrapMode(state->textWrapMode));
     option.setAlignment(QCTextLayout::convertToQtAlignment(alignment));
     m_layout.clearLayout();
