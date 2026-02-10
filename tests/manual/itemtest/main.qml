@@ -48,30 +48,59 @@ ApplicationWindow {
                 width: parent.width
 
                 HelloItem {
+                    sampleCount: cbMsaa.checked ? 4 : 1
+                    aa: aaSlider.value
                     anchors.fill: parent
                     alphaBlending: cbTransparentBackground.checked
                     fillColor: cbTransparentBackground.checked ? "transparent" : "white"
                 }
             }
 
-            ColumnLayout {
+            Pane {
                 anchors.right: parent.right
                 anchors.bottom: parent.bottom
+                width: parent.width / 2
                 anchors.margins: 4
-                CheckBox {
-                    id: cbTransparentBackground
-                    text: "Transparent background"
-                    checked: true
-                }
-                Button {
-                    text: "Reparent to new window"
-                    onClicked: {
-                        if (w2.visible) {
-                            content.parent = w1root
-                            w2.visible = false
-                        } else {
-                            content.parent = w2root
-                            w2.visible = true
+
+                ColumnLayout {
+                    anchors.fill: parent
+                    CheckBox {
+                        id: cbTransparentBackground
+                        text: "Transparent background"
+                        checked: true
+                    }
+                    RowLayout {
+                        Layout.fillWidth: true
+                        Label {
+                            text: "AA amount"
+                        }
+                        Text {
+                            text: aaSlider.value.toFixed(1)
+                            Layout.minimumWidth: 25
+                        }
+                        Slider {
+                            Layout.fillWidth: true
+                            id: aaSlider
+                            from: 0.0
+                            to: 10.0
+                            value: 1.0
+                        }
+                    }
+                    CheckBox {
+                        id: cbMsaa
+                        text: "MSAA"
+                        checked: false
+                    }
+                    Button {
+                        text: "Reparent to new window"
+                        onClicked: {
+                            if (w2.visible) {
+                                content.parent = w1root
+                                w2.visible = false
+                            } else {
+                                content.parent = w2root
+                                w2.visible = true
+                            }
                         }
                     }
                 }
