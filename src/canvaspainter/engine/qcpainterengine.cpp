@@ -1036,6 +1036,9 @@ void QCPainterEngine::fillText(const QString &text, const QRectF &rect)
     int width, height;
     auto tex = m_renderer->populateFont(state.font, rect, text, textVertices, textIndices, &width, &height);
 
+    if (textVertices.empty())
+        return;
+
     const QCPaint p = getFillPaint();
     ctx.fontId = tex;
     updateStateFontVars();
