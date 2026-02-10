@@ -35,22 +35,22 @@ public:
             logo = p->addImage(logoImage, QCanvasPainter::ImageFlag::Repeat);
     }
 
-    void synchronize(QCanvasPainterItem *) override
-    {
-        //qDebug() << "synchronize";
-    }
+    inline void synchronize(QCanvasPainterItem *painterItem) override;
 
     void paint(QCanvasPainter *p) override
     {
+        p->setAntialias(m_antialiasAmount);
         paintHelloItem(p, width(), height(), &logo);
     }
 
     QCanvasImage logo;
+    float m_antialiasAmount;
 };
 
 class HelloItem : public QCanvasPainterItem
 {
     Q_OBJECT
+    Q_PROPERTY(float aa READ aa WRITE setAa NOTIFY aaChanged)
 
 public:
     HelloItem(QQuickItem *parent = nullptr)
@@ -58,10 +58,34 @@ public:
     {
     }
 
+    float aa() const { return m_aa; }
+    void setAa(float a)
+    {
+        if (qFuzzyCompare(a, m_aa))
+            return;
+        m_aa = a;
+        emit aaChanged();
+        update();
+    }
+
     QCanvasPainterItemRenderer *createItemRenderer() const override
     {
         return new HelloItemRenderer;
     }
+
+signals:
+    void aaChanged();
+
+public:
+    float m_aa = 1.0f;
 };
+
+inline void HelloItemRenderer::synchronize(QCanvasPainterItem *painterItem)
+{
+    //qDebug() << "synchronize";
+
+    auto *item = static_cast<HelloItem *>(painterItem);
+    m_antialiasAmount = item->m_aa;
+}
 
 #endif // ITEMTEST_H
