@@ -51,6 +51,9 @@ using namespace Qt::Literals::StringLiterals;
 #define QCPAINTER_INITIAL_TOTAL_TEXTURES_SIZE 16
 #endif
 
+// must match vertUBuf in qcpainter.vert
+constexpr int VERT_UNIFORM_BUFFER_COMMON_REGION_SIZE = 96;
+
 // Note: Values need to match with the 'type' in shader code.
 enum QCRHIShaderType {
     ShaderColor = 0,
@@ -436,6 +439,7 @@ struct QCRHIContext
     float viewRect[4] = {};
     int oneCommonUniformBufferSize = 0;
     int oneVertUniformBufferSize = 0;
+    int vertUniformBufferCommonRegionAlignedSize = 0;
     QCPainterRhiRenderer::RenderFlags flags = QCPainterRhiRenderer::Antialiasing;
 
     // Per frame buffers
@@ -467,9 +471,7 @@ struct QCRHIContext
     struct PerPassData {
         QRhiBuffer *vertexBuffer = nullptr;
         QRhiBuffer *indexBuffer = nullptr;
-        QRhiBuffer *vsUniformBuffer = nullptr; // Static vs buffer, shared for every call
-        QRhiBuffer *vsUniformBuffer2 = nullptr; // Dynamic vs buffer
-        QRhiBuffer *commonUniformBuffer = nullptr; // Dynamic uniform buffer for vs & fs
+        QRhiBuffer *uniformBuffer = nullptr;
         QHash<int, QCRHICachedPathGroup> cachedPaths;
     };
     QHash<int, PerPassData> perPassData;
@@ -706,11 +708,13 @@ QRhiShaderResourceBindings *QCPainterRhiRenderer::createSrb(int brushImage, int 
     QRhiShaderResourceBindings *srb = rhiCtx->rhi->newShaderResourceBindings();
     QCRHIContext::PerPassData *ppd = rhiCtx->currentPerPassData();
     srb->setBindings({
-        QRhiShaderResourceBinding::uniformBuffer(0, QRhiShaderResourceBinding::VertexStage, ppd->vsUniformBuffer),
+        QRhiShaderResourceBinding::uniformBuffer(0, QRhiShaderResourceBinding::VertexStage, ppd->uniformBuffer,
+            0, VERT_UNIFORM_BUFFER_COMMON_REGION_SIZE),
         QRhiShaderResourceBinding::uniformBufferWithDynamicOffset(
             1, QRhiShaderResourceBinding::VertexStage | QRhiShaderResourceBinding::FragmentStage,
-            ppd->commonUniformBuffer, sizeof(QCRHICommonUniforms)),
-        QRhiShaderResourceBinding::uniformBufferWithDynamicOffset(4, QRhiShaderResourceBinding::VertexStage, ppd->vsUniformBuffer2, sizeof(QCRHIVertUniforms)),
+            ppd->uniformBuffer, sizeof(QCRHICommonUniforms)),
+        QRhiShaderResourceBinding::uniformBufferWithDynamicOffset(4, QRhiShaderResourceBinding::VertexStage,
+            ppd->uniformBuffer, sizeof(QCRHIVertUniforms)),
         QRhiShaderResourceBinding::sampledTexture(2, QRhiShaderResourceBinding::FragmentStage, tex->tex, sampler(samplerDesc)),
         QRhiShaderResourceBinding::sampledTexture(3, QRhiShaderResourceBinding::FragmentStage, fontTex->tex, sampler(fontSamplerDesc)),
     });
@@ -757,6 +761,7 @@ bool QCPainterRhiRenderer::renderCreate()
     // and insert them into commonUniforms.
     rhiCtx->oneCommonUniformBufferSize = rhiCtx->rhi->ubufAligned(sizeof(QCRHICommonUniforms));
     rhiCtx->oneVertUniformBufferSize = rhiCtx->rhi->ubufAligned(sizeof(QCRHIVertUniforms));
+    rhiCtx->vertUniformBufferCommonRegionAlignedSize = rhiCtx->rhi->ubufAligned(VERT_UNIFORM_BUFFER_COMMON_REGION_SIZE);
 
     return true;
 }
@@ -1848,37 +1853,27 @@ void QCPainterRhiRenderer::endPrepare()
                 return;
             }
         }
-        if (!ppd->vsUniformBuffer) {
-            ppd->vsUniformBuffer = rhiCtx->rhi->newBuffer(QRhiBuffer::Dynamic, QRhiBuffer::UniformBuffer, 96);
-            ppd->vsUniformBuffer->setName("qc vs uniform buffer");
-            if (!ppd->vsUniformBuffer->create()) {
-                qWarning("Failed to create uniform buffer 0");
-                return;
-            }
-        }
-        if (!ppd->vsUniformBuffer2) {
-            ppd->vsUniformBuffer2 = rhiCtx->rhi->newBuffer(QRhiBuffer::Dynamic, QRhiBuffer::UniformBuffer, 4096);
-            ppd->vsUniformBuffer2->setName("qc vs uniform2 buffer");
-            if (!ppd->vsUniformBuffer2->create()) {
-                qWarning("Failed to create uniform buffer 4");
-                return;
-            }
-        }
-        if (!ppd->commonUniformBuffer) {
-            ppd->commonUniformBuffer = rhiCtx->rhi->newBuffer(QRhiBuffer::Dynamic, QRhiBuffer::UniformBuffer, 16384);
-            ppd->commonUniformBuffer->setName("qc common uniform buffer");
-            if (!ppd->commonUniformBuffer->create()) {
-                qWarning("Failed to create uniform buffer 1");
+        if (!ppd->uniformBuffer) {
+            ppd->uniformBuffer = rhiCtx->rhi->newBuffer(QRhiBuffer::Dynamic, QRhiBuffer::UniformBuffer, 16384);
+            ppd->uniformBuffer->setName("qc uniform buffer");
+            if (!ppd->uniformBuffer->create()) {
+                qWarning("Failed to create uniform buffer for binding 0, 1, and 4");
                 return;
             }
         }
 
-        // Static vs uniform buffer, shared for every call
+        // Dynamic uniform buffer for vertex shader, exposed as two bindings (0 and 4) in qcpainter.vert
         {
+            const quint32 sizeOfVUBuf = rhiCtx->vertUniformsCount * rhiCtx->oneVertUniformBufferSize;
+            ensureBufferCapacity(&ppd->uniformBuffer,
+                rhiCtx->vertUniformBufferCommonRegionAlignedSize // common part for vertex shader
+                + sizeOfVUBuf // per-call part for vertex shader
+                + rhiCtx->commonUniformsCount // per-call part for vertex and fragment shaders
+            );
+            char *p = ppd->uniformBuffer->beginFullDynamicBufferUpdateForCurrentFrame();
+            // vertUBuf contents
             constexpr int sizeOfViewRect = 4 * sizeof(float);
             constexpr int sizeOfYDown = sizeof(qint32);
-            // the size of this buffer is fixed (96 bytes) and is already correct, no need for ensureBufferCapacity
-            char *p = ppd->vsUniformBuffer->beginFullDynamicBufferUpdateForCurrentFrame();
             memcpy(p, rhiCtx->viewRect, sizeOfViewRect);
             const qint32 ndcIsYDown = !rhiCtx->rhi->isYUpInNDC();
             memcpy(p + 16, &ndcIsYDown, sizeOfYDown);
@@ -1886,24 +1881,15 @@ void QCPainterRhiRenderer::endPrepare()
                 // mat4 is 16 aligned, hence the offset is 32, not 20
                 memcpy(p + 32, m_e->ctx.customMatrix.constData(), 64);
             }
-            ppd->vsUniformBuffer->endFullDynamicBufferUpdateForCurrentFrame();
-        }
 
-        // Dynamic vs uniform buffer
-        {
-            const quint32 sizeOfVUBuf = rhiCtx->vertUniformsCount * rhiCtx->oneVertUniformBufferSize;
-            ensureBufferCapacity(&ppd->vsUniformBuffer2, sizeOfVUBuf);
-            char *p = ppd->vsUniformBuffer2->beginFullDynamicBufferUpdateForCurrentFrame();
-            memcpy(p, rhiCtx->vertUniforms.constData(), sizeOfVUBuf);
-            ppd->vsUniformBuffer2->endFullDynamicBufferUpdateForCurrentFrame();
-        }
+            // vertUBuf2 contents (different data for each call)
+            int offset = rhiCtx->vertUniformBufferCommonRegionAlignedSize;
+            memcpy(p + offset, rhiCtx->vertUniforms.constData(), sizeOfVUBuf);
 
-        // Dynamic common uniform buffer
-        {
-            ensureBufferCapacity(&ppd->commonUniformBuffer, rhiCtx->commonUniformsCount);
-            char *p = ppd->commonUniformBuffer->beginFullDynamicBufferUpdateForCurrentFrame();
-            memcpy(p, rhiCtx->commonUniforms.constData(), rhiCtx->commonUniformsCount);
-            ppd->commonUniformBuffer->endFullDynamicBufferUpdateForCurrentFrame();
+            // fragUBuf contents (different data for each call)
+            offset += sizeOfVUBuf; // aligned
+            memcpy(p + offset, rhiCtx->commonUniforms.constData(), rhiCtx->commonUniformsCount);
+            ppd->uniformBuffer->endFullDynamicBufferUpdateForCurrentFrame();
         }
 
         // Vertex buffer
@@ -2225,9 +2211,7 @@ void QCPainterRhiRenderer::renderDelete()
     for (const QCRHIContext::PerPassData &ppd : rhiCtx->perPassData) {
         delete ppd.vertexBuffer;
         delete ppd.indexBuffer;
-        delete ppd.vsUniformBuffer;
-        delete ppd.vsUniformBuffer2;
-        delete ppd.commonUniformBuffer;
+        delete ppd.uniformBuffer;
         for (auto i = ppd.cachedPaths.begin(), end = ppd.cachedPaths.end(); i != end; ++i) {
             auto cachedPath = &i.value();
             delete cachedPath->fillVertexBuffer;
@@ -2399,8 +2383,9 @@ void QCPainterRhiRenderer::render()
         if (pathsCount < 1 && call->type != CallText)
             continue;
         const QCRHIPath *paths = nullptr;
-        // The default offset at 0, with empty transform.
-        QRhiCommandBuffer::DynamicOffset vertDynamicOffsetForCall(4, 0);
+        // The default offset at 0, with empty transform. NB have to add an offset to skip
+        // the data exposed as the other unifor buffer binding.
+        QRhiCommandBuffer::DynamicOffset vertDynamicOffsetForCall(4, rhiCtx->vertUniformBufferCommonRegionAlignedSize);
         if (call->pathGroup != -1 && ppd->cachedPaths.contains(call->pathGroup)) {
             const auto &cpg = ppd->cachedPaths.value(call->pathGroup);
             const auto &cp = cpg.paths.value(call->painterPath);
@@ -2408,13 +2393,14 @@ void QCPainterRhiRenderer::render()
                 paths = &cp.strokePaths[call->pathOffset];
             else
                 paths = &cp.fillPaths[call->pathOffset];
-            int vertUBufOffset = call->vertUniformBufferOffset;
-            vertDynamicOffsetForCall.second = vertUBufOffset * rhiCtx->oneVertUniformBufferSize;
+            vertDynamicOffsetForCall.second += call->vertUniformBufferOffset * rhiCtx->oneVertUniformBufferSize;
         } else {
             paths = &rhiCtx->paths[call->pathOffset];
         }
-        QRhiCommandBuffer::DynamicOffset dynamicOffsetForCall(1, call->commonUniformBufferOffset);
-        QRhiCommandBuffer::DynamicOffset dynamicOffsetForCallPlusOne(1, call->commonUniformBufferOffset + rhiCtx->oneCommonUniformBufferSize);
+        // where part 3 (common for vs & fs) starts in the buffer
+        const quint32 startOffset = rhiCtx->vertUniformBufferCommonRegionAlignedSize + rhiCtx->vertUniformsCount * rhiCtx->oneVertUniformBufferSize;
+        QRhiCommandBuffer::DynamicOffset dynamicOffsetForCall(1, startOffset + call->commonUniformBufferOffset);
+        QRhiCommandBuffer::DynamicOffset dynamicOffsetForCallPlusOne(1, startOffset + call->commonUniformBufferOffset + rhiCtx->oneCommonUniformBufferSize);
 
         if (call->type == CallFill) {
             // 1. Draw shapes
