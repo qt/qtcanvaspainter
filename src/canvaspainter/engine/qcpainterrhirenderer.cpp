@@ -1874,24 +1874,37 @@ void QCPainterRhiRenderer::endPrepare()
         }
 
         // Static vs uniform buffer, shared for every call
-        constexpr int sizeOfViewRect = 4 * sizeof(float);
-        constexpr int sizeOfYDown = sizeof(qint32);
-        // the size of this buffer is fixed (96 bytes) and is already correct, no need for ensureBufferCapacity
-        u->updateDynamicBuffer(ppd->vsUniformBuffer, 0, sizeOfViewRect, rhiCtx->viewRect);
-        const qint32 ndcIsYDown = !rhiCtx->rhi->isYUpInNDC();
-        u->updateDynamicBuffer(ppd->vsUniformBuffer, 16, sizeOfYDown, &ndcIsYDown);
-        if (m_e->ctx.customMatrixValid) {
-            // mat4 is 16 aligned, hence the offset is 32, not 20
-            u->updateDynamicBuffer(ppd->vsUniformBuffer, 32, 64, m_e->ctx.customMatrix.constData());
+        {
+            constexpr int sizeOfViewRect = 4 * sizeof(float);
+            constexpr int sizeOfYDown = sizeof(qint32);
+            // the size of this buffer is fixed (96 bytes) and is already correct, no need for ensureBufferCapacity
+            char *p = ppd->vsUniformBuffer->beginFullDynamicBufferUpdateForCurrentFrame();
+            memcpy(p, rhiCtx->viewRect, sizeOfViewRect);
+            const qint32 ndcIsYDown = !rhiCtx->rhi->isYUpInNDC();
+            memcpy(p + 16, &ndcIsYDown, sizeOfYDown);
+            if (m_e->ctx.customMatrixValid) {
+                // mat4 is 16 aligned, hence the offset is 32, not 20
+                memcpy(p + 32, m_e->ctx.customMatrix.constData(), 64);
+            }
+            ppd->vsUniformBuffer->endFullDynamicBufferUpdateForCurrentFrame();
         }
 
         // Dynamic vs uniform buffer
-        const quint32 sizeOfVUBuf = rhiCtx->vertUniformsCount * rhiCtx->oneVertUniformBufferSize;
-        ensureBufferCapacity(&ppd->vsUniformBuffer2, sizeOfVUBuf);
-        u->updateDynamicBuffer(ppd->vsUniformBuffer2, 0, sizeOfVUBuf, rhiCtx->vertUniforms.constData());
+        {
+            const quint32 sizeOfVUBuf = rhiCtx->vertUniformsCount * rhiCtx->oneVertUniformBufferSize;
+            ensureBufferCapacity(&ppd->vsUniformBuffer2, sizeOfVUBuf);
+            char *p = ppd->vsUniformBuffer2->beginFullDynamicBufferUpdateForCurrentFrame();
+            memcpy(p, rhiCtx->vertUniforms.constData(), sizeOfVUBuf);
+            ppd->vsUniformBuffer2->endFullDynamicBufferUpdateForCurrentFrame();
+        }
+
         // Dynamic common uniform buffer
-        ensureBufferCapacity(&ppd->commonUniformBuffer, rhiCtx->commonUniformsCount);
-        u->updateDynamicBuffer(ppd->commonUniformBuffer, 0, rhiCtx->commonUniformsCount, rhiCtx->commonUniforms.constData());
+        {
+            ensureBufferCapacity(&ppd->commonUniformBuffer, rhiCtx->commonUniformsCount);
+            char *p = ppd->commonUniformBuffer->beginFullDynamicBufferUpdateForCurrentFrame();
+            memcpy(p, rhiCtx->commonUniforms.constData(), rhiCtx->commonUniformsCount);
+            ppd->commonUniformBuffer->endFullDynamicBufferUpdateForCurrentFrame();
+        }
 
         // Vertex buffer
         const int vertsCount = rhiCtx->vertsCount;
