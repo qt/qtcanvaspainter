@@ -3,23 +3,23 @@
 
 qt_internal_add_module(CanvasPainter
     SOURCES
-        qcpainter.cpp qcpainter.h qcpainter_p.h
-        qclineargradient.cpp qclineargradient.h
-        qcimagepattern.cpp qcimagepattern.h qcimagepattern_p.h
-        qcgridpattern.cpp qcgridpattern.h qcgridpattern_p.h
-        qcradialgradient.cpp qcradialgradient.h
-        qcboxgradient.cpp qcboxgradient.h
-        qcboxshadow.cpp qcboxshadow.h qcboxshadow_p.h
-        qcimage.cpp qcimage.h qcimage_p.h
-        qcdebugcountervisualizer.cpp qcdebugcountervisualizer_p.h
-        qcbrush.cpp qcbrush.h qcbrush_p.h
-        qcgradient.cpp qcgradient.h qcgradient_p.h
-        qcconicalgradient.cpp qcconicalgradient.h
-        qccustombrush.cpp qccustombrush.h qccustombrush_p.h
-        qcpainterpath.cpp qcpainterpath.h qcpainterpath_p.h
-        qcoffscreencanvas.cpp qcoffscreencanvas.h qcoffscreencanvas_p.h
-        qcpainterfactory.cpp qcpainterfactory.h qcpainterfactory_p.h
-        qcrhipaintdriver.cpp qcrhipaintdriver.h qcrhipaintdriver_p.h
+        qcanvaspainter.cpp qcanvaspainter.h qcanvaspainter_p.h
+        qcanvaslineargradient.cpp qcanvaslineargradient.h
+        qcanvasimagepattern.cpp qcanvasimagepattern.h qcanvasimagepattern_p.h
+        qcanvasgridpattern.cpp qcanvasgridpattern.h qcanvasgridpattern_p.h
+        qcanvasradialgradient.cpp qcanvasradialgradient.h
+        qcanvasboxgradient.cpp qcanvasboxgradient.h
+        qcanvasboxshadow.cpp qcanvasboxshadow.h qcanvasboxshadow_p.h
+        qcanvasimage.cpp qcanvasimage.h qcanvasimage_p.h
+        qcanvasdebugcountervisualizer.cpp qcanvasdebugcountervisualizer_p.h
+        qcanvasbrush.cpp qcanvasbrush.h qcanvasbrush_p.h
+        qcanvasgradient.cpp qcanvasgradient.h qcanvasgradient_p.h
+        qcanvasconicalgradient.cpp qcanvasconicalgradient.h
+        qcanvascustombrush.cpp qcanvascustombrush.h qcanvascustombrush_p.h
+        qcanvaspainterpath.cpp qcanvaspainterpath.h qcanvaspainterpath_p.h
+        qcanvasoffscreencanvas.cpp qcanvasoffscreencanvas.h qcanvasoffscreencanvas_p.h
+        qcanvaspainterfactory.cpp qcanvaspainterfactory.h qcanvaspainterfactory_p.h
+        qcanvasrhipaintdriver.cpp qcanvasrhipaintdriver.h qcanvasrhipaintdriver_p.h
 
         engine/qcpainterengine.cpp engine/qcpainterengine_p.h engine/qcpainterengineutils_p.h
         engine/qcpainterrhirenderer.cpp engine/qcpainterrhirenderer_p.h
@@ -50,15 +50,15 @@ qt_internal_add_module(CanvasPainter
 
 qt_internal_extend_target(CanvasPainter CONDITION TARGET Qt::Quick
     SOURCES
-        qquickcpainteritem.cpp qquickcpainteritem.h qquickcpainteritem_p.h
-        qquickcpainterrenderer.cpp qquickcpainterrenderer.h qquickcpainterrenderer_p.h
+        qcanvaspainteritem.cpp qcanvaspainteritem.h qcanvaspainteritem_p.h
+        qcanvaspainteritemrenderer.cpp qcanvaspainteritemrenderer.h qcanvaspainteritemrenderer_p.h
     LIBRARIES
         Qt::QuickPrivate
 )
 
 qt_internal_extend_target(CanvasPainter CONDITION TARGET Qt::Widgets
     SOURCES
-        qcpainterwidget.cpp qcpainterwidget.h qcpainterwidget_p.h
+        qcanvaspainterwidget.cpp qcanvaspainterwidget.h qcanvaspainterwidget_p.h
     LIBRARIES
         Qt::WidgetsPrivate
 )

@@ -6,13 +6,13 @@
 #include <QColor>
 #include <QRandomGenerator>
 #include <QTimer>
-#include "qclineargradient.h"
+#include "qcanvaslineargradient.h"
 
 ImageTestingRenderer::ImageTestingRenderer()
 {
 }
 
-void ImageTestingRenderer::synchronize(QQuickCPainterItem *item)
+void ImageTestingRenderer::synchronize(QCanvasPainterItem *item)
 {
     auto p = painter();
     ImageTestingItem *realItem = static_cast<ImageTestingItem*>(item);
@@ -76,7 +76,7 @@ void ImageTestingRenderer::synchronize(QQuickCPainterItem *item)
     if (actions.testFlag(ImageTestingItem::Action::UnregisterNewestCanvas)) {
         if (!m_canvases.isEmpty()) {
             p->removeImage(m_canvases.last().image);
-            m_canvases.last().image = {}; // now QCImage::isNull() == true
+            m_canvases.last().image = {}; // now QCanvasImage::isNull() == true
         }
     }
     if (actions.testFlag(ImageTestingItem::Action::RemoveNewestCanvas)) {
@@ -101,7 +101,7 @@ void ImageTestingRenderer::synchronize(QQuickCPainterItem *item)
     realItem->m_actions = {};
 }
 
-void ImageTestingRenderer::prePaint(QCPainter *painter)
+void ImageTestingRenderer::prePaint(QCanvasPainter *painter)
 {
     if (m_reregisterPending) {
         m_reregisterPending = false;
@@ -114,7 +114,7 @@ void ImageTestingRenderer::prePaint(QCPainter *painter)
     while (m_newCanvasPending > 0) {
         const int canvasWidth = 1024;
         const int canvasHeight = 1024;
-        QCOffscreenCanvas canvas = painter->createCanvas({ canvasWidth, canvasHeight });
+        QCanvasOffscreenCanvas canvas = painter->createCanvas({ canvasWidth, canvasHeight });
         if (canvas.isNull())
             qFatal("createCanvas() failed");
 
@@ -139,7 +139,7 @@ void ImageTestingRenderer::prePaint(QCPainter *painter)
     }
 }
 
-void ImageTestingRenderer::paint(QCPainter *painter)
+void ImageTestingRenderer::paint(QCanvasPainter *painter)
 {
     const float w = width();
     const float h = height();
@@ -148,8 +148,8 @@ void ImageTestingRenderer::paint(QCPainter *painter)
     const float imageW = w * 0.5;
     const float imageH = h * 0.5;
     int index = 0;
-    painter->setTextAlign(QCPainter::TextAlign::Center);
-    painter->setTextBaseline(QCPainter::TextBaseline::Top);
+    painter->setTextAlign(QCanvasPainter::TextAlign::Center);
+    painter->setTextBaseline(QCanvasPainter::TextBaseline::Top);
     QFont font;
     float fontSize = imageH * 0.08;
     font.setPixelSize(fontSize);
@@ -190,7 +190,7 @@ void ImageTestingRenderer::paint(QCPainter *painter)
         float gradX = (w - gradW) * 0.5;
         float gradY = 0;
         QRectF rect(gradX, gradY, gradW, gradH);
-        QCLinearGradient g(rect.x(), rect.y(), rect.x()+rect.width(), rect.y());
+        QCanvasLinearGradient g(rect.x(), rect.y(), rect.x()+rect.width(), rect.y());
         g.setColorAt(0.0f, QColorConstants::Black);
         if (m_animateGradient)
             anim++;

@@ -2,17 +2,17 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR BSD-3-Clause
 
 //![0]
-class MyWidget : public QCPainterWidget
+class MyWidget : public QCanvasPainterWidget
 {
 public:
-    void initializeResources(QCPainter *p) override
+    void initializeResources(QCanvasPainter *p) override
     {
         // load assets
         if (m_image.isNull())
-            m_image = p->addImage(QImage("image.png"), QCPainter::ImageFlag::Repeat);
+            m_image = p->addImage(QImage("image.png"), QCanvasPainter::ImageFlag::Repeat);
     }
 
-    void paint(QCPainter *p) override
+    void paint(QCanvasPainter *p) override
     {
         // ... draw using m_image
     }
@@ -23,6 +23,6 @@ public:
         m_image = {};
     }
 
-    QCImage m_image;
+    QCanvasImage m_image;
 };
 //![0]

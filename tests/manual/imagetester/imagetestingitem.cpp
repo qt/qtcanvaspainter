@@ -4,11 +4,11 @@
 #include "imagetestingitem.h"
 
 ImageTestingItem::ImageTestingItem(QQuickItem *parent)
-    :  QQuickCPainterItem(parent)
+    :  QCanvasPainterItem(parent)
 {
 }
 
-QQuickCPainterRenderer* ImageTestingItem::createItemRenderer() const
+QCanvasPainterItemRenderer* ImageTestingItem::createItemRenderer() const
 {
     return new ImageTestingRenderer();
 }

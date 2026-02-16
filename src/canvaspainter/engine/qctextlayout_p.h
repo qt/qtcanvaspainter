@@ -25,9 +25,9 @@ QT_BEGIN_NAMESPACE
 class QCTextLayout
 {
 public:
-    static QTextOption::WrapMode convertToQtWrapMode(QCPainter::WrapMode mode);
-    static Qt::Alignment convertToQtAlignment(QCPainter::TextAlign alignment);
-    static float calculateVerticalAlignment(QCPainter::TextBaseline baseline, const QRectF &rect,
+    static QTextOption::WrapMode convertToQtWrapMode(QCanvasPainter::WrapMode mode);
+    static Qt::Alignment convertToQtAlignment(QCanvasPainter::TextAlign alignment);
+    static float calculateVerticalAlignment(QCanvasPainter::TextBaseline baseline, const QRectF &rect,
                                             const QFontMetrics &metrics, const QRectF &layoutRect);
 };
 

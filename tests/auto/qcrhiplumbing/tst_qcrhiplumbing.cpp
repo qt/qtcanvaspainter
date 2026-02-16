@@ -15,10 +15,10 @@
 #include <QtGui/private/qgraphicsframecapture_p.h>
 #endif
 
-#include "qcpainter.h"
-#include "qcpainterfactory.h"
-#include "qcrhipaintdriver.h"
-#include "qcimagepattern.h"
+#include "qcanvaspainter.h"
+#include "qcanvaspainterfactory.h"
+#include "qcanvasrhipaintdriver.h"
+#include "qcanvasimagepattern.h"
 
 #if QT_CONFIG(opengl)
 #include <QOffscreenSurface>
@@ -289,16 +289,16 @@ void tst_CanvasRhiRendering::create()
     RenderTargetPtr rt = createRenderTarget(rhi.get());
     QVERIFY(rt);
 
-    std::unique_ptr<QCPainterFactory> factory(new QCPainterFactory);
-    QCPainter *painter = factory->create(rhi.get());
+    std::unique_ptr<QCanvasPainterFactory> factory(new QCanvasPainterFactory);
+    QCanvasPainter *painter = factory->create(rhi.get());
     QVERIFY(painter);
     QCOMPARE(painter, factory->painter());
     QVERIFY(factory->isValid());
-    QCRhiPaintDriver *pd = factory->paintDriver();
+    QCanvasRhiPaintDriver *pd = factory->paintDriver();
     QVERIFY(pd);
 
-    QCPainter *samePainter = factory->create(rhi.get());
-    QCRhiPaintDriver *samePaintDriver = factory->paintDriver();
+    QCanvasPainter *samePainter = factory->create(rhi.get());
+    QCanvasRhiPaintDriver *samePaintDriver = factory->paintDriver();
     QCOMPARE(samePainter, painter);
     QCOMPARE(samePaintDriver, pd);
     QVERIFY(factory->isValid());
@@ -326,37 +326,37 @@ void tst_CanvasRhiRendering::createShared()
     RenderTargetPtr rt = createRenderTarget(rhi.get());
     QVERIFY(rt);
 
-    QCPainterFactory *factory1 = QCPainterFactory::sharedInstance(rhi.get());
+    QCanvasPainterFactory *factory1 = QCanvasPainterFactory::sharedInstance(rhi.get());
     QVERIFY(factory1);
     QVERIFY(factory1->isValid());
-    QCPainter *painter1 = factory1->painter();
+    QCanvasPainter *painter1 = factory1->painter();
     QVERIFY(painter1);
-    QCRhiPaintDriver *pd1 = factory1->paintDriver();
+    QCanvasRhiPaintDriver *pd1 = factory1->paintDriver();
     QVERIFY(pd1);
 
-    QCPainterFactory *factory2 = QCPainterFactory::sharedInstance(rhi.get());
+    QCanvasPainterFactory *factory2 = QCanvasPainterFactory::sharedInstance(rhi.get());
     QVERIFY(factory2);
     QVERIFY(factory2->isValid());
     QCOMPARE(factory1, factory2);
-    QCPainter *painter2 = factory2->painter();
+    QCanvasPainter *painter2 = factory2->painter();
     QCOMPARE(painter1, painter2);
-    QCRhiPaintDriver *pd2 = factory2->paintDriver();
+    QCanvasRhiPaintDriver *pd2 = factory2->paintDriver();
     QCOMPARE(pd1, pd2);
 
     // sharedInstance with another QRhi should give a different factory
     std::unique_ptr<QRhi> anotherRhi(QRhi::create(impl, initParams));
     QVERIFY(anotherRhi);
-    QCPainterFactory *factory3 = QCPainterFactory::sharedInstance(anotherRhi.get());
+    QCanvasPainterFactory *factory3 = QCanvasPainterFactory::sharedInstance(anotherRhi.get());
     QVERIFY(factory3);
     QVERIFY(factory3->isValid());
     QCOMPARE_NE(factory1, factory3);
-    QCPainter *painter3 = factory3->painter();
+    QCanvasPainter *painter3 = factory3->painter();
     QCOMPARE_NE(painter1, painter3);
-    QCRhiPaintDriver *pd3 = factory3->paintDriver();
+    QCanvasRhiPaintDriver *pd3 = factory3->paintDriver();
     QCOMPARE_NE(pd1, pd3);
 }
 
-static void drawCircleInCenter(QCPainter *painter)
+static void drawCircleInCenter(QCanvasPainter *painter)
 {
     painter->beginPath();
     painter->circle(RT_WIDTH / 2, RT_HEIGHT / 2, std::min(RT_WIDTH, RT_HEIGHT) / 2);
@@ -367,19 +367,19 @@ static void drawCircleInCenter(QCPainter *painter)
     painter->fill();
 }
 
-static void drawCircleInCenter(QCPainter *painter, const QCImage &imageForPattern)
+static void drawCircleInCenter(QCanvasPainter *painter, const QCanvasImage &imageForPattern)
 {
     painter->beginPath();
     painter->circle(RT_WIDTH / 2, RT_HEIGHT / 2, std::min(RT_WIDTH, RT_HEIGHT) / 2);
     painter->setStrokeStyle(Qt::blue);
     painter->setLineWidth(4);
     painter->stroke();
-    QCImagePattern pattern(imageForPattern, 0, 0, 100, 100);
+    QCanvasImagePattern pattern(imageForPattern, 0, 0, 100, 100);
     painter->setFillStyle(pattern);
     painter->fill();
 }
 
-static void drawCircleAndTextInCenter(QCPainter *painter)
+static void drawCircleAndTextInCenter(QCanvasPainter *painter)
 {
     const QPointF center(RT_WIDTH / 2, RT_HEIGHT / 2);
     painter->beginPath();
@@ -389,8 +389,8 @@ static void drawCircleAndTextInCenter(QCPainter *painter)
     painter->stroke();
     painter->setFillStyle("#ff0000");
     painter->fill();
-    painter->setTextAlign(QCPainter::TextAlign::Center);
-    painter->setTextBaseline(QCPainter::TextBaseline::Middle);
+    painter->setTextAlign(QCanvasPainter::TextAlign::Center);
+    painter->setTextBaseline(QCanvasPainter::TextBaseline::Middle);
     QFont font1;
     font1.setWeight(QFont::Weight::Bold);
     font1.setItalic(true);
@@ -461,10 +461,10 @@ void tst_CanvasRhiRendering::render()
     RenderTargetPtr rt = createRenderTarget(rhi.get());
     QVERIFY(rt);
 
-    std::unique_ptr<QCPainterFactory> factory(new QCPainterFactory);
-    QCPainter *painter = factory->create(rhi.get());
+    std::unique_ptr<QCanvasPainterFactory> factory(new QCanvasPainterFactory);
+    QCanvasPainter *painter = factory->create(rhi.get());
     QVERIFY(painter);
-    QCRhiPaintDriver *pd = factory->paintDriver();
+    QCanvasRhiPaintDriver *pd = factory->paintDriver();
     QVERIFY(pd);
 
     QRhiReadbackResult readbackResult;
@@ -475,7 +475,7 @@ void tst_CanvasRhiRendering::render()
 
     pd->beginPaint(cb, rt->rt);
     drawCircleInCenter(painter);
-    pd->endPaint(QCRhiPaintDriver::EndPaintFlag::DoNotRecordRenderPass);
+    pd->endPaint(QCanvasRhiPaintDriver::EndPaintFlag::DoNotRecordRenderPass);
 
     cb->beginPass(rt->rt, Qt::black, { 1.0f, 0 });
     pd->renderPaint();
@@ -519,16 +519,16 @@ void tst_CanvasRhiRendering::renderWithDepthTest()
     const int centerX = RT_WIDTH / 2;
     const int centerY = RT_HEIGHT / 2;
 
-    std::unique_ptr<QCPainterFactory> factory(new QCPainterFactory);
-    QCPainter *painter = factory->create(rhi.get());
-    QCRhiPaintDriver *pd = factory->paintDriver();
+    std::unique_ptr<QCanvasPainterFactory> factory(new QCanvasPainterFactory);
+    QCanvasPainter *painter = factory->create(rhi.get());
+    QCanvasRhiPaintDriver *pd = factory->paintDriver();
 
     QRhiCommandBuffer *cb;
     rhi->beginOffscreenFrame(&cb);
     pd->resetForNewFrame();
-    pd->beginPaint(cb, rt->rt, Qt::black, QSize(), 0.0f, QCRhiPaintDriver::BeginPaintFlag::DepthTest);
+    pd->beginPaint(cb, rt->rt, Qt::black, QSize(), 0.0f, QCanvasRhiPaintDriver::BeginPaintFlag::DepthTest);
     drawCircleInCenter(painter);
-    pd->endPaint(QCRhiPaintDriver::EndPaintFlag::DoNotRecordRenderPass);
+    pd->endPaint(QCanvasRhiPaintDriver::EndPaintFlag::DoNotRecordRenderPass);
     // Depth buffer is cleared to the usual 1.0, so the the circle should show up normally.
     cb->beginPass(rt->rt, Qt::black, { 1.0f, 0 });
     pd->renderPaint();
@@ -548,7 +548,7 @@ void tst_CanvasRhiRendering::renderWithDepthTest()
     pd->resetForNewFrame();
     pd->beginPaint(cb, rt->rt);
     drawCircleInCenter(painter);
-    pd->endPaint(QCRhiPaintDriver::EndPaintFlag::DoNotRecordRenderPass);
+    pd->endPaint(QCanvasRhiPaintDriver::EndPaintFlag::DoNotRecordRenderPass);
     cb->beginPass(rt->rt, Qt::black, { 0.0f, 0 }); // note that depth is cleared to 0
     pd->renderPaint();
     cb->endPass();
@@ -563,9 +563,9 @@ void tst_CanvasRhiRendering::renderWithDepthTest()
     // Now repeat with the DepthTest flag
     rhi->beginOffscreenFrame(&cb);
     pd->resetForNewFrame();
-    pd->beginPaint(cb, rt->rt, Qt::black, QSize(), 0.0f, QCRhiPaintDriver::BeginPaintFlag::DepthTest);
+    pd->beginPaint(cb, rt->rt, Qt::black, QSize(), 0.0f, QCanvasRhiPaintDriver::BeginPaintFlag::DepthTest);
     drawCircleInCenter(painter);
-    pd->endPaint(QCRhiPaintDriver::EndPaintFlag::DoNotRecordRenderPass);
+    pd->endPaint(QCanvasRhiPaintDriver::EndPaintFlag::DoNotRecordRenderPass);
     cb->beginPass(rt->rt, Qt::black, { 0.0f, 0 }); // note that depth is cleared to 0
     pd->renderPaint();
     cb->endPass();
@@ -598,13 +598,13 @@ void tst_CanvasRhiRendering::canvasRender()
     startFrameCapture(m_cap.get(), rhi.get(), "canvasRender");
 #endif
 
-    std::unique_ptr<QCPainterFactory> factory(new QCPainterFactory);
-    QCPainter *painter = factory->create(rhi.get());
+    std::unique_ptr<QCanvasPainterFactory> factory(new QCanvasPainterFactory);
+    QCanvasPainter *painter = factory->create(rhi.get());
     QVERIFY(painter);
-    QCRhiPaintDriver *pd = factory->paintDriver();
+    QCanvasRhiPaintDriver *pd = factory->paintDriver();
     QVERIFY(pd);
 
-    QCOffscreenCanvas canvas;
+    QCanvasOffscreenCanvas canvas;
     QVERIFY(canvas.isNull());
     canvas = painter->createCanvas(QSize(RT_WIDTH, RT_HEIGHT));
     QVERIFY(!canvas.isNull());
@@ -633,11 +633,11 @@ void tst_CanvasRhiRendering::canvasRender()
     rhi->beginOffscreenFrame(&cb);
     pd->resetForNewFrame();
     pd->beginPaint(cb, rt->rt);
-    QCImage canvasImage;
+    QCanvasImage canvasImage;
     QVERIFY(canvasImage.isNull());
-    canvasImage = painter->addImage(canvas, QCPainter::ImageFlag::Repeat);
+    canvasImage = painter->addImage(canvas, QCanvasPainter::ImageFlag::Repeat);
     QVERIFY(!canvasImage.isNull());
-    QCImage secondRegistrationImage = painter->addImage(canvas, QCPainter::ImageFlag::Repeat);
+    QCanvasImage secondRegistrationImage = painter->addImage(canvas, QCanvasPainter::ImageFlag::Repeat);
     QCOMPARE(canvasImage, secondRegistrationImage);
     drawCircleInCenter(painter, canvasImage);
     pd->endPaint();
@@ -688,12 +688,12 @@ void tst_CanvasRhiRendering::canvasRender()
         QCOMPARE_GT(blueCount, 200);
     }
 
-    QCOffscreenCanvas canvas2 = canvas;
+    QCanvasOffscreenCanvas canvas2 = canvas;
     QCOMPARE(canvas, canvas2);
     canvas2.setFillColor(Qt::red);
     QCOMPARE_NE(canvas, canvas2);
 
-    QCOffscreenCanvas canvas3 = canvas;
+    QCanvasOffscreenCanvas canvas3 = canvas;
     painter->destroyCanvas(canvas);
     QVERIFY(canvas.isNull());
     QVERIFY(canvas3.isNull());
@@ -728,10 +728,10 @@ void tst_CanvasRhiRendering::canvasRenderMipMap()
     if (!rhi)
         QSKIP("Failed to create QRhi, skip");
 
-    std::unique_ptr<QCPainterFactory> factory(new QCPainterFactory);
-    QCPainter *painter = factory->create(rhi.get());
+    std::unique_ptr<QCanvasPainterFactory> factory(new QCanvasPainterFactory);
+    QCanvasPainter *painter = factory->create(rhi.get());
     QVERIFY(painter);
-    QCRhiPaintDriver *pd = factory->paintDriver();
+    QCanvasRhiPaintDriver *pd = factory->paintDriver();
     QVERIFY(pd);
 
 #ifdef FRAME_CAPTURE
@@ -739,9 +739,9 @@ void tst_CanvasRhiRendering::canvasRenderMipMap()
     startFrameCapture(m_cap.get(), rhi.get(), "canvasRenderMipMap_part1");
 #endif
 
-    QCOffscreenCanvas canvas;
+    QCanvasOffscreenCanvas canvas;
     QVERIFY(canvas.isNull());
-    canvas = painter->createCanvas(QSize(RT_WIDTH, RT_HEIGHT), 1, QCOffscreenCanvas::Flag::MipMaps);
+    canvas = painter->createCanvas(QSize(RT_WIDTH, RT_HEIGHT), 1, QCanvasOffscreenCanvas::Flag::MipMaps);
     QVERIFY(!canvas.isNull());
     canvas.setFillColor(Qt::black);
 
@@ -776,10 +776,10 @@ void tst_CanvasRhiRendering::canvasRenderMipMap()
     rhi->beginOffscreenFrame(&cb);
     pd->resetForNewFrame();
     pd->beginPaint(cb, rt->rt);
-    QCImage canvasImage;
+    QCanvasImage canvasImage;
     QVERIFY(canvasImage.isNull());
     // request addImage to generate the mimap sequence
-    canvasImage = painter->addImage(canvas, QCPainter::ImageFlag::Repeat | QCPainter::ImageFlag::GenerateMipmaps);
+    canvasImage = painter->addImage(canvas, QCanvasPainter::ImageFlag::Repeat | QCanvasPainter::ImageFlag::GenerateMipmaps);
     QVERIFY(!canvasImage.isNull());
     drawCircleInCenter(painter, canvasImage);
     pd->endPaint();
@@ -822,18 +822,18 @@ void tst_CanvasRhiRendering::canvasRenderHqStroking()
     startFrameCapture(m_cap.get(), rhi.get(), "canvasRenderHqStroking");
 #endif
 
-    std::unique_ptr<QCPainterFactory> factory(new QCPainterFactory);
-    QCPainter *painter = factory->create(rhi.get());
-    QCRhiPaintDriver *pd = factory->paintDriver();
+    std::unique_ptr<QCanvasPainterFactory> factory(new QCanvasPainterFactory);
+    QCanvasPainter *painter = factory->create(rhi.get());
+    QCanvasRhiPaintDriver *pd = factory->paintDriver();
     QVERIFY(pd && painter);
 
-    QCOffscreenCanvas canvas;
+    QCanvasOffscreenCanvas canvas;
     canvas = painter->createCanvas(QSize(RT_WIDTH, RT_HEIGHT));
     QVERIFY(!canvas.isNull());
     canvas.setFillColor(Qt::black);
 
     // this triggers using the stencil buffer
-    painter->setRenderHint(QCPainter::RenderHint::HighQualityStroking);
+    painter->setRenderHint(QCanvasPainter::RenderHint::HighQualityStroking);
 
     QRhiCommandBuffer *cb;
     rhi->beginOffscreenFrame(&cb);

@@ -8,7 +8,7 @@
 #include <QTimer>
 
 CanvasGLWidget::CanvasGLWidget(Helper *helper, QWidget *parent)
-    : QCPainterWidget(parent), helper(helper)
+    : QCanvasPainterWidget(parent), helper(helper)
 {
     setApi(QRhiWidget::Api::OpenGL);
 
@@ -23,12 +23,12 @@ void CanvasGLWidget::animate()
     update();
 }
 
-void CanvasGLWidget::initializeResources(QCPainter *painter)
+void CanvasGLWidget::initializeResources(QCanvasPainter *painter)
 {
     helper->canvasInit(painter);
 }
 
-void CanvasGLWidget::paint(QCPainter *painter)
+void CanvasGLWidget::paint(QCanvasPainter *painter)
 {
     helper->paint(painter, QRect(0, 0, width(), height()), elapsed);
 }

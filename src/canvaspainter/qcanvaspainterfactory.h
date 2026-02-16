@@ -1,0 +1,45 @@
+// Copyright (C) 2025 The Qt Company Ltd.
+// Copyright (C) 2018 QUIt Coding <info@quitcoding.com>
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
+// Qt-Security score:significant reason:default
+
+
+#ifndef QCANVASPAINTERFACTORY_H
+#define QCANVASPAINTERFACTORY_H
+
+#include <QtCanvasPainter/qtcanvaspainterglobal.h>
+#include <QtCore/qsize.h>
+#include <functional>
+#include <QtCanvasPainter/qcanvasoffscreencanvas.h>
+
+QT_BEGIN_NAMESPACE
+
+class QCanvasPainter;
+class QCanvasPainterFactoryPrivate;
+class QCanvasRhiPaintDriver;
+class QRhi;
+
+class Q_CANVASPAINTER_EXPORT QCanvasPainterFactory
+{
+public:
+    QCanvasPainterFactory();
+    ~QCanvasPainterFactory();
+
+    static QCanvasPainterFactory *sharedInstance(QRhi *rhi);
+
+    bool isValid() const;
+    QCanvasPainter *create(QRhi *rhi);
+    void destroy();
+    QCanvasPainter *painter();
+
+    QCanvasRhiPaintDriver *paintDriver();
+
+private:
+    Q_DISABLE_COPY(QCanvasPainterFactory)
+    QCanvasPainterFactoryPrivate *d = nullptr;
+    friend class QCanvasPainterFactoryPrivate;
+};
+
+QT_END_NAMESPACE
+
+#endif // QCANVASPAINTERFACTORY_H

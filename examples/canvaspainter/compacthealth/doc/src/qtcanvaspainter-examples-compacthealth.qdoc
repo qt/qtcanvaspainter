@@ -6,7 +6,7 @@
     \ingroup canvaspainter-examples
     \title Qt Canvas Painter - Compact Health Example
     \examplecategory {Graphics}
-    \brief Demonstrates the use of QCPainter in a QWindow.
+    \brief Demonstrates the use of QCanvasPainter in a QWindow.
 
     \image compacthealth-example.webp
 
@@ -15,8 +15,8 @@
     dependency on Qt modules other than Core, Gui, and Canvas Painter.
 
     The application sets up accelerated 3D rendering using QRhi, and renders all
-    content in the window with QCPainter. The rendering and QCPainter's
-    integration with QRhi is managed via QCRhiPaintDriver.
+    content in the window with QCanvasPainter. The rendering and QCanvasPainter's
+    integration with QRhi is managed via QCanvasRhiPaintDriver.
 
     \section1 Walkthrough
 
@@ -37,7 +37,7 @@
     recommended to check out the \l {RHI Window Example}, since in essence it is
     very similar to the RhiWindow class in that example.
 
-    One QCPainter-specific step is to retrieve a \l QCPainterFactory instance once
+    One QCanvasPainter-specific step is to retrieve a \l QCanvasPainterFactory instance once
     a \l QRhi is successfully initialized:
 
     \snippet compacthealth/painterwindow.cpp painterfactory
@@ -48,12 +48,12 @@
 
     Unlike in the \l {RHI Window Example}, we will not create vertex and uniform
     buffers or graphics pipelines via the \l QRhi API, and issue draw calls
-    directly. Instead, \l QCRhiPaintDriver is used to record a render pass with
-    the QCPainter-generated rendering.
+    directly. Instead, \l QCanvasRhiPaintDriver is used to record a render pass with
+    the QCanvasPainter-generated rendering.
 
     \snippet compacthealth/painterwindow.cpp renderloop
 
-    MainWindow's paint() implementation works with the QCPainter API, and does not
+    MainWindow's paint() implementation works with the QCanvasPainter API, and does not
     need to worry about low-level details such as the \l QRhi.
 
     First, it loads and registers images if not yet done:
@@ -65,9 +65,9 @@
 
     \snippet compacthealth/mainwindow.cpp paint-2
 
-    The QCPainter fill and stroke calls prepare vertex, index, uniform data and
+    The QCanvasPainter fill and stroke calls prepare vertex, index, uniform data and
     QRhi-based draw calls internally. The stream of commands is flushed when
-    \l{QCRhiPaintDriver::}{endPaint()} is called in PainterWindow::render().
+    \l{QCanvasRhiPaintDriver::}{endPaint()} is called in PainterWindow::render().
     That is where a render pass is recorded on the associated \l
     QRhiCommandBuffer.
 

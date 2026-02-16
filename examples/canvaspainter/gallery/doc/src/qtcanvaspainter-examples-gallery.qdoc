@@ -6,12 +6,12 @@
     \ingroup canvaspainter-examples
     \title Qt Canvas Painter - Gallery Example
     \examplecategory {Graphics}
-    \brief Demonstrates the QCPainter features in a Qt Quick application.
+    \brief Demonstrates the QCanvasPainter features in a Qt Quick application.
 
     \image gallery-example.webp
 
     Gallery example is a Qt Quick application, showcasing a wide variety of
-    features offered by \l QCPainter.
+    features offered by \l QCanvasPainter.
 
     The user interface is essentially a \l ListView, where the delegate is \c
     GalleryItem, a type implemented in C++ and exposed to QML.
@@ -20,13 +20,13 @@
 
     With Qt 5 and OpenGL, GalleryItem could have been a subclass of \l
     QQuickPaintedItem. With Qt 6 and Canvas Painter, we will subclass
-    QQuickCPainterItem, which provides accelerated rendering via \l QCPainter,
+    QCanvasPainterItem, which provides accelerated rendering via \l QCanvasPainter,
     instead of using plain software rendering of \l QQuickPaintedItem and \l
     QPainter.
 
     The GalleryItem implementation is simple. Reimplementing the virtual
-    function \l{QQuickCPainterItem::}{createItemRenderer()}, we create an
-    instance of GalleryItemRenderer, which subclasses \l QQuickCPainterRenderer.
+    function \l{QCanvasPainterItem::}{createItemRenderer()}, we create an
+    instance of GalleryItemRenderer, which subclasses \l QCanvasPainterItemRenderer.
 
     \snippet gallery/galleryitem.cpp 0
 
@@ -45,12 +45,12 @@
 
     \snippet gallery/galleryitemrenderer.cpp synchronize
 
-    The paint() implementation renders using \l QCPainter, depending on the current index
+    The paint() implementation renders using \l QCanvasPainter, depending on the current index
     provided by the \l ListView:
 
     \snippet gallery/galleryitemrenderer.cpp paint
 
-    The functions invoked from here use the \l QCPainter API to perform the rendering. For example:
+    The functions invoked from here use the \l QCanvasPainter API to perform the rendering. For example:
 
     \snippet gallery/galleryitemrenderer.cpp draw
 

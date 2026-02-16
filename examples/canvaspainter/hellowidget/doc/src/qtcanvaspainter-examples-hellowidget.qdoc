@@ -6,37 +6,37 @@
     \ingroup canvaspainter-examples
     \title Qt Canvas Painter - Hello Widget Example
     \examplecategory {Graphics}
-    \brief Demonstrates the use of QCPainter and QCPainterWidget.
+    \brief Demonstrates the use of QCanvasPainter and QCanvasPainterWidget.
 
     \image hellowidget-example.webp
 
-    The example implements a QCPainterWidget subclass. One or more instances of
+    The example implements a QCanvasPainterWidget subclass. One or more instances of
     this widget can then be added into a QMdiArea inside the QMainWindow.
 
-    QCPainterWidget itself derives from \l QRhiWidget, and is always using
+    QCanvasPainterWidget itself derives from \l QRhiWidget, and is always using
     accelerated 3D rendering via \l QRhi.
 
-    Subclasses of QCPainterWidget will at minimum want to implement
-    \l{QCPainterWidget::}{paint()}. This example also uses an image, loaded from
+    Subclasses of QCanvasPainterWidget will at minimum want to implement
+    \l{QCanvasPainterWidget::}{paint()}. This example also uses an image, loaded from
     a PNG file.
 
     \snippet hellowidget/canvaswidget.h 0
 
-    The paint() function can start drawing using the provider QCPainter right away:
+    The paint() function can start drawing using the provider QCanvasPainter right away:
 
     \snippet hellowidget/canvaswidget.cpp paint
 
-    See \l QCPainter, \l QCBrush, \l QCRadialGradient, \l QCImagePattern, \l
-    QCImage, and \l QFont for more information on the features used by this
+    See \l QCanvasPainter, \l QCanvasBrush, \l QCanvasRadialGradient, \l QCanvasImagePattern, \l
+    QCanvasImage, and \l QFont for more information on the features used by this
     example.
 
     The image is used as a pattern, for filling the heart shape:
 
     \snippet hellowidget/canvaswidget.cpp pattern
 
-    When resources like QCImage and QCOffscreenCanvas are involved, these are
-    managed in \l{QCPainterWidget::}{initializeResources()} and
-    \l{QCPainterWidget::}{graphicsResourcesInvalidated()}:
+    When resources like QCanvasImage and QCanvasOffscreenCanvas are involved, these are
+    managed in \l{QCanvasPainterWidget::}{initializeResources()} and
+    \l{QCanvasPainterWidget::}{graphicsResourcesInvalidated()}:
 
     \snippet hellowidget/canvaswidget.cpp image
 
@@ -45,18 +45,18 @@
 
     \code
         if (m_image.isNull())
-            m_image = p->addImage(QImage(":/qt-translucent.png"), QCPainter::ImageFlag::Repeat);
+            m_image = p->addImage(QImage(":/qt-translucent.png"), QCanvasPainter::ImageFlag::Repeat);
     \endcode
 
     This example does not reparent widgets between windows, so graphics
     resources are not going to be lost. It is nonetheless a good pattern to
-    assign a default, empty object to all QCImage and QCOffscreenCanvas
+    assign a default, empty object to all QCanvasImage and QCanvasOffscreenCanvas
     variables in graphicsResourcesInvalidated().
 
     The main() function creates a QMainWindow and QMdiArea. Multiple instances
     of the CanvasWidget class can be added as sub-windows. Due to
-    \l{QCPainterWidget::}{hasSharedPainter()} defaulting to true, and due to
+    \l{QCanvasPainterWidget::}{hasSharedPainter()} defaulting to true, and due to
     being placed within the same top-level widget, all the painter widgets will
-    share the same QCPainter and the associated rendering infrastructure,
+    share the same QCanvasPainter and the associated rendering infrastructure,
     instead of creating dedicated ones.
 */

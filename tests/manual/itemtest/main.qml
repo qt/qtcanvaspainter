@@ -27,7 +27,7 @@ ApplicationWindow {
                 y: parent.height * 0.02
                 font.pixelSize: parent.width * 0.04
                 color: "purple"
-                text: "Here is our custom QCPainter item"
+                text: "Here is our custom QCanvasPainter item"
             }
 
             Rectangle {

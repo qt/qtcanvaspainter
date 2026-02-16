@@ -2,18 +2,18 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR BSD-3-Clause
 
 //![0]
-class MyWidget : public QCPainterWidget
+class MyWidget : public QCanvasPainterWidget
 {
 public:
-    QCOffscreenCanvas canvas;
-    QCImage canvasImage;
+    QCanvasOffscreenCanvas canvas;
+    QCanvasImage canvasImage;
 
     void graphicsResourcesInvalidated() override
     {
         canvas = {}; // so that the next prePaint() will recreate and redraw the canvas
     }
 
-    void prePaint(QCPainter *p) override
+    void prePaint(QCanvasPainter *p) override
     {
         if (canvas.isNull()) {
             canvas = p->createCanvas(QSize(320, 240));
@@ -23,11 +23,11 @@ public:
             p->setFillStyle(Qt::red);
             p->fill();
             endCanvasPainting();
-            canvasImage = p->addImage(canvas, QCPainter::ImageFlag::Repeat);
+            canvasImage = p->addImage(canvas, QCanvasPainter::ImageFlag::Repeat);
         }
     }
 
-    void paint(QCPainter *p) override
+    void paint(QCanvasPainter *p) override
     {
         // use canvasImage as a brush or with drawImage()
     }

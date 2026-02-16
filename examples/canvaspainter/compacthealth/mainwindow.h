@@ -5,9 +5,9 @@
 #define MAINWINDOW_H
 
 #include "painterwindow.h"
-#include <QtCanvasPainter/QCPainter>
-#include <QtCanvasPainter/QCImage>
-#include <QtCanvasPainter/QCPainterPath>
+#include <QtCanvasPainter/QCanvasPainter>
+#include <QtCanvasPainter/QCanvasImage>
+#include <QtCanvasPainter/QCanvasPainterPath>
 #include <QTimer>
 #include <QElapsedTimer>
 
@@ -22,7 +22,7 @@ public:
     ~MainWindow();
 
 protected:
-    void paint(QCPainter *p) override;
+    void paint(QCanvasPainter *p) override;
     void touchEvent(QTouchEvent *ev) override;
     void resizeEvent(QResizeEvent *ev) override;
 
@@ -59,7 +59,7 @@ private:
     void updateRespData();
     void updateWarnings();
 
-    QCPainter *m_painter;
+    QCanvasPainter *m_painter;
     QTimer m_timer;
     QElapsedTimer m_elapsedTimer;
     bool m_initialized = false;
@@ -79,7 +79,7 @@ private:
     float m_spo2 = 99.0f;
     // AirWay Respiratory Rate
     float m_awrr = 12.5;
-    QCPainterPath m_tempBarsPath;
+    QCanvasPainterPath m_tempBarsPath;
     QList<float> m_tempData;
     int m_tempDataCount = 64;
 
@@ -117,14 +117,14 @@ private:
 
     Theme m_theme;
     float m_iconSize = 20;
-    QCImage m_b1ImageLight;
-    QCImage m_b1ImageDark;
-    QCImage m_b2ImageLight;
-    QCImage m_b2ImageDark;
-    QCImage m_b3ImageLight;
-    QCImage m_b3ImageDark;
-    QCImage m_sImageLight;
-    QCImage m_sImageDark;
+    QCanvasImage m_b1ImageLight;
+    QCanvasImage m_b1ImageDark;
+    QCanvasImage m_b2ImageLight;
+    QCanvasImage m_b2ImageDark;
+    QCanvasImage m_b3ImageLight;
+    QCanvasImage m_b3ImageDark;
+    QCanvasImage m_sImageLight;
+    QCanvasImage m_sImageDark;
 
     QFont m_titleFont;
     QFont m_bigFont;

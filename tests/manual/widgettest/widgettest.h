@@ -4,11 +4,11 @@
 #ifndef WIDGETTEST_H
 #define WIDGETTEST_H
 
-#include "qcpainterwidget.h"
-#include "qcpainter.h"
+#include "qcanvaspainterwidget.h"
+#include "qcanvaspainter.h"
 #include "../shared/painthelper.h"
 
-class HelloWidget : public QCPainterWidget
+class HelloWidget : public QCanvasPainterWidget
 {
 
 public:
@@ -17,23 +17,23 @@ public:
         setFillColor("#000000");
     }
 
-    void initializeResources(QCPainter *p) override
+    void initializeResources(QCanvasPainter *p) override
     {
-        // Provide our own QCImage, to verify that a "load-if-not-yet-done"
+        // Provide our own QCanvasImage, to verify that a "load-if-not-yet-done"
         // logic works as expected, and it does not break down when the widget
         // is moved between windows (and so changes QRhis, losing all graphics
         // resources in the process).
         static QImage logoImage(":/quitlogo.png");
         if (logo.isNull())
-            logo = p->addImage(logoImage, QCPainter::ImageFlag::Repeat);
+            logo = p->addImage(logoImage, QCanvasPainter::ImageFlag::Repeat);
     }
 
-    void paint(QCPainter *p) override
+    void paint(QCanvasPainter *p) override
     {
         paintHelloItem(p, width(), height(), &logo);
     }
 
-    QCImage logo;
+    QCanvasImage logo;
 
     void graphicsResourcesInvalidated() override
     {

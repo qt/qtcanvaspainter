@@ -4,20 +4,20 @@
 #ifndef CANVASWIDGET_H
 #define CANVASWIDGET_H
 
-#include <QCPainterWidget>
-#include <QCImage>
+#include <QCanvasPainterWidget>
+#include <QCanvasImage>
 
 //![0]
-class CanvasWidget : public QCPainterWidget
+class CanvasWidget : public QCanvasPainterWidget
 {
 public:
     CanvasWidget();
-    void initializeResources(QCPainter *p) override;
-    void paint(QCPainter *p) override;
+    void initializeResources(QCanvasPainter *p) override;
+    void paint(QCanvasPainter *p) override;
     void graphicsResourcesInvalidated() override;
 
 private:
-    QCImage m_image;
+    QCanvasImage m_image;
 };
 //![0]
 

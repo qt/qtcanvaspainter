@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR BSD-3-Clause
 
 //![0]
-class MyItem : public QQuickCPainterItem
+class MyItem : public QCanvasPainterItem
 {
     Q_OBJECT
     QML_NAMED_ELEMENT(MyItem) // exposed to QML, instantiate as MyItem { ... }
@@ -12,11 +12,11 @@ class MyItem : public QQuickCPainterItem
 
 public:
     HelloItem(QQuickItem *parent = nullptr)
-        : QQuickCPainterItem(parent)
+        : QCanvasPainterItem(parent)
     {
     }
 
-    QQuickCPainterRenderer *createItemRenderer() const override
+    QCanvasPainterItemRenderer *createItemRenderer() const override
     {
         return new MyRenderer;
     }

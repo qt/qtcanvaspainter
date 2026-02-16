@@ -11,8 +11,8 @@
 #endif
 #include <rhi/qrhi.h>
 
-QT_FORWARD_DECLARE_CLASS(QCPainter)
-QT_FORWARD_DECLARE_CLASS(QCPainterFactory)
+QT_FORWARD_DECLARE_CLASS(QCanvasPainter)
+QT_FORWARD_DECLARE_CLASS(QCanvasPainterFactory)
 
 class PainterWindow : public QWindow
 {
@@ -25,7 +25,7 @@ public:
     void setFillColor(const QColor &color);
 
     protected:
-    virtual void paint(QCPainter *painter);
+    virtual void paint(QCanvasPainter *painter);
     virtual void cleanup();
 
     void exposeEvent(QExposeEvent *) override;
@@ -41,7 +41,7 @@ private:
 
     QColor m_fillColor = {0, 0, 0, 0};
 
-    QCPainterFactory *m_factory = nullptr;
+    QCanvasPainterFactory *m_factory = nullptr;
     QRhi::Implementation m_graphicsApi = QRhi::Null;
 
 #if QT_CONFIG(opengl)

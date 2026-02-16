@@ -1,0 +1,64 @@
+// Copyright (C) 2025 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
+// Qt-Security score:significant reason:default
+
+
+#ifndef QCANVASOFFSCREENCANVAS_H
+#define QCANVASOFFSCREENCANVAS_H
+
+#include <QtCanvasPainter/qtcanvaspainterglobal.h>
+#include <QtCore/qshareddata.h>
+#include <QtCore/qobject.h>
+#include <QtGui/qcolor.h>
+
+QT_BEGIN_NAMESPACE
+
+class QCanvasOffscreenCanvasPrivate;
+class QRhiTexture;
+
+QT_DECLARE_QESDP_SPECIALIZATION_DTOR(QCanvasOffscreenCanvasPrivate)
+
+class Q_CANVASPAINTER_EXPORT QCanvasOffscreenCanvas
+{
+    Q_GADGET
+
+public:
+    enum class Flag {
+        PreserveContents = 0x01,
+        MipMaps = 0x02
+    };
+    Q_DECLARE_FLAGS(Flags, Flag)
+
+    QCanvasOffscreenCanvas();
+    QCanvasOffscreenCanvas(const QCanvasOffscreenCanvas &canvas);
+    ~QCanvasOffscreenCanvas();
+    QCanvasOffscreenCanvas &operator=(const QCanvasOffscreenCanvas &canvas) noexcept;
+    QCanvasOffscreenCanvas(QCanvasOffscreenCanvas &&other) = default;
+    QT_MOVE_ASSIGNMENT_OPERATOR_IMPL_VIA_PURE_SWAP(QCanvasOffscreenCanvas)
+    void swap(QCanvasOffscreenCanvas &other) noexcept { d.swap(other.d); }
+
+    void detach();
+
+    bool isNull() const;
+
+    Flags flags() const;
+
+    QColor fillColor() const;
+    void setFillColor(const QColor &color);
+
+    QRhiTexture *texture() const;
+
+private:
+    friend Q_CANVASPAINTER_EXPORT bool comparesEqual(const QCanvasOffscreenCanvas &lhs, const QCanvasOffscreenCanvas &rhs) noexcept;
+    Q_DECLARE_EQUALITY_COMPARABLE(QCanvasOffscreenCanvas)
+
+    QExplicitlySharedDataPointer<QCanvasOffscreenCanvasPrivate> d;
+    friend class QCanvasOffscreenCanvasPrivate;
+};
+
+Q_DECLARE_OPERATORS_FOR_FLAGS(QCanvasOffscreenCanvas::Flags)
+Q_DECLARE_SHARED(QCanvasOffscreenCanvas)
+
+QT_END_NAMESPACE
+
+#endif // QCANVASOFFSCREENCANVAS_H

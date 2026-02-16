@@ -5,11 +5,11 @@
 #ifndef ITEMTEST_H
 #define ITEMTEST_H
 
-#include "qquickcpainteritem.h"
-#include "qquickcpainterrenderer.h"
+#include "qcanvaspainteritem.h"
+#include "qcanvaspainteritemrenderer.h"
 #include "../shared/painthelper.h"
 
-class HelloItemRenderer : public QQuickCPainterRenderer
+class HelloItemRenderer : public QCanvasPainterItemRenderer
 {
 
 public:
@@ -22,43 +22,43 @@ public:
         qDebug() << "HelloItemRenderer" << this << "created";
     }
 
-    void initializeResources(QCPainter *p) override
+    void initializeResources(QCanvasPainter *p) override
     {
         qDebug() << "initializeResources" << this;
 
-        // Provide our own QCImage, to verify that a "load-if-not-yet-done"
+        // Provide our own QCanvasImage, to verify that a "load-if-not-yet-done"
         // logic works as expected, and it does not break down when the item
         // is moved between windows (and so changes QRhis, losing all graphics
         // resources in the process).
         static QImage logoImage(":/quitlogo.png");
         if (logo.isNull())
-            logo = p->addImage(logoImage, QCPainter::ImageFlag::Repeat);
+            logo = p->addImage(logoImage, QCanvasPainter::ImageFlag::Repeat);
     }
 
-    void synchronize(QQuickCPainterItem *) override
+    void synchronize(QCanvasPainterItem *) override
     {
         //qDebug() << "synchronize";
     }
 
-    void paint(QCPainter *p) override
+    void paint(QCanvasPainter *p) override
     {
         paintHelloItem(p, width(), height(), &logo);
     }
 
-    QCImage logo;
+    QCanvasImage logo;
 };
 
-class HelloItem : public QQuickCPainterItem
+class HelloItem : public QCanvasPainterItem
 {
     Q_OBJECT
 
 public:
     HelloItem(QQuickItem *parent = nullptr)
-        :  QQuickCPainterItem(parent)
+        :  QCanvasPainterItem(parent)
     {
     }
 
-    QQuickCPainterRenderer *createItemRenderer() const override
+    QCanvasPainterItemRenderer *createItemRenderer() const override
     {
         return new HelloItemRenderer;
     }

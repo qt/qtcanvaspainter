@@ -5,28 +5,28 @@
 #define IMAGETESTINGRENDERER_H
 
 
-#include "qquickcpainterrenderer.h"
-#include "qcimage.h"
-#include "qcoffscreencanvas.h"
+#include "qcanvaspainteritemrenderer.h"
+#include "qcanvasimage.h"
+#include "qcanvasoffscreencanvas.h"
 #include <QImage>
 #include <QList>
-class ImageTestingRenderer : public QQuickCPainterRenderer
+class ImageTestingRenderer : public QCanvasPainterItemRenderer
 {
 
 public:
     explicit ImageTestingRenderer();
-    void synchronize(QQuickCPainterItem *item) override;
-    void prePaint(QCPainter *painter) override;
-    void paint(QCPainter *painter) override;
+    void synchronize(QCanvasPainterItem *item) override;
+    void prePaint(QCanvasPainter *painter) override;
+    void paint(QCanvasPainter *painter) override;
 
 private:
     struct ImageData {
-        QCImage image;
+        QCanvasImage image;
         bool visible = true;
     };
     struct CanvasData {
-        QCOffscreenCanvas canvas;
-        QCImage image;
+        QCanvasOffscreenCanvas canvas;
+        QCanvasImage image;
     };
     void generateImage();
 

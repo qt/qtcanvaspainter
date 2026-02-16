@@ -5,12 +5,12 @@
 #ifndef GALLERYITEM_H
 #define GALLERYITEM_H
 
-#include <QtCanvasPainter/qquickcpainteritem.h>
+#include <QtCanvasPainter/qcanvaspainteritem.h>
 #include <QQuickItem>
 #include "galleryitemrenderer.h"
 
 //![0]
-class GalleryItem : public QQuickCPainterItem
+class GalleryItem : public QCanvasPainterItem
 {
     Q_OBJECT
     QML_NAMED_ELEMENT(GalleryItem)
@@ -23,7 +23,7 @@ public:
 
     GalleryItem(QQuickItem *parent = nullptr);
 
-    QQuickCPainterRenderer *createItemRenderer() const override;
+    QCanvasPainterItemRenderer *createItemRenderer() const override;
 
     int galleryView() const { return m_galleryView; }
     float animationTime() const { return m_animationTime; }

@@ -6,11 +6,11 @@
 
 //![0]
 GalleryItem::GalleryItem(QQuickItem *parent)
-:  QQuickCPainterItem(parent)
+:  QCanvasPainterItem(parent)
 {
 }
 
-QQuickCPainterRenderer* GalleryItem::createItemRenderer() const
+QCanvasPainterItemRenderer* GalleryItem::createItemRenderer() const
 {
     return new GalleryItemRenderer();
 }

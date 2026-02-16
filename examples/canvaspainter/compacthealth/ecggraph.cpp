@@ -6,7 +6,7 @@
 #include <QColor>
 #include <QRandomGenerator>
 #include <QTimer>
-#include <QtCanvasPainter/QCPainterPath>
+#include <QtCanvasPainter/QCanvasPainterPath>
 
 ECGGraph::ECGGraph()
 {
@@ -21,7 +21,7 @@ void ECGGraph::initialize()
 }
 
 // Paint all waves
-void ECGGraph::paintWaves(QCPainter *painter, float x, float y, float w, float h)
+void ECGGraph::paintWaves(QCanvasPainter *painter, float x, float y, float w, float h)
 {
     m_theme = &m_mainWindow->m_theme;
     m_painter = painter;
@@ -59,7 +59,7 @@ void ECGGraph::paintWave(float x, float y, float w, float h)
     const float xMove = float(w) / m_dataLength;
     const float hC = h * 0.5f;
     const auto &data = m_waveData;
-    p->setLineJoin(QCPainter::LineJoin::Bevel);
+    p->setLineJoin(QCanvasPainter::LineJoin::Bevel);
     p->beginPath();
     if (m_clearDataIndex > m_heartDataIndex) {
         // Stroke with 2 lines
@@ -98,7 +98,7 @@ void ECGGraph::paintSpo2Wave(float x, float y, float w, float h)
     const float xMove = float(w) / m_dataLength;
     const float hC = h * 0.5f;
     const auto &data = m_spo2Data;
-    p->setLineJoin(QCPainter::LineJoin::Bevel);
+    p->setLineJoin(QCanvasPainter::LineJoin::Bevel);
     p->beginPath();
     if (m_clearDataIndex > m_heartDataIndex) {
         // Stroke with 2 lines
