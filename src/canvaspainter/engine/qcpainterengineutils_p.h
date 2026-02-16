@@ -26,7 +26,7 @@
 #include <QDebug>
 #include <QMetaEnum>
 #include <QVariantMap>
-#include "qcpainter.h"
+#include "qcanvaspainter.h"
 #ifndef QCPAINTER_DISABLE_TEXT_SUPPORT
 #include "engine/qcrhidistancefieldglyphcache_p.h"
 #endif
@@ -34,13 +34,13 @@
 QT_BEGIN_NAMESPACE
 
 class QCPainterRhiRenderer;
-class QCCustomBrush;
+class QCanvasCustomBrush;
 struct QCDebugCounters;
 
 // Enable this to get performance logging outputs
 //#define QCPAINTER_PERF_DEBUG
 
-enum QCBrushType {
+enum QCanvasBrushType {
     BrushColor,
     BrushLinearGradient,
     BrushRadialGradient,
@@ -59,7 +59,7 @@ struct QCPaint {
     QTransform transform;
     QCColor innerColor = {0.0f, 0.0f, 0.0f, 1.0f};
     QCColor outerColor = {0.0f, 0.0f, 0.0f, 1.0f};
-    QCBrushType brushType = BrushColor;
+    QCanvasBrushType brushType = BrushColor;
     int imageId = 0;
     float extent[2];
     float radius = 0.0f;
@@ -115,7 +115,7 @@ struct QCPath {
     int pointsOffset = 0;
     int pointsCount = 0;
     int bevelCount = 0;
-    QCPainter::PathWinding winding = QCPainter::PathWinding::CounterClockWise;
+    QCanvasPainter::PathWinding winding = QCanvasPainter::PathWinding::CounterClockWise;
     bool isConvex = false;
     bool isClosed = false;
 };
@@ -128,10 +128,10 @@ struct QCState {
     QCClip clip;
     QCPaint fill;
     QCPaint stroke;
-    QCPainter::CompositeOperation compositeOperation;
-    QCPainter::LineJoin lineJoin;
-    QCPainter::LineCap lineCap;
-    QCPainter::PathWinding winding;
+    QCanvasPainter::CompositeOperation compositeOperation;
+    QCanvasPainter::LineJoin lineJoin;
+    QCanvasPainter::LineCap lineCap;
+    QCanvasPainter::PathWinding winding;
     float strokeWidth;
     float antialias;
     float miterLimit;
@@ -139,12 +139,12 @@ struct QCState {
     float brightness;
     float contrast;
     float saturate;
-    QCCustomBrush *customFill = nullptr;
-    QCCustomBrush *customStroke = nullptr;
-    QCPainter::WrapMode textWrapMode = QCPainter::WrapMode::NoWrap;
-    QCPainter::TextAlign textAlignment = QCPainter::TextAlign::Start;
-    QCPainter::TextBaseline textBaseline = QCPainter::TextBaseline::Alphabetic;
-    QCPainter::TextDirection textDirection = QCPainter::TextDirection::Inherit;
+    QCanvasCustomBrush *customFill = nullptr;
+    QCanvasCustomBrush *customStroke = nullptr;
+    QCanvasPainter::WrapMode textWrapMode = QCanvasPainter::WrapMode::NoWrap;
+    QCanvasPainter::TextAlign textAlignment = QCanvasPainter::TextAlign::Start;
+    QCanvasPainter::TextBaseline textBaseline = QCanvasPainter::TextBaseline::Alphabetic;
+    QCanvasPainter::TextDirection textDirection = QCanvasPainter::TextDirection::Inherit;
     float textLineHeight;
     float textAntialias;
     bool blendEnable;
@@ -162,7 +162,7 @@ struct QCPoint {
 };
 typedef QVarLengthArray<QCPoint> QCPoints;
 
-// Variables to determine if the QCPainterPath or related state
+// Variables to determine if the QCanvasPainterPath or related state
 // has changed so that paths, points & vertices need to be recreated.
 struct QCCachedPath
 {
@@ -170,8 +170,8 @@ struct QCCachedPath
     int pathIterations = -1;
     int commandsCount = 0;
     float strokeWidth = 1.0f;
-    QCPainter::LineCap lineCap = QCPainter::LineCap::Butt;
-    QCPainter::LineJoin lineJoin = QCPainter::LineJoin::Miter;
+    QCanvasPainter::LineCap lineCap = QCanvasPainter::LineCap::Butt;
+    QCanvasPainter::LineJoin lineJoin = QCanvasPainter::LineJoin::Miter;
     float edgeAAWidth = 1.0f;
 };
 
@@ -185,20 +185,20 @@ struct QCContext {
     // Currently active path, so paths[pathsCount - 1]
     QCPath *currentPath = nullptr;
     // Currently rendered painter path
-    QCPainterPath *currentPainterPath = nullptr;
+    QCanvasPainterPath *currentPainterPath = nullptr;
     int currentPathGroup = -1;
     QTransform currentPathTransform;
     // Currently prepared painter path.
     // Means that current commands & commandsData are from this path.
-    const QCPainterPath *preparedPainterPath = nullptr;
+    const QCanvasPainterPath *preparedPainterPath = nullptr;
     // Transform which was used for preparedPainterPath
     QTransform preparedTransform;
-    QHash<const QCPainterPath*, QCCachedPath> cachedFillPaths;
-    QHash<const QCPainterPath*, QCCachedPath> cachedStrokePaths;
+    QHash<const QCanvasPainterPath*, QCCachedPath> cachedFillPaths;
+    QHash<const QCanvasPainterPath*, QCCachedPath> cachedStrokePaths;
     QList<QCState> states;
     QRectF view;
     QRectF bounds;
-    QCPainter::RenderHints renderHints = QCPainter::RenderHint::Antialiasing;
+    QCanvasPainter::RenderHints renderHints = QCanvasPainter::RenderHint::Antialiasing;
     float dpr;
     QMatrix4x4 customMatrix;
     bool customMatrixValid;
@@ -384,11 +384,11 @@ inline int curveDivs(float r, float tol = 0.25f)
     return std::max(2, (int)ceilf(float(M_PI) / da));
 }
 
-namespace QCPainterDebugCounterUtils {
+namespace QCanvasPainterDebugCounterUtils {
 
 void fillDebugCounters(QVariantMap *dst, const QCDebugCounters &src);
 
-} // namespace QQCPainterDebugCounterUtils
+} // namespace QQCanvasPainterDebugCounterUtils
 
 QT_END_NAMESPACE
 

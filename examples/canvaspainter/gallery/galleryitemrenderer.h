@@ -5,25 +5,25 @@
 #ifndef GALLERYITEMRENDERER_H
 #define GALLERYITEMRENDERER_H
 
-#include <QtCanvasPainter/qquickcpainterrenderer.h>
-#include <QtCanvasPainter/qcpainter.h>
-#include <QtCanvasPainter/qcradialgradient.h>
-#include <QtCanvasPainter/qccustombrush.h>
-#include <QtCanvasPainter/qcimage.h>
-#include <QtCanvasPainter/qcpainterpath.h>
+#include <QtCanvasPainter/qcanvaspainteritemrenderer.h>
+#include <QtCanvasPainter/qcanvaspainter.h>
+#include <QtCanvasPainter/qcanvasradialgradient.h>
+#include <QtCanvasPainter/qcanvascustombrush.h>
+#include <QtCanvasPainter/qcanvasimage.h>
+#include <QtCanvasPainter/qcanvaspainterpath.h>
 
 #include <QQuickItem>
 
 //![0]
-class GalleryItemRenderer : public QQuickCPainterRenderer
+class GalleryItemRenderer : public QCanvasPainterItemRenderer
 {
 public:
     explicit GalleryItemRenderer();
     ~GalleryItemRenderer();
 
-    void initializeResources(QCPainter *painter) override;
-    void synchronize(QQuickCPainterItem *item) override;
-    void paint(QCPainter *painter) override;
+    void initializeResources(QCanvasPainter *painter) override;
+    void synchronize(QCanvasPainterItem *item) override;
+    void paint(QCanvasPainter *painter) override;
 //![0]
 
 private:
@@ -49,9 +49,9 @@ private:
     void drawAntialiasing();
 
     // View - Composite
-    void drawCompositeItem1(float x, float y, float w, float h, QCPainter::CompositeOperation mode);
-    void drawCompositeItem2(float x, float y, float w, float h, QCPainter::CompositeOperation mode);
-    void drawCompositeItem3(float x, float y, float w, float h, QCPainter::CompositeOperation mode);
+    void drawCompositeItem1(float x, float y, float w, float h, QCanvasPainter::CompositeOperation mode);
+    void drawCompositeItem2(float x, float y, float w, float h, QCanvasPainter::CompositeOperation mode);
+    void drawCompositeItem3(float x, float y, float w, float h, QCanvasPainter::CompositeOperation mode);
     void drawCompositeModes();
 
     // View - Grid patterns
@@ -78,7 +78,7 @@ private:
 
     void drawRect(float x, float y, float w, float h);
 
-    //QCPainter *m_painter;
+    //QCanvasPainter *m_painter;
     float m_animationTime = 0.0f;
     float m_animationSine = 0.0f;
     float m_animState = 0.0f;
@@ -89,26 +89,26 @@ private:
     float m_previousHeight = 0;
     bool m_sizeChanged = false;
     float m_topMargin = 0;
-    QCRadialGradient m_radGrad;
-    QCImage m_testImage;
-    QCImage m_patternImage;
-    QCImage m_patternImage2;
-    QCImage m_patternImage3;
-    QCImage image3Gray;
-    QCImage image3Plain;
-    QCImage image3Nearest;
-    QCImage image3Mips;
-    QCImage image3NearestMips;
-    QCCustomBrush m_customBrush;
-    QCCustomBrush m_customBrush2;
-    QCCustomBrush m_customBrush3;
-    QCCustomBrush m_customBrush4;
-    QCPainterPath m_path1;
-    QCPainterPath m_path2;
-    QCPainterPath m_path3;
-    QCPainterPath m_path4;
-    QCPainterPath m_pathGraphLine;
-    QCPainterPath m_pathGraphArea;
+    QCanvasRadialGradient m_radGrad;
+    QCanvasImage m_testImage;
+    QCanvasImage m_patternImage;
+    QCanvasImage m_patternImage2;
+    QCanvasImage m_patternImage3;
+    QCanvasImage image3Gray;
+    QCanvasImage image3Plain;
+    QCanvasImage image3Nearest;
+    QCanvasImage image3Mips;
+    QCanvasImage image3NearestMips;
+    QCanvasCustomBrush m_customBrush;
+    QCanvasCustomBrush m_customBrush2;
+    QCanvasCustomBrush m_customBrush3;
+    QCanvasCustomBrush m_customBrush4;
+    QCanvasPainterPath m_path1;
+    QCanvasPainterPath m_path2;
+    QCanvasPainterPath m_path3;
+    QCanvasPainterPath m_path4;
+    QCanvasPainterPath m_pathGraphLine;
+    QCanvasPainterPath m_pathGraphArea;
 };
 
 #endif // GALLERYITEMRENDERER_H

@@ -109,10 +109,10 @@ void MainWindow::updateRespData()
 }
 
 //![paint-1]
-void MainWindow::paint(QCPainter *p)
+void MainWindow::paint(QCanvasPainter *p)
 {
     if (!m_initialized) {
-        auto flags = QCPainter::ImageFlag::GenerateMipmaps;
+        auto flags = QCanvasPainter::ImageFlag::GenerateMipmaps;
         m_b1ImageLight = p->addImage(QImage(":/images/icon_random_light.png"), flags);
         m_b1ImageDark = p->addImage(QImage(":/images/icon_random_dark.png"), flags);
         m_b2ImageLight = p->addImage(QImage(":/images/icon_theme_light.png"), flags);
@@ -131,7 +131,7 @@ void MainWindow::paint(QCPainter *p)
     m_px = float(width()) / 960;
     const float viewRadius = 10 * m_px;
     // Paint view backgrounds
-    static QCPainterPath viewBackgroundsPath;
+    static QCanvasPainterPath viewBackgroundsPath;
     if (m_dirty.testFlag(Dirty::ViewBackgrounds)) {
         viewBackgroundsPath.clear();
         for (int i = 0; i < ViewsEnd; i++) {
@@ -159,7 +159,7 @@ void MainWindow::paint(QCPainter *p)
         p->stroke();
     }
     // Paint title backgrounds
-    static QCPainterPath viewTitlesPath;
+    static QCanvasPainterPath viewTitlesPath;
     static QVarLengthArray<QRectF> titleRects;
     if (m_dirty.testFlag(Dirty::ViewBackgrounds)) {
         viewTitlesPath.clear();
@@ -186,8 +186,8 @@ void MainWindow::paint(QCPainter *p)
     // Widget titles
     p->setFont(m_titleFont);
     p->setFillStyle(m_theme.foreground2());
-    p->setTextAlign(QCPainter::TextAlign::Center);
-    p->setTextBaseline(QCPainter::TextBaseline::Middle);
+    p->setTextAlign(QCanvasPainter::TextAlign::Center);
+    p->setTextBaseline(QCanvasPainter::TextBaseline::Middle);
     for (int i = 0; i < titleRects.size(); i++) {
         const auto r = titleRects.at(i);
         p->fillText(m_views[i].title, r);
@@ -409,9 +409,9 @@ void MainWindow::paintRespGraph(float x, float y, float w, float h)
 
 void MainWindow::paintSlider(float x, float y, float w, float h)
 {
-    static QCPainterPath sliderBackground;
-    static QCPainterPath sliderFill;
-    static QCPainterPath sliderKnob;
+    static QCanvasPainterPath sliderBackground;
+    static QCanvasPainterPath sliderFill;
+    static QCanvasPainterPath sliderKnob;
     QRectF sRect(x + 0.5 * w - 0.5 * m_iconSize, y, m_iconSize, m_iconSize);
     auto &sIcon = m_theme.isDark() ? m_sImageLight : m_sImageDark;
     m_painter->drawImage(sIcon, sRect);
@@ -454,7 +454,7 @@ void MainWindow::paintGrid(float x, float y, float w, float h)
     const int hLines = 40;
     const int vLines = 20;
     auto *p = m_painter;
-    static QCPainterPath path;
+    static QCanvasPainterPath path;
     if (m_dirty.testFlag(Dirty::GraphGrid)) {
         path.clear();
         // Hozontal minor lines

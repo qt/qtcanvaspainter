@@ -19,23 +19,23 @@
 
 #include <rhi/qrhi.h>
 #include "qcpainterengineutils_p.h"
-#include "qccustombrush_p.h"
-#include "qcoffscreencanvas.h"
+#include "qcanvascustombrush_p.h"
+#include "qcanvasoffscreencanvas.h"
 #include <functional>
 
 QT_BEGIN_NAMESPACE
 
 class QCPainterEngine;
 struct QCRHIContext;
-class QCPainter;
-class QCCustomBrush;
+class QCanvasPainter;
+class QCanvasCustomBrush;
 struct QCRHIPipelineStateKey;
 struct QCRHISamplerDesc;
 struct QCRHICall;
 struct QCRHICommonUniforms;
 struct QCRHICachedPath;
 struct QCRHICachedPathGroup;
-class QCPainterPath;
+class QCanvasPainterPath;
 
 struct QCRHITexture
 {
@@ -43,7 +43,7 @@ struct QCRHITexture
     int id = 0;
     int width = 0;
     int height = 0;
-    QCPainter::ImageFlags flags = {};
+    QCanvasPainter::ImageFlags flags = {};
 };
 
 struct QCRhiCanvas
@@ -53,7 +53,7 @@ struct QCRhiCanvas
     QRhiRenderBuffer *ds = nullptr;
     QRhiTextureRenderTarget *rt = nullptr;
     QRhiRenderPassDescriptor *rp = nullptr;
-    QCOffscreenCanvas::Flags flags;
+    QCanvasOffscreenCanvas::Flags flags;
     bool isNull() const { return !tex; }
     void destroy();
 };
@@ -76,7 +76,7 @@ public:
 
     QCPainterRhiRenderer();
     ~QCPainterRhiRenderer();
-    void create(QRhi *rhi, QCPainter *painter);
+    void create(QRhi *rhi, QCanvasPainter *painter);
     void destroy();
     bool isValid() const { return ctx != nullptr; }
 
@@ -118,23 +118,23 @@ public:
 
     bool renderCreate();
 
-    QCRHITexture *renderCreateNativeTexture(QRhiTexture *texture, QCPainter::ImageFlags flags = {});
+    QCRHITexture *renderCreateNativeTexture(QRhiTexture *texture, QCanvasPainter::ImageFlags flags = {});
     QCRHITexture *renderUpdateNativeTexture(QRhiTexture *oldTexture, QRhiTexture *texture);
     bool isOffscreenCanvasYUp() const;
 
-    int renderCreateTexture(QCTextureFormat type, int w, int h, QCPainter::ImageFlags imageFlags, const uchar* data);
+    int renderCreateTexture(QCTextureFormat type, int w, int h, QCanvasPainter::ImageFlags imageFlags, const uchar* data);
     bool renderDeleteTexture(int image);
     bool renderUpdateTexture(int image, int x, int y, int w, int h, const uchar* data);
     void setViewport(float x, float y, float width, float height);
     void renderFill(const QCPaint &paint, const QCState &state,
                     const QRectF &bounds,
                     const QCPaths &paths, int pathsCount,
-                    QCPainterPath *painterPath, int pathGroup,
+                    QCanvasPainterPath *painterPath, int pathGroup,
                     const QTransform &pathTransform);
     void renderStroke(const QCPaint &paint, const QCState &state,
                       float strokeWidth,
                       const QCPaths &paths, int pathsCount,
-                      QCPainterPath *painterPath, int pathGroup,
+                      QCanvasPainterPath *painterPath, int pathGroup,
                       const QTransform &pathTransform);
 #ifndef QCPAINTER_DISABLE_TEXT_SUPPORT
     void renderTextFill(
@@ -145,7 +145,7 @@ public:
     void renderTextFillCustom(
         const QCPaint &paint,
         const QCState &state,
-        QCCustomBrush *brush,
+        QCanvasCustomBrush *brush,
         const QCRhiDistanceFieldGlyphCache::VertexList &verts,
         const QCRhiDistanceFieldGlyphCache::IndexList &indices);
     int populateFont(
@@ -159,17 +159,17 @@ public:
 #endif
     void renderDelete();
 
-    bool isPathCached(QCPainterPath *path, int pathGroup) const;
+    bool isPathCached(QCanvasPainterPath *path, int pathGroup) const;
     void removePathGroup(int pathGroup);
 
     static void textureFormatInfo(QRhiTexture::Format format, QSize size,
                                   quint32 *bpl, quint32 *byteSize, quint32 *bytesPerPixel);
 
-    QCOffscreenCanvas createCanvas(QSize pixelSize, int sampleCount, QCOffscreenCanvas::Flags flags);
-    void destroyCanvas(QCOffscreenCanvas &canvas);
-    QRhiRenderTarget *canvasRenderTarget(const QCOffscreenCanvas &canvas);
-    void recordCanvasRenderPass(QRhiCommandBuffer *cb, const QCOffscreenCanvas &canvas);
-    void grabCanvas(const QCOffscreenCanvas &canvas, std::function<void(const QImage &)> callback, QRhiCommandBuffer *maybeCb);
+    QCanvasOffscreenCanvas createCanvas(QSize pixelSize, int sampleCount, QCanvasOffscreenCanvas::Flags flags);
+    void destroyCanvas(QCanvasOffscreenCanvas &canvas);
+    QRhiRenderTarget *canvasRenderTarget(const QCanvasOffscreenCanvas &canvas);
+    void recordCanvasRenderPass(QRhiCommandBuffer *cb, const QCanvasOffscreenCanvas &canvas);
+    void grabCanvas(const QCanvasOffscreenCanvas &canvas, std::function<void(const QImage &)> callback, QRhiCommandBuffer *maybeCb);
 
     void recordRenderPass(QRhiCommandBuffer *cb, QRhiRenderTarget *rt, const QColor &clearColor);
 
@@ -195,12 +195,12 @@ private:
     int allocCommonUniforms(int count);
 
     QCRHICommonUniforms *uniformPtr(int i) const;
-    QCCustomBrushPrivate::CommonUniforms *customUniformPtr(int i) const;
+    QCanvasCustomBrushPrivate::CommonUniforms *customUniformPtr(int i) const;
     void preparePaint(QCRHICommonUniforms* frag, const QCPaint &paint,
                       const QCState &state, float width, float aa, float strokeThr,
                       float fontAlphaMin, float fontAlphaMax);
-    void prepareCustomPaint(QCCustomBrushPrivate::CommonUniforms* frag, const QCPaint &paint,
-                            QCCustomBrush *brush, const QCState &state,
+    void prepareCustomPaint(QCanvasCustomBrushPrivate::CommonUniforms* frag, const QCPaint &paint,
+                            QCanvasCustomBrush *brush, const QCState &state,
                             float width, float aa, float strokeThr,
                             float fontAlphaMin, float fontAlphaMax);
     void bindPipeline(QCRHICall *call,
@@ -211,14 +211,14 @@ private:
                       bool *needsViewport);
 
 private:
-    friend class QCPainter;
-    friend class QCPainterPrivate;
+    friend class QCanvasPainter;
+    friend class QCanvasPainterPrivate;
 
     QCContext* createRhiContext(QRhi *rhi);
 
     QCContext *ctx = nullptr;
     QCRHIContext *rhiCtx = nullptr;
-    QCPainter *m_painter = nullptr;
+    QCanvasPainter *m_painter = nullptr;
     QCPainterEngine *m_e = nullptr;
     QVector<QCRhiCanvas> m_canvases;
 

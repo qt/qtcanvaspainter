@@ -5,7 +5,7 @@
 
 #include "engine/qctextlayout_p.h"
 #include "qcdistancefieldglyphcache_p.h"
-#include "qcpainter_p.h"
+#include "qcanvaspainter_p.h"
 #include <private/qrawfont_p.h>
 
 QT_BEGIN_NAMESPACE
@@ -26,7 +26,7 @@ QCDistanceFieldGlyphCache::~QCDistanceFieldGlyphCache()
 
 QList<QGlyphRun> QCDistanceFieldGlyphCache::generateGlyphRuns(
     const QString &text, const QRectF &rect, const QFont &font,
-    const QFontMetrics &metrics, QCState *state, QCPainter::TextAlign alignment)
+    const QFontMetrics &metrics, QCState *state, QCanvasPainter::TextAlign alignment)
 {
     QTextOption option;
     option.setFlags(QTextOption::DisableEmojiParsing);
@@ -53,7 +53,7 @@ QList<QGlyphRun> QCDistanceFieldGlyphCache::generateGlyphRuns(
     return m_layout.glyphRuns();
 }
 
-void QCDistanceFieldGlyphCache::generate(const QString &text, const QRectF &rect, const QFont &font, QCState *state, QCPainter::TextAlign alignment,
+void QCDistanceFieldGlyphCache::generate(const QString &text, const QRectF &rect, const QFont &font, QCState *state, QCanvasPainter::TextAlign alignment,
                                          QCRhiDistanceFieldGlyphCache::VertexList *verts, QCRhiDistanceFieldGlyphCache::IndexList *indices)
 {
     // Remove raw fonts

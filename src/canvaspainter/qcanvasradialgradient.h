@@ -1,0 +1,40 @@
+// Copyright (C) 2025 The Qt Company Ltd.
+// Copyright (C) 2015 QUIt Coding <info@quitcoding.com>
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
+// Qt-Security score:significant reason:default
+
+
+#ifndef QCANVASRADIALGRADIENT_H
+#define QCANVASRADIALGRADIENT_H
+
+#include <QtCanvasPainter/qtcanvaspainterglobal.h>
+#include <QtCanvasPainter/qcanvasgradient.h>
+#include <QtCore/qpoint.h>
+
+QT_BEGIN_NAMESPACE
+
+class Q_CANVASPAINTER_EXPORT QCanvasRadialGradient : public QCanvasGradient
+{
+public:
+    QCanvasRadialGradient();
+    QCanvasRadialGradient(float centerX, float centerY, float outerRadius, float innerRadius = 0.0f);
+    QCanvasRadialGradient(QPointF center, float outerRadius, float innerRadius = 0.0f);
+    ~QCanvasRadialGradient();
+
+    QPointF centerPosition() const;
+    void setCenterPosition(float x, float y);
+    inline void setCenterPosition(QPointF center);
+    float outerRadius() const;
+    void setOuterRadius(float radius);
+    float innerRadius() const;
+    void setInnerRadius(float radius);
+};
+
+inline void QCanvasRadialGradient::setCenterPosition(QPointF center)
+{
+    setCenterPosition(float(center.x()), float(center.y()));
+}
+
+QT_END_NAMESPACE
+
+#endif // QCANVASRADIALGRADIENT_H

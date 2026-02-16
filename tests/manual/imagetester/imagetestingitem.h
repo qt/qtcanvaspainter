@@ -4,10 +4,10 @@
 #ifndef IMAGETESTINGITEM_H
 #define IMAGETESTINGITEM_H
 
-#include "qquickcpainteritem.h"
+#include "qcanvaspainteritem.h"
 #include "imagetestingrenderer.h"
 
-class ImageTestingItem : public QQuickCPainterItem
+class ImageTestingItem : public QCanvasPainterItem
 {
     Q_OBJECT
     Q_PROPERTY(int dataAmount READ dataAmount NOTIFY dataAmountChanged FINAL)
@@ -101,7 +101,7 @@ public:
     }
 
 protected:
-    QQuickCPainterRenderer *createItemRenderer() const override;
+    QCanvasPainterItemRenderer *createItemRenderer() const override;
 
 signals:
     void dataAmountChanged();

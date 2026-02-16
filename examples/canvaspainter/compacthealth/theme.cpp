@@ -100,12 +100,12 @@ QColor Theme::graph2() const
     return m_theme.graph2;
 }
 
-QCLinearGradient Theme::gradient1() const
+QCanvasLinearGradient Theme::gradient1() const
 {
     return m_theme.gradient1;
 }
 
-QCLinearGradient Theme::gradient2() const
+QCanvasLinearGradient Theme::gradient2() const
 {
     return m_theme.gradient2;
 }

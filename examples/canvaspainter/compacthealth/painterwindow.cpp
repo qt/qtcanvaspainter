@@ -2,10 +2,10 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR BSD-3-Clause
 
 #include "painterwindow.h"
-#include "qcrhipaintdriver.h"
+#include "qcanvasrhipaintdriver.h"
 #include <QPlatformSurfaceEvent>
-#include <QtCanvasPainter/QCPainter>
-#include <QtCanvasPainter/QCPainterFactory>
+#include <QtCanvasPainter/QCanvasPainter>
+#include <QtCanvasPainter/QCanvasPainterFactory>
 
 #if QT_CONFIG(vulkan)
 static QVulkanInstance g_vulkanInstance;
@@ -165,7 +165,7 @@ void PainterWindow::init()
         qFatal("Failed to create RHI backend");
 //![painterfactory]
     if (!m_factory) {
-        m_factory = new QCPainterFactory;
+        m_factory = new QCanvasPainterFactory;
         m_factory->create(m_rhi.get());
     }
 //![painterfactory]
@@ -225,8 +225,8 @@ void PainterWindow::render()
     QRhiCommandBuffer *cb = m_sc->currentFrameCommandBuffer();
     QRhiRenderTarget *rt = m_sc->currentFrameRenderTarget();
 
-    QCRhiPaintDriver *pd = m_factory->paintDriver();
-    QCPainter *painter = m_factory->painter();
+    QCanvasRhiPaintDriver *pd = m_factory->paintDriver();
+    QCanvasPainter *painter = m_factory->painter();
 
     pd->resetForNewFrame();
     pd->beginPaint(cb, rt, m_fillColor, size(), float(devicePixelRatio()));
@@ -237,7 +237,7 @@ void PainterWindow::render()
 }
 //![renderloop]
 
-void PainterWindow::paint(QCPainter *painter)
+void PainterWindow::paint(QCanvasPainter *painter)
 {
     Q_UNUSED(painter);
 }

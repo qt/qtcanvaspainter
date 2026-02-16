@@ -56,16 +56,16 @@ void Helper::paint(QPainter *painter, QPaintEvent *event, int elapsed)
 }
 //! [3]
 
-void Helper::canvasInit(QCPainter *painter)
+void Helper::canvasInit(QCanvasPainter *painter)
 {
-    qcCircleBrush = QCLinearGradient(QPointF(50, -20), QPointF(80, 20));
+    qcCircleBrush = QCanvasLinearGradient(QPointF(50, -20), QPointF(80, 20));
     qcCircleBrush.setColorAt(0.0, Qt::white);
     qcCircleBrush.setColorAt(1.0, QColor(0xa6, 0xce, 0x39));
 
     qcTextFont.setPixelSize(50);
 }
 
-void Helper::paint(QCPainter *painter, const QRect &rect, int elapsed)
+void Helper::paint(QCanvasPainter *painter, const QRect &rect, int elapsed)
 {
     painter->setFillStyle(QColor(64, 32, 64));
     painter->fillRect(rect);
@@ -91,8 +91,8 @@ void Helper::paint(QCPainter *painter, const QRect &rect, int elapsed)
     painter->restore();
 
     painter->setFont(qcTextFont);
-    painter->setTextAlign(QCPainter::TextAlign::Center);
-    painter->setTextBaseline(QCPainter::TextBaseline::Middle);
+    painter->setTextAlign(QCanvasPainter::TextAlign::Center);
+    painter->setTextBaseline(QCanvasPainter::TextBaseline::Middle);
     painter->setFillStyle(Qt::white);
     painter->fillText(QStringLiteral("Qt"), QRect(-50, -50, 100, 100));
 }

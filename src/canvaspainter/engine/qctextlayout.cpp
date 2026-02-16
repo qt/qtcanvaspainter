@@ -8,35 +8,35 @@
 
 QT_BEGIN_NAMESPACE
 
-QTextOption::WrapMode QCTextLayout::convertToQtWrapMode(QCPainter::WrapMode mode)
+QTextOption::WrapMode QCTextLayout::convertToQtWrapMode(QCanvasPainter::WrapMode mode)
 {
     switch (mode) {
-    case QCPainter::WrapMode::NoWrap:
+    case QCanvasPainter::WrapMode::NoWrap:
         return QTextOption::NoWrap;
         break;
-    case QCPainter::WrapMode::Wrap:
+    case QCanvasPainter::WrapMode::Wrap:
         return QTextOption::WrapAtWordBoundaryOrAnywhere;
         break;
-    case QCPainter::WrapMode::WordWrap:
+    case QCanvasPainter::WrapMode::WordWrap:
         return QTextOption::WordWrap;
         break;
-    case QCPainter::WrapMode::WrapAnywhere:
+    case QCanvasPainter::WrapMode::WrapAnywhere:
         return QTextOption::WrapAnywhere;
         break;
     }
     return QTextOption::NoWrap;
 }
 
-Qt::Alignment QCTextLayout::convertToQtAlignment(QCPainter::TextAlign alignment)
+Qt::Alignment QCTextLayout::convertToQtAlignment(QCanvasPainter::TextAlign alignment)
 {
     switch (alignment) {
-    case QCPainter::TextAlign::Left:
+    case QCanvasPainter::TextAlign::Left:
         return Qt::AlignLeft;
         break;
-    case QCPainter::TextAlign::Center:
+    case QCanvasPainter::TextAlign::Center:
         return Qt::AlignCenter;
         break;
-    case QCPainter::TextAlign::Right:
+    case QCanvasPainter::TextAlign::Right:
         return Qt::AlignRight;
         break;
     default:
@@ -45,23 +45,23 @@ Qt::Alignment QCTextLayout::convertToQtAlignment(QCPainter::TextAlign alignment)
     return Qt::AlignLeft;
 }
 
-float QCTextLayout::calculateVerticalAlignment(QCPainter::TextBaseline baseline, const QRectF &rect,
+float QCTextLayout::calculateVerticalAlignment(QCanvasPainter::TextBaseline baseline, const QRectF &rect,
                                                const QFontMetrics &metrics, const QRectF &layoutRect)
 {
     float offset = 0;
     switch (baseline) {
-    case QCPainter::TextBaseline::Top:
+    case QCanvasPainter::TextBaseline::Top:
         break;
-    case QCPainter::TextBaseline::Hanging:
+    case QCanvasPainter::TextBaseline::Hanging:
         offset = -metrics.height() + metrics.ascent();
         break;
-    case QCPainter::TextBaseline::Middle:
+    case QCanvasPainter::TextBaseline::Middle:
         offset = rect.height() * 0.5 - layoutRect.height() * 0.5;
         break;
-    case QCPainter::TextBaseline::Alphabetic:
+    case QCanvasPainter::TextBaseline::Alphabetic:
         offset = rect.height() - layoutRect.height() + metrics.descent();
         break;
-    case QCPainter::TextBaseline::Bottom:
+    case QCanvasPainter::TextBaseline::Bottom:
         offset = rect.height() - layoutRect.height();
         break;
     }

@@ -2,23 +2,23 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR BSD-3-Clause
 
 //![0]
-class MyRenderer : public QQuickCPainterRenderer
+class MyRenderer : public QCanvasPainterItemRenderer
 {
 public:
-    void synchronize(QQuickCPainterItem *item) override
+    void synchronize(QCanvasPainterItem *item) override
     {
         // copy a custom property value from item in a thread-safe manner
         m_value = static_cast<MyItem *>(item)->value();
     }
 
-    void initializeResources(QCPainter *p) override
+    void initializeResources(QCanvasPainter *p) override
     {
         // load assets
         if (m_image.isNull())
-            m_image = p->addImage(QImage("image.png"), QCPainter::ImageFlag::Repeat);
+            m_image = p->addImage(QImage("image.png"), QCanvasPainter::ImageFlag::Repeat);
     }
 
-    void prePaint(QCPainter *p) override
+    void prePaint(QCanvasPainter *p) override
     {
         // this is where offscreen canvases are drawn into
         if (m_canvas.isNull()) {
@@ -30,15 +30,15 @@ public:
         }
     }
 
-    void paint(QCPainter *p) override
+    void paint(QCanvasPainter *p) override
     {
         QPointF center(width() / 2, height() / 2);
         // ... draw using m_value, m_image, and m_canvasImage
     }
 
-    QCImage m_image;
-    QCOffscreenCanvas m_canvas;
-    QCImage m_canvasImage;
+    QCanvasImage m_image;
+    QCanvasOffscreenCanvas m_canvas;
+    QCanvasImage m_canvasImage;
     float m_value;
 };
 //![0]

@@ -61,8 +61,8 @@ RhiRenderNode::RhiRenderNode(QQuickWindow *window)
     // renderPaint, renderPaint, ... all using the same painter+engine+renderer,
     // which breaks)
 
-    //m_fac = QCPainterFactory::sharedInstance(rhi);
-    m_fac = new QCPainterFactory;
+    //m_fac = QCanvasPainterFactory::sharedInstance(rhi);
+    m_fac = new QCanvasPainterFactory;
     m_fac->create(rhi);
 
     m_pd = m_fac->paintDriver();
@@ -98,11 +98,11 @@ void RhiRenderNode::prepare()
     QRhiRenderTarget *rt = renderTarget();
 
     const QMatrix4x4 mvp = *projectionMatrix() * *matrix();
-    m_pd->beginPaint(cb, rt, mvp, QCRhiPaintDriver::BeginPaintFlag::DepthTest);
+    m_pd->beginPaint(cb, rt, mvp, QCanvasRhiPaintDriver::BeginPaintFlag::DepthTest);
 
     const QSize itemSize(m_width, m_height);
 
-    QCPainter *painter = m_p;
+    QCanvasPainter *painter = m_p;
 
     painter->resetClipping();
 
@@ -121,15 +121,15 @@ void RhiRenderNode::prepare()
     //painter->setFillStyle(QColor::fromRgbF(1.0, 0.0, 0.0, 0.5));
     painter->setFillStyle(Qt::red);
     painter->fill();
-    painter->setTextAlign(QCPainter::TextAlign::Center);
-    painter->setTextBaseline(QCPainter::TextBaseline::Middle);
+    painter->setTextAlign(QCanvasPainter::TextAlign::Center);
+    painter->setTextBaseline(QCanvasPainter::TextBaseline::Middle);
     QFont font1;
     font1.setWeight(QFont::Weight::Bold);
     font1.setItalic(true);
     font1.setPixelSize(24);
     painter->setFont(font1);
     painter->setFillStyle(Qt::green);
-    painter->fillText("QCPainter", center.x(), center.y() - 30);
+    painter->fillText("QCanvasPainter", center.x(), center.y() - 30);
     painter->fillText("all inline", center.x(), center.y() + 0);
     painter->fillText("(render node)", center.x(), center.y() + 30);
     painter->restore();
@@ -147,7 +147,7 @@ void RhiRenderNode::prepare()
         painter->strokeRect(viewArea);
     }
 
-    m_pd->endPaint(QCRhiPaintDriver::EndPaintFlag::DoNotRecordRenderPass);
+    m_pd->endPaint(QCanvasRhiPaintDriver::EndPaintFlag::DoNotRecordRenderPass);
 }
 
 void RhiRenderNode::render(const RenderState *)

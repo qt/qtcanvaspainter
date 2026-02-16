@@ -4,11 +4,11 @@
 #ifndef CANVASGLWIDGET_H
 #define CANVASGLWIDGET_H
 
-#include <QCPainterWidget>
+#include <QCanvasPainterWidget>
 
 class Helper;
 
-class CanvasGLWidget : public QCPainterWidget
+class CanvasGLWidget : public QCanvasPainterWidget
 {
     Q_OBJECT
 
@@ -19,8 +19,8 @@ public slots:
     void animate();
 
 protected:
-    void initializeResources(QCPainter *painter) override;
-    void paint(QCPainter *painter) override;
+    void initializeResources(QCanvasPainter *painter) override;
+    void paint(QCanvasPainter *painter) override;
 
 private:
     Helper *helper;

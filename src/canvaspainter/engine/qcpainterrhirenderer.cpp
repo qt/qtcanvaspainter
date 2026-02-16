@@ -10,10 +10,10 @@
 #endif
 #include "qcpainterengine_p.h"
 #include "qcpainterrhirenderer_p.h"
-#include "qcpainter_p.h"
-#include "qccustombrush.h"
-#include "qcpainterpath.h"
-#include "qcoffscreencanvas_p.h"
+#include "qcanvaspainter_p.h"
+#include "qcanvascustombrush.h"
+#include "qcanvaspainterpath.h"
+#include "qcanvasoffscreencanvas_p.h"
 
 #include <math.h>
 #include <stdio.h>
@@ -115,7 +115,7 @@ struct QCRHICall {
     QRhiGraphicsPipeline *ps[4];
     QShader customFragShader;
     QShader customVertShader;
-    QCPainterPath *painterPath;
+    QCanvasPainterPath *painterPath;
     int pathGroup;
     bool textTriangleOffsetBakedInToIndices;
 };
@@ -391,7 +391,7 @@ struct QCRHIShaders
 
 Q_GLOBAL_STATIC(QCRHIShaders, QCPAINTER_RHI_SHADERS)
 
-// Struct to store each QCPainterPath rendering data
+// Struct to store each QCanvasPainterPath rendering data
 struct QCRHICachedPath
 {
     QVector<QCRHIPath> fillPaths;
@@ -417,7 +417,7 @@ struct QCRHICachedPathGroup
     int fillVertsCount = 0;
     int strokeVertsCount = 0;
     int indicesCount = 0;
-    QHash<QCPainterPath *, QCRHICachedPath> paths;
+    QHash<QCanvasPainterPath *, QCRHICachedPath> paths;
     QRhiBuffer *fillVertexBuffer = nullptr;
     QRhiBuffer *strokeVertexBuffer = nullptr;
     QRhiBuffer *indexBuffer = nullptr;
@@ -445,7 +445,7 @@ struct QCRHIContext
     QVector<uint32_t> indices;
 
     // Note: This is uchar as it can contain both
-    // QCRHICommonUniforms and QCCustomBrushPrivate::CommonUniforms.
+    // QCRHICommonUniforms and QCanvasCustomBrushPrivate::CommonUniforms.
     QVector<uchar> commonUniforms;
     QVector<QCRHIVertUniforms> vertUniforms;
     QVector<QCRHITexture> textures;
@@ -566,10 +566,10 @@ QRhiGraphicsPipeline *QCPainterRhiRenderer::pipeline(const QCRHIPipelineStateKey
     // Depth test and write are generally OFF, but test can be requested with a flag.
     //
     // We do require a depth-stencil buffer though, due to relying on stencil,
-    // but the depth part of the buffer is not written by QCPainter. If this
+    // but the depth part of the buffer is not written by QCanvasPainter. If this
     // would be needed for some feature in the future, note that enabling depth
     // buffer usage is not trivial, since it can cause various conflicts in
-    // applications integrating QCPainter rendering in 3D scenes, if they also
+    // applications integrating QCanvasPainter rendering in 3D scenes, if they also
     // use the depth buffer while rendering the 2D drawing inline, targeting the
     // same main color and depth-stencil buffers the 3D rendering also targets.
     ps->setDepthTest(key.state.renderFlags & RenderFlag::DepthTest);
@@ -684,23 +684,23 @@ QRhiShaderResourceBindings *QCPainterRhiRenderer::createSrb(int brushImage, int 
     Q_ASSERT(fontTex && fontTex->tex);
 
     QCRHISamplerDesc samplerDesc;
-    samplerDesc.minFilter = (tex->flags & QCPainter::ImageFlag::Nearest) ? QRhiSampler::Nearest : QRhiSampler::Linear;
-    samplerDesc.magFilter = (tex->flags & QCPainter::ImageFlag::Nearest) ? QRhiSampler::Nearest : QRhiSampler::Linear;
-    samplerDesc.mipmap = (tex->flags & QCPainter::ImageFlag::GenerateMipmaps) ?
-                             ((tex->flags & QCPainter::ImageFlag::Nearest) ? QRhiSampler::Nearest : QRhiSampler::Linear) :
+    samplerDesc.minFilter = (tex->flags & QCanvasPainter::ImageFlag::Nearest) ? QRhiSampler::Nearest : QRhiSampler::Linear;
+    samplerDesc.magFilter = (tex->flags & QCanvasPainter::ImageFlag::Nearest) ? QRhiSampler::Nearest : QRhiSampler::Linear;
+    samplerDesc.mipmap = (tex->flags & QCanvasPainter::ImageFlag::GenerateMipmaps) ?
+                             ((tex->flags & QCanvasPainter::ImageFlag::Nearest) ? QRhiSampler::Nearest : QRhiSampler::Linear) :
                              QRhiSampler::None;
-    samplerDesc.hTiling = (tex->flags & QCPainter::ImageFlag::RepeatX) ? QRhiSampler::Repeat : QRhiSampler::ClampToEdge;
-    samplerDesc.vTiling = (tex->flags & QCPainter::ImageFlag::RepeatY) ? QRhiSampler::Repeat : QRhiSampler::ClampToEdge;
+    samplerDesc.hTiling = (tex->flags & QCanvasPainter::ImageFlag::RepeatX) ? QRhiSampler::Repeat : QRhiSampler::ClampToEdge;
+    samplerDesc.vTiling = (tex->flags & QCanvasPainter::ImageFlag::RepeatY) ? QRhiSampler::Repeat : QRhiSampler::ClampToEdge;
     samplerDesc.zTiling = QRhiSampler::Repeat;
 
     QCRHISamplerDesc fontSamplerDesc;
-    fontSamplerDesc.minFilter = (fontTex->flags & QCPainter::ImageFlag::Nearest) ? QRhiSampler::Nearest : QRhiSampler::Linear;
-    fontSamplerDesc.magFilter = (fontTex->flags & QCPainter::ImageFlag::Nearest) ? QRhiSampler::Nearest : QRhiSampler::Linear;
-    fontSamplerDesc.mipmap = (fontTex->flags & QCPainter::ImageFlag::GenerateMipmaps) ?
-                                 ((fontTex->flags & QCPainter::ImageFlag::Nearest) ? QRhiSampler::Nearest : QRhiSampler::Linear) :
+    fontSamplerDesc.minFilter = (fontTex->flags & QCanvasPainter::ImageFlag::Nearest) ? QRhiSampler::Nearest : QRhiSampler::Linear;
+    fontSamplerDesc.magFilter = (fontTex->flags & QCanvasPainter::ImageFlag::Nearest) ? QRhiSampler::Nearest : QRhiSampler::Linear;
+    fontSamplerDesc.mipmap = (fontTex->flags & QCanvasPainter::ImageFlag::GenerateMipmaps) ?
+                                 ((fontTex->flags & QCanvasPainter::ImageFlag::Nearest) ? QRhiSampler::Nearest : QRhiSampler::Linear) :
                                  QRhiSampler::None;
-    fontSamplerDesc.hTiling = (fontTex->flags & QCPainter::ImageFlag::RepeatX) ? QRhiSampler::Repeat : QRhiSampler::ClampToEdge;
-    fontSamplerDesc.vTiling = (fontTex->flags & QCPainter::ImageFlag::RepeatY) ? QRhiSampler::Repeat : QRhiSampler::ClampToEdge;
+    fontSamplerDesc.hTiling = (fontTex->flags & QCanvasPainter::ImageFlag::RepeatX) ? QRhiSampler::Repeat : QRhiSampler::ClampToEdge;
+    fontSamplerDesc.vTiling = (fontTex->flags & QCanvasPainter::ImageFlag::RepeatY) ? QRhiSampler::Repeat : QRhiSampler::ClampToEdge;
     fontSamplerDesc.zTiling = QRhiSampler::Repeat;
 
     QRhiShaderResourceBindings *srb = rhiCtx->rhi->newShaderResourceBindings();
@@ -749,9 +749,9 @@ bool QCPainterRhiRenderer::renderCreate()
     // The Dynamic, host-visible buffers in PerPassData stay not created until endPrepare.
 
     // Make sure that standard and custom brush structs match..
-    Q_ASSERT(sizeof(QCRHICommonUniforms) == sizeof(QCCustomBrushPrivate::CommonUniforms));
+    Q_ASSERT(sizeof(QCRHICommonUniforms) == sizeof(QCanvasCustomBrushPrivate::CommonUniforms));
     Q_ASSERT(rhiCtx->rhi->ubufAligned(sizeof(QCRHICommonUniforms))
-             == rhiCtx->rhi->ubufAligned(sizeof(QCCustomBrushPrivate::CommonUniforms)));
+             == rhiCtx->rhi->ubufAligned(sizeof(QCanvasCustomBrushPrivate::CommonUniforms)));
 
     // ..so we can use either of them as the oneCommonUniformBufferSize
     // and insert them into commonUniforms.
@@ -761,7 +761,7 @@ bool QCPainterRhiRenderer::renderCreate()
     return true;
 }
 
-QCRHITexture *QCPainterRhiRenderer::renderCreateNativeTexture(QRhiTexture *texture, QCPainter::ImageFlags flags)
+QCRHITexture *QCPainterRhiRenderer::renderCreateNativeTexture(QRhiTexture *texture, QCanvasPainter::ImageFlags flags)
 {
     Q_ASSERT(texture);
 
@@ -790,10 +790,10 @@ QCRHITexture *QCPainterRhiRenderer::renderCreateNativeTexture(QRhiTexture *textu
 
     tex->width = texture->pixelSize().width();
     tex->height = texture->pixelSize().height();
-    tex->flags = flags | QCPainter::ImageFlag::NativeTexture; // so 'texture' is not owned by tex
+    tex->flags = flags | QCanvasPainter::ImageFlag::NativeTexture; // so 'texture' is not owned by tex
     tex->tex = texture;
 
-    if (flags & QCPainter::ImageFlag::GenerateMipmaps) {
+    if (flags & QCanvasPainter::ImageFlag::GenerateMipmaps) {
         QRhiResourceUpdateBatch *u = resourceUpdateBatch();
         u->generateMips(tex->tex);
     }
@@ -801,7 +801,7 @@ QCRHITexture *QCPainterRhiRenderer::renderCreateNativeTexture(QRhiTexture *textu
     return tex;
 }
 
-// Considers the texture to have changed outside of QCPainter, hence needs updating
+// Considers the texture to have changed outside of QCanvasPainter, hence needs updating
 QCRHITexture *QCPainterRhiRenderer::renderUpdateNativeTexture(
     QRhiTexture *oldTexture, QRhiTexture *texture)
 {
@@ -822,7 +822,7 @@ QCRHITexture *QCPainterRhiRenderer::renderUpdateNativeTexture(
         return nullptr;
     }
 
-    //qDebug() << "Updating QCPainter font, w: h: " << texture->pixelSize().width() << ", "
+    //qDebug() << "Updating QCanvasPainter font, w: h: " << texture->pixelSize().width() << ", "
     //         << texture->pixelSize().height() << " object: " << oldTexture
     //         << ", new object: " << texture << ", id: " << tex->id << ", flags: " << tex->flags;
     tex->width = texture->pixelSize().width();
@@ -843,7 +843,7 @@ QCRHITexture *QCPainterRhiRenderer::renderUpdateNativeTexture(
     return tex;
 }
 
-int QCPainterRhiRenderer::renderCreateTexture(QCTextureFormat format, int w, int h, QCPainter::ImageFlags imageFlags, const uchar* data)
+int QCPainterRhiRenderer::renderCreateTexture(QCTextureFormat format, int w, int h, QCanvasPainter::ImageFlags imageFlags, const uchar* data)
 {
     QRhiTexture::Format texFormat = QRhiTexture::RGBA8;
     if (format == TextureFormatAlpha)
@@ -854,7 +854,7 @@ int QCPainterRhiRenderer::renderCreateTexture(QCTextureFormat format, int w, int
     textureFormatInfo(texFormat, size, nullptr, &byteSize, nullptr);
 
     QRhiTexture::Flags flags;
-    if (imageFlags & QCPainter::ImageFlag::GenerateMipmaps)
+    if (imageFlags & QCanvasPainter::ImageFlag::GenerateMipmaps)
         flags |= QRhiTexture::MipMapped | QRhiTexture::UsedWithGenerateMips;
 
     QRhiTexture *t = rhiCtx->rhi->newTexture(texFormat, size, 1, flags);
@@ -878,7 +878,7 @@ int QCPainterRhiRenderer::renderCreateTexture(QCTextureFormat format, int w, int
         u->uploadTexture(tex->tex, desc);
     }
 
-    if (imageFlags & QCPainter::ImageFlag::GenerateMipmaps)
+    if (imageFlags & QCanvasPainter::ImageFlag::GenerateMipmaps)
         u->generateMips(tex->tex);
 
     return tex->id;
@@ -891,7 +891,7 @@ bool QCPainterRhiRenderer::renderDeleteTexture(int image)
         if (tex->id == image) {
             // Delete QRhiTexture (unless not owned), but leave QCRHITexture
             // to be reused.
-            if (!tex->flags.testFlag(QCPainter::ImageFlag::NativeTexture))
+            if (!tex->flags.testFlag(QCanvasPainter::ImageFlag::NativeTexture))
                 delete tex->tex;
             tex->tex = nullptr;
             tex->id = 0;
@@ -939,22 +939,22 @@ void QCPainterRhiRenderer::setViewport(float x, float y, float width, float heig
     rhiCtx->viewRect[3] = height;
 }
 
-static QCRHIBlend blendCompositeOperation(QCPainter::CompositeOperation op, bool blendEnable)
+static QCRHIBlend blendCompositeOperation(QCanvasPainter::CompositeOperation op, bool blendEnable)
 {
     QRhiGraphicsPipeline::BlendFactor sourceFactor;
     QRhiGraphicsPipeline::BlendFactor destinationFactor;
 
     switch (op) {
-    case QCPainter::CompositeOperation::SourceAtop:
+    case QCanvasPainter::CompositeOperation::SourceAtop:
         sourceFactor = QRhiGraphicsPipeline::DstAlpha;
         destinationFactor = QRhiGraphicsPipeline::OneMinusSrcAlpha;
         break;
-    case QCPainter::CompositeOperation::DestinationOut:
+    case QCanvasPainter::CompositeOperation::DestinationOut:
         sourceFactor = QRhiGraphicsPipeline::Zero;
         destinationFactor = QRhiGraphicsPipeline::OneMinusSrcAlpha;
         break;
 
-    case QCPainter::CompositeOperation::SourceOver:
+    case QCanvasPainter::CompositeOperation::SourceOver:
     default:
         sourceFactor = QRhiGraphicsPipeline::One;
         destinationFactor = QRhiGraphicsPipeline::OneMinusSrcAlpha;
@@ -1151,10 +1151,10 @@ QCRHICommonUniforms *QCPainterRhiRenderer::uniformPtr(int i) const
     return (QCRHICommonUniforms*)&rhiCtx->commonUniforms[i];
 }
 
-// Returns pointer to uniforms at i as QCCustomBrushPrivate::CommonUniforms
-QCCustomBrushPrivate::CommonUniforms *QCPainterRhiRenderer::customUniformPtr(int i) const
+// Returns pointer to uniforms at i as QCanvasCustomBrushPrivate::CommonUniforms
+QCanvasCustomBrushPrivate::CommonUniforms *QCPainterRhiRenderer::customUniformPtr(int i) const
 {
-    return (QCCustomBrushPrivate::CommonUniforms*)&rhiCtx->commonUniforms[i];
+    return (QCanvasCustomBrushPrivate::CommonUniforms*)&rhiCtx->commonUniforms[i];
 }
 
 static constexpr void setVert(QCVertex *vtx, float x, float y, float u, float v) noexcept
@@ -1183,7 +1183,7 @@ static constexpr QCColor premulColor(QCColor c) noexcept
     return c;
 }
 
-static constexpr QCRHIShaderType shaderTypeFromBrush(QCBrushType brushType, bool textured) noexcept
+static constexpr QCRHIShaderType shaderTypeFromBrush(QCanvasBrushType brushType, bool textured) noexcept
 {
     if (brushType == BrushColor)
         return ShaderColor;
@@ -1265,7 +1265,7 @@ void QCPainterRhiRenderer::preparePaint(QCRHICommonUniforms *frag, const QCPaint
 
     if (paint.imageId != 0) {
         QCRHITexture* tex = findTexture(paint.imageId);
-        if (tex && tex->flags & QCPainter::ImageFlag::FlipY) {
+        if (tex && tex->flags & QCanvasPainter::ImageFlag::FlipY) {
             // Flip image vertically
             QTransform transform = paint.transform;
             transform.scale(1, -1);
@@ -1280,7 +1280,7 @@ void QCPainterRhiRenderer::preparePaint(QCRHICommonUniforms *frag, const QCPaint
         frag->feather = paint.feather;
 
         if (tex && tex->tex->format() != QRhiTexture::R8)
-            frag->texType = (tex->flags & QCPainter::ImageFlag::Premultiplied) ? 0 : 1;
+            frag->texType = (tex->flags & QCanvasPainter::ImageFlag::Premultiplied) ? 0 : 1;
         else
             frag->texType = 2;
     } else {
@@ -1297,8 +1297,8 @@ void QCPainterRhiRenderer::preparePaint(QCRHICommonUniforms *frag, const QCPaint
 }
 
 // Prepare custom fragment shader uniforms according to brush & clip.
-void QCPainterRhiRenderer::prepareCustomPaint(QCCustomBrushPrivate::CommonUniforms *frag, const QCPaint &paint,
-                                              QCCustomBrush *brush, const QCState &state,
+void QCPainterRhiRenderer::prepareCustomPaint(QCanvasCustomBrushPrivate::CommonUniforms *frag, const QCPaint &paint,
+                                              QCanvasCustomBrush *brush, const QCState &state,
                                               float width, float aa, float strokeThr,
                                               float fontAlphaMin, float fontAlphaMax)
 {
@@ -1307,7 +1307,7 @@ void QCPainterRhiRenderer::prepareCustomPaint(QCCustomBrushPrivate::CommonUnifor
     memset((void*)frag, 0, sizeof(*frag));
 
     // Apply custom data
-    auto *privBrush = QCCustomBrushPrivate::get(brush);
+    auto *privBrush = QCanvasCustomBrushPrivate::get(brush);
     frag->data[0] = privBrush->data[0];
     frag->data[1] = privBrush->data[1];
     frag->data[2] = privBrush->data[2];
@@ -1372,7 +1372,7 @@ void QCPainterRhiRenderer::prepareCustomPaint(QCCustomBrushPrivate::CommonUnifor
 
 void QCPainterRhiRenderer::renderFill(const QCPaint &paint, const QCState &state,
                                       const QRectF &bounds, const QCPaths &paths, int pathsCount,
-                                      QCPainterPath *painterPath, int pathGroup,
+                                      QCanvasPainterPath *painterPath, int pathGroup,
                                       const QTransform &pathTransform)
 {
     QCRHICall *call = allocCall();
@@ -1382,7 +1382,7 @@ void QCPainterRhiRenderer::renderFill(const QCPaint &paint, const QCState &state
     call->type = CallFill;
     call->renderFlags = rhiCtx->flags;
     if (state.customFill) {
-        auto *customBrushPriv = QCCustomBrushPrivate::get(state.customFill);
+        auto *customBrushPriv = QCanvasCustomBrushPrivate::get(state.customFill);
         call->customFragShader = customBrushPriv->fragmentShader;
         call->customVertShader = customBrushPriv->vertexShader;
     }
@@ -1539,7 +1539,7 @@ void QCPainterRhiRenderer::renderFill(const QCPaint &paint, const QCState &state
         // Update fill quad
         QCVertex* quad;
         if (cpg) {
-            // Using QCPainterPath
+            // Using QCanvasPainterPath
             call->triangleOffset = vertOffset;
             quad = &cpg->fillVerts[call->triangleOffset];
         } else {
@@ -1582,7 +1582,7 @@ void QCPainterRhiRenderer::renderFill(const QCPaint &paint, const QCState &state
 
 void QCPainterRhiRenderer::renderStroke(const QCPaint &paint, const QCState &state,
                                         float strokeWidth, const QCPaths &paths, int pathsCount,
-                                        QCPainterPath *painterPath, int pathGroup,
+                                        QCanvasPainterPath *painterPath, int pathGroup,
                                         const QTransform &pathTransform)
 {
     QCRHICall *call = allocCall();
@@ -1591,7 +1591,7 @@ void QCPainterRhiRenderer::renderStroke(const QCPaint &paint, const QCState &sta
     call->type = CallStroke;
     call->renderFlags = rhiCtx->flags;
     if (state.customStroke) {
-        auto *customBrushPriv = QCCustomBrushPrivate::get(state.customStroke);
+        auto *customBrushPriv = QCanvasCustomBrushPrivate::get(state.customStroke);
         call->customFragShader = customBrushPriv->fragmentShader;
         call->customVertShader = customBrushPriv->vertexShader;
     }
@@ -1756,7 +1756,7 @@ void QCPainterRhiRenderer::renderTextFill(
 void QCPainterRhiRenderer::renderTextFillCustom(
     const QCPaint &paint,
     const QCState &state,
-    QCCustomBrush *brush,
+    QCanvasCustomBrush *brush,
     const QCRhiDistanceFieldGlyphCache::VertexList &verts,
     const QCRhiDistanceFieldGlyphCache::IndexList &indices)
 {
@@ -1770,7 +1770,7 @@ void QCPainterRhiRenderer::renderTextFillCustom(
     call->image = paint.imageId;
     call->font = ctx.fontId;
     if (brush) {
-        auto *customBrushPriv = QCCustomBrushPrivate::get(brush);
+        auto *customBrushPriv = QCanvasCustomBrushPrivate::get(brush);
         call->customFragShader = customBrushPriv->fragmentShader;
         call->customVertShader = customBrushPriv->vertexShader;
     }
@@ -1827,7 +1827,7 @@ void QCPainterRhiRenderer::beginPrepare(QRhiCommandBuffer *cb,
 
 void QCPainterRhiRenderer::endPrepare()
 {
-    rhiCtx->cb->debugMarkBegin("QCPainter prep"_ba);
+    rhiCtx->cb->debugMarkBegin("QCanvasPainter prep"_ba);
     if (rhiCtx->callsCount > 0) {
         QRhiResourceUpdateBatch *u = resourceUpdateBatch();
         QCRHIContext::PerPassData *ppd = rhiCtx->currentPerPassData();
@@ -2196,7 +2196,7 @@ void QCPainterRhiRenderer::renderDelete()
 
     for (int i = 0; i < rhiCtx->texturesCount; i++) {
         if (rhiCtx->textures[i].tex
-            && !(rhiCtx->textures[i].flags.testFlag(QCPainter::ImageFlag::NativeTexture)))
+            && !(rhiCtx->textures[i].flags.testFlag(QCanvasPainter::ImageFlag::NativeTexture)))
             delete rhiCtx->textures[i].tex;
     }
     rhiCtx->textures.clear();
@@ -2333,14 +2333,14 @@ QCPainterRhiRenderer::~QCPainterRhiRenderer()
     destroy();
 }
 
-void QCPainterRhiRenderer::create(QRhi *rhi, QCPainter *painter)
+void QCPainterRhiRenderer::create(QRhi *rhi, QCanvasPainter *painter)
 {
     if (ctx)
         destroy();
 
     // One painter -> one engine -> one renderer at a time.
     m_painter = painter;
-    auto *painterPriv = QCPainterPrivate::get(m_painter);
+    auto *painterPriv = QCanvasPainterPrivate::get(m_painter);
     m_e = painterPriv->m_e;
     painterPriv->m_renderer = this;
 
@@ -2362,7 +2362,7 @@ void QCPainterRhiRenderer::destroy()
     renderDelete();
 
     // Detach from the painter.
-    auto *painterPriv = QCPainterPrivate::get(m_painter);
+    auto *painterPriv = QCanvasPainterPrivate::get(m_painter);
     painterPriv->m_renderer = nullptr;
 
     m_painter = nullptr;
@@ -2376,7 +2376,7 @@ void QCPainterRhiRenderer::render()
         rhiCtx->animationElapsedTimer.start();
     rhiCtx->renderTimeElapsedMs = rhiCtx->animationElapsedTimer.restart();
 
-    rhiCtx->cb->debugMarkBegin("QCPainter render"_ba);
+    rhiCtx->cb->debugMarkBegin("QCanvasPainter render"_ba);
 
     QCRHIContext::PerPassData *ppd = rhiCtx->currentPerPassData();
     bool needsViewport = true;
@@ -2514,7 +2514,7 @@ void QCPainterRhiRenderer::render()
     // is used as the SrbKey too. This allows subsequent render passes with this
     // same renderer (and painter+engine) within the same frame. This is
     // relevant in particular when multiple widgets or Quick items use
-    // QCPainterFactory::sharedInstance(), i.e. reusing the same
+    // QCanvasPainterFactory::sharedInstance(), i.e. reusing the same
     // painter+engine+renderer. These subsequent drawing passes have their own
     // dedicated buffers, and by extension shader resource binding objects, to
     // not conflict with the data needed by the earlier draw calls.
@@ -2617,7 +2617,7 @@ void QCPainterRhiRenderer::setFlag(RenderFlags flag, bool enable)
 // Returns true if the \a path is in cache in \a pathGroup and
 // it has not been invalidated. Invalidation happens if some path
 // in the same pathGroup painted before this path has needed to be updated.
-bool QCPainterRhiRenderer::isPathCached(QCPainterPath *path, int pathGroup) const
+bool QCPainterRhiRenderer::isPathCached(QCanvasPainterPath *path, int pathGroup) const
 {
     QCRHIContext::PerPassData *ppd = rhiCtx->currentPerPassData();
     if (ppd->cachedPaths.contains(pathGroup)) {
@@ -2750,7 +2750,7 @@ static void compressedFormatInfo(QRhiTexture::Format format, QSize size, quint32
         break;
 
     default:
-        qWarning("Unhandled compressed texture format %d in QCPainter compressedFormatInfo", int(format));
+        qWarning("Unhandled compressed texture format %d in QCanvasPainter compressedFormatInfo", int(format));
         break;
     }
 
@@ -2845,7 +2845,7 @@ void QCPainterRhiRenderer::textureFormatInfo(QRhiTexture::Format format, QSize s
         break;
 
     default:
-        qWarning("Unhandled texture format %d in QCPainter textureFormatInfo", int(format));
+        qWarning("Unhandled texture format %d in QCanvasPainter textureFormatInfo", int(format));
         break;
     }
 
@@ -2877,27 +2877,27 @@ bool operator!=(const QCRhiCanvas &a, const QCRhiCanvas &b) noexcept
     return !(a == b);
 }
 
-QCOffscreenCanvas QCPainterRhiRenderer::createCanvas(QSize pixelSize, int sampleCount, QCOffscreenCanvas::Flags flags)
+QCanvasOffscreenCanvas QCPainterRhiRenderer::createCanvas(QSize pixelSize, int sampleCount, QCanvasOffscreenCanvas::Flags flags)
 {
-    QCOffscreenCanvas canvas;
+    QCanvasOffscreenCanvas canvas;
     if (!rhiCtx || !rhiCtx->rhi) {
         qWarning("Cannot create a canvas without a QRhi");
         return canvas;
     }
 
     if (sampleCount > 1) {
-        if (flags.testFlag(QCOffscreenCanvas::Flag::PreserveContents)) {
+        if (flags.testFlag(QCanvasOffscreenCanvas::Flag::PreserveContents)) {
             qWarning("PreserveContents is not supported for multisample canvas");
-            flags.setFlag(QCOffscreenCanvas::Flag::PreserveContents, false);
+            flags.setFlag(QCanvasOffscreenCanvas::Flag::PreserveContents, false);
         }
-        if (flags.testFlag(QCOffscreenCanvas::Flag::MipMaps)) {
+        if (flags.testFlag(QCanvasOffscreenCanvas::Flag::MipMaps)) {
             qWarning("MipMaps are not supported for multisample canvas");
-            flags.setFlag(QCOffscreenCanvas::Flag::MipMaps, false);
+            flags.setFlag(QCanvasOffscreenCanvas::Flag::MipMaps, false);
         }
     }
 
     QRhiTexture::Flags textureFlags = QRhiTexture::RenderTarget | QRhiTexture::UsedAsTransferSource;
-    if (flags.testFlag(QCOffscreenCanvas::Flag::MipMaps))
+    if (flags.testFlag(QCanvasOffscreenCanvas::Flag::MipMaps))
         textureFlags |= QRhiTexture::MipMapped | QRhiTexture::UsedWithGenerateMips;
 
     std::unique_ptr<QRhiTexture> tex(rhiCtx->rhi->newTexture(QRhiTexture::RGBA8, pixelSize, 1, textureFlags));
@@ -2926,7 +2926,7 @@ QCOffscreenCanvas QCPainterRhiRenderer::createCanvas(QSize pixelSize, int sample
     rtDesc.setDepthStencilBuffer(ds.get());
 
     QRhiTextureRenderTarget::Flags rtFlags;
-    if (flags.testFlag(QCOffscreenCanvas::Flag::PreserveContents)) {
+    if (flags.testFlag(QCanvasOffscreenCanvas::Flag::PreserveContents)) {
         // See PreserveColorContents docs for the downsides. With tiled GPUs
         // this likely has a performance hit. And with MSAA it may not work at
         // all (like if the GLES extension is used so that msaaColorBuffer will
@@ -2940,7 +2940,7 @@ QCOffscreenCanvas QCPainterRhiRenderer::createCanvas(QSize pixelSize, int sample
     if (!rt->create())
         return canvas;
 
-    QCOffscreenCanvasPrivate *cd = QCOffscreenCanvasPrivate::get(&canvas);
+    QCanvasOffscreenCanvasPrivate *cd = QCanvasOffscreenCanvasPrivate::get(&canvas);
     cd->rhiCanvas.tex = tex.release();
     cd->rhiCanvas.msaaColorBuffer = sampleCount > 1 ? msaaColorBuffer.release() : nullptr;
     cd->rhiCanvas.ds = ds.release();
@@ -2961,10 +2961,10 @@ void QCRhiCanvas::destroy()
     delete tex;
 }
 
-void QCPainterRhiRenderer::destroyCanvas(QCOffscreenCanvas &canvas)
+void QCPainterRhiRenderer::destroyCanvas(QCanvasOffscreenCanvas &canvas)
 {
     // no detach!
-    QCOffscreenCanvasPrivate *cd = QCOffscreenCanvasPrivate::get(&canvas);
+    QCanvasOffscreenCanvasPrivate *cd = QCanvasOffscreenCanvasPrivate::get(&canvas);
 
     m_canvases.removeOne(cd->rhiCanvas);
 
@@ -2972,13 +2972,13 @@ void QCPainterRhiRenderer::destroyCanvas(QCOffscreenCanvas &canvas)
     cd->rhiCanvas = {}; // canvas, incl. shared ones, becomes a null canvas
 }
 
-QRhiRenderTarget *QCPainterRhiRenderer::canvasRenderTarget(const QCOffscreenCanvas &canvas)
+QRhiRenderTarget *QCPainterRhiRenderer::canvasRenderTarget(const QCanvasOffscreenCanvas &canvas)
 {
-    const QCOffscreenCanvasPrivate *cd = QCOffscreenCanvasPrivate::get(&canvas);
+    const QCanvasOffscreenCanvasPrivate *cd = QCanvasOffscreenCanvasPrivate::get(&canvas);
     return cd->rhiCanvas.rt;
 }
 
-void QCPainterRhiRenderer::recordCanvasRenderPass(QRhiCommandBuffer *cb, const QCOffscreenCanvas &canvas)
+void QCPainterRhiRenderer::recordCanvasRenderPass(QRhiCommandBuffer *cb, const QCanvasOffscreenCanvas &canvas)
 {
     cb->debugMarkBegin("QC Canvas render pass"_ba);
     cb->beginPass(canvasRenderTarget(canvas), canvas.fillColor(), { 1.0f, 0 });
@@ -2987,7 +2987,7 @@ void QCPainterRhiRenderer::recordCanvasRenderPass(QRhiCommandBuffer *cb, const Q
     cb->debugMarkEnd();
 }
 
-void QCPainterRhiRenderer::grabCanvas(const QCOffscreenCanvas &canvas, std::function<void(const QImage &)> callback, QRhiCommandBuffer *maybeCb)
+void QCPainterRhiRenderer::grabCanvas(const QCanvasOffscreenCanvas &canvas, std::function<void(const QImage &)> callback, QRhiCommandBuffer *maybeCb)
 {
     if (canvas.isNull()) {
         qWarning("Cannot grab null canvas");

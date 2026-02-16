@@ -3,9 +3,9 @@
 
 #include "canvaswidget.h"
 
-#include <QCPainter>
-#include <QCRadialGradient>
-#include <QCImagePattern>
+#include <QCanvasPainter>
+#include <QCanvasRadialGradient>
+#include <QCanvasImagePattern>
 
 using namespace Qt::StringLiterals;
 
@@ -15,10 +15,10 @@ CanvasWidget::CanvasWidget()
 }
 
 //![image]
-void CanvasWidget::initializeResources(QCPainter *p)
+void CanvasWidget::initializeResources(QCanvasPainter *p)
 {
     Q_ASSERT(m_image.isNull());
-    const auto flags = QCPainter::ImageFlag::Repeat | QCPainter::ImageFlag::GenerateMipmaps;
+    const auto flags = QCanvasPainter::ImageFlag::Repeat | QCanvasPainter::ImageFlag::GenerateMipmaps;
     m_image = p->addImage(QImage(u":/qt-translucent.png"_s), flags);
 }
 
@@ -29,14 +29,14 @@ void CanvasWidget::graphicsResourcesInvalidated()
 //![image]
 
 //![paint]
-void CanvasWidget::paint(QCPainter *p)
+void CanvasWidget::paint(QCanvasPainter *p)
 {
     const float size = std::min(width(), height());
     const float centerX = width() / 2;
     const float centerY = height() / 2;
 
     // Paint the background circle
-    QCRadialGradient gradient1(centerX, centerY - size * 0.1f, size * 0.6f);
+    QCanvasRadialGradient gradient1(centerX, centerY - size * 0.1f, size * 0.6f);
     gradient1.setStartColor(QColor(0x909090));
     gradient1.setEndColor(QColor(0x404040));
     p->beginPath();
@@ -48,8 +48,8 @@ void CanvasWidget::paint(QCPainter *p)
     p->stroke();
 //![paint]
     // Hello text
-    p->setTextAlign(QCPainter::TextAlign::Center);
-    p->setTextBaseline(QCPainter::TextBaseline::Middle);
+    p->setTextAlign(QCanvasPainter::TextAlign::Center);
+    p->setTextBaseline(QCanvasPainter::TextBaseline::Middle);
     QFont font1;
     font1.setWeight(QFont::Weight::Bold);
     font1.setItalic(true);
@@ -58,7 +58,7 @@ void CanvasWidget::paint(QCPainter *p)
     p->setFillStyle(QColor(0xB0D040));
     p->fillText(u"HELLO"_s, centerX, centerY - size * 0.18f);
 
-    // QCPainter text
+    // QCanvasPainter text
     QFont font2;
     font2.setWeight(QFont::Weight::Thin);
     font2.setPixelSize(qRound(size * 0.11f));
@@ -67,10 +67,10 @@ void CanvasWidget::paint(QCPainter *p)
 
 //![pattern]
     // Paint heart
-    QCImagePattern pattern(m_image, centerX, centerY, size * 0.08f, size * 0.05f);
+    QCanvasImagePattern pattern(m_image, centerX, centerY, size * 0.08f, size * 0.05f);
     p->setFillStyle(pattern);
 //![pattern]
-    p->setLineCap(QCPainter::LineCap::Round);
+    p->setLineCap(QCanvasPainter::LineCap::Round);
     p->setStrokeStyle(QColor(0xB0D040));
     p->beginPath();
     p->moveTo(centerX, centerY + size * 0.3f);

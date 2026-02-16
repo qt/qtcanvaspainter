@@ -7,7 +7,7 @@
 #include <QList>
 #include "theme.h"
 
-QT_FORWARD_DECLARE_CLASS(QCPainter)
+QT_FORWARD_DECLARE_CLASS(QCanvasPainter)
 class MainWindow;
 
 class ECGGraph
@@ -16,7 +16,7 @@ class ECGGraph
 public:
     explicit ECGGraph();
 
-    void paintWaves(QCPainter *painter, float x, float y, float w, float h);
+    void paintWaves(QCanvasPainter *painter, float x, float y, float w, float h);
     void initialize();
     void updateData(float hr);
 
@@ -30,7 +30,7 @@ private:
     void fillBeatData();
 
     MainWindow *m_mainWindow;
-    QCPainter *m_painter;
+    QCanvasPainter *m_painter;
     Theme *m_theme;
     // Wave data of each graph. Amount of graphs is m_waveAmount.
     QList<float> m_waveData;

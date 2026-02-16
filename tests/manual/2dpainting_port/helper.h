@@ -8,8 +8,8 @@
 #include <QFont>
 #include <QPen>
 #include <QWidget>
-#include <QCPainter>
-#include <QCLinearGradient>
+#include <QCanvasPainter>
+#include <QCanvasLinearGradient>
 
 //! [0]
 class Helper
@@ -20,8 +20,8 @@ public:
 public:
     void paint(QPainter *painter, QPaintEvent *event, int elapsed);
 
-    void canvasInit(QCPainter *painter);
-    void paint(QCPainter *painter, const QRect &rect, int elapsed);
+    void canvasInit(QCanvasPainter *painter);
+    void paint(QCanvasPainter *painter, const QRect &rect, int elapsed);
 
 private:
     QBrush background;
@@ -30,7 +30,7 @@ private:
     QPen circlePen;
     QPen textPen;
 
-    QCLinearGradient qcCircleBrush;
+    QCanvasLinearGradient qcCircleBrush;
     QFont qcTextFont;
 };
 //! [0]

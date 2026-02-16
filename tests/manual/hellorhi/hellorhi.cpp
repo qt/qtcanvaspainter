@@ -8,21 +8,21 @@
 #include <QOffscreenSurface>
 #include <rhi/qrhi.h>
 
-#include "qcpainter.h"
-#include "qcradialgradient.h"
-#include "qclineargradient.h"
-#include "qcimagepattern.h"
-#include "qcoffscreencanvas.h"
-#include "qcpainterfactory.h"
-#include "qcrhipaintdriver.h"
+#include "qcanvaspainter.h"
+#include "qcanvasradialgradient.h"
+#include "qcanvaslineargradient.h"
+#include "qcanvasimagepattern.h"
+#include "qcanvasoffscreencanvas.h"
+#include "qcanvaspainterfactory.h"
+#include "qcanvasrhipaintdriver.h"
 
 constexpr int CANVAS_WIDTH = 320;
 constexpr int CANVAS_HEIGHT = 240;
 
-static void paintOffscreenCanvas(QCPainter *p, const QCImage &qtLogoImage)
+static void paintOffscreenCanvas(QCanvasPainter *p, const QCanvasImage &qtLogoImage)
 {
     QRectF rect1(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
-    QCLinearGradient g1(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+    QCanvasLinearGradient g1(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
     g1.setStartColor(Qt::green);
     g1.setEndColor(Qt::black);
     p->setFillStyle(g1);
@@ -30,15 +30,15 @@ static void paintOffscreenCanvas(QCPainter *p, const QCImage &qtLogoImage)
     p->drawImage(qtLogoImage, 32, 0);
 }
 
-static void paintContent(QCPainter *p, float width, float height,
-                         const QCImage &heartImage, float patternSizeFactor,
+static void paintContent(QCanvasPainter *p, float width, float height,
+                         const QCanvasImage &heartImage, float patternSizeFactor,
                          const char *rhiBackendName)
 {
     float size = std::min(width, height);
     QPointF center(width/2, height/2);
 
     // Paint the background circle
-    QCRadialGradient gradient1(center.x(), center.y() - size*0.1, size*0.6);
+    QCanvasRadialGradient gradient1(center.x(), center.y() - size*0.1, size*0.6);
     gradient1.setStartColor("#909090");
     gradient1.setEndColor("#404040");
     p->beginPath();
@@ -50,8 +50,8 @@ static void paintContent(QCPainter *p, float width, float height,
     p->stroke();
 
     // Text line 1
-    p->setTextAlign(QCPainter::TextAlign::Center);
-    p->setTextBaseline(QCPainter::TextBaseline::Middle);
+    p->setTextAlign(QCanvasPainter::TextAlign::Center);
+    p->setTextBaseline(QCanvasPainter::TextBaseline::Middle);
     QFont font1;
     font1.setWeight(QFont::Weight::Bold);
     font1.setItalic(true);
@@ -69,9 +69,9 @@ static void paintContent(QCPainter *p, float width, float height,
 
     // Paint heart
     float patternSize = size * patternSizeFactor;
-    QCImagePattern pattern(heartImage, center.x(), center.y(), patternSize, patternSize);
+    QCanvasImagePattern pattern(heartImage, center.x(), center.y(), patternSize, patternSize);
     p->setFillStyle(pattern);
-    p->setLineCap(QCPainter::LineCap::Round);
+    p->setLineCap(QCanvasPainter::LineCap::Round);
     p->setStrokeStyle("#B0D040");
     p->beginPath();
     p->moveTo(center.x(), center.y() + size*0.3);
@@ -193,11 +193,11 @@ int main(int argc, char **argv)
     rt->setRenderPassDescriptor(rp.get());
     rt->create();
 
-    std::unique_ptr<QCPainterFactory> factory(new QCPainterFactory);
-    QCPainter *painter = factory->create(rhi.get());
-    QCRhiPaintDriver *pd = factory->paintDriver();
+    std::unique_ptr<QCanvasPainterFactory> factory(new QCanvasPainterFactory);
+    QCanvasPainter *painter = factory->create(rhi.get());
+    QCanvasRhiPaintDriver *pd = factory->paintDriver();
 
-    const QCImage qtLogoImage = painter->addImage(QImage("qt.png"), QCPainter::ImageFlag::Repeat);
+    const QCanvasImage qtLogoImage = painter->addImage(QImage("qt.png"), QCanvasPainter::ImageFlag::Repeat);
 
     QRhiCommandBuffer *cb;
     QRhiReadbackResult readbackResult;
@@ -206,17 +206,17 @@ int main(int argc, char **argv)
     {
         pd->resetForNewFrame();
 
-        QCOffscreenCanvas canvas = painter->createCanvas(QSize(CANVAS_WIDTH, CANVAS_HEIGHT));
+        QCanvasOffscreenCanvas canvas = painter->createCanvas(QSize(CANVAS_WIDTH, CANVAS_HEIGHT));
         canvas.setFillColor(Qt::black);
         pd->beginPaint(canvas, cb);
         paintOffscreenCanvas(painter, qtLogoImage);
         pd->endPaint();
 
-        QCImage canvasImage = painter->addImage(canvas, QCPainter::ImageFlag::Repeat);
+        QCanvasImage canvasImage = painter->addImage(canvas, QCanvasPainter::ImageFlag::Repeat);
 
         pd->beginPaint(cb, rt.get());
         paintContent(painter, width, height, canvasImage, 0.05f, rhi->backendName());
-        pd->endPaint(QCRhiPaintDriver::EndPaintFlag::DoNotRecordRenderPass);
+        pd->endPaint(QCanvasRhiPaintDriver::EndPaintFlag::DoNotRecordRenderPass);
 
         cb->beginPass(rt.get(), Qt::white, { 1.0f, 0 });
         pd->renderPaint();

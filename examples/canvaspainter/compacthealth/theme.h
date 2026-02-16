@@ -5,7 +5,7 @@
 #define THEME_H
 
 #include <QColor>
-#include "qclineargradient.h"
+#include "qcanvaslineargradient.h"
 
 class Theme
 {
@@ -22,8 +22,8 @@ public:
     QColor warning() const;
     QColor graph1() const;
     QColor graph2() const;
-    QCLinearGradient gradient1() const;
-    QCLinearGradient gradient2() const;
+    QCanvasLinearGradient gradient1() const;
+    QCanvasLinearGradient gradient2() const;
 
 private:
 
@@ -39,8 +39,8 @@ private:
         QColor warning;
         QColor graph1;
         QColor graph2;
-        QCLinearGradient gradient1;
-        QCLinearGradient gradient2;
+        QCanvasLinearGradient gradient1;
+        QCanvasLinearGradient gradient2;
     };
 
     ThemeVars m_theme;

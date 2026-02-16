@@ -6,9 +6,9 @@
 
 #include "qcpainterengine_p.h"
 #include "qcpainterrhirenderer_p.h"
-#include "qccustombrush.h"
-#include "qccustombrush_p.h"
-#include "qcpainterpath_p.h"
+#include "qcanvascustombrush.h"
+#include "qcanvascustombrush_p.h"
+#include "qcanvaspainterpath_p.h"
 #ifndef QCPAINTER_DISABLE_TEXT_SUPPORT
 #include "qctextlayout_p.h"
 #include <QtGui/private/qdistancefield_p.h>
@@ -146,9 +146,9 @@ void QCPainterEngine::reset()
     state.strokeWidth = 1.0f;
     state.antialias = 1.0f;
     state.miterLimit = 10.0f;
-    state.lineCap = QCPainter::LineCap::Butt;
-    state.lineJoin = QCPainter::LineJoin::Miter;
-    state.compositeOperation = QCPainter::CompositeOperation::SourceOver;
+    state.lineCap = QCanvasPainter::LineCap::Butt;
+    state.lineJoin = QCanvasPainter::LineJoin::Miter;
+    state.compositeOperation = QCanvasPainter::CompositeOperation::SourceOver;
     state.alpha = 1.0f;
     state.brightness = 1.0f;
     state.contrast = 1.0f;
@@ -159,14 +159,14 @@ void QCPainterEngine::reset()
     state.clip.extent[1] = -1.0f;
     state.customFill = nullptr;
     state.customStroke = nullptr;
-    state.textWrapMode = QCPainter::WrapMode::NoWrap;
-    state.textAlignment = QCPainter::TextAlign::Start;
-    state.textBaseline = QCPainter::TextBaseline::Alphabetic;
-    state.textDirection = QCPainter::TextDirection::Inherit;
+    state.textWrapMode = QCanvasPainter::WrapMode::NoWrap;
+    state.textAlignment = QCanvasPainter::TextAlign::Start;
+    state.textBaseline = QCanvasPainter::TextBaseline::Alphabetic;
+    state.textDirection = QCanvasPainter::TextDirection::Inherit;
     state.textLineHeight = 0.0f;
     state.textAntialias = 1.0f;
     state.font = QFont();
-    state.winding = QCPainter::PathWinding::CounterClockWise;
+    state.winding = QCanvasPainter::PathWinding::CounterClockWise;
 
     // Blending is almost always enabled, so e.g. antialiasing,
     // non-opaque colors and composition modes work.
@@ -184,7 +184,7 @@ void QCPainterEngine::reset()
     ctx.currentPainterPath = nullptr;
     ctx.currentPathGroup = -1;
     ctx.preparedPainterPath = nullptr;
-    ctx.renderHints = QCPainter::RenderHint::Antialiasing;
+    ctx.renderHints = QCanvasPainter::RenderHint::Antialiasing;
 }
 
 
@@ -235,12 +235,12 @@ void QCPainterEngine::setLineWidth(float width)
     state.strokeWidth = width;
 }
 
-void QCPainterEngine::setLineCap(QCPainter::LineCap lineCap)
+void QCPainterEngine::setLineCap(QCanvasPainter::LineCap lineCap)
 {
     state.lineCap = lineCap;
 }
 
-void QCPainterEngine::setLineJoin(QCPainter::LineJoin lineJoin)
+void QCPainterEngine::setLineJoin(QCanvasPainter::LineJoin lineJoin)
 {
     state.lineJoin = lineJoin;
 }
@@ -267,12 +267,12 @@ void QCPainterEngine::setGlobalSaturate(float value)
 
 // ***** Custom paints *****
 
-void QCPainterEngine::setCustomStrokeBrush(QCCustomBrush *brush)
+void QCPainterEngine::setCustomStrokeBrush(QCanvasCustomBrush *brush)
 {
     state.customStroke = brush;
 }
 
-void QCPainterEngine::setCustomFillBrush(QCCustomBrush *brush)
+void QCPainterEngine::setCustomFillBrush(QCanvasCustomBrush *brush)
 {
     state.customFill = brush;
 }
@@ -327,7 +327,7 @@ void QCPainterEngine::setBrushTransform(const QTransform &transform)
 // ***** Images *****
 
 int QCPainterEngine::createImage(int width, int height,
-                                        QCPainter::ImageFlags flags,
+                                        QCanvasPainter::ImageFlags flags,
                                         const uchar* data)
 {
     return m_renderer->renderCreateTexture(TextureFormatRGBA, width, height, flags, data);
@@ -453,15 +453,15 @@ void QCPainterEngine::arcTo(float x1, float y1, float x2, float y2, float radius
     float d = radius / std::tan(a * 0.5f);
 
     float cx, cy, a0, a1;
-    QCPainter::PathWinding direction;
+    QCanvasPainter::PathWinding direction;
     if (crossProduct(dx0, dy0, dx1, dy1) > 0.0f) {
-        direction = QCPainter::PathWinding::ClockWise;
+        direction = QCanvasPainter::PathWinding::ClockWise;
         cx = x1 + dx0 * d + dy0 * radius;
         cy = y1 + dy0 * d - dx0 * radius;
         a0 = std::atan2(dx0, -dy0);
         a1 = std::atan2(-dx1, dy1);
     } else {
-        direction = QCPainter::PathWinding::CounterClockWise;
+        direction = QCanvasPainter::PathWinding::CounterClockWise;
         cx = x1 + dx0 * d - dy0 * radius;
         cy = y1 + dy0 * d + dx0 * radius;
         a0 = std::atan2(-dx0, dy0);
@@ -472,13 +472,13 @@ void QCPainterEngine::arcTo(float x1, float y1, float x2, float y2, float radius
 }
 
 void QCPainterEngine::addArc(float x, float y, float radius,
-                                float a0, float a1, QCPainter::PathWinding direction,
+                                float a0, float a1, QCanvasPainter::PathWinding direction,
                                 bool isConnected)
 {
     // Clamp angles
     float da = a1 - a0;
     static constexpr float TWOPI = float(M_PI) * 2;
-    if (direction == QCPainter::PathWinding::ClockWise) {
+    if (direction == QCanvasPainter::PathWinding::ClockWise) {
         if (std::abs(da) >= TWOPI) {
             da = TWOPI;
         } else {
@@ -497,7 +497,7 @@ void QCPainterEngine::addArc(float x, float y, float radius,
     float hda = (da / float(divsCount)) * 0.5f;
     float kappa = std::abs(4.0f / 3.0f * (1.0f - std::cos(hda)) / std::sin(hda));
 
-    if (direction == QCPainter::PathWinding::CounterClockWise)
+    if (direction == QCanvasPainter::PathWinding::CounterClockWise)
         kappa = -kappa;
 
     QCCommand firstCmd = ctx.commandsCount == 0 || !isConnected ? QCCommand::MoveTo : QCCommand::LineTo;
@@ -748,19 +748,19 @@ void QCPainterEngine::addPath(const QPainterPath &path)
     }
 }
 
-void QCPainterEngine::addPath(const QCPainterPath &path, const QTransform &transform)
+void QCPainterEngine::addPath(const QCanvasPainterPath &path, const QTransform &transform)
 {
     appendPainterPath(path, transform);
 }
 
-void QCPainterEngine::addPath(const QCPainterPath &path, qsizetype start, qsizetype count, const QTransform &transform)
+void QCPainterEngine::addPath(const QCanvasPainterPath &path, qsizetype start, qsizetype count, const QTransform &transform)
 {
     appendPainterPath(path, start, count, transform);
 }
 
-void QCPainterEngine::setPathWinding(QCPainter::PathWinding winding)
+void QCPainterEngine::setPathWinding(QCanvasPainter::PathWinding winding)
 {
-    QCCommand c = winding == QCPainter::PathWinding::ClockWise ?
+    QCCommand c = winding == QCanvasPainter::PathWinding::ClockWise ?
                       QCCommand::WindingCW : QCCommand::WindingCCW;
     appendCommand(c);
 }
@@ -839,12 +839,12 @@ void QCPainterEngine::stroke()
 #endif
 }
 
-void QCPainterEngine::fill(const QCPainterPath &path, int pathGroup)
+void QCPainterEngine::fill(const QCanvasPainterPath &path, int pathGroup)
 {
     if (path.isEmpty())
         return;
 
-    QCPainterPath *p = const_cast<QCPainterPath *>(&path);
+    QCanvasPainterPath *p = const_cast<QCanvasPainterPath *>(&path);
     const bool cacheGeometry = (pathGroup != -1);
     const bool pathUpdateRequired = fillPathUpdateRequired(p, pathGroup);
     if (!cacheGeometry) {
@@ -879,12 +879,12 @@ void QCPainterEngine::fill(const QCPainterPath &path, int pathGroup)
     }
 }
 
-void QCPainterEngine::stroke(const QCPainterPath &path, int pathGroup)
+void QCPainterEngine::stroke(const QCanvasPainterPath &path, int pathGroup)
 {
     if (path.isEmpty())
         return;
 
-    QCPainterPath *p = const_cast<QCPainterPath *>(&path);
+    QCanvasPainterPath *p = const_cast<QCanvasPainterPath *>(&path);
     const bool cacheGeometry = (pathGroup != -1);
     const bool pathUpdateRequired = strokePathUpdateRequired(p, pathGroup);
     if (!cacheGeometry) {
@@ -921,7 +921,7 @@ void QCPainterEngine::stroke(const QCPainterPath &path, int pathGroup)
 
 // ***** Blending *****
 
-void QCPainterEngine::setGlobalCompositeOperation(QCPainter::CompositeOperation op)
+void QCPainterEngine::setGlobalCompositeOperation(QCanvasPainter::CompositeOperation op)
 {
     state.compositeOperation = op;
 }
@@ -1000,7 +1000,7 @@ void QCPainterEngine::setClipRect(const QRectF &clipRect)
 
 // ***** Text *****
 
-void QCPainterEngine::setTextWrapMode(QCPainter::WrapMode wrapMode)
+void QCPainterEngine::setTextWrapMode(QCanvasPainter::WrapMode wrapMode)
 {
     state.textWrapMode = wrapMode;
 }
@@ -1015,17 +1015,17 @@ void QCPainterEngine::setTextAntialias(float antialias)
     state.textAntialias = antialias;
 }
 
-void QCPainterEngine::setTextAlignment(QCPainter::TextAlign align)
+void QCPainterEngine::setTextAlignment(QCanvasPainter::TextAlign align)
 {
     state.textAlignment = align;
 }
 
-void QCPainterEngine::setTextBaseline(QCPainter::TextBaseline baseline)
+void QCPainterEngine::setTextBaseline(QCanvasPainter::TextBaseline baseline)
 {
     state.textBaseline = baseline;
 }
 
-void QCPainterEngine::setTextDirection(QCPainter::TextDirection direction)
+void QCPainterEngine::setTextDirection(QCanvasPainter::TextDirection direction)
 {
     state.textDirection = direction;
 }
@@ -1102,9 +1102,9 @@ QRectF QCPainterEngine::textBoundingBox(const QString &text, const QRectF &rect)
     // Adjust rect width
     float textOffsetX = (textRect.width() - layoutWidth);
     auto textAlign = effectiveTextAlign(text);
-    if (textAlign == QCPainter::TextAlign::Center)
+    if (textAlign == QCanvasPainter::TextAlign::Center)
         textRect.adjust(0.5f * textOffsetX, 0, -0.5f * textOffsetX, 0);
-    else if (textAlign == QCPainter::TextAlign::Left)
+    else if (textAlign == QCanvasPainter::TextAlign::Left)
         textRect.adjust(0, 0, -textOffsetX, 0);
     else
         textRect.adjust(textOffsetX, 0, 0, 0);
@@ -1147,17 +1147,17 @@ void QCPainterEngine::setMiterLimit(float limit)
 void QCPainterEngine::removePathGroup(int pathGroup)
 {
     // Remove from engine side
-    erase_if(ctx.cachedStrokePaths, [pathGroup](const QHash<const QCPainterPath*, QCCachedPath>::iterator it) {
+    erase_if(ctx.cachedStrokePaths, [pathGroup](const QHash<const QCanvasPainterPath*, QCCachedPath>::iterator it) {
         return it->pathGroup == pathGroup;
     });
-    erase_if(ctx.cachedFillPaths, [pathGroup](const QHash<const QCPainterPath*, QCCachedPath>::iterator it) {
+    erase_if(ctx.cachedFillPaths, [pathGroup](const QHash<const QCanvasPainterPath*, QCCachedPath>::iterator it) {
         return it->pathGroup == pathGroup;
     });
     // Remove from renderer side
     m_renderer->removePathGroup(pathGroup);
 }
 
-void QCPainterEngine::setRenderHints(QCPainter::RenderHints hints, bool on)
+void QCPainterEngine::setRenderHints(QCanvasPainter::RenderHints hints, bool on)
 {
     if (on)
         ctx.renderHints |= hints;
@@ -1165,13 +1165,13 @@ void QCPainterEngine::setRenderHints(QCPainter::RenderHints hints, bool on)
         ctx.renderHints &= ~hints;
 
     // Set the changed hints into renderer.
-    if (hints & QCPainter::RenderHint::Antialiasing)
+    if (hints & QCanvasPainter::RenderHint::Antialiasing)
         m_renderer->setFlag(QCPainterRhiRenderer::Antialiasing, on);
-    if (hints & QCPainter::RenderHint::HighQualityStroking)
+    if (hints & QCanvasPainter::RenderHint::HighQualityStroking)
         m_renderer->setFlag(QCPainterRhiRenderer::StencilStrokes, on);
 }
 
-QCPainter::RenderHints QCPainterEngine::renderHints() const
+QCanvasPainter::RenderHints QCPainterEngine::renderHints() const
 {
     return ctx.renderHints;
 }
@@ -1259,7 +1259,7 @@ void QCPainterEngine::appendCommandsData(const float commandsData[], int dCount,
     }
 }
 
-void QCPainterEngine::handleSetPathWinding(QCPainter::PathWinding winding)
+void QCPainterEngine::handleSetPathWinding(QCanvasPainter::PathWinding winding)
 {
     state.winding = winding;
 }
@@ -1325,7 +1325,7 @@ static constexpr float triarea2(float ax, float ay, float bx, float by, float cx
     return (acx * aby) - (abx * acy);
 }
 
-void QCPainterEngine::enforceWinding(int pointsOffset, int pointsCount, QCPainter::PathWinding winding)
+void QCPainterEngine::enforceWinding(int pointsOffset, int pointsCount, QCanvasPainter::PathWinding winding)
 {
     if (pointsCount <= 2)
         return;
@@ -1338,8 +1338,8 @@ void QCPainterEngine::enforceWinding(int pointsOffset, int pointsCount, QCPainte
         area += triarea2(a.x, a.y, b.x, b.y, c.x, c.y);
     }
     // If needed, reverse the points order
-    if ((winding == QCPainter::PathWinding::CounterClockWise && area < 0.0f) ||
-        (winding == QCPainter::PathWinding::ClockWise && area > 0.0f)) {
+    if ((winding == QCanvasPainter::PathWinding::CounterClockWise && area < 0.0f) ||
+        (winding == QCanvasPainter::PathWinding::ClockWise && area > 0.0f)) {
         int i = 0;
         int j = pointsCount - 1;
         auto &pts = ctx.points;
@@ -1407,8 +1407,8 @@ void QCPainterEngine::commandsToPaths()
         case QCCommand::WindingCW:
         case QCCommand::WindingCCW:
         {
-            auto w = cmd == QCCommand::WindingCW ? QCPainter::PathWinding::ClockWise :
-                         QCPainter::PathWinding::CounterClockWise;
+            auto w = cmd == QCCommand::WindingCW ? QCanvasPainter::PathWinding::ClockWise :
+                         QCanvasPainter::PathWinding::CounterClockWise;
             handleSetPathWinding(w);
             break;
         }
@@ -1435,7 +1435,7 @@ void QCPainterEngine::commandsToPaths()
             path.isClosed = true;
         }
 
-        if (!ctx.renderHints.testFlag(QCPainter::RenderHint::DisableWindingEnforce))
+        if (!ctx.renderHints.testFlag(QCanvasPainter::RenderHint::DisableWindingEnforce))
             enforceWinding(path.pointsOffset, path.pointsCount, path.winding);
 
         int p0Index = path.pointsOffset + path.pointsCount - 1;
@@ -1507,7 +1507,7 @@ void QCPainterEngine::expandFill()
     const float aa = ctx.antialiasingEnabled ? state.antialias : 0.0f;
     // Hardcoded miterLimit for fill.
     const float miterLimit = 2.4f;
-    calculateJoins(aa, QCPainter::LineJoin::Miter, miterLimit);
+    calculateJoins(aa, QCanvasPainter::LineJoin::Miter, miterLimit);
     const int pCount = ctx.pathsCount;
     const bool useEdgeAA = aa > 0.0f;
 
@@ -1616,14 +1616,14 @@ void QCPainterEngine::expandFill()
 }
 
 // Join and cap calculations are customized version based on NanoVG (https://github.com/memononen/nanovg)
-void QCPainterEngine::expandStroke(float w, QCPainter::LineCap cap, QCPainter::LineJoin join, float miterLimit)
+void QCPainterEngine::expandStroke(float w, QCanvasPainter::LineCap cap, QCanvasPainter::LineJoin join, float miterLimit)
 {
     // w is half of stroke width + aa
     const float aa = ctx.antialiasingEnabled ? state.antialias : 0.0f;
     w += aa * 0.5f;
     calculateJoins(w, join, miterLimit);
     const int pCount = ctx.pathsCount;
-    const int roundDivs = (join == QCPainter::LineJoin::Round) || (cap == QCPainter::LineCap::Round)
+    const int roundDivs = (join == QCanvasPainter::LineJoin::Round) || (cap == QCanvasPainter::LineCap::Round)
                               ? curveDivs(w, ctx.tessTol)
                               : 0;
 
@@ -1631,13 +1631,13 @@ void QCPainterEngine::expandStroke(float w, QCPainter::LineCap cap, QCPainter::L
     int vertsCount = 0;
     for (int i = 0; i < pCount; i++) {
         const QCPath &path = ctx.paths.at(i);
-        if (join == QCPainter::LineJoin::Round)
+        if (join == QCanvasPainter::LineJoin::Round)
             vertsCount += (path.pointsCount + path.bevelCount * (roundDivs + 2) + 1) * 2; // plus one for loop
         else
             vertsCount += (path.pointsCount + path.bevelCount * 5 + 1) * 2; // plus one for loop
         if (!path.isClosed) {
             // Not looping, so need vertices for caps
-            if (cap == QCPainter::LineCap::Round) {
+            if (cap == QCanvasPainter::LineCap::Round) {
                 vertsCount += (roundDivs * 2 + 2) * 2;
             } else {
                 vertsCount += (3 + 3) * 2;
@@ -1678,11 +1678,11 @@ void QCPainterEngine::expandStroke(float w, QCPainter::LineCap cap, QCPainter::L
             float dx = p1.x - p0.x;
             float dy = p1.y - p0.y;
             normalizePoint(&dx, &dy);
-            if (cap == QCPainter::LineCap::Butt)
+            if (cap == QCanvasPainter::LineCap::Butt)
                 addButtCapStart(p0, dx, dy, w, -aa * 0.5f, aa, u0, u1);
-            else if (cap == QCPainter::LineCap::Square)
+            else if (cap == QCanvasPainter::LineCap::Square)
                 addButtCapStart(p0, dx, dy, w, w - aa, aa, u0, u1);
-            else if (cap == QCPainter::LineCap::Round)
+            else if (cap == QCanvasPainter::LineCap::Round)
                 addRoundCapStart(p0, dx, dy, w, roundDivs, u0, u1);
         }
 
@@ -1691,7 +1691,7 @@ void QCPainterEngine::expandStroke(float w, QCPainter::LineCap cap, QCPainter::L
             const QCPoint &p0 = ctx.points[p0Index];
             const QCPoint &p1 = ctx.points[p1Index];
             if (p1.flags & (PointBevel | PointInnerBevel)) {
-                if (join == QCPainter::LineJoin::Round) {
+                if (join == QCanvasPainter::LineJoin::Round) {
                     addRoundJoin(p0, p1, w, w, u0, u1, roundDivs);
                 } else {
                     addBevelJoin(p0, p1, w, w, u0, u1);
@@ -1716,18 +1716,18 @@ void QCPainterEngine::expandStroke(float w, QCPainter::LineCap cap, QCPainter::L
             float dx = p1.x - p0.x;
             float dy = p1.y - p0.y;
             normalizePoint(&dx, &dy);
-            if (cap == QCPainter::LineCap::Butt)
+            if (cap == QCanvasPainter::LineCap::Butt)
                 addButtCapEnd(p1, dx, dy, w, -aa * 0.5f, aa, u0, u1);
-            else if (cap == QCPainter::LineCap::Square)
+            else if (cap == QCanvasPainter::LineCap::Square)
                 addButtCapEnd(p1, dx, dy, w, w - aa, aa, u0, u1);
-            else if (cap == QCPainter::LineCap::Round)
+            else if (cap == QCanvasPainter::LineCap::Round)
                 addRoundCapEnd(p1, dx, dy, w, roundDivs, u0, u1);
         }
         path.strokeCount = ctx.verticesCount - path.strokeOffset;
     }
 }
 
-void QCPainterEngine::calculateJoins(float w, QCPainter::LineJoin join, float miterLimit)
+void QCPainterEngine::calculateJoins(float w, QCanvasPainter::LineJoin join, float miterLimit)
 {
     // Inverse of width
     const float iw = (w > 0.0f) ? 1.0f / w : 0.0f;
@@ -1792,7 +1792,7 @@ void QCPainterEngine::calculateJoins(float w, QCPainter::LineJoin join, float mi
 
             // Check if the corner needs to be beveled.
             if (p1.flags & PointCorner) {
-                if (join == QCPainter::LineJoin::Bevel || join == QCPainter::LineJoin::Round || (dmr2 * miterLimit * miterLimit) < 1.0f ) {
+                if (join == QCanvasPainter::LineJoin::Bevel || join == QCanvasPainter::LineJoin::Round || (dmr2 * miterLimit * miterLimit) < 1.0f ) {
                     p1.flags |= PointBevel;
                 }
             }
@@ -2062,12 +2062,12 @@ void QCPainterEngine::ensureVertices(int count)
 }
 
 // Prepare current commands to match \a path before the fill/stroke.
-void QCPainterEngine::preparePainterPath(const QCPainterPath &path,
+void QCPainterEngine::preparePainterPath(const QCanvasPainterPath &path,
                                          const QTransform &transform)
 {
     // Create new path, without applying transformation is not needed.
     beginPath();
-    const QCPainterPathPrivate *pathd = QCPainterPathPrivate::get(&path);
+    const QCanvasPainterPathPrivate *pathd = QCanvasPainterPathPrivate::get(&path);
     const bool ignoreTransforms = transform.isIdentity();
     appendCommandsData(pathd->commandsData.constData(), pathd->commandsDataCount, ignoreTransforms);
     appendCommands(pathd->commands.constData(), pathd->commandsCount);
@@ -2079,10 +2079,10 @@ void QCPainterEngine::preparePainterPath(const QCPainterPath &path,
 }
 
 // Append \a path into current commands.
-void QCPainterEngine::appendPainterPath(const QCPainterPath &path,
+void QCPainterEngine::appendPainterPath(const QCanvasPainterPath &path,
                                          const QTransform &transform)
 {
-    const QCPainterPathPrivate *pathd = QCPainterPathPrivate::get(&path);
+    const QCanvasPainterPathPrivate *pathd = QCanvasPainterPathPrivate::get(&path);
     if (transform.isIdentity()) {
         appendCommandsData(pathd->commandsData.constData(), pathd->commandsDataCount);
     } else {
@@ -2097,12 +2097,12 @@ void QCPainterEngine::appendPainterPath(const QCPainterPath &path,
 
 // Append \a path into current commands.
 // Including \a count amount of commands, starting from \a start.
-void QCPainterEngine::appendPainterPath(const QCPainterPath &path,
+void QCPainterEngine::appendPainterPath(const QCanvasPainterPath &path,
                                          qsizetype start,
                                          qsizetype count,
                                          const QTransform &transform)
 {
-    const QCPainterPathPrivate *pathd = QCPainterPathPrivate::get(&path);
+    const QCanvasPainterPathPrivate *pathd = QCanvasPainterPathPrivate::get(&path);
 
     const auto commandsSize = pathd->commandsCount;
     int commandsDataStart = 0;
@@ -2120,7 +2120,7 @@ void QCPainterEngine::appendPainterPath(const QCPainterPath &path,
         // Calculate commands data amounts, based on the commands start & count.
         const int endCommand = start + count;
         for (int i = 0; i < endCommand; i++) {
-            auto dataSize = QCPainterPathPrivate::dataSizeOf(pathd->commands.at(i));
+            auto dataSize = QCanvasPainterPathPrivate::dataSizeOf(pathd->commands.at(i));
             if (i < start) {
                 commandsDataStart += dataSize;
             } else {
@@ -2130,7 +2130,7 @@ void QCPainterEngine::appendPainterPath(const QCPainterPath &path,
     }
     // Note: commandsDataStart and commandsDataCount don't need to be
     // validated as they are always in range when we don't allow raw
-    // non-const access into QCPainterPath data.
+    // non-const access into QCanvasPainterPath data.
     const auto commandsData = &pathd->commandsData.at(commandsDataStart);
     if (transform.isIdentity()) {
         appendCommandsData(commandsData, commandsDataCount);
@@ -2146,9 +2146,9 @@ void QCPainterEngine::appendPainterPath(const QCPainterPath &path,
 
 // Returns true if path has changed or some state property related
 // to fill vertices generation has changed compared to cached path.
-bool QCPainterEngine::fillPathUpdateRequired(QCPainterPath *path, int pathGroup)
+bool QCPainterEngine::fillPathUpdateRequired(QCanvasPainterPath *path, int pathGroup)
 {
-    QCPainterPathPrivate *pathd = QCPainterPathPrivate::get(path);
+    QCanvasPainterPathPrivate *pathd = QCanvasPainterPathPrivate::get(path);
     QCCachedPath &cp = ctx.cachedFillPaths[path];
     bool updateRequired = false;
     if (pathGroup != cp.pathGroup ||
@@ -2168,9 +2168,9 @@ bool QCPainterEngine::fillPathUpdateRequired(QCPainterPath *path, int pathGroup)
 
 // Returns true if path has changed or some state property related
 // to stroke vertices generation has changed compared to cached path.
-bool QCPainterEngine::strokePathUpdateRequired(QCPainterPath *path, int pathGroup)
+bool QCPainterEngine::strokePathUpdateRequired(QCanvasPainterPath *path, int pathGroup)
 {
-    QCPainterPathPrivate *pathd = QCPainterPathPrivate::get(path);
+    QCanvasPainterPathPrivate *pathd = QCanvasPainterPathPrivate::get(path);
     QCCachedPath &cp = ctx.cachedStrokePaths[path];
     bool updateRequired = false;
     if (pathGroup != cp.pathGroup ||
@@ -2239,45 +2239,45 @@ QCPaint QCPainterEngine::getStrokePaint(float *strokeWidth, bool ignoreTransform
 
 // Return the effective text align, depending on text direction.
 // Returned value is either Left, Right or Center, never Start or End.
-QCPainter::TextAlign QCPainterEngine::effectiveTextAlign(QStringView text) const
+QCanvasPainter::TextAlign QCPainterEngine::effectiveTextAlign(QStringView text) const
 {
-    QCPainter::TextAlign align = state.textAlignment;
+    QCanvasPainter::TextAlign align = state.textAlignment;
     auto effectiveDirection = state.textDirection;
 #if QT_CONFIG(im)
-    bool emptyAuto = effectiveDirection == QCPainter::TextDirection::Auto && text.isEmpty();
-    if (emptyAuto || effectiveDirection == QCPainter::TextDirection::Inherit) {
+    bool emptyAuto = effectiveDirection == QCanvasPainter::TextDirection::Auto && text.isEmpty();
+    if (emptyAuto || effectiveDirection == QCanvasPainter::TextDirection::Inherit) {
         // Get inherited direction from QGuiApplication. Also used for Auto,
         // when the string is empty. See:
         // https://doc.qt.io/qt-6/qtquick-positioning-righttoleft.html#text-alignment
         if (qGuiApp->isRightToLeft())
-            effectiveDirection = QCPainter::TextDirection::RightToLeft;
+            effectiveDirection = QCanvasPainter::TextDirection::RightToLeft;
         else
-            effectiveDirection = QCPainter::TextDirection::LeftToRight;
+            effectiveDirection = QCanvasPainter::TextDirection::LeftToRight;
     }
 #else
-    if (effectiveDirection == QCPainter::TextDirection::Inherit) {
+    if (effectiveDirection == QCanvasPainter::TextDirection::Inherit) {
         // No access to inputMethod(), so fail to auto detect
-        effectiveDirection = QCPainter::TextDirection::Auto;
+        effectiveDirection = QCanvasPainter::TextDirection::Auto;
     }
 #endif
-    if (effectiveDirection == QCPainter::TextDirection::Auto) {
+    if (effectiveDirection == QCanvasPainter::TextDirection::Auto) {
         // Get automatic direction from QString isRightToLeft().
         if (text.isRightToLeft())
-            effectiveDirection = QCPainter::TextDirection::RightToLeft;
+            effectiveDirection = QCanvasPainter::TextDirection::RightToLeft;
         else
-            effectiveDirection = QCPainter::TextDirection::LeftToRight;
+            effectiveDirection = QCanvasPainter::TextDirection::LeftToRight;
     }
 
-    if (effectiveDirection == QCPainter::TextDirection::RightToLeft) {
-        if (align == QCPainter::TextAlign::Start) {
-            align = QCPainter::TextAlign::Right;
-        } else if (align == QCPainter::TextAlign::End) {
-            align = QCPainter::TextAlign::Left;
+    if (effectiveDirection == QCanvasPainter::TextDirection::RightToLeft) {
+        if (align == QCanvasPainter::TextAlign::Start) {
+            align = QCanvasPainter::TextAlign::Right;
+        } else if (align == QCanvasPainter::TextAlign::End) {
+            align = QCanvasPainter::TextAlign::Left;
         }
-    } else if (align == QCPainter::TextAlign::Start) {
-        align = QCPainter::TextAlign::Left;
-    } else if (align == QCPainter::TextAlign::End) {
-        align = QCPainter::TextAlign::Right;
+    } else if (align == QCanvasPainter::TextAlign::Start) {
+        align = QCanvasPainter::TextAlign::Left;
+    } else if (align == QCanvasPainter::TextAlign::End) {
+        align = QCanvasPainter::TextAlign::Right;
     }
 
     return align;
@@ -2330,12 +2330,12 @@ void QCPainterEngine::updateStateFontVars()
 // *** From QSGDistanceFieldGlyphNode - End ***
 #endif
 
-namespace QCPainterDebugCounterUtils {
+namespace QCanvasPainterDebugCounterUtils {
 
 void fillDebugCounters(QVariantMap *dst, const QCDebugCounters &src)
 {
     // The keys and the related environment variables are documented. See e.g.
-    // the docs for QQuickCPainterItem::debug. Therefore, keys should never be
+    // the docs for QCanvasPainterItem::debug. Therefore, keys should never be
     // removed. If some future logic change dictates that something does not
     // make sense anymore, set the value to zero, but keep the entry in the map.
 
@@ -2349,6 +2349,6 @@ void fillDebugCounters(QVariantMap *dst, const QCDebugCounters &src)
     dst->insert(QStringLiteral(u"triangleCount"), src.triangleCount);
 }
 
-} // namespace QQCPainterDebugCounterUtils
+} // namespace QQCanvasPainterDebugCounterUtils
 
 QT_END_NAMESPACE

@@ -6,9 +6,9 @@
 #include <QPushButton>
 #include <QFile>
 #include <rhi/qrhi.h>
-#include <QCPainter>
-#include <QCPainterFactory>
-#include <QCRhiPaintDriver>
+#include <QCanvasPainter>
+#include <QCanvasPainterFactory>
+#include <QCanvasRhiPaintDriver>
 
 class ExampleRhiWidget : public QRhiWidget
 {
@@ -26,7 +26,7 @@ private:
     std::unique_ptr<QRhiGraphicsPipeline> m_pipeline;
     QMatrix4x4 m_viewProjection;
     float m_rotation = 0.0f;
-    std::unique_ptr<QCPainterFactory> m_factory;
+    std::unique_ptr<QCanvasPainterFactory> m_factory;
 };
 
 void ExampleRhiWidget::initialize(QRhiCommandBuffer *cb)
@@ -84,7 +84,7 @@ void ExampleRhiWidget::initialize(QRhiCommandBuffer *cb)
     m_viewProjection.translate(0, 0, -4);
 
     if (!m_factory) {
-        m_factory.reset(new QCPainterFactory);
+        m_factory.reset(new QCanvasPainterFactory);
         m_factory->create(m_rhi);
     }
 }
@@ -104,8 +104,8 @@ void ExampleRhiWidget::render(QRhiCommandBuffer *cb)
 
     const QSize outputSize = colorTexture()->pixelSize();
 
-    QCRhiPaintDriver *pd = m_factory->paintDriver();
-    QCPainter *painter = m_factory->painter();
+    QCanvasRhiPaintDriver *pd = m_factory->paintDriver();
+    QCanvasPainter *painter = m_factory->painter();
     pd->resetForNewFrame();
     pd->beginPaint(cb, renderTarget());
     painter->beginPath();
@@ -113,8 +113,8 @@ void ExampleRhiWidget::render(QRhiCommandBuffer *cb)
     painter->circle(center, 100);
     painter->setFillStyle(Qt::red);
     painter->fill();
-    painter->setTextAlign(QCPainter::TextAlign::Center);
-    painter->setTextBaseline(QCPainter::TextBaseline::Middle);
+    painter->setTextAlign(QCanvasPainter::TextAlign::Center);
+    painter->setTextBaseline(QCanvasPainter::TextBaseline::Middle);
     QFont font1;
     font1.setWeight(QFont::Weight::Bold);
     font1.setItalic(true);
@@ -122,7 +122,7 @@ void ExampleRhiWidget::render(QRhiCommandBuffer *cb)
     painter->setFont(font1);
     painter->setFillStyle(Qt::green);
     painter->fillText("Hello", center.x(), center.y());
-    pd->endPaint(QCRhiPaintDriver::EndPaintFlag::DoNotRecordRenderPass);
+    pd->endPaint(QCanvasRhiPaintDriver::EndPaintFlag::DoNotRecordRenderPass);
 
     const QColor clearColor = QColor::fromRgbF(0.4f, 0.7f, 0.0f, 1.0f);
     cb->beginPass(renderTarget(), clearColor, { 1.0f, 0 }, resourceUpdates);

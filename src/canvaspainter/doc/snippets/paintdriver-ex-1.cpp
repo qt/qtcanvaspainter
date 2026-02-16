@@ -21,9 +21,9 @@ int main(int argc, char *argv[])
     rt->setRenderPassDescriptor(rp.get());
     rt->create();
 
-    std::unique_ptr<QCPainterFactory> factory(new QCPainterFactory);
-    QCPainter *painter = factory->create(rhi.get());
-    QCRhiPaintDriver *pd = factory->paintDriver();
+    std::unique_ptr<QCanvasPainterFactory> factory(new QCanvasPainterFactory);
+    QCanvasPainter *painter = factory->create(rhi.get());
+    QCanvasRhiPaintDriver *pd = factory->paintDriver();
 
     QRhiCommandBuffer *cb;
     QRhiReadbackResult readbackResult;

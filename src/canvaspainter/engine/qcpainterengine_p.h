@@ -23,8 +23,8 @@
 #include <QtGui/qmatrix4x4.h>
 #include <QtCore/qrect.h>
 #include <QtCore/qlist.h>
-#include "qcpainter.h"
-#include "qcpainterpath.h"
+#include "qcanvaspainter.h"
+#include "qcanvaspainterpath.h"
 #include "qcpainterengineutils_p.h"
 
 QT_BEGIN_NAMESPACE
@@ -57,16 +57,16 @@ public:
     void setFillColor(const QColor &color);
     void setFillPaint(const QCPaint &paint);
     void setLineWidth(float width);
-    void setLineCap(QCPainter::LineCap lineCap);
-    void setLineJoin(QCPainter::LineJoin lineJoin);
+    void setLineCap(QCanvasPainter::LineCap lineCap);
+    void setLineJoin(QCanvasPainter::LineJoin lineJoin);
     void setGlobalAlpha(float alpha);
     void setGlobalBrightness(float value);
     void setGlobalContrast(float value);
     void setGlobalSaturate(float value);
 
     // Custom paints
-    void setCustomStrokeBrush(QCCustomBrush *brush);
-    void setCustomFillBrush(QCCustomBrush *brush);
+    void setCustomStrokeBrush(QCanvasCustomBrush *brush);
+    void setCustomFillBrush(QCanvasCustomBrush *brush);
 
     // Transform
     QTransform currentTransform() const;
@@ -82,7 +82,7 @@ public:
 
     // Images
     int createImage(int width, int height,
-                    QCPainter::ImageFlags flags,
+                    QCanvasPainter::ImageFlags flags,
                     const uchar* data);
     bool deleteImage(int imageId);
     void drawImageId(int imageId, float x, float y, float width, float height,
@@ -99,7 +99,7 @@ public:
     void quadTo(float cpX, float cpY, float x, float y);
     void arcTo(float x1, float y1, float x2, float y2, float radius);
     void addArc(float x, float y, float radius,
-                float a0, float a1, QCPainter::PathWinding direction,
+                float a0, float a1, QCanvasPainter::PathWinding direction,
                 bool isConnected);
     void addRect(float x, float y, float width, float height);
     void addRoundRect(float x, float y, float width, float height, float radius);
@@ -111,29 +111,29 @@ public:
     void addEllipse(float x, float y, float radiusX, float radiusY);
     void addCircle(float x, float y, float radius);
     void addPath(const QPainterPath &path);
-    void addPath(const QCPainterPath &path, const QTransform &transform = QTransform());
-    void addPath(const QCPainterPath &path, qsizetype start, qsizetype count, const QTransform &transform = QTransform());
-    void setPathWinding(QCPainter::PathWinding winding);
+    void addPath(const QCanvasPainterPath &path, const QTransform &transform = QTransform());
+    void addPath(const QCanvasPainterPath &path, qsizetype start, qsizetype count, const QTransform &transform = QTransform());
+    void setPathWinding(QCanvasPainter::PathWinding winding);
     void fill();
     void fillForClear();
     void stroke();
-    void fill(const QCPainterPath &path, int pathGroup);
-    void stroke(const QCPainterPath &path, int pathGroup);
+    void fill(const QCanvasPainterPath &path, int pathGroup);
+    void stroke(const QCanvasPainterPath &path, int pathGroup);
 
     // Blending
-    void setGlobalCompositeOperation(QCPainter::CompositeOperation op);
+    void setGlobalCompositeOperation(QCanvasPainter::CompositeOperation op);
 
     // Clipping
     void resetClipRect();
     void setClipRect(const QRectF &rect);
 
     // Text
-    void setTextWrapMode(QCPainter::WrapMode wrapMode);
+    void setTextWrapMode(QCanvasPainter::WrapMode wrapMode);
     void setTextLineHeight(float height);
     void setTextAntialias(float antialias);
-    void setTextAlignment(QCPainter::TextAlign align);
-    void setTextBaseline(QCPainter::TextBaseline baseline);
-    void setTextDirection(QCPainter::TextDirection direction);
+    void setTextAlignment(QCanvasPainter::TextAlign align);
+    void setTextBaseline(QCanvasPainter::TextBaseline baseline);
+    void setTextDirection(QCanvasPainter::TextDirection direction);
     void fillText(const QString &text, const QRectF &rect);
     QRectF textBoundingBox(const QString &text, const QRectF &rect);
 
@@ -144,8 +144,8 @@ public:
     void setAntialias(float antialias);
     void setMiterLimit(float limit);
     void removePathGroup(int pathGroup);
-    void setRenderHints(QCPainter::RenderHints hints, bool on = true);
-    QCPainter::RenderHints renderHints() const;
+    void setRenderHints(QCanvasPainter::RenderHints hints, bool on = true);
+    QCanvasPainter::RenderHints renderHints() const;
 
     // Internal
     QCContext* initialize(QCPainterRhiRenderer *renderer);
@@ -157,14 +157,14 @@ public:
 #endif
 
 private:
-    friend class QCPainterPrivate;
+    friend class QCanvasPainterPrivate;
     friend class QCPainterRhiRenderer;
 
     void setDevicePixelRatio(float ratio);
     void appendCommand(QCCommand command);
     void appendCommands(const QCCommand commands[], int cCount);
     void appendCommandsData(const float commandsData[], int dCount, bool ignoreTransform = false);
-    void handleSetPathWinding(QCPainter::PathWinding winding);
+    void handleSetPathWinding(QCanvasPainter::PathWinding winding);
     void handleClosePath();
     void handleMoveTo();
     void handleAddPoint(float x, float y, QCPointFlags flags);
@@ -172,10 +172,10 @@ private:
     void tesselateBezier(float x1, float y1, float x2, float y2,
                          float x3, float y3, float x4, float y4,
                          int level, QCPointFlags flags);
-    void enforceWinding(int pointsOffset, int pointsCount, QCPainter::PathWinding winding);
+    void enforceWinding(int pointsOffset, int pointsCount, QCanvasPainter::PathWinding winding);
     void expandFill();
-    void expandStroke(float w, QCPainter::LineCap cap, QCPainter::LineJoin join, float miterLimit);
-    void calculateJoins(float w, QCPainter::LineJoin join, float miterLimit);
+    void expandStroke(float w, QCanvasPainter::LineCap cap, QCanvasPainter::LineJoin join, float miterLimit);
+    void calculateJoins(float w, QCanvasPainter::LineJoin join, float miterLimit);
     void addBevelJoin(const QCPoint &p0, const QCPoint &p1,
                       float lw, float rw, float lu, float ru);
     void addRoundJoin(const QCPoint &p0, const QCPoint &p1,
@@ -194,17 +194,17 @@ private:
                         float u0, float u1);
     inline void addVert(float x, float y, float u, float v) noexcept;
     void ensureVertices(int count);
-    void preparePainterPath(const QCPainterPath &path,
+    void preparePainterPath(const QCanvasPainterPath &path,
                             const QTransform &transform = QTransform());
-    void appendPainterPath(const QCPainterPath &path,
+    void appendPainterPath(const QCanvasPainterPath &path,
                            const QTransform &transform = QTransform());
-    void appendPainterPath(const QCPainterPath &path,
+    void appendPainterPath(const QCanvasPainterPath &path,
                            qsizetype start,
                            qsizetype count,
                            const QTransform &transform = QTransform());
-    bool fillPathUpdateRequired(QCPainterPath *path, int pathGroup);
-    bool strokePathUpdateRequired(QCPainterPath *path, int pathGroup);
-    QCPainter::TextAlign effectiveTextAlign(QStringView text) const;
+    bool fillPathUpdateRequired(QCanvasPainterPath *path, int pathGroup);
+    bool strokePathUpdateRequired(QCanvasPainterPath *path, int pathGroup);
+    QCanvasPainter::TextAlign effectiveTextAlign(QStringView text) const;
 
     QCPaint getFillPaint(bool ignoreTransform = false);
     QCPaint getStrokePaint(float *strokeWidth, bool ignoreTransform = false);

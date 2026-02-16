@@ -6,9 +6,9 @@
 
 #include <QQuickItem>
 #include <QSGRenderNode>
-#include <QCPainterFactory>
-#include <QCRhiPaintDriver>
-#include <QCPainter>
+#include <QCanvasPainterFactory>
+#include <QCanvasRhiPaintDriver>
+#include <QCanvasPainter>
 
 class RhiItemRenderer;
 
@@ -53,9 +53,9 @@ public:
 
 private:
     QQuickWindow *m_window;
-    QCPainterFactory *m_fac;
-    QCRhiPaintDriver *m_pd;
-    QCPainter *m_p;
+    QCanvasPainterFactory *m_fac;
+    QCanvasRhiPaintDriver *m_pd;
+    QCanvasPainter *m_p;
     float m_width;
     float m_height;
     float m_circleRadius = 100;

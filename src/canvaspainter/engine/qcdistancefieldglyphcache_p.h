@@ -51,8 +51,8 @@ public:
     {
         FontKey fontKey;
         QString text;
-        QCPainter::TextAlign textAlign;
-        QCPainter::WrapMode wrapMode;
+        QCanvasPainter::TextAlign textAlign;
+        QCanvasPainter::WrapMode wrapMode;
         float pixelSize;
         float lineWidth;
         float lineHeight;
@@ -70,7 +70,7 @@ public:
     QCDistanceFieldGlyphCache(QRhi *rhi);
     ~QCDistanceFieldGlyphCache();
 
-    void generate(const QString &text, const QRectF &rect, const QFont &font, QCState *state, QCPainter::TextAlign alignment,
+    void generate(const QString &text, const QRectF &rect, const QFont &font, QCState *state, QCanvasPainter::TextAlign alignment,
                   QCRhiDistanceFieldGlyphCache::VertexList *verts, QCRhiDistanceFieldGlyphCache::IndexList *indices);
 
     void commitResourceUpdates(QRhiResourceUpdateBatch *batch);
@@ -84,7 +84,7 @@ public:
 private:
     QList<QGlyphRun> generateGlyphRuns(const QString &text, const QRectF &rect,
                                        const QFont &font, const QFontMetrics &metrics,
-                                       QCState *state, QCPainter::TextAlign alignment);
+                                       QCState *state, QCanvasPainter::TextAlign alignment);
     QHash<QCDistanceFieldGlyphCache::FontKey, FontKeyData> m_glyphCaches;
     QRhi *m_rhi;
     QTextLayout m_layout;
