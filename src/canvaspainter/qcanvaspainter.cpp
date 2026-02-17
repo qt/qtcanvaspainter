@@ -2594,7 +2594,7 @@ void QCanvasPainter::cleanupResources()
     addImage() overloads are not taken into account by this function.
 
     For every valid QCanvasImage, the individual size in bytes can always be queried
-    by calling \l{QCanvasImage::}{size()}. That function returns valid results also
+    by calling \l{QCanvasImage::}{sizeInBytes()}. That function returns valid results also
     when the QCanvasImage was created from a QCanvasOffscreenCanvas or QRhiTexture, but it
     does not consider mipmap or multisample data.
 
@@ -2680,7 +2680,7 @@ void QCanvasImageTracker::handleRemoveTextures()
                                      !m_usedTextureIDs.contains(ip->id);
         if (remove || removeUnusedGradients) {
             m_painterPrivate->m_e->deleteImage(ip->id);
-            m_dataAmount -= ip->size;
+            m_dataAmount -= ip->sizeInBytes;
             it = m_data.erase(it);
         } else {
             it++;
@@ -2817,7 +2817,7 @@ QCanvasImage QCanvasPainterPrivate::getQCanvasImage(const QImage &image, QCanvas
             ip->id = m_e->createImage(image.width(), image.height(), flags, convertedImage.constBits());
             ip->width = convertedImage.width();
             ip->height = convertedImage.height();
-            ip->size = convertedImage.sizeInBytes();
+            ip->sizeInBytes = convertedImage.sizeInBytes();
             ip->type = type;
             m_imageTracker.insert(key, qcimage);
             // When the amount of cache reaches the limit and tracking is enabled,
@@ -2849,7 +2849,7 @@ QCanvasImage QCanvasPainterPrivate::getQCanvasImage(QRhiTexture *texture, QCanva
         ip->height = texture->pixelSize().height();
         quint32 byteSize = 0;
         QCPainterRhiRenderer::textureFormatInfo(texture->format(), texture->pixelSize(), nullptr, &byteSize, nullptr);
-        ip->size = byteSize;
+        ip->sizeInBytes = byteSize;
         ip->type = QCanvasImagePrivate::DataType::ImportedTexture;
         m_nativeTextureCache.insert(key, qcimage);
     }
