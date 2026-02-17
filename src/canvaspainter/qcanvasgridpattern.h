@@ -17,38 +17,38 @@
 
 QT_BEGIN_NAMESPACE
 
-class Q_CANVASPAINTER_EXPORT QCanvasGridPattern : public QCanvasBrush
+class QCanvasGridPattern : public QCanvasBrush
 {
 public:
-    QCanvasGridPattern();
-    QCanvasGridPattern(const QRectF &rect,
+    Q_CANVASPAINTER_EXPORT QCanvasGridPattern();
+    Q_CANVASPAINTER_EXPORT QCanvasGridPattern(const QRectF &rect,
                   const QColor &lineColor = QColorConstants::White,
                   const QColor &backgroundColor = QColorConstants::Black,
                   float lineWidth = 1.0f, float feather = 1.0f, float angle = 0.0f);
-    QCanvasGridPattern(float x, float y, float width, float height,
+    Q_CANVASPAINTER_EXPORT QCanvasGridPattern(float x, float y, float width, float height,
                   const QColor &lineColor = QColorConstants::White,
                   const QColor &backgroundColor = QColorConstants::Black,
                   float lineWidth = 1.0f, float feather = 1.0f, float angle = 0.0f);
-    ~QCanvasGridPattern();
+    Q_CANVASPAINTER_EXPORT ~QCanvasGridPattern();
 
-    operator QVariant() const;
+    Q_CANVASPAINTER_EXPORT operator QVariant() const;
 
-    QPointF startPosition() const;
-    void setStartPosition(float x, float y);
+    Q_CANVASPAINTER_EXPORT QPointF startPosition() const;
+    Q_CANVASPAINTER_EXPORT void setStartPosition(float x, float y);
     inline void setStartPosition(QPointF point);
-    QSizeF cellSize() const;
-    void setCellSize(float width, float height);
+    Q_CANVASPAINTER_EXPORT QSizeF cellSize() const;
+    Q_CANVASPAINTER_EXPORT void setCellSize(float width, float height);
     inline void setCellSize(QSizeF size);
-    float lineWidth() const;
-    void setLineWidth(float width);
-    float feather() const;
-    void setFeather(float feather);
-    float rotation() const;
-    void setRotation(float rotation);
-    QColor lineColor() const;
-    void setLineColor(const QColor &color);
-    QColor backgroundColor() const;
-    void setBackgroundColor(const QColor &color);
+    Q_CANVASPAINTER_EXPORT float lineWidth() const;
+    Q_CANVASPAINTER_EXPORT void setLineWidth(float width);
+    Q_CANVASPAINTER_EXPORT float feather() const;
+    Q_CANVASPAINTER_EXPORT void setFeather(float feather);
+    Q_CANVASPAINTER_EXPORT float rotation() const;
+    Q_CANVASPAINTER_EXPORT void setRotation(float rotation);
+    Q_CANVASPAINTER_EXPORT QColor lineColor() const;
+    Q_CANVASPAINTER_EXPORT void setLineColor(const QColor &color);
+    Q_CANVASPAINTER_EXPORT QColor backgroundColor() const;
+    Q_CANVASPAINTER_EXPORT void setBackgroundColor(const QColor &color);
 
 private:
     friend Q_CANVASPAINTER_EXPORT bool comparesEqual(const QCanvasGridPattern &lhs, const QCanvasGridPattern &rhs) noexcept;

@@ -17,20 +17,20 @@ class QCanvasPainterFactoryPrivate;
 class QCanvasRhiPaintDriver;
 class QRhi;
 
-class Q_CANVASPAINTER_EXPORT QCanvasPainterFactory
+class QCanvasPainterFactory
 {
 public:
-    QCanvasPainterFactory();
-    ~QCanvasPainterFactory();
+    Q_CANVASPAINTER_EXPORT QCanvasPainterFactory();
+    Q_CANVASPAINTER_EXPORT ~QCanvasPainterFactory();
 
-    static QCanvasPainterFactory *sharedInstance(QRhi *rhi);
+    Q_CANVASPAINTER_EXPORT static QCanvasPainterFactory *sharedInstance(QRhi *rhi);
 
-    bool isValid() const;
-    QCanvasPainter *create(QRhi *rhi);
-    void destroy();
-    QCanvasPainter *painter();
+    Q_CANVASPAINTER_EXPORT bool isValid() const;
+    Q_CANVASPAINTER_EXPORT QCanvasPainter *create(QRhi *rhi);
+    Q_CANVASPAINTER_EXPORT void destroy();
+    Q_CANVASPAINTER_EXPORT QCanvasPainter *painter();
 
-    QCanvasRhiPaintDriver *paintDriver();
+    Q_CANVASPAINTER_EXPORT QCanvasRhiPaintDriver *paintDriver();
 
 private:
     Q_DISABLE_COPY(QCanvasPainterFactory)

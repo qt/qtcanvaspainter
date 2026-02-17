@@ -25,29 +25,29 @@ Q_CANVASPAINTER_EXPORT QDataStream &operator<<(QDataStream &, const QCanvasImage
 Q_CANVASPAINTER_EXPORT QDataStream &operator>>(QDataStream &, QCanvasImagePattern &);
 #endif
 
-class Q_CANVASPAINTER_EXPORT QCanvasImagePattern : public QCanvasBrush
+class QCanvasImagePattern : public QCanvasBrush
 {
 public:
-    QCanvasImagePattern();
-    QCanvasImagePattern(const QCanvasImage &image);
-    QCanvasImagePattern(const QCanvasImage &image, const QRectF &rect, float angle = 0.0f, const QColor &tintColor = QColorConstants::White);
-    QCanvasImagePattern(const QCanvasImage &image, float x, float y, float width, float height, float angle = 0.0f, const QColor &tintColor = QColorConstants::White);
-    ~QCanvasImagePattern();
+    Q_CANVASPAINTER_EXPORT QCanvasImagePattern();
+    Q_CANVASPAINTER_EXPORT QCanvasImagePattern(const QCanvasImage &image);
+    Q_CANVASPAINTER_EXPORT QCanvasImagePattern(const QCanvasImage &image, const QRectF &rect, float angle = 0.0f, const QColor &tintColor = QColorConstants::White);
+    Q_CANVASPAINTER_EXPORT QCanvasImagePattern(const QCanvasImage &image, float x, float y, float width, float height, float angle = 0.0f, const QColor &tintColor = QColorConstants::White);
+    Q_CANVASPAINTER_EXPORT ~QCanvasImagePattern();
 
-    operator QVariant() const;
+    Q_CANVASPAINTER_EXPORT operator QVariant() const;
 
-    QPointF startPosition() const;
-    void setStartPosition(float x, float y);
+    Q_CANVASPAINTER_EXPORT QPointF startPosition() const;
+    Q_CANVASPAINTER_EXPORT void setStartPosition(float x, float y);
     inline void setStartPosition(QPointF point);
-    QSizeF imageSize() const;
-    void setImageSize(float width, float height);
+    Q_CANVASPAINTER_EXPORT QSizeF imageSize() const;
+    Q_CANVASPAINTER_EXPORT void setImageSize(float width, float height);
     inline void setImageSize(QSizeF size);
-    QCanvasImage image() const;
-    void setImage(const QCanvasImage &image);
-    float rotation() const;
-    void setRotation(float rotation);
-    QColor tintColor() const;
-    void setTintColor(const QColor &color);
+    Q_CANVASPAINTER_EXPORT QCanvasImage image() const;
+    Q_CANVASPAINTER_EXPORT void setImage(const QCanvasImage &image);
+    Q_CANVASPAINTER_EXPORT float rotation() const;
+    Q_CANVASPAINTER_EXPORT void setRotation(float rotation);
+    Q_CANVASPAINTER_EXPORT QColor tintColor() const;
+    Q_CANVASPAINTER_EXPORT void setTintColor(const QColor &color);
 
 private:
     friend Q_CANVASPAINTER_EXPORT bool comparesEqual(const QCanvasImagePattern &lhs, const QCanvasImagePattern &rhs) noexcept;

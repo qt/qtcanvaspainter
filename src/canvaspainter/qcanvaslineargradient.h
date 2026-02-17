@@ -13,19 +13,19 @@
 
 QT_BEGIN_NAMESPACE
 
-class Q_CANVASPAINTER_EXPORT QCanvasLinearGradient : public QCanvasGradient
+class QCanvasLinearGradient : public QCanvasGradient
 {
 public:
-    QCanvasLinearGradient();
-    QCanvasLinearGradient(float startX, float startY, float endX, float endY);
-    QCanvasLinearGradient(QPointF start, QPointF end);
-    ~QCanvasLinearGradient();
+    Q_CANVASPAINTER_EXPORT QCanvasLinearGradient();
+    Q_CANVASPAINTER_EXPORT QCanvasLinearGradient(float startX, float startY, float endX, float endY);
+    Q_CANVASPAINTER_EXPORT QCanvasLinearGradient(QPointF start, QPointF end);
+    Q_CANVASPAINTER_EXPORT ~QCanvasLinearGradient();
 
-    QPointF startPosition() const;
-    void setStartPosition(float x, float y);
+    Q_CANVASPAINTER_EXPORT QPointF startPosition() const;
+    Q_CANVASPAINTER_EXPORT void setStartPosition(float x, float y);
     inline void setStartPosition(QPointF start);
-    QPointF endPosition() const;
-    void setEndPosition(float x, float y);
+    Q_CANVASPAINTER_EXPORT QPointF endPosition() const;
+    Q_CANVASPAINTER_EXPORT void setEndPosition(float x, float y);
     inline void setEndPosition(QPointF end);
 };
 

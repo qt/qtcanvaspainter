@@ -20,7 +20,7 @@ class QRhiCommandBuffer;
 class QRhiRenderTarget;
 class QCanvasRhiPaintDriverPrivate;
 
-class Q_CANVASPAINTER_EXPORT QCanvasRhiPaintDriver
+class QCanvasRhiPaintDriver
 {
 public:
     enum class BeginPaintFlag {
@@ -32,18 +32,18 @@ public:
     };
     Q_DECLARE_FLAGS(EndPaintFlags, EndPaintFlag)
 
-    QCanvasRhiPaintDriver();
-    ~QCanvasRhiPaintDriver();
+    Q_CANVASPAINTER_EXPORT QCanvasRhiPaintDriver();
+    Q_CANVASPAINTER_EXPORT ~QCanvasRhiPaintDriver();
 
-    void resetForNewFrame();
-    void beginPaint(QRhiCommandBuffer *cb, QRhiRenderTarget *rt,
-                    const QColor &fillColor = Qt::black, QSize logicalSize = QSize(), float dpr = 1.0f,
-                    BeginPaintFlags flags = {});
-    void beginPaint(QRhiCommandBuffer *cb, QRhiRenderTarget *rt, const QMatrix4x4 &matrix, BeginPaintFlags flags = {});
-    void beginPaint(QCanvasOffscreenCanvas &canvas, QRhiCommandBuffer *cb, BeginPaintFlags flags = {});
-    void endPaint(EndPaintFlags flags = {});
-    void renderPaint();
-    void grabCanvas(const QCanvasOffscreenCanvas &canvas, std::function<void(const QImage &)> callback);
+    Q_CANVASPAINTER_EXPORT void resetForNewFrame();
+    Q_CANVASPAINTER_EXPORT void beginPaint(QRhiCommandBuffer *cb, QRhiRenderTarget *rt,
+                                           const QColor &fillColor = Qt::black, QSize logicalSize = QSize(), float dpr = 1.0f,
+                                           BeginPaintFlags flags = {});
+    Q_CANVASPAINTER_EXPORT void beginPaint(QRhiCommandBuffer *cb, QRhiRenderTarget *rt, const QMatrix4x4 &matrix, BeginPaintFlags flags = {});
+    Q_CANVASPAINTER_EXPORT void beginPaint(QCanvasOffscreenCanvas &canvas, QRhiCommandBuffer *cb, BeginPaintFlags flags = {});
+    Q_CANVASPAINTER_EXPORT void endPaint(EndPaintFlags flags = {});
+    Q_CANVASPAINTER_EXPORT void renderPaint();
+    Q_CANVASPAINTER_EXPORT void grabCanvas(const QCanvasOffscreenCanvas &canvas, std::function<void(const QImage &)> callback);
 
 private:
     Q_DISABLE_COPY(QCanvasRhiPaintDriver)
