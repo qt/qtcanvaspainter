@@ -131,7 +131,7 @@ void MainWindow::paint(QCanvasPainter *p)
     m_px = float(width()) / 960;
     const float viewRadius = 10 * m_px;
     // Paint view backgrounds
-    static QCanvasPainterPath viewBackgroundsPath;
+    static QCanvasPath viewBackgroundsPath;
     if (m_dirty.testFlag(Dirty::ViewBackgrounds)) {
         viewBackgroundsPath.clear();
         for (int i = 0; i < ViewsEnd; i++) {
@@ -159,7 +159,7 @@ void MainWindow::paint(QCanvasPainter *p)
         p->stroke();
     }
     // Paint title backgrounds
-    static QCanvasPainterPath viewTitlesPath;
+    static QCanvasPath viewTitlesPath;
     static QVarLengthArray<QRectF> titleRects;
     if (m_dirty.testFlag(Dirty::ViewBackgrounds)) {
         viewTitlesPath.clear();
@@ -409,9 +409,9 @@ void MainWindow::paintRespGraph(float x, float y, float w, float h)
 
 void MainWindow::paintSlider(float x, float y, float w, float h)
 {
-    static QCanvasPainterPath sliderBackground;
-    static QCanvasPainterPath sliderFill;
-    static QCanvasPainterPath sliderKnob;
+    static QCanvasPath sliderBackground;
+    static QCanvasPath sliderFill;
+    static QCanvasPath sliderKnob;
     QRectF sRect(x + 0.5 * w - 0.5 * m_iconSize, y, m_iconSize, m_iconSize);
     auto &sIcon = m_theme.isDark() ? m_sImageLight : m_sImageDark;
     m_painter->drawImage(sIcon, sRect);
@@ -454,7 +454,7 @@ void MainWindow::paintGrid(float x, float y, float w, float h)
     const int hLines = 40;
     const int vLines = 20;
     auto *p = m_painter;
-    static QCanvasPainterPath path;
+    static QCanvasPath path;
     if (m_dirty.testFlag(Dirty::GraphGrid)) {
         path.clear();
         // Hozontal minor lines

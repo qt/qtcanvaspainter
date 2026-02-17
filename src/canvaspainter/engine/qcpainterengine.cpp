@@ -8,7 +8,7 @@
 #include "qcpainterrhirenderer_p.h"
 #include "qcanvascustombrush.h"
 #include "qcanvascustombrush_p.h"
-#include "qcanvaspainterpath_p.h"
+#include "qcanvaspath_p.h"
 #ifndef QCPAINTER_DISABLE_TEXT_SUPPORT
 #include "qctextlayout_p.h"
 #include <QtGui/private/qdistancefield_p.h>
@@ -748,12 +748,12 @@ void QCPainterEngine::addPath(const QPainterPath &path)
     }
 }
 
-void QCPainterEngine::addPath(const QCanvasPainterPath &path, const QTransform &transform)
+void QCPainterEngine::addPath(const QCanvasPath &path, const QTransform &transform)
 {
     appendPainterPath(path, transform);
 }
 
-void QCPainterEngine::addPath(const QCanvasPainterPath &path, qsizetype start, qsizetype count, const QTransform &transform)
+void QCPainterEngine::addPath(const QCanvasPath &path, qsizetype start, qsizetype count, const QTransform &transform)
 {
     appendPainterPath(path, start, count, transform);
 }
@@ -839,12 +839,12 @@ void QCPainterEngine::stroke()
 #endif
 }
 
-void QCPainterEngine::fill(const QCanvasPainterPath &path, int pathGroup)
+void QCPainterEngine::fill(const QCanvasPath &path, int pathGroup)
 {
     if (path.isEmpty())
         return;
 
-    QCanvasPainterPath *p = const_cast<QCanvasPainterPath *>(&path);
+    QCanvasPath *p = const_cast<QCanvasPath *>(&path);
     const bool cacheGeometry = (pathGroup != -1);
     const bool pathUpdateRequired = fillPathUpdateRequired(p, pathGroup);
     if (!cacheGeometry) {
@@ -879,12 +879,12 @@ void QCPainterEngine::fill(const QCanvasPainterPath &path, int pathGroup)
     }
 }
 
-void QCPainterEngine::stroke(const QCanvasPainterPath &path, int pathGroup)
+void QCPainterEngine::stroke(const QCanvasPath &path, int pathGroup)
 {
     if (path.isEmpty())
         return;
 
-    QCanvasPainterPath *p = const_cast<QCanvasPainterPath *>(&path);
+    QCanvasPath *p = const_cast<QCanvasPath *>(&path);
     const bool cacheGeometry = (pathGroup != -1);
     const bool pathUpdateRequired = strokePathUpdateRequired(p, pathGroup);
     if (!cacheGeometry) {
@@ -1147,10 +1147,10 @@ void QCPainterEngine::setMiterLimit(float limit)
 void QCPainterEngine::removePathGroup(int pathGroup)
 {
     // Remove from engine side
-    erase_if(ctx.cachedStrokePaths, [pathGroup](const QHash<const QCanvasPainterPath*, QCCachedPath>::iterator it) {
+    erase_if(ctx.cachedStrokePaths, [pathGroup](const QHash<const QCanvasPath*, QCCachedPath>::iterator it) {
         return it->pathGroup == pathGroup;
     });
-    erase_if(ctx.cachedFillPaths, [pathGroup](const QHash<const QCanvasPainterPath*, QCCachedPath>::iterator it) {
+    erase_if(ctx.cachedFillPaths, [pathGroup](const QHash<const QCanvasPath*, QCCachedPath>::iterator it) {
         return it->pathGroup == pathGroup;
     });
     // Remove from renderer side
@@ -2062,12 +2062,12 @@ void QCPainterEngine::ensureVertices(int count)
 }
 
 // Prepare current commands to match \a path before the fill/stroke.
-void QCPainterEngine::preparePainterPath(const QCanvasPainterPath &path,
+void QCPainterEngine::preparePainterPath(const QCanvasPath &path,
                                          const QTransform &transform)
 {
     // Create new path, without applying transformation is not needed.
     beginPath();
-    const QCanvasPainterPathPrivate *pathd = QCanvasPainterPathPrivate::get(&path);
+    const QCanvasPathPrivate *pathd = QCanvasPathPrivate::get(&path);
     const bool ignoreTransforms = transform.isIdentity();
     appendCommandsData(pathd->commandsData.constData(), pathd->commandsDataCount, ignoreTransforms);
     appendCommands(pathd->commands.constData(), pathd->commandsCount);
@@ -2079,10 +2079,10 @@ void QCPainterEngine::preparePainterPath(const QCanvasPainterPath &path,
 }
 
 // Append \a path into current commands.
-void QCPainterEngine::appendPainterPath(const QCanvasPainterPath &path,
+void QCPainterEngine::appendPainterPath(const QCanvasPath &path,
                                          const QTransform &transform)
 {
-    const QCanvasPainterPathPrivate *pathd = QCanvasPainterPathPrivate::get(&path);
+    const QCanvasPathPrivate *pathd = QCanvasPathPrivate::get(&path);
     if (transform.isIdentity()) {
         appendCommandsData(pathd->commandsData.constData(), pathd->commandsDataCount);
     } else {
@@ -2097,12 +2097,12 @@ void QCPainterEngine::appendPainterPath(const QCanvasPainterPath &path,
 
 // Append \a path into current commands.
 // Including \a count amount of commands, starting from \a start.
-void QCPainterEngine::appendPainterPath(const QCanvasPainterPath &path,
+void QCPainterEngine::appendPainterPath(const QCanvasPath &path,
                                          qsizetype start,
                                          qsizetype count,
                                          const QTransform &transform)
 {
-    const QCanvasPainterPathPrivate *pathd = QCanvasPainterPathPrivate::get(&path);
+    const QCanvasPathPrivate *pathd = QCanvasPathPrivate::get(&path);
 
     const auto commandsSize = pathd->commandsCount;
     int commandsDataStart = 0;
@@ -2120,7 +2120,7 @@ void QCPainterEngine::appendPainterPath(const QCanvasPainterPath &path,
         // Calculate commands data amounts, based on the commands start & count.
         const int endCommand = start + count;
         for (int i = 0; i < endCommand; i++) {
-            auto dataSize = QCanvasPainterPathPrivate::dataSizeOf(pathd->commands.at(i));
+            auto dataSize = QCanvasPathPrivate::dataSizeOf(pathd->commands.at(i));
             if (i < start) {
                 commandsDataStart += dataSize;
             } else {
@@ -2130,7 +2130,7 @@ void QCPainterEngine::appendPainterPath(const QCanvasPainterPath &path,
     }
     // Note: commandsDataStart and commandsDataCount don't need to be
     // validated as they are always in range when we don't allow raw
-    // non-const access into QCanvasPainterPath data.
+    // non-const access into QCanvasPath data.
     const auto commandsData = &pathd->commandsData.at(commandsDataStart);
     if (transform.isIdentity()) {
         appendCommandsData(commandsData, commandsDataCount);
@@ -2146,9 +2146,9 @@ void QCPainterEngine::appendPainterPath(const QCanvasPainterPath &path,
 
 // Returns true if path has changed or some state property related
 // to fill vertices generation has changed compared to cached path.
-bool QCPainterEngine::fillPathUpdateRequired(QCanvasPainterPath *path, int pathGroup)
+bool QCPainterEngine::fillPathUpdateRequired(QCanvasPath *path, int pathGroup)
 {
-    QCanvasPainterPathPrivate *pathd = QCanvasPainterPathPrivate::get(path);
+    QCanvasPathPrivate *pathd = QCanvasPathPrivate::get(path);
     QCCachedPath &cp = ctx.cachedFillPaths[path];
     bool updateRequired = false;
     if (pathGroup != cp.pathGroup ||
@@ -2168,9 +2168,9 @@ bool QCPainterEngine::fillPathUpdateRequired(QCanvasPainterPath *path, int pathG
 
 // Returns true if path has changed or some state property related
 // to stroke vertices generation has changed compared to cached path.
-bool QCPainterEngine::strokePathUpdateRequired(QCanvasPainterPath *path, int pathGroup)
+bool QCPainterEngine::strokePathUpdateRequired(QCanvasPath *path, int pathGroup)
 {
-    QCanvasPainterPathPrivate *pathd = QCanvasPainterPathPrivate::get(path);
+    QCanvasPathPrivate *pathd = QCanvasPathPrivate::get(path);
     QCCachedPath &cp = ctx.cachedStrokePaths[path];
     bool updateRequired = false;
     if (pathGroup != cp.pathGroup ||

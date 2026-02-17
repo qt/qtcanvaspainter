@@ -6,7 +6,7 @@
 #include <QColor>
 #include <QRandomGenerator>
 #include <QTimer>
-#include <QtCanvasPainter/QCanvasPainterPath>
+#include <QtCanvasPainter/QCanvasPath>
 
 ECGGraph::ECGGraph()
 {

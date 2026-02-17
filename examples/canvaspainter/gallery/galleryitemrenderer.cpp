@@ -11,7 +11,7 @@
 #include "qcanvasimagepattern.h"
 #include "qcanvasboxshadow.h"
 #include "qcanvasgridpattern.h"
-#include "qcanvaspainterpath.h"
+#include "qcanvaspath.h"
 #include <math.h>
 #include <QFontDatabase>
 #include <QImage>
@@ -665,9 +665,9 @@ void GalleryItemRenderer::drawPainterPaths()
     int commands = m_pathGraphLine.commandsSize();
     int startIndex = 0.5f * commands * std::max(sin(0.5f * m_animationTime), 0.0f);
     int count = commands - 0.5f * commands * std::max(sin(-0.5f * m_animationTime), 0.0f);
-    QCanvasPainterPath pathSelection = m_pathGraphLine.sliced(startIndex, count);
+    QCanvasPath pathSelection = m_pathGraphLine.sliced(startIndex, count);
     // Selection fill is selection + 2 points
-    QCanvasPainterPath pathSelectionFill(pathSelection);
+    QCanvasPath pathSelectionFill(pathSelection);
     float selectionFirstX = pathSelection.positionAt(0).x();
     float selectionLastX = pathSelection.positionAt(pathSelection.commandsSize() - 1).x();
     pathSelectionFill.lineTo(selectionLastX, posY + h);

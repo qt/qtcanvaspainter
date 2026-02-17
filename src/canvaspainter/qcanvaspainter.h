@@ -20,7 +20,7 @@ QT_BEGIN_NAMESPACE
 
 class QCanvasBrush;
 class QCanvasImage;
-class QCanvasPainterPath;
+class QCanvasPath;
 class QCanvasBoxShadow;
 class QRhiTexture;
 class QCanvasPainterPrivate;
@@ -118,7 +118,7 @@ public:
     //  *** Paths ***
 
     void beginPath();
-    // These should match to path methods of QCanvasPainterPath for consistency.
+    // These should match to path methods of QCanvasPath for consistency.
     void closePath();
     void moveTo(float x, float y);
     inline void moveTo(QPointF point);
@@ -175,9 +175,9 @@ public:
     // TODO: Consider if we want to have this as functionality
     // doesn't fully cover QPainterPath (like fillRule).
     void addPath(const QPainterPath &path);
-    void addPath(const QCanvasPainterPath &path,
+    void addPath(const QCanvasPath &path,
                  const QTransform &transform = QTransform());
-    void addPath(const QCanvasPainterPath &path,
+    void addPath(const QCanvasPath &path,
                  qsizetype start, qsizetype count,
                  const QTransform &transform = QTransform());
 
@@ -188,8 +188,8 @@ public:
     void fill();
     void stroke();
 
-    void fill(const QCanvasPainterPath &path, int pathGroup = 0);
-    void stroke(const QCanvasPainterPath &path, int pathGroup = 0);
+    void fill(const QCanvasPath &path, int pathGroup = 0);
+    void stroke(const QCanvasPath &path, int pathGroup = 0);
 
     // *** Direct drawing ***
 
