@@ -13,21 +13,21 @@
 
 QT_BEGIN_NAMESPACE
 
-class Q_CANVASPAINTER_EXPORT QCanvasRadialGradient : public QCanvasGradient
+class QCanvasRadialGradient : public QCanvasGradient
 {
 public:
-    QCanvasRadialGradient();
-    QCanvasRadialGradient(float centerX, float centerY, float outerRadius, float innerRadius = 0.0f);
-    QCanvasRadialGradient(QPointF center, float outerRadius, float innerRadius = 0.0f);
-    ~QCanvasRadialGradient();
+    Q_CANVASPAINTER_EXPORT QCanvasRadialGradient();
+    Q_CANVASPAINTER_EXPORT QCanvasRadialGradient(float centerX, float centerY, float outerRadius, float innerRadius = 0.0f);
+    Q_CANVASPAINTER_EXPORT QCanvasRadialGradient(QPointF center, float outerRadius, float innerRadius = 0.0f);
+    Q_CANVASPAINTER_EXPORT ~QCanvasRadialGradient();
 
-    QPointF centerPosition() const;
-    void setCenterPosition(float x, float y);
+    Q_CANVASPAINTER_EXPORT QPointF centerPosition() const;
+    Q_CANVASPAINTER_EXPORT void setCenterPosition(float x, float y);
     inline void setCenterPosition(QPointF center);
-    float outerRadius() const;
-    void setOuterRadius(float radius);
-    float innerRadius() const;
-    void setInnerRadius(float radius);
+    Q_CANVASPAINTER_EXPORT float outerRadius() const;
+    Q_CANVASPAINTER_EXPORT void setOuterRadius(float radius);
+    Q_CANVASPAINTER_EXPORT float innerRadius() const;
+    Q_CANVASPAINTER_EXPORT void setInnerRadius(float radius);
 };
 
 inline void QCanvasRadialGradient::setCenterPosition(QPointF center)

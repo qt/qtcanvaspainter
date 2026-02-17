@@ -26,15 +26,15 @@ class QCanvasBrushPrivate;
 
 QT_DECLARE_QESDP_SPECIALIZATION_DTOR(QCanvasBrushPrivate)
 
-class Q_CANVASPAINTER_EXPORT QCanvasBrush
+class QCanvasBrush
 {
-    Q_GADGET
+    Q_GADGET_EXPORT(Q_CANVASPAINTER_EXPORT)
 public:
-    QCanvasBrush();
-    QCanvasBrush(const QCanvasBrush &brush);
-    ~QCanvasBrush();
+    Q_CANVASPAINTER_EXPORT QCanvasBrush();
+    Q_CANVASPAINTER_EXPORT QCanvasBrush(const QCanvasBrush &brush);
+    Q_CANVASPAINTER_EXPORT ~QCanvasBrush();
 
-    QCanvasBrush &operator=(const QCanvasBrush &brush) noexcept;
+    Q_CANVASPAINTER_EXPORT QCanvasBrush &operator=(const QCanvasBrush &brush) noexcept;
     QCanvasBrush(QCanvasBrush &&other) = default;
     QT_MOVE_ASSIGNMENT_OPERATOR_IMPL_VIA_PURE_SWAP(QCanvasBrush)
     void swap(QCanvasBrush &other) noexcept { baseData.swap(other.baseData); }
@@ -53,11 +53,11 @@ public:
     };
     Q_ENUM(BrushType)
 
-    BrushType type() const;
-    void detach();
+    Q_CANVASPAINTER_EXPORT BrushType type() const;
+    Q_CANVASPAINTER_EXPORT void detach();
 
 protected:
-    explicit QCanvasBrush(QCanvasBrushPrivate *priv);
+    Q_CANVASPAINTER_EXPORT explicit QCanvasBrush(QCanvasBrushPrivate *priv);
     QExplicitlySharedDataPointer<QCanvasBrushPrivate> baseData;
 private:
     QCPaint createPaint(QCanvasPainter *painter) const;

@@ -17,30 +17,30 @@ class QCanvasImagePrivate;
 
 QT_DECLARE_QESDP_SPECIALIZATION_DTOR(QCanvasImagePrivate)
 
-class Q_CANVASPAINTER_EXPORT QCanvasImage {
-    Q_GADGET
+class QCanvasImage {
+    Q_GADGET_EXPORT(Q_CANVASPAINTER_EXPORT)
 public:
-    QCanvasImage();
-    QCanvasImage(const QCanvasImage &image);
-    ~QCanvasImage();
+    Q_CANVASPAINTER_EXPORT QCanvasImage();
+    Q_CANVASPAINTER_EXPORT QCanvasImage(const QCanvasImage &image);
+    Q_CANVASPAINTER_EXPORT ~QCanvasImage();
 
-    QCanvasImage &operator=(const QCanvasImage &image) noexcept;
+    Q_CANVASPAINTER_EXPORT QCanvasImage &operator=(const QCanvasImage &image) noexcept;
     QCanvasImage(QCanvasImage &&other) = default;
     QT_MOVE_ASSIGNMENT_OPERATOR_IMPL_VIA_PURE_SWAP(QCanvasImage)
     void swap(QCanvasImage &other) noexcept { d.swap(other.d); }
 
-    operator QVariant() const;
+    Q_CANVASPAINTER_EXPORT operator QVariant() const;
 
-    void detach();
+    Q_CANVASPAINTER_EXPORT void detach();
 
-    int id() const;
-    int width() const;
-    int height() const;
-    int size() const;
-    bool isNull() const;
+    Q_CANVASPAINTER_EXPORT int id() const;
+    Q_CANVASPAINTER_EXPORT int width() const;
+    Q_CANVASPAINTER_EXPORT int height() const;
+    Q_CANVASPAINTER_EXPORT int size() const;
+    Q_CANVASPAINTER_EXPORT bool isNull() const;
 
-    QColor tintColor() const;
-    void setTintColor(const QColor &color);
+    Q_CANVASPAINTER_EXPORT QColor tintColor() const;
+    Q_CANVASPAINTER_EXPORT void setTintColor(const QColor &color);
 
     // TODO: Add API for image rotation angle? Or rely only on state transformation?
 

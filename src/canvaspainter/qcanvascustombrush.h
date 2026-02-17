@@ -20,28 +20,28 @@ class QShader;
 
 // TODO: Should this have QDataStream support?
 
-class Q_CANVASPAINTER_EXPORT QCanvasCustomBrush : public QCanvasBrush
+class QCanvasCustomBrush : public QCanvasBrush
 {
 public:
-    QCanvasCustomBrush();
-    QCanvasCustomBrush(const QString &fragmentShader,
-                  const QString &vertexShader = {});
-    ~QCanvasCustomBrush();
+    Q_CANVASPAINTER_EXPORT QCanvasCustomBrush();
+    Q_CANVASPAINTER_EXPORT QCanvasCustomBrush(const QString &fragmentShader,
+                                              const QString &vertexShader = {});
+    Q_CANVASPAINTER_EXPORT ~QCanvasCustomBrush();
 
-    operator QVariant() const;
+    Q_CANVASPAINTER_EXPORT operator QVariant() const;
 
-    void setFragmentShader(const QString &fragmentShader);
-    void setFragmentShader(const QShader &fragmentShader);
-    void setVertexShader(const QString &vertexShader);
-    void setVertexShader(const QShader &vertexShader);
+    Q_CANVASPAINTER_EXPORT void setFragmentShader(const QString &fragmentShader);
+    Q_CANVASPAINTER_EXPORT void setFragmentShader(const QShader &fragmentShader);
+    Q_CANVASPAINTER_EXPORT void setVertexShader(const QString &vertexShader);
+    Q_CANVASPAINTER_EXPORT void setVertexShader(const QShader &vertexShader);
 
-    bool timeRunning() const;
-    void setTimeRunning(bool running);
+    Q_CANVASPAINTER_EXPORT bool timeRunning() const;
+    Q_CANVASPAINTER_EXPORT void setTimeRunning(bool running);
 
-    void setData1(const QVector4D &data);
-    void setData2(const QVector4D &data);
-    void setData3(const QVector4D &data);
-    void setData4(const QVector4D &data);
+    Q_CANVASPAINTER_EXPORT void setData1(const QVector4D &data);
+    Q_CANVASPAINTER_EXPORT void setData2(const QVector4D &data);
+    Q_CANVASPAINTER_EXPORT void setData3(const QVector4D &data);
+    Q_CANVASPAINTER_EXPORT void setData4(const QVector4D &data);
 
 private:
     friend Q_CANVASPAINTER_EXPORT bool comparesEqual(const QCanvasCustomBrush &lhs, const QCanvasCustomBrush &rhs) noexcept;

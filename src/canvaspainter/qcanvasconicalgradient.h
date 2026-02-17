@@ -12,19 +12,19 @@
 
 QT_BEGIN_NAMESPACE
 
-class Q_CANVASPAINTER_EXPORT QCanvasConicalGradient : public QCanvasGradient
+class QCanvasConicalGradient : public QCanvasGradient
 {
 public:
-    QCanvasConicalGradient();
-    QCanvasConicalGradient(float centerX, float centerY, float startAngle);
-    QCanvasConicalGradient(QPointF center, float startAngle);
-    ~QCanvasConicalGradient();
+    Q_CANVASPAINTER_EXPORT QCanvasConicalGradient();
+    Q_CANVASPAINTER_EXPORT QCanvasConicalGradient(float centerX, float centerY, float startAngle);
+    Q_CANVASPAINTER_EXPORT QCanvasConicalGradient(QPointF center, float startAngle);
+    Q_CANVASPAINTER_EXPORT ~QCanvasConicalGradient();
 
-    QPointF centerPosition() const;
-    void setCenterPosition(float x, float y);
+    Q_CANVASPAINTER_EXPORT QPointF centerPosition() const;
+    Q_CANVASPAINTER_EXPORT void setCenterPosition(float x, float y);
     inline void setCenterPosition(QPointF center);
-    float angle() const;
-    void setAngle(float angle);
+    Q_CANVASPAINTER_EXPORT float angle() const;
+    Q_CANVASPAINTER_EXPORT void setAngle(float angle);
 };
 
 inline void QCanvasConicalGradient::setCenterPosition(QPointF center)

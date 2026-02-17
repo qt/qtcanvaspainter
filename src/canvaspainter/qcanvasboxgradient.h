@@ -13,21 +13,21 @@
 
 QT_BEGIN_NAMESPACE
 
-class Q_CANVASPAINTER_EXPORT QCanvasBoxGradient : public QCanvasGradient
+class QCanvasBoxGradient : public QCanvasGradient
 {
 public:
-    QCanvasBoxGradient();
-    QCanvasBoxGradient(float x, float y, float width, float height, float feather, float radius = 0.0f);
-    QCanvasBoxGradient(const QRectF &rect, float feather, float radius = 0.0f);
-    ~QCanvasBoxGradient();
+    Q_CANVASPAINTER_EXPORT QCanvasBoxGradient();
+    Q_CANVASPAINTER_EXPORT QCanvasBoxGradient(float x, float y, float width, float height, float feather, float radius = 0.0f);
+    Q_CANVASPAINTER_EXPORT QCanvasBoxGradient(const QRectF &rect, float feather, float radius = 0.0f);
+    Q_CANVASPAINTER_EXPORT ~QCanvasBoxGradient();
 
-    QRectF rect() const;
-    void setRect(float x, float y, float width, float height);
+    Q_CANVASPAINTER_EXPORT QRectF rect() const;
+    Q_CANVASPAINTER_EXPORT void setRect(float x, float y, float width, float height);
     inline void setRect(const QRectF &rect);
-    float feather() const;
-    void setFeather(float feather);
-    float radius() const;
-    void setRadius(float radius);
+    Q_CANVASPAINTER_EXPORT float feather() const;
+    Q_CANVASPAINTER_EXPORT void setFeather(float feather);
+    Q_CANVASPAINTER_EXPORT float radius() const;
+    Q_CANVASPAINTER_EXPORT void setRadius(float radius);
 };
 
 inline void QCanvasBoxGradient::setRect(const QRectF &rect)

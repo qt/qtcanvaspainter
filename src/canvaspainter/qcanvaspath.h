@@ -16,36 +16,35 @@ QT_BEGIN_NAMESPACE
 class QCanvasPathPrivate;
 class QTransform;
 
-class Q_CANVASPAINTER_EXPORT QCanvasPath
+class QCanvasPath
 {
 public:
+    Q_CANVASPAINTER_EXPORT QCanvasPath();
+    Q_CANVASPAINTER_EXPORT explicit QCanvasPath(qsizetype commandsSize, qsizetype commandsDataSize = -1);
+    Q_CANVASPAINTER_EXPORT QCanvasPath(const QCanvasPath &path);
+    Q_CANVASPAINTER_EXPORT ~QCanvasPath();
 
-    QCanvasPath();
-    explicit QCanvasPath(qsizetype commandsSize, qsizetype commandsDataSize = -1);
-    QCanvasPath(const QCanvasPath &path);
-    ~QCanvasPath();
-
-    QCanvasPath &operator=(const QCanvasPath &path) noexcept;
+    Q_CANVASPAINTER_EXPORT QCanvasPath &operator=(const QCanvasPath &path) noexcept;
     QCanvasPath(QCanvasPath &&other) : d_ptr(std::exchange(other.d_ptr, nullptr)) { }
     QT_MOVE_ASSIGNMENT_OPERATOR_IMPL_VIA_PURE_SWAP(QCanvasPath)
     void swap(QCanvasPath &other) noexcept { qt_ptr_swap(d_ptr, other.d_ptr); }
 
-    operator QVariant() const;
+    Q_CANVASPAINTER_EXPORT operator QVariant() const;
 
     // Path commands
     // These should match to path methods of QCanvasPainter for consistency.
-    void closePath();
-    void moveTo(float x, float y);
+    Q_CANVASPAINTER_EXPORT void closePath();
+    Q_CANVASPAINTER_EXPORT void moveTo(float x, float y);
     inline void moveTo(QPointF point);
-    void lineTo(float x, float y);
+    Q_CANVASPAINTER_EXPORT void lineTo(float x, float y);
     inline void lineTo(QPointF point);
-    void bezierCurveTo(float c1x, float c1y, float c2x, float c2y, float x, float y);
+    Q_CANVASPAINTER_EXPORT void bezierCurveTo(float c1x, float c1y, float c2x, float c2y, float x, float y);
     inline void bezierCurveTo(QPointF controlPoint1, QPointF controlPoint2, QPointF endPoint);
-    void quadraticCurveTo(float cx, float cy, float x, float y);
+    Q_CANVASPAINTER_EXPORT void quadraticCurveTo(float cx, float cy, float x, float y);
     inline void quadraticCurveTo(QPointF controlPoint, QPointF endPoint);
-    void arcTo(float c1x, float c1y, float c2x, float c2y, float radius);
+    Q_CANVASPAINTER_EXPORT void arcTo(float c1x, float c1y, float c2x, float c2y, float radius);
     inline void arcTo(QPointF controlPoint1, QPointF controlPoint2, float radius);
-    void arc(
+    Q_CANVASPAINTER_EXPORT void arc(
         float centerX,
         float centerY,
         float radius,
@@ -60,11 +59,11 @@ public:
         float a1,
         QCanvasPainter::PathWinding direction = QCanvasPainter::PathWinding::ClockWise,
         QCanvasPainter::PathConnection connection = QCanvasPainter::PathConnection::Connected);
-    void rect(float x, float y, float width, float height);
+    Q_CANVASPAINTER_EXPORT void rect(float x, float y, float width, float height);
     inline void rect(const QRectF &rect);
-    void roundRect(float x, float y, float width, float height, float radius);
+    Q_CANVASPAINTER_EXPORT void roundRect(float x, float y, float width, float height, float radius);
     inline void roundRect(const QRectF &rect, float radius);
-    void roundRect(
+    Q_CANVASPAINTER_EXPORT void roundRect(
         float x,
         float y,
         float width,
@@ -79,33 +78,33 @@ public:
         float radiusTopRight,
         float radiusBottomRight,
         float radiusBottomLeft);
-    void ellipse(float x, float y, float radiusX, float radiusY);
+    Q_CANVASPAINTER_EXPORT void ellipse(float x, float y, float radiusX, float radiusY);
     inline void ellipse(const QRectF &rect);
-    void circle(float x, float y, float radius);
+    Q_CANVASPAINTER_EXPORT void circle(float x, float y, float radius);
     inline void circle(QPointF centerPoint, float radius);
 
-    void setPathWinding(QCanvasPainter::PathWinding winding);
-    void beginSolidSubPath();
-    void beginHoleSubPath();
+    Q_CANVASPAINTER_EXPORT void setPathWinding(QCanvasPainter::PathWinding winding);
+    Q_CANVASPAINTER_EXPORT void beginSolidSubPath();
+    Q_CANVASPAINTER_EXPORT void beginHoleSubPath();
 
-    void addPath(const QCanvasPath &path, const QTransform &transform = QTransform());
-    void addPath(const QCanvasPath &path, qsizetype start, qsizetype count, const QTransform &transform = QTransform());
+    Q_CANVASPAINTER_EXPORT void addPath(const QCanvasPath &path, const QTransform &transform = QTransform());
+    Q_CANVASPAINTER_EXPORT void addPath(const QCanvasPath &path, qsizetype start, qsizetype count, const QTransform &transform = QTransform());
 
     // Memory and size management
-    bool isEmpty() const;
-    void clear();
-    void squeeze();
-    qsizetype commandsSize() const;
-    qsizetype commandsDataSize() const;
-    qsizetype commandsCapacity() const;
-    qsizetype commandsDataCapacity() const;
-    void reserve(qsizetype commandsSize);
-    void reserve(qsizetype commandsSize, qsizetype commandsDataSize);
+    Q_CANVASPAINTER_EXPORT bool isEmpty() const;
+    Q_CANVASPAINTER_EXPORT void clear();
+    Q_CANVASPAINTER_EXPORT void squeeze();
+    Q_CANVASPAINTER_EXPORT qsizetype commandsSize() const;
+    Q_CANVASPAINTER_EXPORT qsizetype commandsDataSize() const;
+    Q_CANVASPAINTER_EXPORT qsizetype commandsCapacity() const;
+    Q_CANVASPAINTER_EXPORT qsizetype commandsDataCapacity() const;
+    Q_CANVASPAINTER_EXPORT void reserve(qsizetype commandsSize);
+    Q_CANVASPAINTER_EXPORT void reserve(qsizetype commandsSize, qsizetype commandsDataSize);
 
     // Other
-    QPointF currentPosition() const;
-    QPointF positionAt(qsizetype index) const;
-    [[nodiscard]] QCanvasPath sliced(qsizetype start, qsizetype count, const QTransform &transform = QTransform()) const;
+    Q_CANVASPAINTER_EXPORT QPointF currentPosition() const;
+    Q_CANVASPAINTER_EXPORT QPointF positionAt(qsizetype index) const;
+    [[nodiscard]] Q_CANVASPAINTER_EXPORT QCanvasPath sliced(qsizetype start, qsizetype count, const QTransform &transform = QTransform()) const;
 
 private:
     friend Q_CANVASPAINTER_EXPORT bool comparesEqual(const QCanvasPath &lhs, const QCanvasPath &rhs) noexcept;
@@ -116,7 +115,6 @@ private:
 
     Q_DECLARE_PRIVATE(QCanvasPath)
     QCanvasPathPrivate *d_ptr;
-
 };
 
 inline void QCanvasPath::moveTo(QPointF point)
