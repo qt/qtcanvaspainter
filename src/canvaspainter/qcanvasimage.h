@@ -8,7 +8,7 @@
 
 #include <QtCanvasPainter/qtcanvaspainterglobal.h>
 #include <QtCore/qshareddata.h>
-#include <QtCore/qobject.h>
+#include <QtCore/qobjectdefs.h>
 #include <QtCore/qsize.h>
 #include <QtGui/qcolor.h>
 
@@ -18,7 +18,8 @@ class QCanvasImagePrivate;
 
 QT_DECLARE_QESDP_SPECIALIZATION_DTOR(QCanvasImagePrivate)
 
-class QCanvasImage {
+class QCanvasImage
+{
     Q_GADGET_EXPORT(Q_CANVASPAINTER_EXPORT)
 public:
     Q_CANVASPAINTER_EXPORT QCanvasImage();
