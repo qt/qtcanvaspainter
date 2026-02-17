@@ -8,8 +8,6 @@
 #define QCANVASPAINTERFACTORY_H
 
 #include <QtCanvasPainter/qtcanvaspainterglobal.h>
-#include <QtCore/qsize.h>
-#include <functional>
 #include <QtCanvasPainter/qcanvasoffscreencanvas.h>
 
 QT_BEGIN_NAMESPACE
