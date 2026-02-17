@@ -105,7 +105,7 @@ public:
     Q_CANVASPAINTER_EXPORT void skew(float angleX, float angleY = 0.0f);
     Q_CANVASPAINTER_EXPORT void scale(float scale);
     Q_CANVASPAINTER_EXPORT void scale(float scaleX, float scaleY);
-    Q_CANVASPAINTER_EXPORT const QTransform getTransform() const;
+    Q_CANVASPAINTER_EXPORT QTransform getTransform() const;
 
     Q_CANVASPAINTER_EXPORT void setBrushTransform(const QTransform &transform);
 

@@ -1055,7 +1055,7 @@ void QCanvasPainter::scale(float scaleX, float scaleY)
     Returns the current transform.
 */
 
-const QTransform QCanvasPainter::getTransform() const
+QTransform QCanvasPainter::getTransform() const
 {
     Q_D(const QCanvasPainter);
     return d->m_e->currentTransform();
