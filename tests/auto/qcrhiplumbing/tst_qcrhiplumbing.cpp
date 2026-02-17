@@ -665,8 +665,6 @@ void tst_CanvasRhiRendering::canvasRender()
 
     if (impl != QRhi::Null) {
         QImage image = imageFromReadback(rhi.get(), rt->tex);
-        int x = RT_WIDTH / 2;
-        int y = RT_HEIGHT / 2;
         // the image only has red, green, blue, and black
         int redCount = 0, greenCount = 0, blueCount = 0;
         for (int y = 0; y < image.height(); ++y) {
