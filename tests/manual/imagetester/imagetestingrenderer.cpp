@@ -132,7 +132,7 @@ void ImageTestingRenderer::prePaint(QCanvasPainter *painter)
         painter->setFont(font);
         painter->setFillStyle(QColorConstants::Black);
         painter->fillText(QString::asprintf("This is an offscreen canvas of pixel size %dx%d", canvasWidth, canvasHeight), 50, 500);
-        painter->fillText(QString::asprintf("using ca. %d KB", canvasData.image.size() / 1024), 50, 600);
+        painter->fillText(QString::asprintf("using ca. %d KB", canvasData.image.sizeInBytes() / 1024), 50, 600);
         endCanvasPainting();
 
         m_newCanvasPending -= 1;

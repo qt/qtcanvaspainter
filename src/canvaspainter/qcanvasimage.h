@@ -36,7 +36,7 @@ public:
     Q_CANVASPAINTER_EXPORT int id() const;
     Q_CANVASPAINTER_EXPORT int width() const;
     Q_CANVASPAINTER_EXPORT int height() const;
-    Q_CANVASPAINTER_EXPORT int size() const;
+    Q_CANVASPAINTER_EXPORT qsizetype sizeInBytes() const;
     Q_CANVASPAINTER_EXPORT bool isNull() const;
 
     Q_CANVASPAINTER_EXPORT QColor tintColor() const;

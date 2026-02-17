@@ -45,7 +45,7 @@ public:
     int textureId(qint64 key) const { return m_data.value(key).id(); }
     void insert(qint64 key, const QCanvasImage &image)
     {
-        m_dataAmount += image.size();
+        m_dataAmount += image.sizeInBytes();
         m_data.insert(key, image);
     }
     qsizetype dataAmount() const { return m_dataAmount; }

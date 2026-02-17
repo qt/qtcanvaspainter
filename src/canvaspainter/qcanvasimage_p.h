@@ -41,7 +41,7 @@ public:
     int width;
     int height;
     DataType type;
-    qsizetype size;
+    qsizetype sizeInBytes;
     QColor tintColor;
 };
 

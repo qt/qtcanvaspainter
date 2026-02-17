@@ -154,7 +154,7 @@ bool comparesEqual(const QCanvasImage &lhs, const QCanvasImage &rhs) noexcept
     if (pd->id != d->id ||
         pd->width != d->width ||
         pd->height != d->height ||
-        pd->size != d->size ||
+        pd->sizeInBytes != d->sizeInBytes ||
         pd->type != d->type ||
         pd->tintColor != d->tintColor)
         return false;
@@ -204,11 +204,24 @@ int QCanvasImage::height() const
 
 /*!
     Returns the size of this image in bytes.
+
+    QCanvasPainter does not keep copies of the CPU-side QImage data once
+    \l{QCanvasPainter::}{addImage()} has returned. If the source is a
+    \l{QCanvasOffscreenCanvas}{offscreen canvas}, then there is no CPU-side
+    image data in the first place. Therefore, the result of this function is an
+    approximation of the GPU memory that is used for the underlying texture.
+
+    \note The value is only an estimate based on the image format and
+    dimensions. Qt has no knowledge of how the data for textures is stored and
+    laid out in memory on the GPU side.
+
+    \note This function does not take mipmap or multisample data into
+    consideration.
 */
 
-int QCanvasImage::size() const
+qsizetype QCanvasImage::sizeInBytes() const
 {
-    return d->size;
+    return d->sizeInBytes;
 }
 
 /*!
@@ -263,7 +276,7 @@ QCanvasImagePrivate::QCanvasImagePrivate()
     , width(0)
     , height(0)
     , type(DataType::Unknown)
-    , size(0)
+    , sizeInBytes(0)
     , tintColor(QColorConstants::White)
 {
 }
