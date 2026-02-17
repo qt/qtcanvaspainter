@@ -203,6 +203,12 @@ int QCanvasImage::height() const
 }
 
 /*!
+    \fn QSize QCanvasImage::size() const
+
+    \return the size (width and height) of this image.
+ */
+
+/*!
     Returns the size of this image in bytes.
 
     QCanvasPainter does not keep copies of the CPU-side QImage data once

@@ -9,6 +9,7 @@
 #include <QtCanvasPainter/qtcanvaspainterglobal.h>
 #include <QtCore/qshareddata.h>
 #include <QtCore/qobject.h>
+#include <QtCore/qsize.h>
 #include <QtGui/qcolor.h>
 
 QT_BEGIN_NAMESPACE
@@ -36,6 +37,7 @@ public:
     Q_CANVASPAINTER_EXPORT int id() const;
     Q_CANVASPAINTER_EXPORT int width() const;
     Q_CANVASPAINTER_EXPORT int height() const;
+    inline QSize size() const;
     Q_CANVASPAINTER_EXPORT qsizetype sizeInBytes() const;
     Q_CANVASPAINTER_EXPORT bool isNull() const;
 
@@ -60,6 +62,11 @@ Q_DECLARE_SHARED(QCanvasImage)
 #ifndef QT_NO_DEBUG_STREAM
 Q_CANVASPAINTER_EXPORT QDebug operator<<(QDebug, const QCanvasImage &);
 #endif
+
+inline QSize QCanvasImage::size() const
+{
+    return QSize(width(), height());
+}
 
 QT_END_NAMESPACE
 
