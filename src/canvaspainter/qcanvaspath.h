@@ -3,8 +3,8 @@
 // Qt-Security score:significant reason:default
 
 
-#ifndef QCANVASPAINTERPATH_H
-#define QCANVASPAINTERPATH_H
+#ifndef QCANVASPATH_H
+#define QCANVASPATH_H
 
 #include <QtCanvasPainter/qtcanvaspainterglobal.h>
 #include <QtCore/qrect.h>
@@ -13,22 +13,22 @@
 
 QT_BEGIN_NAMESPACE
 
-class QCanvasPainterPathPrivate;
+class QCanvasPathPrivate;
 class QTransform;
 
-class Q_CANVASPAINTER_EXPORT QCanvasPainterPath
+class Q_CANVASPAINTER_EXPORT QCanvasPath
 {
 public:
 
-    QCanvasPainterPath();
-    explicit QCanvasPainterPath(qsizetype commandsSize, qsizetype commandsDataSize = -1);
-    QCanvasPainterPath(const QCanvasPainterPath &path);
-    ~QCanvasPainterPath();
+    QCanvasPath();
+    explicit QCanvasPath(qsizetype commandsSize, qsizetype commandsDataSize = -1);
+    QCanvasPath(const QCanvasPath &path);
+    ~QCanvasPath();
 
-    QCanvasPainterPath &operator=(const QCanvasPainterPath &path) noexcept;
-    QCanvasPainterPath(QCanvasPainterPath &&other) : d_ptr(std::exchange(other.d_ptr, nullptr)) { }
-    QT_MOVE_ASSIGNMENT_OPERATOR_IMPL_VIA_PURE_SWAP(QCanvasPainterPath)
-    void swap(QCanvasPainterPath &other) noexcept { qt_ptr_swap(d_ptr, other.d_ptr); }
+    QCanvasPath &operator=(const QCanvasPath &path) noexcept;
+    QCanvasPath(QCanvasPath &&other) : d_ptr(std::exchange(other.d_ptr, nullptr)) { }
+    QT_MOVE_ASSIGNMENT_OPERATOR_IMPL_VIA_PURE_SWAP(QCanvasPath)
+    void swap(QCanvasPath &other) noexcept { qt_ptr_swap(d_ptr, other.d_ptr); }
 
     operator QVariant() const;
 
@@ -88,8 +88,8 @@ public:
     void beginSolidSubPath();
     void beginHoleSubPath();
 
-    void addPath(const QCanvasPainterPath &path, const QTransform &transform = QTransform());
-    void addPath(const QCanvasPainterPath &path, qsizetype start, qsizetype count, const QTransform &transform = QTransform());
+    void addPath(const QCanvasPath &path, const QTransform &transform = QTransform());
+    void addPath(const QCanvasPath &path, qsizetype start, qsizetype count, const QTransform &transform = QTransform());
 
     // Memory and size management
     bool isEmpty() const;
@@ -105,51 +105,51 @@ public:
     // Other
     QPointF currentPosition() const;
     QPointF positionAt(qsizetype index) const;
-    [[nodiscard]] QCanvasPainterPath sliced(qsizetype start, qsizetype count, const QTransform &transform = QTransform()) const;
+    [[nodiscard]] QCanvasPath sliced(qsizetype start, qsizetype count, const QTransform &transform = QTransform()) const;
 
 private:
-    friend Q_CANVASPAINTER_EXPORT bool comparesEqual(const QCanvasPainterPath &lhs, const QCanvasPainterPath &rhs) noexcept;
-    Q_DECLARE_EQUALITY_COMPARABLE(QCanvasPainterPath)
+    friend Q_CANVASPAINTER_EXPORT bool comparesEqual(const QCanvasPath &lhs, const QCanvasPath &rhs) noexcept;
+    Q_DECLARE_EQUALITY_COMPARABLE(QCanvasPath)
 
     friend class QCPainterEngine;
     friend class QCPainterRhiRenderer;
 
-    Q_DECLARE_PRIVATE(QCanvasPainterPath)
-    QCanvasPainterPathPrivate *d_ptr;
+    Q_DECLARE_PRIVATE(QCanvasPath)
+    QCanvasPathPrivate *d_ptr;
 
 };
 
-inline void QCanvasPainterPath::moveTo(QPointF point)
+inline void QCanvasPath::moveTo(QPointF point)
 {
     moveTo(float(point.x()), float(point.y()));
 }
 
-inline void QCanvasPainterPath::lineTo(QPointF point)
+inline void QCanvasPath::lineTo(QPointF point)
 {
     lineTo(float(point.x()), float(point.y()));
 }
 
-inline void QCanvasPainterPath::bezierCurveTo(QPointF controlPoint1, QPointF controlPoint2, QPointF endPoint)
+inline void QCanvasPath::bezierCurveTo(QPointF controlPoint1, QPointF controlPoint2, QPointF endPoint)
 {
     bezierCurveTo(float(controlPoint1.x()), float(controlPoint1.y()),
                   float(controlPoint2.x()), float(controlPoint2.y()),
                   float(endPoint.x()), float(endPoint.y()));
 }
 
-inline void QCanvasPainterPath::quadraticCurveTo(QPointF controlPoint, QPointF endPoint)
+inline void QCanvasPath::quadraticCurveTo(QPointF controlPoint, QPointF endPoint)
 {
     quadraticCurveTo(float(controlPoint.x()), float(controlPoint.y()),
                      float(endPoint.x()), float(endPoint.y()));
 }
 
-inline void QCanvasPainterPath::arcTo(QPointF point1, QPointF point2, float radius)
+inline void QCanvasPath::arcTo(QPointF point1, QPointF point2, float radius)
 {
     arcTo(float(point1.x()), float(point1.y()),
           float(point2.x()), float(point2.y()),
           radius);
 }
 
-inline void QCanvasPainterPath::arc(
+inline void QCanvasPath::arc(
     QPointF centerPoint,
     float radius,
     float a0,
@@ -161,7 +161,7 @@ inline void QCanvasPainterPath::arc(
         radius, a0, a1, direction, connection);
 }
 
-inline void QCanvasPainterPath::rect(const QRectF &rect)
+inline void QCanvasPath::rect(const QRectF &rect)
 {
     this->rect(float(rect.x()),
                float(rect.y()),
@@ -169,7 +169,7 @@ inline void QCanvasPainterPath::rect(const QRectF &rect)
                float(rect.height()));
 }
 
-inline void QCanvasPainterPath::roundRect(const QRectF &rect, float radius)
+inline void QCanvasPath::roundRect(const QRectF &rect, float radius)
 {
     roundRect(float(rect.x()),
               float(rect.y()),
@@ -178,7 +178,7 @@ inline void QCanvasPainterPath::roundRect(const QRectF &rect, float radius)
               radius);
 }
 
-inline void QCanvasPainterPath::roundRect(
+inline void QCanvasPath::roundRect(
     const QRectF &rect,
     float radiusTopLeft,
     float radiusTopRight,
@@ -193,7 +193,7 @@ inline void QCanvasPainterPath::roundRect(
               radiusBottomRight, radiusBottomLeft);
 }
 
-inline void QCanvasPainterPath::ellipse(const QRectF &rect)
+inline void QCanvasPath::ellipse(const QRectF &rect)
 {
     ellipse(float(rect.x() + rect.width() * 0.5),
             float(rect.y() + rect.height() * 0.5),
@@ -201,11 +201,11 @@ inline void QCanvasPainterPath::ellipse(const QRectF &rect)
             float(rect.height() * 0.5));
 }
 
-inline void QCanvasPainterPath::circle(QPointF centerPoint, float radius)
+inline void QCanvasPath::circle(QPointF centerPoint, float radius)
 {
     circle(float(centerPoint.x()), float(centerPoint.y()), radius);
 }
 
 QT_END_NAMESPACE
 
-#endif // QCANVASPAINTERPATH_H
+#endif // QCANVASPATH_H

@@ -12,7 +12,7 @@
 #include "qcpainterrhirenderer_p.h"
 #include "qcanvaspainter_p.h"
 #include "qcanvascustombrush.h"
-#include "qcanvaspainterpath.h"
+#include "qcanvaspath.h"
 #include "qcanvasoffscreencanvas_p.h"
 
 #include <math.h>
@@ -118,7 +118,7 @@ struct QCRHICall {
     QRhiGraphicsPipeline *ps[4];
     QShader customFragShader;
     QShader customVertShader;
-    QCanvasPainterPath *painterPath;
+    QCanvasPath *painterPath;
     int pathGroup;
     bool textTriangleOffsetBakedInToIndices;
 };
@@ -394,7 +394,7 @@ struct QCRHIShaders
 
 Q_GLOBAL_STATIC(QCRHIShaders, QCPAINTER_RHI_SHADERS)
 
-// Struct to store each QCanvasPainterPath rendering data
+// Struct to store each QCanvasPath rendering data
 struct QCRHICachedPath
 {
     QVector<QCRHIPath> fillPaths;
@@ -420,7 +420,7 @@ struct QCRHICachedPathGroup
     int fillVertsCount = 0;
     int strokeVertsCount = 0;
     int indicesCount = 0;
-    QHash<QCanvasPainterPath *, QCRHICachedPath> paths;
+    QHash<QCanvasPath *, QCRHICachedPath> paths;
     QRhiBuffer *fillVertexBuffer = nullptr;
     QRhiBuffer *strokeVertexBuffer = nullptr;
     QRhiBuffer *indexBuffer = nullptr;
@@ -1377,7 +1377,7 @@ void QCPainterRhiRenderer::prepareCustomPaint(QCanvasCustomBrushPrivate::CommonU
 
 void QCPainterRhiRenderer::renderFill(const QCPaint &paint, const QCState &state,
                                       const QRectF &bounds, const QCPaths &paths, int pathsCount,
-                                      QCanvasPainterPath *painterPath, int pathGroup,
+                                      QCanvasPath *painterPath, int pathGroup,
                                       const QTransform &pathTransform)
 {
     QCRHICall *call = allocCall();
@@ -1544,7 +1544,7 @@ void QCPainterRhiRenderer::renderFill(const QCPaint &paint, const QCState &state
         // Update fill quad
         QCVertex* quad;
         if (cpg) {
-            // Using QCanvasPainterPath
+            // Using QCanvasPath
             call->triangleOffset = vertOffset;
             quad = &cpg->fillVerts[call->triangleOffset];
         } else {
@@ -1587,7 +1587,7 @@ void QCPainterRhiRenderer::renderFill(const QCPaint &paint, const QCState &state
 
 void QCPainterRhiRenderer::renderStroke(const QCPaint &paint, const QCState &state,
                                         float strokeWidth, const QCPaths &paths, int pathsCount,
-                                        QCanvasPainterPath *painterPath, int pathGroup,
+                                        QCanvasPath *painterPath, int pathGroup,
                                         const QTransform &pathTransform)
 {
     QCRHICall *call = allocCall();
@@ -2616,7 +2616,7 @@ void QCPainterRhiRenderer::setFlag(RenderFlags flag, bool enable)
 // Returns true if the \a path is in cache in \a pathGroup and
 // it has not been invalidated. Invalidation happens if some path
 // in the same pathGroup painted before this path has needed to be updated.
-bool QCPainterRhiRenderer::isPathCached(QCanvasPainterPath *path, int pathGroup) const
+bool QCPainterRhiRenderer::isPathCached(QCanvasPath *path, int pathGroup) const
 {
     QCRHIContext::PerPassData *ppd = rhiCtx->currentPerPassData();
     if (ppd->cachedPaths.contains(pathGroup)) {

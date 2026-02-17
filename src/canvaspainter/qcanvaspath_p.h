@@ -3,8 +3,8 @@
 // Qt-Security score:significant reason:default
 
 
-#ifndef QCANVASPAINTERPATH_P_H
-#define QCANVASPAINTERPATH_P_H
+#ifndef QCANVASPATH_P_H
+#define QCANVASPATH_P_H
 
 //
 //  W A R N I N G
@@ -17,16 +17,16 @@
 // We mean it.
 //
 
-#include "qcanvaspainterpath.h"
+#include "qcanvaspath.h"
 #include "engine/qcpainterengineutils_p.h"
 
 QT_BEGIN_NAMESPACE
 
-class QCanvasPainterPathPrivate
+class QCanvasPathPrivate
 {
 public:
-    static QCanvasPainterPathPrivate *get(QCanvasPainterPath *path) { return path->d_ptr; }
-    static const QCanvasPainterPathPrivate *get(const QCanvasPainterPath *path) { return path->d_ptr; }
+    static QCanvasPathPrivate *get(QCanvasPath *path) { return path->d_ptr; }
+    static const QCanvasPathPrivate *get(const QCanvasPath *path) { return path->d_ptr; }
 
     static int dataSizeOf(QCCommand command) {
         switch (command) {
@@ -62,4 +62,4 @@ public:
 
 QT_END_NAMESPACE
 
-#endif // QCANVASPAINTERPATH_P_H
+#endif // QCANVASPATH_P_H

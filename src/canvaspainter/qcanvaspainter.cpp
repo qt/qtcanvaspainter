@@ -657,7 +657,7 @@ void QCanvasPainter::setLineWidth(float width)
     \li \inlineimage qcpainter-linecap.webp
     \li
     \code
-    QCanvasPainterPath path;
+    QCanvasPath path;
     path.moveTo(40, 60);
     path.lineTo(160, 60);
     p->setLineCap(QCanvasPainter::LineCap::Butt);
@@ -686,7 +686,7 @@ void QCanvasPainter::setLineCap(LineCap cap)
     \li \inlineimage qcpainter-linejoin.webp
     \li
     \code
-    QCanvasPainterPath path;
+    QCanvasPath path;
     path.moveTo(40, 20);
     path.lineTo(100, 80);
     path.lineTo(160, 40);
@@ -1537,7 +1537,7 @@ void QCanvasPainter::addPath(const QPainterPath &path)
     \li \inlineimage qcpainter-addpath.webp
     \li
     \code
-    // m_path is QCanvasPainterPath
+    // m_path is QCanvasPath
     if (m_path.isEmpty())
         m_path.circle(60, 60, 40);
     p->beginPath();
@@ -1549,7 +1549,7 @@ void QCanvasPainter::addPath(const QPainterPath &path)
     \endtable
 */
 
-void QCanvasPainter::addPath(const QCanvasPainterPath &path, const QTransform &transform)
+void QCanvasPainter::addPath(const QCanvasPath &path, const QTransform &transform)
 {
     Q_D(QCanvasPainter);
     d->m_e->addPath(path, transform);
@@ -1560,7 +1560,7 @@ void QCanvasPainter::addPath(const QCanvasPainterPath &path, const QTransform &t
     and including \a count amount of commands. Optionally using \a transform to
     alter the path points.
     The range of \a start and \a count is checked, so that commands are not
-    accessed more than \l QCanvasPainterPath::commandsSize().
+    accessed more than \l QCanvasPath::commandsSize().
     In case the path shouldn't continue from the current path position, call
     first \l moveTo() e.g. with \c{path.positionAt(start - 1)}.
     \table
@@ -1568,7 +1568,7 @@ void QCanvasPainter::addPath(const QCanvasPainterPath &path, const QTransform &t
     \li \inlineimage qcpainter-addpath2.webp
     \li
     \code
-    // m_path is QCanvasPainterPath
+    // m_path is QCanvasPath
     if (m_path.isEmpty()) {
         m_path.moveTo(20, 60);
         for (int i = 1; i < 160; i++) {
@@ -1585,7 +1585,7 @@ void QCanvasPainter::addPath(const QCanvasPainterPath &path, const QTransform &t
     \endtable
 */
 
-void QCanvasPainter::addPath(const QCanvasPainterPath &path,
+void QCanvasPainter::addPath(const QCanvasPath &path,
                         qsizetype start, qsizetype count,
                         const QTransform &transform)
 {
@@ -1711,19 +1711,19 @@ void QCanvasPainter::stroke()
     \overload
 
     Fills the \a path with current fill style and belonging
-    into \a pathGroup. Painting through QCanvasPainterPath is optimal when
+    into \a pathGroup. Painting through QCanvasPath is optimal when
     the path contains more commands is mostly static.
     By default, \a pathGroup is \c 0, so using the
     first group. When \a pathGroup is \c -1, the path will not be cached
     on GPU side. More information about using path cache groups in
-    \l{QCanvasPainterPath} documentation.
+    \l{QCanvasPath} documentation.
     Calling beginPath() before this method is not required.
     \table
     \row
     \li \inlineimage qcpainter-fill2.webp
     \li
     \code
-    // m_path is QCanvasPainterPath
+    // m_path is QCanvasPath
     if (m_path.isEmpty()) {
         for (int i = 0; i < 16; i++) {
             float w = 100 + 60 * sin(i);
@@ -1739,7 +1739,7 @@ void QCanvasPainter::stroke()
     \sa setFillStyle()
 */
 
-void QCanvasPainter::fill(const QCanvasPainterPath &path, int pathGroup)
+void QCanvasPainter::fill(const QCanvasPath &path, int pathGroup)
 {
     Q_D(QCanvasPainter);
     d->m_e->fill(path, pathGroup);
@@ -1749,19 +1749,19 @@ void QCanvasPainter::fill(const QCanvasPainterPath &path, int pathGroup)
     \overload
 
     Strokes the \a path with current stroke style and belonging
-    into \a pathGroup. Painting through QCanvasPainterPath is optimal when
+    into \a pathGroup. Painting through QCanvasPath is optimal when
     the path contains more commands is mostly static.
     By default, \a pathGroup is \c 0, so using the
     first group. When \a pathGroup is \c -1, the path will not be cached
     on GPU side. More information about using path cache groups in
-    \l{QCanvasPainterPath} documentation.
+    \l{QCanvasPath} documentation.
     Calling beginPath() before this method is not required.
     \table
     \row
     \li \inlineimage qcpainter-stroke2.webp
     \li
     \code
-    // m_path is QCanvasPainterPath
+    // m_path is QCanvasPath
     if (m_path.isEmpty()) {
         for (int i = 0; i < 16; i++) {
             int h = 100 + 60 * sin(i);
@@ -1777,7 +1777,7 @@ void QCanvasPainter::fill(const QCanvasPainterPath &path, int pathGroup)
     \sa setStrokeStyle()
 */
 
-void QCanvasPainter::stroke(const QCanvasPainterPath &path, int pathGroup)
+void QCanvasPainter::stroke(const QCanvasPath &path, int pathGroup)
 {
     Q_D(QCanvasPainter);
     d->m_e->stroke(path, pathGroup);

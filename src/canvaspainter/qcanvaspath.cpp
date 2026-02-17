@@ -3,14 +3,14 @@
 // Qt-Security score:significant reason:default
 
 
-#include "qcanvaspainterpath.h"
-#include "qcanvaspainterpath_p.h"
+#include "qcanvaspath.h"
+#include "qcanvaspath_p.h"
 #include "engine/qcpainterengineutils_p.h"
 #include <QTransform>
 
 QT_BEGIN_NAMESPACE
 
-/* QCanvasPainterPath is native path format of QCanvasPainter.
+/* QCanvasPath is native path format of QCanvasPainter.
  *
  * It has some similarities to QPainterPath, but prioritizes performance and simplicity over features.
  * Some differences:
@@ -24,7 +24,7 @@ QT_BEGIN_NAMESPACE
  * - No addText() method. Text is not supported natively as a path element.
  * - The fillrule is always WindingFill (nonzero), OddEvenFill is not supported.
  *
- * So in terms of functionality, QCanvasPainterPath is closer to HTML Canvas API Path2D object:
+ * So in terms of functionality, QCanvasPath is closer to HTML Canvas API Path2D object:
  * https://developer.mozilla.org/en-US/docs/Web/API/Path2D
  */
 
@@ -39,18 +39,18 @@ QT_BEGIN_NAMESPACE
 #endif
 
 /*!
-    \class QCanvasPainterPath
+    \class QCanvasPath
     \since 6.11
-    \brief QCanvasPainterPath is the native path format of QCanvasPainter.
+    \brief QCanvasPath is the native path format of QCanvasPainter.
     \inmodule QtCanvasPainter
 
     A painter path is an object composed of a number of graphical building blocks,
-    such as rectangles, ellipses, lines, and curves. QCanvasPainterPath API matches to
+    such as rectangles, ellipses, lines, and curves. QCanvasPath API matches to
     QCanvasPainter path painting, making it easy to adjust code between paintind directly
-    or painting into a path. The main reason use QCanvasPainterPath is to avoid recreating
+    or painting into a path. The main reason use QCanvasPath is to avoid recreating
     the (static) paths and be able to cache the paths GPU buffers.
 
-    Compared to QPainterPath, QCanvasPainterPath is more optimized for rendering with fewer
+    Compared to QPainterPath, QCanvasPath is more optimized for rendering with fewer
     features for comparing or adjusting the paths. In particular:
     \list
     \li There are no methods for intersection or subtraction between two paths.
@@ -59,18 +59,18 @@ QT_BEGIN_NAMESPACE
     \li The fill rule is always \c WindingFill (nonzero), \c OddEvenFill is not supported.
     \endlist
 
-    From a functionality point of view, QCanvasPainterPath is more similar to HTML Canvas
+    From a functionality point of view, QCanvasPath is more similar to HTML Canvas
     \l{https://developer.mozilla.org/en-US/docs/Web/API/Path2D} {Path2D},
     with some additions and the API matching to QCanvasPainter.
 
     \section1 PathGroups and caching
 
-    Painting paths through QCanvasPainterPath allows the engine to cache the path
+    Painting paths through QCanvasPath allows the engine to cache the path
     geometry (vertices). This improves the performance of static paths,
     while potentially increasing GPU memory consumption.
 
     When painting paths using \l{QCanvasPainter::}{fill()} or \l{QCanvasPainter::}{stroke()}
-    that take \l QCanvasPainterPath as a parameter, it is possible to set a \c pathGroup
+    that take \l QCanvasPath as a parameter, it is possible to set a \c pathGroup
     as a second parameter. This defines the GPU buffer where the path is cached.
     By default, \c pathGroup is \c 0, meaning that the first buffer is used.
     Setting the \c pathGroup to \c -1 means that the path does not allocate its own
@@ -105,8 +105,8 @@ QT_BEGIN_NAMESPACE
 /*!
     Constructs an empty path.
 */
-QCanvasPainterPath::QCanvasPainterPath()
-    : d_ptr(new QCanvasPainterPathPrivate)
+QCanvasPath::QCanvasPath()
+    : d_ptr(new QCanvasPathPrivate)
 {
 }
 
@@ -125,8 +125,8 @@ QCanvasPainterPath::QCanvasPainterPath()
     \sa reserve()
 */
 
-QCanvasPainterPath::QCanvasPainterPath(qsizetype commandsSize, qsizetype commandsDataSize)
-    : d_ptr(new QCanvasPainterPathPrivate)
+QCanvasPath::QCanvasPath(qsizetype commandsSize, qsizetype commandsDataSize)
+    : d_ptr(new QCanvasPathPrivate)
 {
     d_ptr->commands.resize(commandsSize);
     if (commandsDataSize < 0)
@@ -140,8 +140,8 @@ QCanvasPainterPath::QCanvasPainterPath(qsizetype commandsSize, qsizetype command
     Constructs a path that is a copy of the given \a path.
 */
 
-QCanvasPainterPath::QCanvasPainterPath(const QCanvasPainterPath &path)
-    : d_ptr(new QCanvasPainterPathPrivate(*path.d_ptr))
+QCanvasPath::QCanvasPath(const QCanvasPath &path)
+    : d_ptr(new QCanvasPathPrivate(*path.d_ptr))
 {
 }
 
@@ -149,7 +149,7 @@ QCanvasPainterPath::QCanvasPainterPath(const QCanvasPainterPath &path)
     Destroys the path.
 */
 
-QCanvasPainterPath::~QCanvasPainterPath(){
+QCanvasPath::~QCanvasPath(){
     delete d_ptr;
 }
 
@@ -158,26 +158,26 @@ QCanvasPainterPath::~QCanvasPainterPath(){
     this path.
 */
 
-QCanvasPainterPath &QCanvasPainterPath::operator=(const QCanvasPainterPath &path) noexcept
+QCanvasPath &QCanvasPath::operator=(const QCanvasPath &path) noexcept
 {
-    QCanvasPainterPath(path).swap(*this);
+    QCanvasPath(path).swap(*this);
     return *this;
 }
 
 /*!
-    \fn QCanvasPainterPath::QCanvasPainterPath(QCanvasPainterPath &&other) noexcept
+    \fn QCanvasPath::QCanvasPath(QCanvasPath &&other) noexcept
 
-    Move-constructs a new QCanvasPainterPath from \a other.
+    Move-constructs a new QCanvasPath from \a other.
 */
 
 /*!
-    \fn QCanvasPainterPath &QCanvasPainterPath::operator=(QCanvasPainterPath &&other)
+    \fn QCanvasPath &QCanvasPath::operator=(QCanvasPath &&other)
 
-    Move-assigns \a other to this QCanvasPainterPath instance.
+    Move-assigns \a other to this QCanvasPath instance.
 */
 
 /*!
-    \fn void QCanvasPainterPath::swap(QCanvasPainterPath &other)
+    \fn void QCanvasPath::swap(QCanvasPath &other)
     \memberswap{path}
 */
 
@@ -185,13 +185,13 @@ QCanvasPainterPath &QCanvasPainterPath::operator=(const QCanvasPainterPath &path
    Returns the path as a QVariant.
 */
 
-QCanvasPainterPath::operator QVariant() const
+QCanvasPath::operator QVariant() const
 {
     return QVariant::fromValue(*this);
 }
 
 /*!
-    \fn bool QCanvasPainterPath::operator!=(const QCanvasPainterPath &lhs, const QCanvasPainterPath &rhs)
+    \fn bool QCanvasPath::operator!=(const QCanvasPath &lhs, const QCanvasPath &rhs)
 
     \return \c true if the path \a lhs is different from \a rhs; \c false otherwise.
 
@@ -199,16 +199,16 @@ QCanvasPainterPath::operator QVariant() const
 */
 
 /*!
-    \fn bool QCanvasPainterPath::operator==(const QCanvasPainterPath &lhs, const QCanvasPainterPath &rhs)
+    \fn bool QCanvasPath::operator==(const QCanvasPath &lhs, const QCanvasPath &rhs)
 
     \return \c true if the path \a lhs is equal to \a rhs; \c false otherwise.
 
     \sa operator!=()
 */
-bool comparesEqual(const QCanvasPainterPath &lhs, const QCanvasPainterPath &rhs) noexcept
+bool comparesEqual(const QCanvasPath &lhs, const QCanvasPath &rhs) noexcept
 {
-    auto *d = QCanvasPainterPathPrivate::get(&lhs);
-    auto *pd = QCanvasPainterPathPrivate::get(&rhs);
+    auto *d = QCanvasPathPrivate::get(&lhs);
+    auto *pd = QCanvasPathPrivate::get(&rhs);
     if (pd == d)
         return true;
 
@@ -235,9 +235,9 @@ bool comparesEqual(const QCanvasPainterPath &lhs, const QCanvasPainterPath &rhs)
     the subpath, automatically starting a new path.
 */
 
-void QCanvasPainterPath::closePath()
+void QCanvasPath::closePath()
 {
-    Q_D(QCanvasPainterPath);
+    Q_D(QCanvasPath);
     d->appendCommand(QCCommand::Close);
 }
 
@@ -247,9 +247,9 @@ void QCanvasPainterPath::closePath()
     Moves the current position to (\a{x}, \a{y}) and starts a new
     subpath, implicitly closing the previous path.
 */
-void QCanvasPainterPath::moveTo(float x, float y)
+void QCanvasPath::moveTo(float x, float y)
 {
-    Q_D(QCanvasPainterPath);
+    Q_D(QCanvasPath);
     float data[] = { x, y };
     d->appendCommandsData(data, 2);
     d->appendCommand(QCCommand::MoveTo);
@@ -257,7 +257,7 @@ void QCanvasPainterPath::moveTo(float x, float y)
 }
 
 /*!
-    \fn void QCanvasPainterPath::moveTo(QPointF point)
+    \fn void QCanvasPath::moveTo(QPointF point)
     \overload
 
     Moves the current point to the given \a point, implicitly starting
@@ -269,16 +269,16 @@ void QCanvasPainterPath::moveTo(float x, float y)
     Draws a line from the current position to the point (\a{x},
     \a{y}).
 */
-void QCanvasPainterPath::lineTo(float x, float y)
+void QCanvasPath::lineTo(float x, float y)
 {
-    Q_D(QCanvasPainterPath);
+    Q_D(QCanvasPath);
     float data[] = { x, y };
     d->appendCommandsData(data, 2);
     d->appendCommand(QCCommand::LineTo);
 }
 
 /*!
-    \fn void QCanvasPainterPath::lineTo(QPointF point)
+    \fn void QCanvasPath::lineTo(QPointF point)
     \overload
 
     Adds a straight line from the current position to the given \a
@@ -294,16 +294,16 @@ void QCanvasPainterPath::lineTo(float x, float y)
     After the curve is added, the current position is updated to be at
     the end point of the curve.
 */
-void QCanvasPainterPath::bezierCurveTo(float cp1X, float cp1Y, float cp2X, float cp2Y, float x, float y)
+void QCanvasPath::bezierCurveTo(float cp1X, float cp1Y, float cp2X, float cp2Y, float x, float y)
 {
-    Q_D(QCanvasPainterPath);
+    Q_D(QCanvasPath);
     float data[] = { cp1X, cp1Y, cp2X, cp2Y, x, y };
     d->appendCommandsData(data, 6);
     d->appendCommand(QCCommand::BezierTo);
 }
 
 /*!
-    \fn void QCanvasPainterPath::bezierCurveTo(QPointF controlPoint1, QPointF controlPoint2, QPointF endPoint)
+    \fn void QCanvasPath::bezierCurveTo(QPointF controlPoint1, QPointF controlPoint2, QPointF endPoint)
     \overload
 
     Adds a cubic Bezier curve between the current position and the
@@ -319,9 +319,9 @@ void QCanvasPainterPath::bezierCurveTo(float cp1X, float cp1Y, float cp2X, float
     (\a{x}, \a{y}) with the control point specified by
     (\a{cpX}, \a{cpY}).
 */
-void QCanvasPainterPath::quadraticCurveTo(float cpX, float cpY, float x, float y)
+void QCanvasPath::quadraticCurveTo(float cpX, float cpY, float x, float y)
 {
-    Q_D(QCanvasPainterPath);
+    Q_D(QCanvasPath);
     // Continue from previous point
     const QPointF prev = currentPosition();
     float prevX = prev.x();
@@ -337,7 +337,7 @@ void QCanvasPainterPath::quadraticCurveTo(float cpX, float cpY, float x, float y
 }
 
 /*!
-    \fn void QCanvasPainterPath::quadraticCurveTo(QPointF controlPoint, QPointF endPoint)
+    \fn void QCanvasPath::quadraticCurveTo(QPointF controlPoint, QPointF endPoint)
     \overload
 
     Adds a quadratic Bezier curve between the current position and the
@@ -348,7 +348,7 @@ void QCanvasPainterPath::quadraticCurveTo(float cpX, float cpY, float x, float y
     Creates an arc using the points QPointF(\a x1, \a y1) and QPointF(\a
     x2, \a y2) with the given \a radius.
 */
-void QCanvasPainterPath::arcTo(float x1, float y1, float x2, float y2, float radius)
+void QCanvasPath::arcTo(float x1, float y1, float x2, float y2, float radius)
 {
     // Continue from previous point
     const QPointF prev = currentPosition();
@@ -356,7 +356,7 @@ void QCanvasPainterPath::arcTo(float x1, float y1, float x2, float y2, float rad
     float prevY = prev.y();
 
 #ifdef QCPAINTER_EQUAL_POINTS_CHECKING_ENABLED
-    Q_D(QCanvasPainterPath);
+    Q_D(QCanvasPath);
     // See if straight line is enough
     if (pointsEquals(prevX, prevY, x1, y1, d->distTol) ||
         pointsEquals(x1, y1, x2, y2, d->distTol) ||
@@ -397,7 +397,7 @@ void QCanvasPainterPath::arcTo(float x1, float y1, float x2, float y2, float rad
 }
 
 /*!
-    \fn void QCanvasPainterPath::arcTo(QPointF point1, QPointF point2, float radius)
+    \fn void QCanvasPath::arcTo(QPointF point1, QPointF point2, float radius)
     \overload
 
     Creates an arc using the points \a point1 and \a point2 with the given \a radius.
@@ -410,7 +410,7 @@ void QCanvasPainterPath::arcTo(float x1, float y1, float x2, float y2, float rad
     \l{QCanvasPainter::PathConnection::}{NotConnected}, the previous path is closed and a new
     sub-path is started.
 */
-void QCanvasPainterPath::arc(
+void QCanvasPath::arc(
     float centerX,
     float centerY,
     float radius,
@@ -419,7 +419,7 @@ void QCanvasPainterPath::arc(
     QCanvasPainter::PathWinding direction,
     QCanvasPainter::PathConnection connection)
 {
-    Q_D(QCanvasPainterPath);
+    Q_D(QCanvasPath);
     // Clamp angles
     float da = a1 - a0;
     static constexpr float TWOPI = float(M_PI) * 2;
@@ -486,7 +486,7 @@ void QCanvasPainterPath::arc(
 }
 
 /*!
-    \fn void QCanvasPainterPath::arc(QPointF centerPoint, float radius, float a0, float a1, QCanvasPainter::PathWinding direction, QCanvasPainter::PathConnection connection)
+    \fn void QCanvasPath::arc(QPointF centerPoint, float radius, float a0, float a1, QCanvasPainter::PathWinding direction, QCanvasPainter::PathConnection connection)
     \overload
 
     Creates an arc centered on \a centerPoint with the given \a radius, starting
@@ -499,9 +499,9 @@ void QCanvasPainterPath::arc(
 /*!
    Creates a rectangle positioned at QPointF(\a x, \a y) with the given \a width and \a height.
 */
-void QCanvasPainterPath::rect(float x, float y, float width, float height)
+void QCanvasPath::rect(float x, float y, float width, float height)
 {
-    Q_D(QCanvasPainterPath);
+    Q_D(QCanvasPath);
     float data[] = {
         x, y,
         x, y + height,
@@ -520,7 +520,7 @@ void QCanvasPainterPath::rect(float x, float y, float width, float height)
 }
 
 /*!
-    \fn void QCanvasPainterPath::rect(const QRectF &rect)
+    \fn void QCanvasPath::rect(const QRectF &rect)
     \overload
 
     Creates a rectangle specified by \a rect
@@ -530,14 +530,14 @@ void QCanvasPainterPath::rect(float x, float y, float width, float height)
     Adds the given rectangle \a x, \a y, \a width, \a height with rounded corners to the path. The
     corners are quarter circles with the given \a radius.
 */
-void QCanvasPainterPath::roundRect(float x, float y, float width, float height, float radius)
+void QCanvasPath::roundRect(float x, float y, float width, float height, float radius)
 {
     static const float MINR = 0.1f;
     const bool noRadius = (radius < MINR);
     if (noRadius) {
         rect(x, y, width, height);
     } else {
-        Q_D(QCanvasPainterPath);
+        Q_D(QCanvasPath);
         // The maximum radius is slightly less than half of smaller side of the rect,
         // to not grow too big even with some float rounding errors.
         const float maxRad = std::min(std::abs(width), std::abs(height)) * 0.4999f;
@@ -578,7 +578,7 @@ void QCanvasPainterPath::roundRect(float x, float y, float width, float height, 
 }
 
 /*!
-    \fn void QCanvasPainterPath::roundRect(const QRectF &rect, float radius)
+    \fn void QCanvasPath::roundRect(const QRectF &rect, float radius)
     \overload
 
     Adds the given rectangle \a rect with rounded corners to the path. The
@@ -590,7 +590,7 @@ void QCanvasPainterPath::roundRect(float x, float y, float width, float height, 
     corners are quarter circles with radius \a radiusTopLeft, \a radiusTopRight
     \a radiusBottomRight and \a radiusBottomLeft, respectively.
 */
-void QCanvasPainterPath::roundRect(
+void QCanvasPath::roundRect(
     float x,
     float y,
     float width,
@@ -606,7 +606,7 @@ void QCanvasPainterPath::roundRect(
     if (noRadius) {
         rect(x, y, width, height);
     } else {
-        Q_D(QCanvasPainterPath);
+        Q_D(QCanvasPath);
         const float top = std::max(MINR, radiusTopLeft + radiusTopRight);
         const float right = std::max(MINR, radiusTopRight + radiusBottomRight);
         const float bottom = std::max(MINR, radiusBottomRight + radiusBottomLeft);
@@ -660,7 +660,7 @@ void QCanvasPainterPath::roundRect(
 }
 
 /*!
-    \fn void QCanvasPainterPath::roundRect(const QRectF &rect, float radiusTopLeft, float radiusTopRight, float radiusBottomRight, float radiusBottomLeft)
+    \fn void QCanvasPath::roundRect(const QRectF &rect, float radiusTopLeft, float radiusTopRight, float radiusBottomRight, float radiusBottomLeft)
     \overload
 
     Adds the rectangle \a rect with rounded corners to the path. The
@@ -672,9 +672,9 @@ void QCanvasPainterPath::roundRect(
     Creates an ellipse centered at (\a x, \a y), with radii defined by \a radiusX, \a radiusY
     and adds it to the path as a closed subpath.
 */
-void QCanvasPainterPath::ellipse(float x, float y, float radiusX, float radiusY)
+void QCanvasPath::ellipse(float x, float y, float radiusX, float radiusY)
 {
-    Q_D(QCanvasPainterPath);
+    Q_D(QCanvasPath);
     const float radYK = radiusY * KAPPA90;
     const float radXK = radiusX * KAPPA90;
     const float ymRadY = y - radiusY;
@@ -700,7 +700,7 @@ void QCanvasPainterPath::ellipse(float x, float y, float radiusX, float radiusY)
 }
 
 /*!
-    \fn void QCanvasPainterPath::ellipse(const QRectF &rect)
+    \fn void QCanvasPath::ellipse(const QRectF &rect)
     \overload
 
     Creates an ellipse within the rectangle \a rect
@@ -710,9 +710,9 @@ void QCanvasPainterPath::ellipse(float x, float y, float radiusX, float radiusY)
 /*!
    Adds a circle with center at QPointF(\a x, \a y) and the given \a radius to the path.
 */
-void QCanvasPainterPath::circle(float x, float y, float radius)
+void QCanvasPath::circle(float x, float y, float radius)
 {
-    Q_D(QCanvasPainterPath);
+    Q_D(QCanvasPath);
     const float radK = radius * KAPPA90;
     const float ymRad = y - radius;
     const float ypRad = y + radius;
@@ -735,7 +735,7 @@ void QCanvasPainterPath::circle(float x, float y, float radius)
 }
 
 /*!
-    \fn void QCanvasPainterPath::circle(QPointF centerPoint, float radius)
+    \fn void QCanvasPath::circle(QPointF centerPoint, float radius)
     \overload
 
     Adds a circle with center at \a centerPoint and the given \a radius to the path.
@@ -745,9 +745,9 @@ void QCanvasPainterPath::circle(float x, float y, float radius)
     Sets the current sub-path \a winding to either \c QCanvasPainter::CounterClockWise (default)
     or \c QCanvasPainter::ClockWise. CounterClockWise draws solid subpaths while ClockWise draws holes.
 */
-void QCanvasPainterPath::setPathWinding(QCanvasPainter::PathWinding winding)
+void QCanvasPath::setPathWinding(QCanvasPainter::PathWinding winding)
 {
-    Q_D(QCanvasPainterPath);
+    Q_D(QCanvasPath);
     QCCommand c = winding == QCanvasPainter::PathWinding::ClockWise ?
                       QCCommand::WindingCW : QCCommand::WindingCCW;
     d->appendCommand(c);
@@ -759,7 +759,7 @@ void QCanvasPainterPath::setPathWinding(QCanvasPainter::PathWinding winding)
     \sa beginHoleSubPath()
 */
 
-void QCanvasPainterPath::beginSolidSubPath()
+void QCanvasPath::beginSolidSubPath()
 {
     setPathWinding(QCanvasPainter::PathWinding::CounterClockWise);
 }
@@ -770,7 +770,7 @@ void QCanvasPainterPath::beginSolidSubPath()
     \sa beginSolidSubPath()
 */
 
-void QCanvasPainterPath::beginHoleSubPath()
+void QCanvasPath::beginHoleSubPath()
 {
     setPathWinding(QCanvasPainter::PathWinding::ClockWise);
 }
@@ -781,7 +781,7 @@ void QCanvasPainterPath::beginHoleSubPath()
     identity matrix), this operation is very fast as it reuses the path data.
 */
 
-void QCanvasPainterPath::addPath(const QCanvasPainterPath &path, const QTransform &transform)
+void QCanvasPath::addPath(const QCanvasPath &path, const QTransform &transform)
 {
     addPath(path, qsizetype(0), path.commandsSize(), transform);
 }
@@ -791,14 +791,14 @@ void QCanvasPainterPath::addPath(const QCanvasPainterPath &path, const QTransfor
     and including \a count amount of commands. Optionally using \a transform to
     alter the path points.
     The range of \a start and \a count is checked, so that commands are not
-    accessed more than \l QCanvasPainterPath::commandsSize().
+    accessed more than \l QCanvasPath::commandsSize().
     In case the path shouldn't continue from the current path position, call
     first \l moveTo() with \c{path.positionAt(start - 1)}.
 */
 
-void QCanvasPainterPath::addPath(const QCanvasPainterPath &path, qsizetype start, qsizetype count, const QTransform &transform)
+void QCanvasPath::addPath(const QCanvasPath &path, qsizetype start, qsizetype count, const QTransform &transform)
 {
-    Q_D(QCanvasPainterPath);
+    Q_D(QCanvasPath);
     const auto *pathd = path.d_ptr;
 
     const auto commandsSize = pathd->commandsCount;
@@ -817,7 +817,7 @@ void QCanvasPainterPath::addPath(const QCanvasPainterPath &path, qsizetype start
         // Calculate commands data amounts, based on the commands start & count.
         const int endCommand = start + count;
         for (int i = 0; i < endCommand; i++) {
-            auto dataSize = QCanvasPainterPathPrivate::dataSizeOf(pathd->commands.at(i));
+            auto dataSize = QCanvasPathPrivate::dataSizeOf(pathd->commands.at(i));
             if (i < start) {
                 commandsDataStart += dataSize;
             } else {
@@ -856,9 +856,9 @@ void QCanvasPainterPath::addPath(const QCanvasPainterPath &path, qsizetype start
 
     \sa clear
 */
-bool QCanvasPainterPath::isEmpty() const
+bool QCanvasPath::isEmpty() const
 {
-    Q_D(const QCanvasPainterPath);
+    Q_D(const QCanvasPath);
     return d->commandsCount == 0;
 }
 
@@ -870,9 +870,9 @@ bool QCanvasPainterPath::isEmpty() const
 
     \sa reserve(), squeeze()
 */
-void QCanvasPainterPath::clear()
+void QCanvasPath::clear()
 {
-    Q_D(QCanvasPainterPath);
+    Q_D(QCanvasPath);
     d->commandsCount = 0;
     d->commandsDataCount = 0;
     d->pathIterations++;
@@ -889,9 +889,9 @@ void QCanvasPainterPath::clear()
 
     \sa reserve()
 */
-void QCanvasPainterPath::squeeze()
+void QCanvasPath::squeeze()
 {
-    Q_D(QCanvasPainterPath);
+    Q_D(QCanvasPath);
     d->commands.squeeze();
     d->commandsData.squeeze();
 }
@@ -902,9 +902,9 @@ void QCanvasPainterPath::squeeze()
     \note Some path elements require several commands. For example \l moveTo and \l lineTo require
     \c 1 command, \l bezierCurveTo requires \c 6 commands and \l roundRect \c 10 commands.
 */
-qsizetype QCanvasPainterPath::commandsSize() const
+qsizetype QCanvasPath::commandsSize() const
 {
-    Q_D(const QCanvasPainterPath);
+    Q_D(const QCanvasPath);
     return d->commandsCount;
 }
 
@@ -917,9 +917,9 @@ qsizetype QCanvasPainterPath::commandsSize() const
     \c 0, \l moveTo and \l lineTo require \c 2, \l bezierCurveTo requires 6 and \l roundRect
     requires \c 34 data points.
 */
-qsizetype QCanvasPainterPath::commandsDataSize() const
+qsizetype QCanvasPath::commandsDataSize() const
 {
-    Q_D(const QCanvasPainterPath);
+    Q_D(const QCanvasPath);
     return d->commandsDataCount;
 }
 
@@ -928,9 +928,9 @@ qsizetype QCanvasPainterPath::commandsDataSize() const
 
     \sa commandsDataCapacity(), reserve()
 */
-qsizetype QCanvasPainterPath::commandsCapacity() const
+qsizetype QCanvasPath::commandsCapacity() const
 {
-    Q_D(const QCanvasPainterPath);
+    Q_D(const QCanvasPath);
     return d->commands.size();
 }
 
@@ -939,14 +939,14 @@ qsizetype QCanvasPainterPath::commandsCapacity() const
 
     \sa commandsCapacity(), reserve()
 */
-qsizetype QCanvasPainterPath::commandsDataCapacity() const
+qsizetype QCanvasPath::commandsDataCapacity() const
 {
-    Q_D(const QCanvasPainterPath);
+    Q_D(const QCanvasPath);
     return d->commandsData.size();
 }
 
 /*!
-    Reserves a given amounts of space in QCanvasPainterPath's internal memory.
+    Reserves a given amounts of space in QCanvasPath's internal memory.
 
     Attempts to allocate memory for at least \a commandsSize commands
     and \a commandsDataSize data points. Some path elements require
@@ -959,9 +959,9 @@ qsizetype QCanvasPainterPath::commandsDataCapacity() const
     \sa squeeze(), commandsCapacity(), commandsDataCapacity()
 */
 
-void QCanvasPainterPath::reserve(qsizetype commandsSize, qsizetype commandsDataSize)
+void QCanvasPath::reserve(qsizetype commandsSize, qsizetype commandsDataSize)
 {
-    Q_D(QCanvasPainterPath);
+    Q_D(QCanvasPath);
     d->commands.resize(commandsSize);
     if (commandsDataSize < 0)
         d->commandsData.resize(2 * commandsSize);
@@ -971,7 +971,7 @@ void QCanvasPainterPath::reserve(qsizetype commandsSize, qsizetype commandsDataS
 }
 
 /*!
-    Reserves a given amounts of space in QCanvasPainterPath's internal memory.
+    Reserves a given amounts of space in QCanvasPath's internal memory.
 
     \overload
 
@@ -990,7 +990,7 @@ void QCanvasPainterPath::reserve(qsizetype commandsSize, qsizetype commandsDataS
     \sa squeeze(), commandsCapacity(), commandsDataCapacity()
 */
 
-void QCanvasPainterPath::reserve(qsizetype commandsSize)
+void QCanvasPath::reserve(qsizetype commandsSize)
 {
     reserve(commandsSize, -1);
 }
@@ -1000,9 +1000,9 @@ void QCanvasPainterPath::reserve(qsizetype commandsSize)
     This means position where previous path command (\l moveTo, \l lineTo, \l bezierCurveTo etc.) has ended.
     When the path is empty, returns (0.0, 0.0).
 */
-QPointF QCanvasPainterPath::currentPosition() const
+QPointF QCanvasPath::currentPosition() const
 {
-    Q_D(const QCanvasPainterPath);
+    Q_D(const QCanvasPath);
     if (d->commandsDataCount < 2)
         return QPointF();
     const float prevX = d->commandsData.at(d->commandsDataCount - 2);
@@ -1018,16 +1018,16 @@ QPointF QCanvasPainterPath::currentPosition() const
     When the path is empty, returns (0.0, 0.0).
 */
 
-QPointF QCanvasPainterPath::positionAt(qsizetype index) const
+QPointF QCanvasPath::positionAt(qsizetype index) const
 {
-    Q_D(const QCanvasPainterPath);
+    Q_D(const QCanvasPath);
     if (d->commandsDataCount < 2)
         return QPointF();
     index = qBound(0, index, d->commandsCount - 1);
     // Locate commandsData index matching to given commands index.
     qsizetype dataIndex = 0;
     for (int i = 0; i < (index + 1); i++)
-        dataIndex += QCanvasPainterPathPrivate::dataSizeOf(d->commands.at(i));
+        dataIndex += QCanvasPathPrivate::dataSizeOf(d->commands.at(i));
     const float posX = d->commandsData.at(dataIndex - 2);
     const float posY = d->commandsData.at(dataIndex - 1);
     return QPointF(posX, posY);
@@ -1044,10 +1044,10 @@ QPointF QCanvasPainterPath::positionAt(qsizetype index) const
     will be replaced with \c MoveTo so that this slice is an individual path.
 */
 
-QCanvasPainterPath QCanvasPainterPath::sliced(qsizetype start, qsizetype count, const QTransform &transform) const
+QCanvasPath QCanvasPath::sliced(qsizetype start, qsizetype count, const QTransform &transform) const
 {
-    Q_D(const QCanvasPainterPath);
-    QCanvasPainterPath path;
+    Q_D(const QCanvasPath);
+    QCanvasPath path;
     if (d->commandsCount > start) {
         // We don't know exact amount of commandData, so default
         // 2 * (commands)count is a good estimation.
@@ -1065,7 +1065,7 @@ QCanvasPainterPath QCanvasPainterPath::sliced(qsizetype start, qsizetype count, 
 // *** Private ***
 
 // Append a single \a command.
-void QCanvasPainterPathPrivate::appendCommand(QCCommand command)
+void QCanvasPathPrivate::appendCommand(QCCommand command)
 {
     ensureCommands(1);
     auto &c = this->commands;
@@ -1073,7 +1073,7 @@ void QCanvasPainterPathPrivate::appendCommand(QCCommand command)
 }
 
 // Append \a cCount amount of \a commands.
-void QCanvasPainterPathPrivate::appendCommands(const QCCommand commands[], int cCount)
+void QCanvasPathPrivate::appendCommands(const QCCommand commands[], int cCount)
 {
     Q_ASSERT(cCount > 0);
 
@@ -1084,9 +1084,9 @@ void QCanvasPainterPathPrivate::appendCommands(const QCCommand commands[], int c
 }
 
 // Append \a dCount amount of \a commands data.
-// Note: Compared to engine appendCommandsData, in QCanvasPainterPath
+// Note: Compared to engine appendCommandsData, in QCanvasPath
 // the commands are not transformed at this point.
-void QCanvasPainterPathPrivate::appendCommandsData(const float commandsData[], int dCount)
+void QCanvasPathPrivate::appendCommandsData(const float commandsData[], int dCount)
 {
     // There are always even amount of data as they are (x, y) points.
     Q_ASSERT(dCount % 2 == 0);
@@ -1099,7 +1099,7 @@ void QCanvasPainterPathPrivate::appendCommandsData(const float commandsData[], i
 
 // Makes sure there is space for at least \a addition
 // amount of new commands.
-void QCanvasPainterPathPrivate::ensureCommands(int addition)
+void QCanvasPathPrivate::ensureCommands(int addition)
 {
     auto &c = commands;
     if (commandsCount + addition > c.size()) {
@@ -1112,7 +1112,7 @@ void QCanvasPainterPathPrivate::ensureCommands(int addition)
 
 // Makes sure there is space for at least \a addition
 // amount of new commands data.
-void QCanvasPainterPathPrivate::ensureCommandsData(int addition)
+void QCanvasPathPrivate::ensureCommandsData(int addition)
 {
     auto &c = commandsData;
     if (commandsDataCount + addition > c.size()) {

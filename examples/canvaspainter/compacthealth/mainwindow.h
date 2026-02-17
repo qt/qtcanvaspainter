@@ -7,7 +7,7 @@
 #include "painterwindow.h"
 #include <QtCanvasPainter/QCanvasPainter>
 #include <QtCanvasPainter/QCanvasImage>
-#include <QtCanvasPainter/QCanvasPainterPath>
+#include <QtCanvasPainter/QCanvasPath>
 #include <QTimer>
 #include <QElapsedTimer>
 
@@ -79,7 +79,7 @@ private:
     float m_spo2 = 99.0f;
     // AirWay Respiratory Rate
     float m_awrr = 12.5;
-    QCanvasPainterPath m_tempBarsPath;
+    QCanvasPath m_tempBarsPath;
     QList<float> m_tempData;
     int m_tempDataCount = 64;
 

@@ -5,10 +5,10 @@
 #include <qdebug.h>
 #include <QTransform>
 
-#include "qcanvaspainterpath.h"
+#include "qcanvaspath.h"
 #include "qcanvaspainter.h"
 
-class tst_QCanvasPainterPath : public QObject
+class tst_QCanvasPath : public QObject
 {
     Q_OBJECT
 
@@ -20,23 +20,23 @@ private slots:
     void testSlicing();
 };
 
-void tst_QCanvasPainterPath::testConstructors()
+void tst_QCanvasPath::testConstructors()
 {
-    QCanvasPainterPath p1;
+    QCanvasPath p1;
     QVERIFY(p1.isEmpty());
     // Note: Currently there is no initial capasity.
     QCOMPARE(p1.commandsCapacity(), 0);
     QCOMPARE(p1.commandsDataCapacity(), 0);
-    QCanvasPainterPath p2(10);
+    QCanvasPath p2(10);
     QCOMPARE(p2.commandsCapacity(), 10);
     QCOMPARE(p2.commandsDataCapacity(), 20);
-    QCanvasPainterPath p3(10, 40);
+    QCanvasPath p3(10, 40);
     QCOMPARE(p3.commandsCapacity(), 10);
     QCOMPARE(p3.commandsDataCapacity(), 40);
-    QCanvasPainterPath p4(p3);
+    QCanvasPath p4(p3);
     QCOMPARE(p4.commandsCapacity(), 10);
     QCOMPARE(p4.commandsDataCapacity(), 40);
-    QCanvasPainterPath p5 = p4;
+    QCanvasPath p5 = p4;
     QCOMPARE(p5.commandsCapacity(), 10);
     QCOMPARE(p5.commandsDataCapacity(), 40);
 
@@ -48,10 +48,10 @@ void tst_QCanvasPainterPath::testConstructors()
     QCOMPARE(p5.commandsDataCapacity(), 51);
 }
 
-void tst_QCanvasPainterPath::testEqual()
+void tst_QCanvasPath::testEqual()
 {
-    QCanvasPainterPath p1;
-    QCanvasPainterPath p2;
+    QCanvasPath p1;
+    QCanvasPath p2;
     QCOMPARE(p1, p2);
     QCOMPARE(p1.isEmpty(), true);
 
@@ -76,29 +76,29 @@ void tst_QCanvasPainterPath::testEqual()
     QCOMPARE(p1, p2);
 }
 
-void tst_QCanvasPainterPath::testAppending()
+void tst_QCanvasPath::testAppending()
 {
     {
         // addPath, full
-        QCanvasPainterPath p1;
+        QCanvasPath p1;
         p1.moveTo(0, 100);
         p1.lineTo(50, 100);
         p1.lineTo(100, 50);
         p1.lineTo(150, 100);
         QCOMPARE(p1.commandsSize(), 4);
 
-        QCanvasPainterPath p2;
+        QCanvasPath p2;
         p2.addPath(p1);
         QCOMPARE(p1, p2);
         p2.addPath(p1);
         QCOMPARE(p2.commandsSize(), 8);
 
-        QCanvasPainterPath p3;
+        QCanvasPath p3;
         QTransform tIdentity;
         p3.addPath(p1, tIdentity);
         QCOMPARE(p1, p3);
 
-        QCanvasPainterPath p4;
+        QCanvasPath p4;
         QTransform t2;
         t2.rotate(20);
         p4.addPath(p1, t2);
@@ -107,58 +107,58 @@ void tst_QCanvasPainterPath::testAppending()
 
     {
         // addPath, parts
-        QCanvasPainterPath p2;
+        QCanvasPath p2;
         p2.moveTo(1, 1);
         p2.lineTo(2, 1);
         p2.lineTo(3, 1);
         p2.lineTo(4, 1);
-        QCanvasPainterPath p3;
+        QCanvasPath p3;
         p3.moveTo(1, 1);
         p3.lineTo(2, 1);
         p3.lineTo(3, 1);
         //p3.lineTo(4, 1); // Not adding this
-        QCanvasPainterPath p4;
+        QCanvasPath p4;
         //p4.moveTo(1, 1); // Not adding this
         p4.lineTo(2, 1);
         p4.lineTo(3, 1);
         //p4.lineTo(4, 1); // Not adding this
 
         QCOMPARE_NE(p2, p3);
-        QCanvasPainterPath p5;
+        QCanvasPath p5;
         p5.addPath(p2, 0, p2.commandsSize());
         QCOMPARE(p2, p5); // 1, 2, 3, 4
-        QCanvasPainterPath p6;
+        QCanvasPath p6;
         p6.addPath(p2, 0, p2.commandsSize() - 1);
         QCOMPARE(p3, p6); // 1, 2, 3
-        QCanvasPainterPath p7;
+        QCanvasPath p7;
         p7.addPath(p2, 1, 2);
         QCOMPARE(p4, p7); // 2, 3
     }
 }
 
-void tst_QCanvasPainterPath::testSlicing()
+void tst_QCanvasPath::testSlicing()
 {
-    QCanvasPainterPath p1;
+    QCanvasPath p1;
     p1.moveTo(1, 1);
     p1.lineTo(2, 1);
     p1.lineTo(3, 1);
     p1.lineTo(4, 1);
     QCOMPARE(p1.commandsSize(), 4);
     QCOMPARE(p1.commandsDataSize(), 8);
-    QCanvasPainterPath p2 = p1.sliced(0, p1.commandsSize());
+    QCanvasPath p2 = p1.sliced(0, p1.commandsSize());
     QCOMPARE(p2.commandsSize(), 4);
     QCOMPARE(p2.commandsDataSize(), 8);
     QCOMPARE(p1, p2);
-    QCanvasPainterPath p3 = p1.sliced(0, p1.commandsSize() - 1);
+    QCanvasPath p3 = p1.sliced(0, p1.commandsSize() - 1);
     QCOMPARE(p3.commandsSize(), 3);
     QCOMPARE(p3.commandsDataSize(), 6);
-    QCanvasPainterPath p4 = p1.sliced(1, p1.commandsSize() - 1);
+    QCanvasPath p4 = p1.sliced(1, p1.commandsSize() - 1);
     QCOMPARE(p4.commandsSize(), 3);
     QCOMPARE(p4.commandsDataSize(), 6);
-    QCanvasPainterPath p5 = p1.sliced(1, p1.commandsSize() - 2);
+    QCanvasPath p5 = p1.sliced(1, p1.commandsSize() - 2);
     QCOMPARE(p5.commandsSize(), 2);
     QCOMPARE(p5.commandsDataSize(), 4);
 }
 
-QTEST_MAIN(tst_QCanvasPainterPath)
+QTEST_MAIN(tst_QCanvasPath)
 #include <tst_qcpainterpath.moc>

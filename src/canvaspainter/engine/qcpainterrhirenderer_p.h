@@ -35,7 +35,7 @@ struct QCRHICall;
 struct QCRHICommonUniforms;
 struct QCRHICachedPath;
 struct QCRHICachedPathGroup;
-class QCanvasPainterPath;
+class QCanvasPath;
 
 struct QCRHITexture
 {
@@ -129,12 +129,12 @@ public:
     void renderFill(const QCPaint &paint, const QCState &state,
                     const QRectF &bounds,
                     const QCPaths &paths, int pathsCount,
-                    QCanvasPainterPath *painterPath, int pathGroup,
+                    QCanvasPath *painterPath, int pathGroup,
                     const QTransform &pathTransform);
     void renderStroke(const QCPaint &paint, const QCState &state,
                       float strokeWidth,
                       const QCPaths &paths, int pathsCount,
-                      QCanvasPainterPath *painterPath, int pathGroup,
+                      QCanvasPath *painterPath, int pathGroup,
                       const QTransform &pathTransform);
 #ifndef QCPAINTER_DISABLE_TEXT_SUPPORT
     void renderTextFill(
@@ -159,7 +159,7 @@ public:
 #endif
     void renderDelete();
 
-    bool isPathCached(QCanvasPainterPath *path, int pathGroup) const;
+    bool isPathCached(QCanvasPath *path, int pathGroup) const;
     void removePathGroup(int pathGroup);
 
     static void textureFormatInfo(QRhiTexture::Format format, QSize size,

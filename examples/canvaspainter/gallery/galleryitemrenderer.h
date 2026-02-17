@@ -10,7 +10,7 @@
 #include <QtCanvasPainter/qcanvasradialgradient.h>
 #include <QtCanvasPainter/qcanvascustombrush.h>
 #include <QtCanvasPainter/qcanvasimage.h>
-#include <QtCanvasPainter/qcanvaspainterpath.h>
+#include <QtCanvasPainter/qcanvaspath.h>
 
 #include <QQuickItem>
 
@@ -103,12 +103,12 @@ private:
     QCanvasCustomBrush m_customBrush2;
     QCanvasCustomBrush m_customBrush3;
     QCanvasCustomBrush m_customBrush4;
-    QCanvasPainterPath m_path1;
-    QCanvasPainterPath m_path2;
-    QCanvasPainterPath m_path3;
-    QCanvasPainterPath m_path4;
-    QCanvasPainterPath m_pathGraphLine;
-    QCanvasPainterPath m_pathGraphArea;
+    QCanvasPath m_path1;
+    QCanvasPath m_path2;
+    QCanvasPath m_path3;
+    QCanvasPath m_path4;
+    QCanvasPath m_pathGraphLine;
+    QCanvasPath m_pathGraphArea;
 };
 
 #endif // GALLERYITEMRENDERER_H

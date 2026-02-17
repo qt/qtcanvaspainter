@@ -24,7 +24,7 @@
 #include <QtCore/qrect.h>
 #include <QtCore/qlist.h>
 #include "qcanvaspainter.h"
-#include "qcanvaspainterpath.h"
+#include "qcanvaspath.h"
 #include "qcpainterengineutils_p.h"
 
 QT_BEGIN_NAMESPACE
@@ -111,14 +111,14 @@ public:
     void addEllipse(float x, float y, float radiusX, float radiusY);
     void addCircle(float x, float y, float radius);
     void addPath(const QPainterPath &path);
-    void addPath(const QCanvasPainterPath &path, const QTransform &transform = QTransform());
-    void addPath(const QCanvasPainterPath &path, qsizetype start, qsizetype count, const QTransform &transform = QTransform());
+    void addPath(const QCanvasPath &path, const QTransform &transform = QTransform());
+    void addPath(const QCanvasPath &path, qsizetype start, qsizetype count, const QTransform &transform = QTransform());
     void setPathWinding(QCanvasPainter::PathWinding winding);
     void fill();
     void fillForClear();
     void stroke();
-    void fill(const QCanvasPainterPath &path, int pathGroup);
-    void stroke(const QCanvasPainterPath &path, int pathGroup);
+    void fill(const QCanvasPath &path, int pathGroup);
+    void stroke(const QCanvasPath &path, int pathGroup);
 
     // Blending
     void setGlobalCompositeOperation(QCanvasPainter::CompositeOperation op);
@@ -194,16 +194,16 @@ private:
                         float u0, float u1);
     inline void addVert(float x, float y, float u, float v) noexcept;
     void ensureVertices(int count);
-    void preparePainterPath(const QCanvasPainterPath &path,
+    void preparePainterPath(const QCanvasPath &path,
                             const QTransform &transform = QTransform());
-    void appendPainterPath(const QCanvasPainterPath &path,
+    void appendPainterPath(const QCanvasPath &path,
                            const QTransform &transform = QTransform());
-    void appendPainterPath(const QCanvasPainterPath &path,
+    void appendPainterPath(const QCanvasPath &path,
                            qsizetype start,
                            qsizetype count,
                            const QTransform &transform = QTransform());
-    bool fillPathUpdateRequired(QCanvasPainterPath *path, int pathGroup);
-    bool strokePathUpdateRequired(QCanvasPainterPath *path, int pathGroup);
+    bool fillPathUpdateRequired(QCanvasPath *path, int pathGroup);
+    bool strokePathUpdateRequired(QCanvasPath *path, int pathGroup);
     QCanvasPainter::TextAlign effectiveTextAlign(QStringView text) const;
 
     QCPaint getFillPaint(bool ignoreTransform = false);

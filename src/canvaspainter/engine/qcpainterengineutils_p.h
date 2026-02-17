@@ -162,7 +162,7 @@ struct QCPoint {
 };
 typedef QVarLengthArray<QCPoint> QCPoints;
 
-// Variables to determine if the QCanvasPainterPath or related state
+// Variables to determine if the QCanvasPath or related state
 // has changed so that paths, points & vertices need to be recreated.
 struct QCCachedPath
 {
@@ -185,16 +185,16 @@ struct QCContext {
     // Currently active path, so paths[pathsCount - 1]
     QCPath *currentPath = nullptr;
     // Currently rendered painter path
-    QCanvasPainterPath *currentPainterPath = nullptr;
+    QCanvasPath *currentPainterPath = nullptr;
     int currentPathGroup = -1;
     QTransform currentPathTransform;
     // Currently prepared painter path.
     // Means that current commands & commandsData are from this path.
-    const QCanvasPainterPath *preparedPainterPath = nullptr;
+    const QCanvasPath *preparedPainterPath = nullptr;
     // Transform which was used for preparedPainterPath
     QTransform preparedTransform;
-    QHash<const QCanvasPainterPath*, QCCachedPath> cachedFillPaths;
-    QHash<const QCanvasPainterPath*, QCCachedPath> cachedStrokePaths;
+    QHash<const QCanvasPath*, QCCachedPath> cachedFillPaths;
+    QHash<const QCanvasPath*, QCCachedPath> cachedStrokePaths;
     QList<QCState> states;
     QRectF view;
     QRectF bounds;
