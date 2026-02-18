@@ -25,7 +25,7 @@ struct QCanvasGradientStop
 private:
     friend constexpr bool comparesEqual(const QCanvasGradientStop &lhs, const QCanvasGradientStop &rhs) noexcept
     {
-        return qFuzzyCompare(lhs.position, rhs.position) && lhs.color == rhs.color;
+        return qFuzzyCompare(1 + lhs.position, 1 + rhs.position) && lhs.color == rhs.color;
     }
     Q_DECLARE_EQUALITY_COMPARABLE_LITERAL_TYPE(QCanvasGradientStop)
 
