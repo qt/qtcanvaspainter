@@ -31,7 +31,7 @@ public:
     Q_CANVASPAINTER_EXPORT QCanvasOffscreenCanvas();
     Q_CANVASPAINTER_EXPORT QCanvasOffscreenCanvas(const QCanvasOffscreenCanvas &canvas);
     Q_CANVASPAINTER_EXPORT ~QCanvasOffscreenCanvas();
-    Q_CANVASPAINTER_EXPORT QCanvasOffscreenCanvas &operator=(const QCanvasOffscreenCanvas &canvas) noexcept;
+    Q_CANVASPAINTER_EXPORT QCanvasOffscreenCanvas &operator=(const QCanvasOffscreenCanvas &canvas);
     QCanvasOffscreenCanvas(QCanvasOffscreenCanvas &&other) = default;
     QT_MOVE_ASSIGNMENT_OPERATOR_IMPL_VIA_PURE_SWAP(QCanvasOffscreenCanvas)
     void swap(QCanvasOffscreenCanvas &other) noexcept { d.swap(other.d); }

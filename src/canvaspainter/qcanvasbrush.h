@@ -34,7 +34,7 @@ public:
     Q_CANVASPAINTER_EXPORT QCanvasBrush(const QCanvasBrush &brush);
     Q_CANVASPAINTER_EXPORT ~QCanvasBrush();
 
-    Q_CANVASPAINTER_EXPORT QCanvasBrush &operator=(const QCanvasBrush &brush) noexcept;
+    Q_CANVASPAINTER_EXPORT QCanvasBrush &operator=(const QCanvasBrush &brush);
     QCanvasBrush(QCanvasBrush &&other) = default;
     QT_MOVE_ASSIGNMENT_OPERATOR_IMPL_VIA_PURE_SWAP(QCanvasBrush)
     void swap(QCanvasBrush &other) noexcept { baseData.swap(other.baseData); }

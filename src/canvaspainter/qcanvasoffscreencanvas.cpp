@@ -96,7 +96,7 @@ QT_DEFINE_QESDP_SPECIALIZATION_DTOR(QCanvasOffscreenCanvasPrivate)
     \note The underlying resources, the graphics resources such as the
     QRhiTexture, are never copied or duplicated.
 */
-QCanvasOffscreenCanvas &QCanvasOffscreenCanvas::operator=(const QCanvasOffscreenCanvas &canvas) noexcept
+QCanvasOffscreenCanvas &QCanvasOffscreenCanvas::operator=(const QCanvasOffscreenCanvas &canvas)
 {
     QCanvasOffscreenCanvas(canvas).swap(*this);
     return *this;
