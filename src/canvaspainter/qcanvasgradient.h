@@ -22,11 +22,19 @@ struct QCanvasGradientStop
     float position;
     QColor color;
 
+private:
     friend constexpr bool comparesEqual(const QCanvasGradientStop &lhs, const QCanvasGradientStop &rhs) noexcept
     {
         return qFuzzyCompare(lhs.position, rhs.position) && lhs.color == rhs.color;
     }
     Q_DECLARE_EQUALITY_COMPARABLE_LITERAL_TYPE(QCanvasGradientStop)
+
+#ifndef QT_NO_DATASTREAM
+    friend Q_CANVASPAINTER_EXPORT QDataStream &operator<<(QDataStream &, const QCanvasGradientStop &);
+    friend Q_CANVASPAINTER_EXPORT QDataStream &operator>>(QDataStream &, QCanvasGradientStop &);
+    friend Q_CANVASPAINTER_EXPORT QDataStream &operator<<(QDataStream &, const QCanvasGradient &);
+    friend Q_CANVASPAINTER_EXPORT QDataStream &operator>>(QDataStream &, QCanvasGradient &);
+#endif
 };
 
 typedef QList<QCanvasGradientStop> QCanvasGradientStops;
