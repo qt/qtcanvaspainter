@@ -45,7 +45,7 @@ QCanvasBrush::~QCanvasBrush() = default;
     this brush.
 */
 
-QCanvasBrush &QCanvasBrush::operator=(const QCanvasBrush &brush) noexcept
+QCanvasBrush &QCanvasBrush::operator=(const QCanvasBrush &brush)
 {
     QCanvasBrush(brush).swap(*this);
     return *this;

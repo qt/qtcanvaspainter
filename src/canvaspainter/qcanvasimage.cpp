@@ -93,7 +93,7 @@ QT_DEFINE_QESDP_SPECIALIZATION_DTOR(QCanvasImagePrivate)
     this image.
 */
 
-QCanvasImage &QCanvasImage::operator=(const QCanvasImage &image) noexcept
+QCanvasImage &QCanvasImage::operator=(const QCanvasImage &image)
 {
     QCanvasImage(image).swap(*this);
     return *this;

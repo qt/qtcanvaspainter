@@ -158,7 +158,7 @@ QCanvasPath::~QCanvasPath(){
     this path.
 */
 
-QCanvasPath &QCanvasPath::operator=(const QCanvasPath &path) noexcept
+QCanvasPath &QCanvasPath::operator=(const QCanvasPath &path)
 {
     QCanvasPath(path).swap(*this);
     return *this;

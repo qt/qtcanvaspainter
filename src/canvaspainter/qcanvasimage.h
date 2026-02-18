@@ -26,7 +26,7 @@ public:
     Q_CANVASPAINTER_EXPORT QCanvasImage(const QCanvasImage &image);
     Q_CANVASPAINTER_EXPORT ~QCanvasImage();
 
-    Q_CANVASPAINTER_EXPORT QCanvasImage &operator=(const QCanvasImage &image) noexcept;
+    Q_CANVASPAINTER_EXPORT QCanvasImage &operator=(const QCanvasImage &image);
     QCanvasImage(QCanvasImage &&other) = default;
     QT_MOVE_ASSIGNMENT_OPERATOR_IMPL_VIA_PURE_SWAP(QCanvasImage)
     void swap(QCanvasImage &other) noexcept { d.swap(other.d); }
