@@ -20,11 +20,6 @@ QT_BEGIN_NAMESPACE
 class QCanvasImagePatternPrivate;
 class QCanvasImagePattern;
 
-#ifndef QT_NO_DATASTREAM
-Q_CANVASPAINTER_EXPORT QDataStream &operator<<(QDataStream &, const QCanvasImagePattern &);
-Q_CANVASPAINTER_EXPORT QDataStream &operator>>(QDataStream &, QCanvasImagePattern &);
-#endif
-
 class QCanvasImagePattern : public QCanvasBrush
 {
 public:
@@ -54,10 +49,19 @@ private:
     Q_DECLARE_EQUALITY_COMPARABLE(QCanvasImagePattern)
 
     friend class QCanvasImagePatternPrivate;
+#ifndef QT_NO_DATASTREAM
+    friend Q_CANVASPAINTER_EXPORT QDataStream &operator<<(QDataStream &, const QCanvasImagePattern &);
+    friend Q_CANVASPAINTER_EXPORT QDataStream &operator>>(QDataStream &, QCanvasImagePattern &);
+#endif
 #ifndef QT_NO_DEBUG_STREAM
     friend Q_CANVASPAINTER_EXPORT QDebug operator<<(QDebug, const QCanvasImagePattern &);
 #endif
 };
+
+#ifndef QT_NO_DATASTREAM
+Q_CANVASPAINTER_EXPORT QDataStream &operator<<(QDataStream &, const QCanvasImagePattern &);
+Q_CANVASPAINTER_EXPORT QDataStream &operator>>(QDataStream &, QCanvasImagePattern &);
+#endif
 
 #ifndef QT_NO_DEBUG_STREAM
 Q_CANVASPAINTER_EXPORT QDebug operator<<(QDebug, const QCanvasImagePattern &);
