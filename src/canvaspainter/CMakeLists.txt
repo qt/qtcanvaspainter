@@ -54,12 +54,20 @@ qt_internal_extend_target(CanvasPainter CONDITION TARGET Qt::Quick
         qcanvaspainteritemrenderer.cpp qcanvaspainteritemrenderer.h qcanvaspainteritemrenderer_p.h
     LIBRARIES
         Qt::QuickPrivate
+    PUBLIC_LIBRARIES
+        Qt::Quick
+    PRIVATE_MODULE_INTERFACE
+        Qt::QuickPrivate
 )
 
 qt_internal_extend_target(CanvasPainter CONDITION TARGET Qt::Widgets
     SOURCES
         qcanvaspainterwidget.cpp qcanvaspainterwidget.h qcanvaspainterwidget_p.h
     LIBRARIES
+        Qt::WidgetsPrivate
+    PUBLIC_LIBRARIES
+        Qt::Widgets
+    PRIVATE_MODULE_INTERFACE
         Qt::WidgetsPrivate
 )
 
