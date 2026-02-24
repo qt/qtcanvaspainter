@@ -46,6 +46,9 @@ qt_internal_add_module(CanvasPainter
         Qt::Gui
     PRIVATE_MODULE_INTERFACE
         Qt::GuiPrivate
+    QT_LICENSE_ID QT_COMMERCIAL_OR_GPL3
+    ATTRIBUTION_FILE_DIR_PATHS
+        engine
 )
 
 qt_internal_extend_target(CanvasPainter CONDITION TARGET Qt::Quick
