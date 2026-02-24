@@ -125,6 +125,8 @@ public:
     void stroke(QCanvasPath *maybePath = nullptr, int pathGroup = -1, bool cachedPathUpdateRequired = false);
     void fill(const QCanvasPath &path, QCanvasPainter::FillRule fillRule, int pathGroup);
     void stroke(const QCanvasPath &path, int pathGroup);
+    void setStencilClip(const QList<QRectF> &rects);
+    void setStencilClip(const QVectorPath &clipPath);
 
     // Blending
     void setGlobalCompositeOperation(QCanvasPainter::CompositeOperation op);

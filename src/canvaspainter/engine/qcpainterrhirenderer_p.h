@@ -142,6 +142,9 @@ public:
     bool renderDeleteTexture(int image);
     bool renderUpdateTexture(int image, int x, int y, int w, int h, const uchar* data);
     void setViewport(float x, float y, float width, float height);
+    void renderStencil(const QCState &state, const QList<QRectF> &rects);
+    void renderStencil(const QCState &state, const QVectorPath &clipPath);
+    void clearStencil(const QCState &state);
     void renderFill(const QCPaint &paint, const QCState &state,
                     const QRectF &bounds,
                     std::optional<QCRhiUncachedPathDrawArgs> uncachedPathInfo,

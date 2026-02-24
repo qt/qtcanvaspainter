@@ -24,6 +24,7 @@ class QCanvasPath;
 class QCanvasBoxShadow;
 class QRhiTexture;
 class QCanvasPainterPrivate;
+class QVectorPath;
 
 class QCanvasPainter
 {
@@ -194,6 +195,8 @@ public:
     Q_CANVASPAINTER_EXPORT void fill(const QCanvasPath &path, int pathGroup = -1);
     Q_CANVASPAINTER_EXPORT void fill(const QCanvasPath &path, FillRule fillRule, int pathGroup = -1);
     Q_CANVASPAINTER_EXPORT void stroke(const QCanvasPath &path, int pathGroup = -1);
+    Q_CANVASPAINTER_EXPORT void setStencilClip(const QList<QRectF> &rects);
+    Q_CANVASPAINTER_EXPORT void setStencilClip(const QVectorPath &clipPath);
 
     // *** Direct drawing ***
 

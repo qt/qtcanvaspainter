@@ -21,6 +21,7 @@
 #include <string.h>
 
 #include <QFile>
+#include <QtGui/private/qvectorpath_p.h>
 #include <rhi/qrhi.h>
 
 QT_BEGIN_NAMESPACE
@@ -79,7 +80,9 @@ enum QCRHICallType {
     CallFill,
     CallConvexFill,
     CallStroke,
-    CallText,
+    CallText, // This call and all below do not use paths
+    CallStencilClip,
+    CallClearStencil,
 };
 
 struct QCRHIBlend
@@ -111,10 +114,12 @@ struct QCRHICall {
     QRhiGraphicsPipeline *ps[4];
     QShader customFragShader;
     QShader customVertShader;
-    bool textTriangleOffsetBakedInToIndices;
-    QCanvasPainter::FillRule fillRule;
     quint64 pathGroupEntryId;
     int pathGroup;
+    QCanvasPainter::FillRule fillRule;
+    quint8 stencilRef;
+    uint simplePathFill : 1;
+    uint textTriangleOffsetBakedInToIndices : 1;
 };
 
 struct QCRHIPath {
@@ -495,6 +500,7 @@ struct QCRHIContext
     // Text
     uint32_t textVertexOffset = 0;
     uint32_t textIndexOffset = 0;
+    bool stencilRefSet = false;
 };
 
 QRhiGraphicsPipeline *QCPainterRhiRenderer::pipeline(const QCRHIPipelineStateKey &key,
@@ -1109,7 +1115,7 @@ QCanvasCustomBrushPrivate::CommonUniforms *QCPainterRhiRenderer::customUniformPt
     return (QCanvasCustomBrushPrivate::CommonUniforms*)&rhiCtx->commonUniforms[i];
 }
 
-static constexpr void setVert(QCVertex *vtx, float x, float y, float u, float v) noexcept
+static constexpr void setVert(QCVertex *vtx, float x, float y, float u = 0.5f, float v = 1.0f) noexcept
 {
     vtx->x = x;
     vtx->y = y;
@@ -1375,6 +1381,189 @@ void QCPainterRhiRenderer::transferPathsFromCachedPathGroup(QCRHICall *call, int
         // buffer (in endPrepare()).
         rhiCtx->paths[call->pathOffset + i] = paths[i];
     }
+}
+
+// TODO: Possibly use index buffer so we have 4 verts per quad?
+// (triangle strip doesn't gain us much for arbitrary rectangles)
+void QCPainterRhiRenderer::renderStencil(const QCState &state, const QList<QRectF> &rects)
+{
+    QCRHICall *call = allocCall();
+
+    call->type = CallStencilClip;
+    call->simplePathFill = true;
+    call->renderFlags = rhiCtx->flags;
+    call->triangleCount = 6 * rects.size();
+    const QRectF clipRect = state.clip.rect;
+    call->scissor.setScissor(clipRect.x(), clipRect.y(), clipRect.width(), clipRect.height());
+
+    int vertsCount = call->triangleCount + 6; // Add one rect for full-screen, in case of intersect
+    int vertOffset = allocVerts(vertsCount);
+    call->triangleOffset = vertOffset;
+    QCVertex* quad = &rhiCtx->verts[call->triangleOffset];
+
+    int i = 0;
+
+    auto addVert = [&quad, &i, &state](const QPointF &p){
+        const auto t = state.transform.map(p);
+        setVert(&quad[i++], t.x(), t.y());
+    };
+
+    for (const auto &rect : rects) {
+        addVert(rect.topLeft());
+        addVert(rect.bottomLeft());
+        addVert(rect.topRight());
+        addVert(rect.bottomRight());
+        addVert(rect.topRight());
+        addVert(rect.bottomLeft());
+    }
+
+    QRectF viewRect{rhiCtx->viewRect[0], rhiCtx->viewRect[1], rhiCtx->viewRect[2], rhiCtx->viewRect[3]};
+    const auto &rect = viewRect;
+
+    setVert(&quad[i + 0], rect.x(), rect.y());
+    setVert(&quad[i + 1], rect.x(), rect.bottom());
+    setVert(&quad[i + 2], rect.right(), rect.y());
+    setVert(&quad[i + 3], rect.right(), rect.bottom());
+    setVert(&quad[i + 4], rect.right(), rect.y());
+    setVert(&quad[i + 5], rect.x(), rect.bottom());
+
+    call->commonUniformBufferOffset = allocCommonUniforms(2);
+    QCRHICommonUniforms* frag = uniformPtr(call->commonUniformBufferOffset);
+    memset((void*)frag, 0, sizeof(*frag));
+    frag->strokeThr = -1.0f;
+    frag->type = ShaderStencilFill;
+}
+
+void QCPainterRhiRenderer::renderStencil(const QCState &state, const QVectorPath &path)
+{
+    QCRHICall *call = allocCall();
+    call->type = CallStencilClip;
+    call->renderFlags = rhiCtx->flags;
+    call->fillRule = path.hasWindingFill() ? QCanvasPainter::FillRule::NonZero : QCanvasPainter::FillRule::EvenOdd;
+
+    // Get path data
+    const qreal *points = path.points();
+    const QPainterPath::ElementType *elements = path.elements();
+    int elementCount = path.elementCount();
+
+    // Count triangles by analyzing subpaths
+    int totalTriangles = 0;
+    int currentSubpathStart = 0;
+
+    if (elements) {
+        for (int j = 0; j < elementCount; ++j) {
+            if (elements[j] == QPainterPath::MoveToElement && j > 0) {
+                // End of previous subpath
+                int subpathLength = j - currentSubpathStart;
+                if (subpathLength >= 3) {
+                    totalTriangles += (subpathLength - 2);
+                }
+                currentSubpathStart = j;
+            }
+        }
+        // Handle last subpath
+        int lastSubpathLength = elementCount - currentSubpathStart;
+        if (lastSubpathLength >= 3) {
+            totalTriangles += (lastSubpathLength - 2);
+        }
+    } else {
+        // Without elements, the first point is a MoveTo and all the rest are LineTo
+        totalTriangles = elementCount - 2;
+    }
+
+    call->triangleCount = totalTriangles * 3; //triangleCount is actually count of triangle vertices
+
+    const QRectF clipRect = state.clip.rect;
+    call->scissor.setScissor(clipRect.x(), clipRect.y(), clipRect.width(), clipRect.height());
+
+    int vertsCount = call->triangleCount + 6; // Add one rect for full-screen, in case of intersect
+    int vertOffset = allocVerts(vertsCount);
+    call->triangleOffset = vertOffset;
+    QCVertex* quad = &rhiCtx->verts[call->triangleOffset];
+    int i = 0;
+
+    auto addVert = [&quad, &i, &state](const QPointF &p){
+        const auto t = state.transform.map(p);
+        setVert(&quad[i++], t.x(), t.y());
+    };
+
+    // Triangulate each subpath using fan triangulation
+    currentSubpathStart = 0;
+    for (int j = 1; j <= elementCount; ++j) {
+        if (j == elementCount || (elements && elements[j] == QPainterPath::MoveToElement)) {
+            // Triangulate subpath from currentSubpathStart to j
+            int subpathLength = j - currentSubpathStart;
+            if (subpathLength >= 3) {
+                QPointF first(points[currentSubpathStart * 2], points[currentSubpathStart * 2 + 1]);
+                for (int k = 1; k < subpathLength - 1; ++k) {
+                    addVert(first);
+                    addVert(QPointF(points[(currentSubpathStart + k) * 2],
+                                    points[(currentSubpathStart + k) * 2 + 1]));
+                    addVert(QPointF(points[(currentSubpathStart + k + 1) * 2],
+                                    points[(currentSubpathStart + k + 1) * 2 + 1]));
+                }
+            }
+            currentSubpathStart = j;
+        }
+    }
+
+    // Add full-screen rect for intersect (not counted in call->triangleCount)
+    QRectF viewRect{rhiCtx->viewRect[0], rhiCtx->viewRect[1],
+                     rhiCtx->viewRect[2], rhiCtx->viewRect[3]};
+    const auto &rect = viewRect;
+    setVert(&quad[i + 0], rect.x(), rect.y());
+    setVert(&quad[i + 1], rect.x(), rect.bottom());
+    setVert(&quad[i + 2], rect.right(), rect.y());
+    setVert(&quad[i + 3], rect.right(), rect.bottom());
+    setVert(&quad[i + 4], rect.right(), rect.y());
+    setVert(&quad[i + 5], rect.x(), rect.bottom());
+
+    call->commonUniformBufferOffset = allocCommonUniforms(2);
+    QCRHICommonUniforms* frag = uniformPtr(call->commonUniformBufferOffset);
+    memset((void*)frag, 0, sizeof(*frag));
+    frag->strokeThr = -1.0f;
+    frag->type = ShaderStencilFill;
+}
+
+void QCPainterRhiRenderer::clearStencil(const QCState &state)
+{
+    // TODO: use the new RHI API to do this more efficiently, where supported
+    // and isFeatureSupported FALSE on Metal
+    // Alternatively, keep track of the outer bounds of all the clipping we've done
+
+    // emulate clear by rendering quad
+    // if (!isFeatureSupported(QRhi::ClearStencil)) {
+    QRectF viewRect{rhiCtx->viewRect[0], rhiCtx->viewRect[1], rhiCtx->viewRect[2], rhiCtx->viewRect[3]};
+
+
+    QCRHICall *call = allocCall();
+
+    call->type = CallClearStencil;
+    call->renderFlags = rhiCtx->flags;
+    call->triangleCount = 6;
+
+    const QRectF clipRect = state.clip.rect;
+    call->scissor.setScissor(clipRect.x(), clipRect.y(), clipRect.width(), clipRect.height());
+
+    int vertsCount = call->triangleCount;
+    int vertOffset = allocVerts(vertsCount);
+    call->triangleOffset = vertOffset;
+    QCVertex* quad = &rhiCtx->verts[call->triangleOffset];
+
+    const auto &rect = viewRect;
+
+    setVert(&quad[0], rect.x(), rect.y());
+    setVert(&quad[1], rect.x(), rect.bottom());
+    setVert(&quad[2], rect.right(), rect.y());
+    setVert(&quad[3], rect.right(), rect.bottom());
+    setVert(&quad[4], rect.right(), rect.y());
+    setVert(&quad[5], rect.x(), rect.bottom());
+
+    call->commonUniformBufferOffset = allocCommonUniforms(2);
+    QCRHICommonUniforms* frag = uniformPtr(call->commonUniformBufferOffset);
+    memset((void*)frag, 0, sizeof(*frag));
+    frag->strokeThr = -1.0f;
+    frag->type = ShaderStencilFill;
 }
 
 void QCPainterRhiRenderer::renderFill(const QCPaint &paint, const QCState &state,
@@ -1824,6 +2013,70 @@ void QCPainterRhiRenderer::beginPrepare(QRhiCommandBuffer *cb,
     resetForPass();
 }
 
+/*
+    Sets up pipelines for the calls. Complex rendering requires multiple pipelines per call.
+
+    Non-convex antialiased fills use the stencil buffer to make sure that each pixel is only
+    touched once. This requires care when also using the stencil buffer for clipping.
+    In that case, stencil clipping is using the high bit (0x80). The lower 7 bits are used for
+    the winding fill algorithm.
+    Step 1: Drawing shapes into the stencil buffer.
+        The read mask and the stencil reference value are both set to 0x80, so that only
+        pixels inside the clip region are changed. The write mask is set to 0x7F. This
+        makes the winding algoritm work, incrementing the stencil value for normal path
+        segments, and decrementing for "holes" in the shape.
+    Step 2: Draw anti-aliased pixels
+        These are drawn outside of the shape filled by the winding algorithm, which would
+        mean stencil value 0 if we didn't have stencil clipping. That translates to a
+        stencil value of exactly 0x80 in this case, which is handled by setting the
+        stencil reference to 0x80.
+    Step 3: Fill the interior and reset the stencil buffer
+        In the non-clipping case, this is done by rendering a quad that simultaneously
+        fills the color buffer where the stencil is non-zero, and clears the stencil buffer.
+        In the stencil clipping case, this does seem difficult at first, since this means we
+        need to fill where the stencil is any value except 0x00 or 0x80, and at the same time
+        we have to set the stencil buffer to 0x80 where the stencil buffer is not equal to 0x00.
+        The stencil operations only support comparisons with one reference value, and we can
+        only write zero or the reference value to the stencil buffer.
+        Fortunately, we know that step one only changed stencil buffer pixels that were inside
+        the clip region. This means that we can fulfil all the requirements by setting the read
+        and write masks to 0x7F, since any stencil pixel where (value & 0x7F) is non-zero will
+        always have the 0x80 bit set.
+
+    CallStroke with StencilStrokes (i.e. RenderHint::HighQualityStroking) set also uses the
+    stencil buffer:
+    (Step 1 is used for non-high-quality stroking.)
+    Step 2: Fill the interior of the stroke, and increment the stencil value
+        When clipping, only where 0x80 bit is set, and only write to 0x7F
+    Step 3: Draw the anti-aliased edges where stencil is not incremented
+        When clipping, compare to 0x80
+    Step 4: Reset the stencil buffer
+        When clipping, only lowest 7 bits
+
+    CallStencilClip does:
+    - If stencil clipping is not active and simplePathFill is true (because we're rendering a QRegion)
+      Step 1: set the stencil to 0x80. (ref 0x80)
+    - If stencil clipping is active and simplePathFill is true, intersect by
+      Step 1: Increment the stencil buffer if it is equal to 0x80 (ref 0x80)
+      Step 2: Draw a full-screen quad that changes 0x80 to 0x00, and 0x81 to 0x80 (ref 0x80)
+    - If FillMode is Winding and stencil clipping is not active
+      Step 1: Render path with front-facing increment and back-facing decrement
+      Step 2: Draw a full-screen quad that changes non-zero to 0x80 (ref 0x80, read mask 0x7F)
+    - If FillMode is Winding and stencil clipping is active
+      Step 1: Render path with front-facing increment and back-facing decrement
+         only where high bit already set. This means read mask 0x80 and write mask 0x7F,
+         and reference 0x80
+      Step 2: Draw a full-screen quad that changes 0x80 to zero and anything above 0x80 to 0x80
+    - If FillMode is EvenOdd and stencil clipping is not active
+      Step 1: render path changing 0x00 to 0x80 and 0x00 to 0x80, i.e. read/write mask 0x80 and
+         stencil op invert.
+    - If FillMode is EvenOdd and stencil clipping is active
+      Step 1: render path changing 0x80 to 0xC0 and 0xC0 to 0x80, i.e. reference 0x80, read mask
+         0x80, write 0x40, and stencil op invert
+      Step 2: Draw a full-screen quad that changes 0x80 to zero and 0xC0 to 0x80 (i.e. greater
+         than 0x80 -> 0x80)
+*/
+
 void QCPainterRhiRenderer::endPrepare()
 {
     rhiCtx->cb->debugMarkBegin("QCanvasPainter prep"_ba);
@@ -2049,6 +2302,7 @@ void QCPainterRhiRenderer::endPrepare()
         // per-call, test them in calls loop.
         basePs.renderFlags = rhiCtx->flags;
         basePs.sampleCount = rhiCtx->rt->sampleCount();
+        bool stencilClipActive = false;
         for (int i = 0; i < rhiCtx->callsCount; i++) {
 
             QCRHICall *call = &rhiCtx->calls[i];
@@ -2093,20 +2347,41 @@ void QCPainterRhiRenderer::endPrepare()
                 // 1. Draw shapes
                 QCRHIPipelineState ps = basePs;
                 ps.stencilTestEnable = true;
-                ps.stencilWriteMask = 0xFF;
-                ps.stencilReadMask = 0xFF;
-                ps.stencilFront = {
-                    QRhiGraphicsPipeline::Keep,
-                    QRhiGraphicsPipeline::Keep,
-                    winding ? QRhiGraphicsPipeline::IncrementAndWrap : QRhiGraphicsPipeline::Invert,
-                    QRhiGraphicsPipeline::Always
-                };
-                ps.stencilBack = {
-                    QRhiGraphicsPipeline::Keep,
-                    QRhiGraphicsPipeline::Keep,
-                    winding ? QRhiGraphicsPipeline::DecrementAndWrap : QRhiGraphicsPipeline::Invert,
-                    QRhiGraphicsPipeline::Always
-                };
+
+                if (stencilClipActive) {
+                    ps.stencilWriteMask = 0x7F;
+                    ps.stencilReadMask = 0x80;
+                    ps.usesStencilRef = true;
+                    ps.stencilFront = {
+                        QRhiGraphicsPipeline::Keep,
+                        QRhiGraphicsPipeline::Keep,
+                        winding ? QRhiGraphicsPipeline::IncrementAndWrap : QRhiGraphicsPipeline::Invert,
+                        QRhiGraphicsPipeline::Equal
+                    };
+                    ps.stencilBack = {
+                        QRhiGraphicsPipeline::Keep,
+                        QRhiGraphicsPipeline::Keep,
+                        winding ? QRhiGraphicsPipeline::DecrementAndWrap : QRhiGraphicsPipeline::Invert,
+                        QRhiGraphicsPipeline::Equal
+                    };
+                    call->stencilRef = 0x80;
+                } else {
+                    ps.stencilWriteMask = 0xFF;
+                    ps.stencilReadMask = 0xFF;
+                    ps.stencilFront = {
+                        QRhiGraphicsPipeline::Keep,
+                        QRhiGraphicsPipeline::Keep,
+                        winding ? QRhiGraphicsPipeline::IncrementAndWrap : QRhiGraphicsPipeline::Invert,
+                        QRhiGraphicsPipeline::Always
+                    };
+                    ps.stencilBack = {
+                        QRhiGraphicsPipeline::Keep,
+                        QRhiGraphicsPipeline::Keep,
+                        winding ? QRhiGraphicsPipeline::DecrementAndWrap : QRhiGraphicsPipeline::Invert,
+                        QRhiGraphicsPipeline::Always
+                    };
+                }
+
                 ps.cullMode = QRhiGraphicsPipeline::None;
                 ps.targetBlend.colorWrite = {};
 
@@ -2115,6 +2390,10 @@ void QCPainterRhiRenderer::endPrepare()
                 // 2. Draw anti-aliased pixels
                 ps.cullMode = QRhiGraphicsPipeline::Back;
                 ps.targetBlend.colorWrite = QRhiGraphicsPipeline::ColorMask(0xF);
+                ps.stencilWriteMask = 0xFF;
+                ps.stencilReadMask = 0xFF;
+                if (stencilClipActive)
+                    ps.usesStencilRef = true;
                 ps.stencilFront = {
                     QRhiGraphicsPipeline::Keep,
                     QRhiGraphicsPipeline::Keep,
@@ -2127,6 +2406,11 @@ void QCPainterRhiRenderer::endPrepare()
                 call->ps[1] = pipeline(QCRHIPipelineStateKey::create(ps, rpDesc, srbForLayout), rpDesc, srbForLayout);
 
                 // 3. Draw fill
+                if (stencilClipActive) {
+                    ps.stencilReadMask = 0x7F;
+                    ps.stencilWriteMask = 0x7F;
+                }
+                // same stencil ops for clip and no-clip
                 ps.stencilFront = {
                     QRhiGraphicsPipeline::StencilZero,
                     QRhiGraphicsPipeline::StencilZero,
@@ -2139,11 +2423,23 @@ void QCPainterRhiRenderer::endPrepare()
             } else if (call->type == CallConvexFill) {
                 call->srb[0] = srbWithCallTexture;
 
+                QCRHIPipelineState ps = basePs;
+                if (stencilClipActive) {
+                    ps.stencilTestEnable = true;
+                    ps.stencilWriteMask = 0;
+                    ps.usesStencilRef = true;
+                    ps.stencilFront = {
+                        QRhiGraphicsPipeline::Keep,
+                        QRhiGraphicsPipeline::Keep,
+                        QRhiGraphicsPipeline::Keep,
+                        QRhiGraphicsPipeline::Equal
+                    };
+                    call->stencilRef = 0x80;
+                }
                 // 1. Draw fill
-                call->ps[0] = pipeline(QCRHIPipelineStateKey::create(basePs, rpDesc, srbForLayout), rpDesc, srbForLayout);
+                call->ps[0] = pipeline(QCRHIPipelineStateKey::create(ps, rpDesc, srbForLayout), rpDesc, srbForLayout);
 
                 // 2. Draw antialiased edges
-                QCRHIPipelineState ps = basePs;
                 ps.topology = QRhiGraphicsPipeline::TriangleStrip;
 
                 call->ps[1] = pipeline(QCRHIPipelineStateKey::create(ps, rpDesc, srbForLayout), rpDesc, srbForLayout);
@@ -2153,13 +2449,32 @@ void QCPainterRhiRenderer::endPrepare()
                 // 1. Draw Strokes (no stencil)
                 QCRHIPipelineState ps = basePs;
                 ps.topology = QRhiGraphicsPipeline::TriangleStrip;
+                if (stencilClipActive) {
+                    ps.stencilTestEnable = true;
+                    ps.stencilWriteMask = 0;
+                    ps.usesStencilRef = true;
+                    ps.stencilFront = {
+                        QRhiGraphicsPipeline::Keep,
+                        QRhiGraphicsPipeline::Keep,
+                        QRhiGraphicsPipeline::Keep,
+                        QRhiGraphicsPipeline::Equal
+                    };
+                    call->stencilRef = 0x80;
+                }
 
                 call->ps[0] = pipeline(QCRHIPipelineStateKey::create(ps, rpDesc, srbForLayout), rpDesc, srbForLayout);
 
-                // 2. Fill the stroke base without overlap
+                // 2. Fill the stroke base without overlap (for semi-transparent strokes)
                 ps.stencilTestEnable = true;
-                ps.stencilWriteMask = 0xFF;
-                ps.stencilReadMask = 0xFF;
+                if (stencilClipActive) {
+                    ps.stencilWriteMask = 0x7F;
+                    ps.stencilReadMask = 0xFF;
+                    ps.usesStencilRef = true;
+                    call->stencilRef = 0x80;
+                } else {
+                    ps.stencilWriteMask = 0xFF;
+                    ps.stencilReadMask = 0xFF;
+                }
                 ps.stencilFront = {
                     QRhiGraphicsPipeline::Keep,
                     QRhiGraphicsPipeline::Keep,
@@ -2171,6 +2486,13 @@ void QCPainterRhiRenderer::endPrepare()
                 call->ps[1] = pipeline(QCRHIPipelineStateKey::create(ps, rpDesc, srbForLayout), rpDesc, srbForLayout);
 
                 // 3. Draw anti-aliased pixels.
+                if (stencilClipActive) {
+                    ps.stencilWriteMask = 0x7F;
+                    ps.stencilReadMask = 0xFF;
+                    ps.usesStencilRef = true;
+                    call->stencilRef = 0x80;
+                }
+
                 ps.stencilFront = {
                     QRhiGraphicsPipeline::Keep,
                     QRhiGraphicsPipeline::Keep,
@@ -2183,6 +2505,9 @@ void QCPainterRhiRenderer::endPrepare()
 
                 // 4. Clear stencil buffer
                 ps.targetBlend.colorWrite = {};
+                if (stencilClipActive) {
+                    ps.stencilWriteMask = 0x7F;
+                }
                 ps.stencilFront = {
                     QRhiGraphicsPipeline::StencilZero,
                     QRhiGraphicsPipeline::StencilZero,
@@ -2195,11 +2520,162 @@ void QCPainterRhiRenderer::endPrepare()
             } else if (call->type == CallText) {
                 call->srb[0] = srbWithCallTexture;
 
+                QCRHIPipelineState ps = basePs;
+                if (stencilClipActive) {
+                    ps.stencilTestEnable = true;
+                    ps.stencilWriteMask = 0;
+                    ps.usesStencilRef = true;
+                    ps.stencilFront = {
+                        QRhiGraphicsPipeline::Keep,
+                        QRhiGraphicsPipeline::Keep,
+                        QRhiGraphicsPipeline::Keep,
+                        QRhiGraphicsPipeline::Equal
+                    };
+                    call->stencilRef = 0x80;
+                }
+
                 // 1.
                 call->ps[0] = pipeline(
-                    QCRHIPipelineStateKey::create(basePs, rpDesc, srbForLayout),
+                    QCRHIPipelineStateKey::create(ps, rpDesc, srbForLayout),
                     rpDesc,
                     srbForLayout);
+            } else if (call->type == CallClearStencil) {
+                call->srb[0] = srbWithDummyTexture;
+
+                QCRHIPipelineState ps = basePs;
+                ps.stencilTestEnable = true;
+                ps.stencilWriteMask = 0xFF;
+                ps.stencilReadMask = 0xFF;
+                ps.stencilFront = {
+                    QRhiGraphicsPipeline::StencilZero,
+                    QRhiGraphicsPipeline::StencilZero,
+                    QRhiGraphicsPipeline::StencilZero,
+                    QRhiGraphicsPipeline::Always
+                };
+                ps.cullMode = QRhiGraphicsPipeline::None;
+                ps.targetBlend.colorWrite = {};
+
+                call->ps[0] = pipeline(QCRHIPipelineStateKey::create(ps, rpDesc, srbForLayout), rpDesc, srbForLayout);
+                stencilClipActive = false;
+            } else if (call->type == CallStencilClip) {
+                call->srb[0] = srbWithDummyTexture;
+
+                // #1 Fill OR intersect
+                const bool intersectClip = stencilClipActive;
+                const bool regionClip = call->simplePathFill;
+                const bool windingClip = call->fillRule == QCanvasPainter::FillRule::NonZero && !regionClip;
+                QCRHIPipelineState ps = basePs;
+                ps.stencilTestEnable = true;
+
+                ps.usesStencilRef = true;
+
+                if (regionClip) {
+                    if (!intersectClip) {
+                        // Just write
+                        ps.stencilWriteMask = 0x80;
+                        ps.stencilReadMask = 0x80;
+                        ps.stencilFront = {
+                            QRhiGraphicsPipeline::Replace,
+                            QRhiGraphicsPipeline::Replace,
+                            QRhiGraphicsPipeline::Replace,
+                            QRhiGraphicsPipeline::Always
+                        };
+                    } else {
+                        // Increment 0x80 -> 0x81
+                        ps.stencilWriteMask = 0xFF;
+                        ps.stencilReadMask = 0xFF;
+                        ps.stencilFront = {
+                            QRhiGraphicsPipeline::Keep,
+                            QRhiGraphicsPipeline::Keep,
+                            QRhiGraphicsPipeline::IncrementAndClamp,
+                            QRhiGraphicsPipeline::Equal
+                        };
+                    }
+                    ps.stencilBack = ps.stencilFront;
+                } else if (windingClip) {
+                    if (!intersectClip) {
+                        ps.stencilFront = {
+                            QRhiGraphicsPipeline::Keep,
+                            QRhiGraphicsPipeline::Keep,
+                            QRhiGraphicsPipeline::IncrementAndWrap,
+                            QRhiGraphicsPipeline::Always
+                        };
+                        ps.stencilBack = {
+                            QRhiGraphicsPipeline::Keep,
+                            QRhiGraphicsPipeline::Keep,
+                            QRhiGraphicsPipeline::DecrementAndWrap,
+                            QRhiGraphicsPipeline::Always
+                        };
+                        ps.stencilWriteMask = 0xFF;
+                        ps.stencilReadMask = 0xFF;
+                    } else {
+                        ps.stencilFront = {
+                            QRhiGraphicsPipeline::Keep,
+                            QRhiGraphicsPipeline::Keep,
+                            QRhiGraphicsPipeline::IncrementAndWrap,
+                            QRhiGraphicsPipeline::Equal
+                        };
+                        ps.stencilBack = {
+                            QRhiGraphicsPipeline::Keep,
+                            QRhiGraphicsPipeline::Keep,
+                            QRhiGraphicsPipeline::DecrementAndWrap,
+                            QRhiGraphicsPipeline::Equal
+                        };
+                        ps.stencilWriteMask = 0x7F;
+                        ps.stencilReadMask = 0x80;
+                    }
+                } else { // evenOdd
+                    if (!intersectClip) {
+                        ps.stencilFront = {
+                            QRhiGraphicsPipeline::Keep,
+                            QRhiGraphicsPipeline::Keep,
+                            QRhiGraphicsPipeline::Invert,
+                            QRhiGraphicsPipeline::Always
+                        };
+                        ps.stencilWriteMask = 0x80;
+                        ps.stencilReadMask = 0xFF;
+                    } else {
+                        ps.stencilFront = {
+                            QRhiGraphicsPipeline::Keep,
+                            QRhiGraphicsPipeline::Keep,
+                            QRhiGraphicsPipeline::Invert,
+                            QRhiGraphicsPipeline::Equal
+                        };
+                        ps.stencilWriteMask = 0x40;
+                        ps.stencilReadMask = 0x80;
+                    }
+                    ps.stencilBack = ps.stencilFront;
+                }
+
+                ps.cullMode = QRhiGraphicsPipeline::None;
+                ps.targetBlend.colorWrite = {};
+
+                call->ps[0] = pipeline(QCRHIPipelineStateKey::create(ps, rpDesc, srbForLayout), rpDesc, srbForLayout);
+
+                ps = basePs;
+
+                // #2 "Normalize" step after intersect/fill rule: 0x80 -> 0x00; 0x81 or greater -> 0x80;
+                ps.stencilTestEnable = true;
+                ps.stencilWriteMask = 0xFF;
+                ps.stencilReadMask = 0xFF;
+                ps.stencilFront = {
+                    QRhiGraphicsPipeline::StencilZero,
+                    QRhiGraphicsPipeline::StencilZero,
+                    QRhiGraphicsPipeline::Replace,
+                    QRhiGraphicsPipeline::Less
+                };
+                // For Winding non-intersect, change non-zero to 0x80
+                if (windingClip && !intersectClip)
+                    ps.stencilReadMask = 0x7F;
+
+                ps.usesStencilRef = true;
+
+                // ps.cullMode = QRhiGraphicsPipeline::None;
+                ps.targetBlend.colorWrite = {};
+                call->ps[1] = pipeline(QCRHIPipelineStateKey::create(ps, rpDesc, srbForLayout), rpDesc, srbForLayout);
+
+                stencilClipActive = true;
+                call->stencilRef = 0x80; // Just one stencil ref for whole call (change this???)
             }
         }
     }
@@ -2275,6 +2751,15 @@ void QCPainterRhiRenderer::bindPipeline(QCRHICall *call,
             0, QRhiCommandBuffer::IndexUInt32);
     } else {
         rhiCtx->cb->setVertexInput(0, 1, &vbufBinding);
+    }
+
+    // The stencil ref has to be set after binding the pipeline
+    // We know that we only set the stencil ref to non-zero values,
+    // but the value is persistent on OpenGL, so we have to set it back to 0
+    // manually at the start, even if we don't use it in the pipeline.
+    if (call->stencilRef || rhiCtx->stencilRefSet) {
+        rhiCtx->cb->setStencilRef(call->stencilRef);
+        rhiCtx->stencilRefSet = call->stencilRef;
     }
 }
 
@@ -2466,10 +2951,12 @@ void QCPainterRhiRenderer::render()
     rhiCtx->cb->debugMarkBegin("QCanvasPainter render"_ba);
 
     bool needsViewport = true;
+    bool stencilClippingActive = false;
+
     for (int i = 0; i < rhiCtx->callsCount; i++) {
         QCRHICall *call = &rhiCtx->calls[i];
         int pathsCount = call->pathCount;
-        if (pathsCount < 1 && call->type != CallText)
+        if (pathsCount < 1 && call->type < CallText) //### Careful with enum order
             continue;
 
         // The default offset at 0, with empty transform. NB have to add an offset to skip
@@ -2599,6 +3086,26 @@ void QCPainterRhiRenderer::render()
             logTextDrawCallCount++;
             logTextTriCount += iCount / 3;
 #endif
+        } else if (call->type == CallClearStencil) {
+            bindPipeline(call, 0, 0, vertDynamicOffsetForCall, dynamicOffsetForCall, false, &needsViewport);
+            rhiCtx->cb->draw(call->triangleCount, 1, call->triangleOffset);
+            logFillDrawCallCount++;
+            logFillTriCount += call->triangleCount / 3;
+            stencilClippingActive = false;
+        } else if (call->type == CallStencilClip) {
+            bindPipeline(call, 0, 0, vertDynamicOffsetForCall, dynamicOffsetForCall, false, &needsViewport);
+            rhiCtx->cb->draw(call->triangleCount, 1, call->triangleOffset);
+            logFillDrawCallCount++;
+            logFillTriCount += call->triangleCount / 3;
+            const bool windingFill = call->fillRule == QCanvasPainter::FillRule::NonZero && !call->simplePathFill;
+            if (stencilClippingActive || windingFill) {
+                // "normalize" full-screen quad [TODO: optimize]
+                bindPipeline(call, 1, 0, vertDynamicOffsetForCall, dynamicOffsetForCall, false, &needsViewport);
+                rhiCtx->cb->draw(6, 1, call->triangleOffset + call->triangleCount);
+                logFillDrawCallCount++;
+                logFillTriCount += 2;
+            }
+            stencilClippingActive = true;
         }
     }
 

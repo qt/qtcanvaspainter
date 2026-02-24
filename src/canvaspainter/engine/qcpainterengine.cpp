@@ -16,6 +16,8 @@
 #include <qdebug.h>
 #include <float.h>
 
+#include <QtGui/private/qvectorpath_p.h>
+
 QT_BEGIN_NAMESPACE
 
 // TODO: Measure optimal values for these
@@ -989,6 +991,22 @@ void QCPainterEngine::stroke(const QCanvasPath &path, int pathGroup)
 
         stroke(p, pathGroup, pathUpdateRequired);
     }
+}
+
+void QCPainterEngine::setStencilClip(const QList<QRectF> &rects)
+{
+    if (rects.isEmpty())
+        m_renderer->clearStencil(state);
+    else
+        m_renderer->renderStencil(state, rects);
+}
+
+void QCPainterEngine::setStencilClip(const QVectorPath &clipPath)
+{
+    if (clipPath.isEmpty())
+        m_renderer->clearStencil(state);
+    else
+        m_renderer->renderStencil(state, clipPath);
 }
 
 // ***** Blending *****

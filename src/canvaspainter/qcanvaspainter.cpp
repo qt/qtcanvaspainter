@@ -1865,6 +1865,36 @@ void QCanvasPainter::stroke(const QCanvasPath &path, int pathGroup)
     d->m_e->stroke(path, pathGroup);
 }
 
+/*!
+   \internal
+    Sets the stencil clip to \a rects, restricting subsequent rendering
+    to the inside of the rectangles, respecting the current transformation.
+    If \a rects is empty, stencil clipping is disabled.
+    If stencil clipping is already active, the new clip region is
+    intersected with the existing one.
+
+    Note that stencil clipping is not anti-aliased.
+
+    \sa setClipRect()
+*/
+void QCanvasPainter::setStencilClip(const QList<QRectF> &rects)
+{
+    Q_D(QCanvasPainter);
+    d->m_e->setStencilClip(rects);
+}
+
+/*!
+    \internal
+
+    \a clipPath must be a simple path: all sub-paths must be convex
+    and non-overlapping.
+*/
+void QCanvasPainter::setStencilClip(const QVectorPath &clipPath)
+{
+    Q_D(QCanvasPainter);
+    d->m_e->setStencilClip(clipPath);
+}
+
 // *** Direct drawing ***
 
 /*!
