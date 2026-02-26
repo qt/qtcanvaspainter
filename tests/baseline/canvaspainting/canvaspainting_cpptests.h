@@ -1,0 +1,65 @@
+// Copyright (C) 2026 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
+
+#ifndef CANVASPAINTING_CPPTESTS_H
+#define CANVASPAINTING_CPPTESTS_H
+
+#include <QObject>
+#include <QCanvasPainter>
+
+class CanvasPainterLancelotCppTests : public QObject
+{
+    Q_OBJECT
+
+public:
+    QStringList keys();
+    void run(const QString &key, QCanvasPainter *painter, const QSize &canvasPixelSize);
+
+    // Each slot is a test case that is invoked for each of the graphics APIs.
+    // They should draw something using painter and width() and height().
+    // Resources like QCanvasImage must be created in the slots, do not cache/reuse!
+private slots:
+    void simpleDrawing();
+    void testPathWindingUncachedPath();
+    void testPathWinding();
+    void testStraightLinesInPathUncachedPath();
+    void testStraightLinesInPath();
+    void testPathCaching();
+    void testPathFill();
+    void testCurve();
+    void testSomeText();
+
+    // the tests below are adapted from the Gallery example
+    void testRects();
+    void testRects2();
+    void testPaths();
+    void testPaths2();
+    void testTransforms();
+    void testTransforms2();
+    void testGridPatterns();
+    void testShadows();
+    void testShadows2();
+    void testCompositeModes();
+    void testImages();
+    void testImages2();
+    void testImages3();
+    void testAntialiasing();
+    void testAntialiasing2();
+    void testTextAlignment();
+    void testTextWrapping();
+    void testTextBrushes();
+    void testTextFonts();
+
+private:
+    float width() const { return canvasPixelSize.width(); }
+    float height() const { return canvasPixelSize.height(); }
+
+    void drawCompositeItem1(float x, float y, float w, float h, QCanvasPainter::CompositeOperation mode);
+    void drawCompositeItem2(float x, float y, float w, float h, QCanvasPainter::CompositeOperation mode);
+    void drawCompositeItem3(float x, float y, float w, float h, QCanvasPainter::CompositeOperation mode);
+
+    QCanvasPainter *painter;
+    QSize canvasPixelSize;
+};
+
+#endif
