@@ -10,7 +10,7 @@
 
 Qt Canvas Painter provides the following C++ types:
 
-\section1 QtCanvasPainter C++ Types
+\section1 Qt Canvas Painter C++ Types
 
 \generatelist classesbymodule QtCanvasPainter
 
