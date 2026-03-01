@@ -47,7 +47,7 @@ Public License, version 3}.
 See \l{Qt Licensing} for further details.
 
 Furthermore, Qt Canvas Painter in \QtVersion may contain third party
-modules under following permissive licenses:
+modules under the following permissive licenses:
 
 \annotatedlist attributions-qtcanvaspainter
 */
