@@ -202,6 +202,7 @@ struct QCContext {
     float dpr;
     QMatrix4x4 customMatrix;
     bool customMatrixValid;
+    float divsTol;
     float tessTol;
     float distTol;
     float devicePxRatio;
