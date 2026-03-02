@@ -128,10 +128,8 @@ struct QCState {
     QCClip clip;
     QCPaint fill;
     QCPaint stroke;
-    QCanvasPainter::CompositeOperation compositeOperation;
-    QCanvasPainter::LineJoin lineJoin;
-    QCanvasPainter::LineCap lineCap;
-    QCanvasPainter::PathWinding winding;
+    QCanvasCustomBrush *customFill = nullptr;
+    QCanvasCustomBrush *customStroke = nullptr;
     float strokeWidth;
     float antialias;
     float miterLimit;
@@ -139,14 +137,16 @@ struct QCState {
     float brightness;
     float contrast;
     float saturate;
-    QCanvasCustomBrush *customFill = nullptr;
-    QCanvasCustomBrush *customStroke = nullptr;
+    float textLineHeight;
+    float textAntialias;
+    QCanvasPainter::CompositeOperation compositeOperation;
+    QCanvasPainter::LineJoin lineJoin;
+    QCanvasPainter::LineCap lineCap;
+    QCanvasPainter::PathWinding winding;
     QCanvasPainter::WrapMode textWrapMode = QCanvasPainter::WrapMode::NoWrap;
     QCanvasPainter::TextAlign textAlignment = QCanvasPainter::TextAlign::Start;
     QCanvasPainter::TextBaseline textBaseline = QCanvasPainter::TextBaseline::Alphabetic;
     QCanvasPainter::TextDirection textDirection = QCanvasPainter::TextDirection::Inherit;
-    float textLineHeight;
-    float textAntialias;
     bool blendEnable;
 };
 
@@ -170,9 +170,9 @@ struct QCCachedPath
     int pathIterations = -1;
     int commandsCount = 0;
     float strokeWidth = 1.0f;
+    float edgeAAWidth = 1.0f;
     QCanvasPainter::LineCap lineCap = QCanvasPainter::LineCap::Butt;
     QCanvasPainter::LineJoin lineJoin = QCanvasPainter::LineJoin::Miter;
-    float edgeAAWidth = 1.0f;
 };
 
 
@@ -199,9 +199,9 @@ struct QCContext {
     QRectF view;
     QRectF bounds;
     QCanvasPainter::RenderHints renderHints = QCanvasPainter::RenderHint::Antialiasing;
-    float dpr;
     QMatrix4x4 customMatrix;
-    bool customMatrixValid;
+    QCDebugCounters debugCounters;
+    float dpr;
     float divsTol;
     float tessTol;
     float distTol;
@@ -214,11 +214,11 @@ struct QCContext {
     int verticesCount = 0;
     int pointsCount = 0;
     int pathsCount = 0;
-    QCDebugCounters debugCounters;
-    bool antialiasingEnabled = true;
     int fontId;
     float fontAlphaMin;
     float fontAlphaMax;
+    bool customMatrixValid;
+    bool antialiasingEnabled = true;
 };
 
 #ifdef QCPAINTER_PERF_DEBUG
