@@ -353,11 +353,31 @@ void QCPainterEngine::drawImageId(int imageId, float x, float y, float width, fl
 {
     QCPaint ip = createImagePattern(x, y, width, height, imageId, 0.0f, tintColor);
     save();
-    setAntialias(0);
+    // Make sure antialiasing is disabled when painting individual images.
+    const bool prevAA = m_renderer->testFlag(QCPainterRhiRenderer::Antialiasing);
+    m_renderer->setFlag(QCPainterRhiRenderer::Antialiasing, false);
     beginPath();
     addRect(x, y, width, height);
     setFillPaint(ip);
     fill();
+    m_renderer->setFlag(QCPainterRhiRenderer::Antialiasing, prevAA);
+    restore();
+}
+
+void QCPainterEngine::drawImageIdAt(int imageId, float x, float y, float width, float height,
+                                    float dX, float dY, float dWidth, float dHeight,
+                                    const QColor &tintColor)
+{
+    QCPaint ip = createImagePattern(x, y, width, height, imageId, 0.0f, tintColor);
+    save();
+    // Make sure antialiasing is disabled when painting individual images.
+    const bool prevAA = m_renderer->testFlag(QCPainterRhiRenderer::Antialiasing);
+    m_renderer->setFlag(QCPainterRhiRenderer::Antialiasing, false);
+    beginPath();
+    addRect(dX, dY, dWidth, dHeight);
+    setFillPaint(ip);
+    fill();
+    m_renderer->setFlag(QCPainterRhiRenderer::Antialiasing, prevAA);
     restore();
 }
 

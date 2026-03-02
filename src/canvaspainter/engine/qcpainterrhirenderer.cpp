@@ -2596,6 +2596,11 @@ bool QCPainterRhiRenderer::hasDrawCalls() const
     return rhiCtx && rhiCtx->callsCount > 0;
 }
 
+bool QCPainterRhiRenderer::testFlag(RenderFlag flag) const
+{
+    return rhiCtx->flags.testFlag(flag);
+}
+
 void QCPainterRhiRenderer::setFlag(RenderFlags flag, bool enable)
 {
     if (rhiCtx) {
