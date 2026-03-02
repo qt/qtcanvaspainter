@@ -87,6 +87,9 @@ public:
     bool deleteImage(int imageId);
     void drawImageId(int imageId, float x, float y, float width, float height,
                      const QColor &tintColor);
+    void drawImageIdAt(int imageId, float x, float y, float width, float height,
+                       float dX, float dY, float dWidth, float dHeight,
+                       const QColor &tintColor);
     QCPaint createImagePattern(float x, float y, float width, float height,
                                int imageId, float angle, const QColor &tintColor);
 

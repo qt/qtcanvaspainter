@@ -2038,14 +2038,8 @@ void QCanvasPainter::drawImage(const QCanvasImage &image, const QRectF &sourceRe
     float startY = dy - sy * (dh/sh);
     float endX = dw * image.width() / sw;
     float endY = dh * image.height() / sh;
-    QCPaint ip = d->m_e->createImagePattern(startX, startY, endX, endY, image.id(), 0.0f, image.tintColor());
-    d->m_e->save();
-    d->m_e->setAntialias(0);
-    d->m_e->beginPath();
-    d->m_e->addRect(dx, dy, dw, dh);
-    d->m_e->setFillPaint(ip);
-    d->m_e->fill();
-    d->m_e->restore();
+    d->m_e->drawImageIdAt(image.id(), startX, startY, endX, endY,
+                          dx, dy, dw, dh, image.tintColor());
     d->markTextureIdUsed(image.id());
 }
 

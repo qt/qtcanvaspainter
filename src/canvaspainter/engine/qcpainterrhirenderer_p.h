@@ -114,6 +114,7 @@ public:
 
     bool hasDrawCalls() const;
 
+    bool testFlag(RenderFlag flag) const;
     void setFlag(RenderFlags flag, bool enable);
 
     bool renderCreate();
