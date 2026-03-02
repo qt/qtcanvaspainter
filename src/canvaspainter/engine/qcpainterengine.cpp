@@ -49,8 +49,19 @@ QT_BEGIN_NAMESPACE
 
 static const float QCPAINTER_MAX_STROKE_WIDTH = 1000.0f;
 static const float QCPAINTER_MAX_ANTIALIAS_WIDTH = 10.0f;
-static const int QCPAINTER_MAX_TESSELATE_LEVEL = 11;
+static const int QCPAINTER_MAX_TESSELLATION_LEVEL = 11;
 static const float QCPAINTER_ANTIALIAS_MULTIPLIER = 1.25f;
+
+// Returns value of 'name' env variable as float, or
+// defaultValue when not set.
+static float qt_qc_envFloat(const char *name, float defaultValue)
+{
+    if (Q_LIKELY(!qEnvironmentVariableIsSet(name)))
+        return defaultValue;
+    bool ok = false;
+    const float value = qgetenv(name).toFloat(&ok);
+    return ok ? value : defaultValue;
+}
 
 QCContext* QCPainterEngine::initialize(QCPainterRhiRenderer *renderer)
 {
@@ -1181,7 +1192,9 @@ QCanvasPainter::RenderHints QCPainterEngine::renderHints() const
 void QCPainterEngine::setDevicePixelRatio(float ratio)
 {
     if (ratio > 0.0f) {
-        ctx.tessTol = 0.25f / ratio;
+        static const float tessTol = qt_qc_envFloat("QCPAINTER_TESSELLATION_TOLERANCE", 0.25f);
+        ctx.tessTol = tessTol / ratio;
+        ctx.divsTol = 0.25f / ratio;
         ctx.distTol = 0.01f / ratio;
         // Note: This is not called during the paint operations,
         // so it can set antialias to default value.
@@ -1468,10 +1481,10 @@ void QCPainterEngine::tesselateBezier(float x1, float y1, float x2, float y2,
                                          float x3, float y3, float x4, float y4,
                                          int level, QCPointFlags flags)
 {
-    if (Q_UNLIKELY(level > QCPAINTER_MAX_TESSELATE_LEVEL)) {
+    if (Q_UNLIKELY(level > QCPAINTER_MAX_TESSELLATION_LEVEL)) {
         // This shouldn't usually happen, as we will
         // reach the tessTol accuracy. In case of e.g. huge circles, increase
-        // the QCPAINTER_MAX_TESSELATE_LEVEL.
+        // the QCPAINTER_MAX_TESSELLATION_LEVEL.
         return;
     }
 
@@ -1624,7 +1637,7 @@ void QCPainterEngine::expandStroke(float w, QCanvasPainter::LineCap cap, QCanvas
     calculateJoins(w, join, miterLimit);
     const int pCount = ctx.pathsCount;
     const int roundDivs = (join == QCanvasPainter::LineJoin::Round) || (cap == QCanvasPainter::LineCap::Round)
-                              ? curveDivs(w, ctx.tessTol)
+                              ? curveDivs(w, ctx.divsTol)
                               : 0;
 
     // Calculate max vertex usage
@@ -2285,14 +2298,6 @@ QCanvasPainter::TextAlign QCPainterEngine::effectiveTextAlign(QStringView text) 
 
 #ifndef QCPAINTER_DISABLE_TEXT_SUPPORT
 // *** From QSGDistanceFieldGlyphNode - Start ***
-static float qt_qc_envFloat(const char *name, float defaultValue)
-{
-    if (Q_LIKELY(!qEnvironmentVariableIsSet(name)))
-        return defaultValue;
-    bool ok = false;
-    const float value = qgetenv(name).toFloat(&ok);
-    return ok ? value : defaultValue;
-}
 
 static float thresholdFunc(float glyphScale)
 {
