@@ -349,19 +349,29 @@ bool QCPainterEngine::deleteImage(int imageId)
     return m_renderer->renderDeleteTexture(imageId);
 }
 
+// Fills a rect (x, y, width, height) with the given paint and
+// antialiasing turned off. After painting, the antialiasing
+// state and previous fill brush are returned back into use.
+void QCPainterEngine::fillPlainRect(const QCPaint &paint, float x, float y, float width, float height)
+{
+    const QCPaint prevFill = state.fill;
+    const auto prevCustomFill = state.customFill;
+    const bool prevAA = m_renderer->testFlag(QCPainterRhiRenderer::Antialiasing);
+    m_renderer->setFlag(QCPainterRhiRenderer::Antialiasing, false);
+    state.fill = paint;
+    state.customFill = nullptr;
+    beginPath();
+    addRect(x, y, width, height);
+    fill();
+    m_renderer->setFlag(QCPainterRhiRenderer::Antialiasing, prevAA);
+    state.fill = prevFill;
+    state.customFill = prevCustomFill;
+}
+
 void QCPainterEngine::drawImageId(int imageId, float x, float y, float width, float height, const QColor &tintColor)
 {
     QCPaint ip = createImagePattern(x, y, width, height, imageId, 0.0f, tintColor);
-    save();
-    // Make sure antialiasing is disabled when painting individual images.
-    const bool prevAA = m_renderer->testFlag(QCPainterRhiRenderer::Antialiasing);
-    m_renderer->setFlag(QCPainterRhiRenderer::Antialiasing, false);
-    beginPath();
-    addRect(x, y, width, height);
-    setFillPaint(ip);
-    fill();
-    m_renderer->setFlag(QCPainterRhiRenderer::Antialiasing, prevAA);
-    restore();
+    fillPlainRect(ip, x, y, width, height);
 }
 
 void QCPainterEngine::drawImageIdAt(int imageId, float x, float y, float width, float height,
@@ -369,16 +379,7 @@ void QCPainterEngine::drawImageIdAt(int imageId, float x, float y, float width, 
                                     const QColor &tintColor)
 {
     QCPaint ip = createImagePattern(x, y, width, height, imageId, 0.0f, tintColor);
-    save();
-    // Make sure antialiasing is disabled when painting individual images.
-    const bool prevAA = m_renderer->testFlag(QCPainterRhiRenderer::Antialiasing);
-    m_renderer->setFlag(QCPainterRhiRenderer::Antialiasing, false);
-    beginPath();
-    addRect(dX, dY, dWidth, dHeight);
-    setFillPaint(ip);
-    fill();
-    m_renderer->setFlag(QCPainterRhiRenderer::Antialiasing, prevAA);
-    restore();
+    fillPlainRect(ip, dX, dY, dWidth, dHeight);
 }
 
 QCPaint QCPainterEngine::createImagePattern(float x, float y, float width, float height,

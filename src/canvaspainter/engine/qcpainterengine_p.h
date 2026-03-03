@@ -208,6 +208,7 @@ private:
     bool fillPathUpdateRequired(QCanvasPath *path, int pathGroup);
     bool strokePathUpdateRequired(QCanvasPath *path, int pathGroup);
     QCanvasPainter::TextAlign effectiveTextAlign(QStringView text) const;
+    void fillPlainRect(const QCPaint &paint, float x, float y, float width, float height);
 
     QCPaint getFillPaint(bool ignoreTransform = false);
     QCPaint getStrokePaint(float *strokeWidth, bool ignoreTransform = false);
