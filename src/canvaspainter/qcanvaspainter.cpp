@@ -1922,18 +1922,7 @@ void QCanvasPainter::strokeRect(float x, float y, float width, float height)
 void QCanvasPainter::drawBoxShadow(const QCanvasBoxShadow &shadow)
 {
     Q_D(QCanvasPainter);
-    d->m_e->save();
-    d->m_e->beginPath();
-    const auto r = shadow.boundingRect();
-    d->m_e->addRect(r.x(), r.y(), r.width(), r.height());
-    d->m_e->setFillPaint(shadow.createPaint(this));
-    d->m_e->fill();
-    static bool shadowRectDebug = qEnvironmentVariableIsSet("QCPAINTER_DEBUG_SHADOW_RECT");
-    if (shadowRectDebug) {
-        d->m_e->setStrokeColor(QColorConstants::Red);
-        strokeRect(r);
-    }
-    d->m_e->restore();
+    d->drawBoxShadow(this, shadow);
 }
 
 // *** Images ***
@@ -2890,6 +2879,21 @@ QRectF QCanvasPainterPrivate::textBoundingBox(const QString &text, float x, floa
 QRectF QCanvasPainterPrivate::textBoundingBox(const QString &text, const QRectF &rect)
 {
     return m_e->textBoundingBox(text, rect);
+}
+
+void QCanvasPainterPrivate::drawBoxShadow(QCanvasPainter *painter, const QCanvasBoxShadow &shadow)
+{
+    const auto paint = shadow.createPaint(painter);
+    const auto r = shadow.boundingRect();
+    m_e->fillPlainRect(paint, r.x(), r.y(), r.width(), r.height());
+    static bool shadowRectDebug = qEnvironmentVariableIsSet("QCPAINTER_DEBUG_SHADOW_RECT");
+    if (Q_UNLIKELY(shadowRectDebug)) {
+        m_e->save();
+        m_e->setStrokeColor(QColorConstants::Red);
+        m_e->setLineWidth(1.0f);
+        painter->strokeRect(r);
+        m_e->restore();
+    }
 }
 
 /*!
