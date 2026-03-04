@@ -1,0 +1,19 @@
+// Copyright (C) 2026 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \keyword Qt Quick Canvas2D
+    \qmlmodule QtCanvas2D
+    \title Qt Canvas2D element
+    \preliminary
+    \brief Provides Canvas2D element.
+
+    This QML module contains a Canvas2D element for Qt Quick. To use the Canvas2D,
+    import the module with the following line:
+
+    \qml
+    import QtCanvas2D
+    \endqml
+
+    \section1 Canvas2D QML Types
+*/

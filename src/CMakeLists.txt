@@ -3,4 +3,7 @@
 
 if(TARGET Qt::Gui AND TARGET Qt::qsb)
     add_subdirectory(canvaspainter)
+    if(TARGET Qt::Quick)
+        add_subdirectory(canvas2d)
+    endif()
 endif()
