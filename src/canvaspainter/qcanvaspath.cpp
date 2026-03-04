@@ -744,6 +744,10 @@ void QCanvasPath::circle(float x, float y, float radius)
 /*!
     Sets the current sub-path \a winding to either \c QCanvasPainter::CounterClockWise (default)
     or \c QCanvasPainter::ClockWise. CounterClockWise draws solid subpaths while ClockWise draws holes.
+
+    \note This is a command, similar to lineTo, moveTo, etc., and therefore
+    setting the winding should be done before the rest of the commands to which
+    the changed winding is meant to be applied to.
 */
 void QCanvasPath::setPathWinding(QCanvasPainter::PathWinding winding)
 {
