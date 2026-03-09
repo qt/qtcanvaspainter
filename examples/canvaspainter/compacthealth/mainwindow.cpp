@@ -11,8 +11,7 @@
 
 #include <cmath>
 
-MainWindow::MainWindow(QRhi::Implementation api)
-    : PainterWindow(api)
+MainWindow::MainWindow(QRhi::Implementation api) : PainterWindow(api)
 {
     setTitle(QStringLiteral("Qt Compact Health"));
     m_ecgGraph.m_mainWindow = this;
@@ -36,9 +35,7 @@ MainWindow::MainWindow(QRhi::Implementation api)
     //m_texts.resize(m_texts.capacity());
 }
 
-MainWindow::~MainWindow()
-{
-}
+MainWindow::~MainWindow() { }
 
 void MainWindow::initializeTempData()
 {
@@ -50,7 +47,9 @@ void MainWindow::initializeTempData()
     const float range = m_temperatureMax - m_temperatureMin;
     const float varying = 0.04f;
     float d = 0;
-    float v = (average + r->generateDouble() * deltaUp - r->generateDouble() * deltaDown - m_temperatureMin) / range;
+    float v = (average + r->generateDouble() * deltaUp - r->generateDouble() * deltaDown
+               - m_temperatureMin)
+            / range;
     for (int i = 0; i < m_tempDataCount; i++) {
         d = 0.5f * varying - varying * r->generateDouble();
         v += d;
@@ -129,7 +128,7 @@ void MainWindow::paint(QCanvasPainter *p)
         m_sImageDark = p->addImage(QImage(":/images/icon_run_dark.png"), flags);
         m_initialized = true;
     }
-//![paint-1]
+    //![paint-1]
     int textIndex = 0;
 
     m_painter = p;
@@ -143,9 +142,7 @@ void MainWindow::paint(QCanvasPainter *p)
         for (int i = 0; i < ViewsEnd; i++) {
             auto r = m_views[i].rect;
             if (!r.isEmpty() && m_views[i].fillBackground) {
-                viewBackgroundsPath.roundRect(r.x(), r.y(),
-                                              r.width(), r.height(),
-                                              viewRadius);
+                viewBackgroundsPath.roundRect(r.x(), r.y(), r.width(), r.height(), viewRadius);
             }
         }
     }
@@ -156,9 +153,7 @@ void MainWindow::paint(QCanvasPainter *p)
         p->beginPath();
         for (const auto &view : std::as_const(m_warningViews)) {
             auto r = m_views[view].rect;
-            p->roundRect(r.x(), r.y(),
-                         r.width(), r.height(),
-                         viewRadius);
+            p->roundRect(r.x(), r.y(), r.width(), r.height(), viewRadius);
         }
         p->setStrokeStyle(m_theme.warning());
         p->setLineWidth(3.0f * m_px);
@@ -176,8 +171,8 @@ void MainWindow::paint(QCanvasPainter *p)
         for (int i = W1; i <= W4; i++) {
             auto r = m_views[i].rect;
             if (!r.isEmpty()) {
-                QRectF rect(r.x() + 2 * m_margin, r.y() - 0.5 * titleHeight,
-                            titleWidth, titleHeight);
+                QRectF rect(r.x() + 2 * m_margin, r.y() - 0.5 * titleHeight, titleWidth,
+                            titleHeight);
                 viewTitlesPath.roundRect(rect, titleRadius);
                 titleRects << rect;
             }
@@ -252,15 +247,17 @@ void MainWindow::paint(QCanvasPainter *p)
         paintSlider(sr.x(), sr.y(), sr.width(), sr.height());
         // Scale images while keeping the aspect ratio.
         QPointF b1C = m_views[B1].rect.center();
-        QRectF b1Rect(b1C.x() - 0.5 * m_iconSize, b1C.y() - 0.5 * m_iconSize, m_iconSize, m_iconSize);
+        QRectF b1Rect(b1C.x() - 0.5 * m_iconSize, b1C.y() - 0.5 * m_iconSize, m_iconSize,
+                      m_iconSize);
         auto &b1Icon = m_theme.isDark() ? m_b1ImageLight : m_b1ImageDark;
         p->drawImage(b1Icon, b1Rect);
         QPointF b2C = m_views[B2].rect.center();
-        QRectF b2Rect(b2C.x() - 0.5 * m_iconSize, b2C.y() - 0.5 * m_iconSize, m_iconSize, m_iconSize);
+        QRectF b2Rect(b2C.x() - 0.5 * m_iconSize, b2C.y() - 0.5 * m_iconSize, m_iconSize,
+                      m_iconSize);
         auto &b2Icon = m_theme.isDark() ? m_b2ImageLight : m_b2ImageDark;
         p->drawImage(b2Icon, b2Rect);
     }
-//![paint-2]
+    //![paint-2]
     // Highlight pressed button
     if (m_selectedButton) {
         p->beginPath();
@@ -269,7 +266,7 @@ void MainWindow::paint(QCanvasPainter *p)
         p->setStrokeStyle(m_theme.highlight());
         p->stroke();
     }
-//![paint-2]
+    //![paint-2]
 
     // At this point nothing in backgrounds is dirty
     m_dirty.setFlag(Dirty::ViewBackgrounds, false);
@@ -289,9 +286,11 @@ void MainWindow::touchEvent(QTouchEvent *ev)
         pressPos = point.pressPosition();
     }
 
-    if ((type == QTouchEvent::TouchBegin || type == QTouchEvent::TouchUpdate) && m_sliderRect.contains(pressPos)) {
+    if ((type == QTouchEvent::TouchBegin || type == QTouchEvent::TouchUpdate)
+        && m_sliderRect.contains(pressPos)) {
         // Controlling slider
-        m_activity = ((m_sliderRect.y() + m_sliderRect.height() - m_sliderMarginBottom - pos.y()) / (m_sliderRect.height() - m_sliderMarginTop - m_sliderMarginBottom));
+        m_activity = ((m_sliderRect.y() + m_sliderRect.height() - m_sliderMarginBottom - pos.y())
+                      / (m_sliderRect.height() - m_sliderMarginTop - m_sliderMarginBottom));
         m_activity = qBound(0.0f, m_activity, 1.0f);
         m_dirty.setFlag(Dirty::ActivitySlider);
     } else if (type == QTouchEvent::TouchBegin) {
@@ -316,7 +315,8 @@ void MainWindow::touchEvent(QTouchEvent *ev)
     ev->accept();
 }
 
-void MainWindow::buttonClicked(int buttonID) {
+void MainWindow::buttonClicked(int buttonID)
+{
     if (buttonID == B1) {
         initializeTempData();
     } else if (buttonID == B2) {
@@ -328,7 +328,6 @@ void MainWindow::buttonClicked(int buttonID) {
         updateViewSizes();
     }
 }
-
 
 void MainWindow::resizeEvent(QResizeEvent *)
 {
@@ -355,11 +354,16 @@ void MainWindow::updateViewSizes()
     m_views[W2].rect = { m_margin, m_views[W1].rect.bottom() + wMargin2, leftColumnWidth, wHeight };
     m_views[W3].rect = { m_margin, m_views[W2].rect.bottom() + wMargin2, leftColumnWidth, wHeight };
     m_views[W4].rect = { m_margin, m_views[W3].rect.bottom() + wMargin2, leftColumnWidth, wHeight };
-    m_views[Center].rect = { m_views[W1].rect.right() + m_margin, m_margin, centerColumnWidth, h - 2 * m_margin };
-    m_views[Slider].rect = { m_views[Center].rect.right() + m_margin, m_margin, buttonSize, h - 2 * buttonSize - 4 * m_margin };
-    m_views[B1].rect = { m_views[Center].rect.right() + m_margin, m_views[Slider].rect.bottom() + m_margin, buttonSize, buttonSize };
-    m_views[B2].rect = { m_views[Center].rect.right() + m_margin, m_views[B1].rect.bottom() + m_margin, buttonSize, buttonSize };
-    m_views[B3].rect = { m_views[Center].rect.right() - buttonSize, m_margin, buttonSize, buttonSize};
+    m_views[Center].rect = { m_views[W1].rect.right() + m_margin, m_margin, centerColumnWidth,
+                             h - 2 * m_margin };
+    m_views[Slider].rect = { m_views[Center].rect.right() + m_margin, m_margin, buttonSize,
+                             h - 2 * buttonSize - 4 * m_margin };
+    m_views[B1].rect = { m_views[Center].rect.right() + m_margin,
+                         m_views[Slider].rect.bottom() + m_margin, buttonSize, buttonSize };
+    m_views[B2].rect = { m_views[Center].rect.right() + m_margin,
+                         m_views[B1].rect.bottom() + m_margin, buttonSize, buttonSize };
+    m_views[B3].rect = { m_views[Center].rect.right() - buttonSize, m_margin, buttonSize,
+                         buttonSize };
     const float m2 = m_margin * 2;
     m_sliderRect = m_views[Slider].rect.adjusted(0, m2, 0, -m2);
 
@@ -386,7 +390,7 @@ void MainWindow::paintTempBars(float x, float y, float w, float h)
     }
     auto g1 = m_theme.gradient1();
     g1.setStartPosition(0, y);
-    g1.setEndPosition(0, y+h);
+    g1.setEndPosition(0, y + h);
     m_painter->setFillStyle(g1);
     m_painter->fill(m_tempBarsPath, GraphPaths);
 }
@@ -408,7 +412,7 @@ void MainWindow::paintRespGraph(float x, float y, float w, float h)
     m_painter->closePath();
     auto g2 = m_theme.gradient2();
     g2.setStartPosition(0, y);
-    g2.setEndPosition(0, y+h);
+    g2.setEndPosition(0, y + h);
     m_painter->setFillStyle(g2);
     m_painter->fill();
 }
@@ -429,17 +433,10 @@ void MainWindow::paintSlider(float x, float y, float w, float h)
         const float cW = x + w * 0.5;
         const float margins = m_sliderMarginTop + m_sliderMarginBottom;
         const float barY = y + m_sliderMarginTop + (h - margins) * (1.0f - m_activity);
-        sliderBackground.roundRect(cW - barW * 0.5,
-                                   y + m_sliderMarginTop,
-                                   barW,
-                                   h - margins,
+        sliderBackground.roundRect(cW - barW * 0.5, y + m_sliderMarginTop, barW, h - margins,
                                    radius);
         sliderFill.clear();
-        sliderFill.roundRect(cW - barW * 0.5,
-                             barY,
-                             barW,
-                             (h - margins) * m_activity,
-                             radius);
+        sliderFill.roundRect(cW - barW * 0.5, barY, barW, (h - margins) * m_activity, radius);
         sliderKnob.clear();
         sliderKnob.circle(cW, barY, knobSize);
         m_dirty.setFlag(Dirty::ActivitySlider, false);
@@ -464,7 +461,7 @@ void MainWindow::paintGrid(float x, float y, float w, float h)
     if (m_dirty.testFlag(Dirty::GraphGrid)) {
         path.clear();
         // Hozontal minor lines
-        for (int i = 0; i<=hLines; i++) {
+        for (int i = 0; i <= hLines; i++) {
             float yPos = y + float(i) / hLines * h;
             path.moveTo(x, yPos);
             path.lineTo(x + w, yPos);
@@ -472,8 +469,8 @@ void MainWindow::paintGrid(float x, float y, float w, float h)
 
         // Vertical minor lines
         p->setLineWidth(1.0);
-        for (int i = 0; i<=vLines; i++) {
-            float xPos = x + float(i)/vLines * w;
+        for (int i = 0; i <= vLines; i++) {
+            float xPos = x + float(i) / vLines * w;
             path.moveTo(xPos, y);
             path.lineTo(xPos, y + h);
         }
