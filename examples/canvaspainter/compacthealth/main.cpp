@@ -59,10 +59,10 @@ int main(int argc, char *argv[])
     QSurfaceFormat fmt;
     fmt.setDepthBufferSize(24);
     fmt.setStencilBufferSize(8);
-#ifdef Q_OS_MACOS
+#  ifdef Q_OS_MACOS
     fmt.setVersion(4, 1);
     fmt.setProfile(QSurfaceFormat::CoreProfile);
-#endif
+#  endif
     QSurfaceFormat::setDefaultFormat(fmt);
 #endif
 

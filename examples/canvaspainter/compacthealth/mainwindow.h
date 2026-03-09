@@ -95,7 +95,8 @@ private:
     float m_sliderMarginBottom = 0;
     int m_selectedButton = 0;
 
-    struct View {
+    struct View
+    {
         QRectF rect;
         QString title;
         bool fillBackground = true;

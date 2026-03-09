@@ -58,7 +58,6 @@ private:
     bool m_defibrillator = false;
     float m_lineWidth = 2.0;
     QList<float> m_spo2Data;
-
 };
 
 #endif // ECGGRAPH_H
