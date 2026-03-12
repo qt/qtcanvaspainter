@@ -348,6 +348,18 @@ Q_LOGGING_CATEGORY(QC_INFO, "qt.qcpainter.general")
 */
 
 /*!
+    \enum QCanvasPainter::FillRule
+
+    This enum specifies how paths are filled.
+
+    \value NonZero The path is filled using the non zero winding rule. With this rule, we determine whether a point is inside the shape by using the following method. Draw a horizontal line from the point to a location outside the shape. Determine whether the direction of the line at each intersection point is up or down. The winding number is determined by summing the direction of each intersection. If the number is non zero, the point is inside the shape. This fill mode can also in most cases be considered as the intersection of closed shapes.  This mode is the default.
+
+    \value EvenOdd The path is filled using the odd even fill rule. With this rule, we determine whether a point is inside the shape by using the following method. Draw a horizontal line from the point to a location outside the shape, and count the number of intersections. If the number of intersections is an odd number, the point is inside the shape.
+
+    \sa fill()
+*/
+
+/*!
     \enum QCanvasPainter::ImageFlag
 
     This enum specifies flags related to images. Use with
@@ -849,6 +861,17 @@ void QCanvasPainter::setGlobalSaturate(float value)
 {
     Q_D(QCanvasPainter);
     d->m_e->setGlobalSaturate(value);
+}
+
+/*!
+    Sets the path fill rule to \a fillRule. This value is applied to all fill() calls
+    after the rule has been set. The default fill rule is \c QCanvasPainter::FillRule::NonZero
+ */
+
+void QCanvasPainter::setFillRule(FillRule fillRule)
+{
+    Q_D(QCanvasPainter);
+    d->m_e->setFillRule(fillRule);
 }
 
 // *** Transforms ***
@@ -1667,8 +1690,8 @@ void QCanvasPainter::beginHoleSubPath()
 }
 
 /*!
-    Fills the current path with current fill style.
-    \sa setFillStyle()
+    Fills the current path with the current fill style, and the current fill rule.
+    \sa setFillStyle() setFillRule()
     \table
     \row
     \li \inlineimage qcpainter-fill.webp
@@ -1686,7 +1709,19 @@ void QCanvasPainter::beginHoleSubPath()
 void QCanvasPainter::fill()
 {
     Q_D(QCanvasPainter);
-    d->m_e->fill();
+    d->m_e->fill(d->m_e->fillRule());
+}
+
+/*!
+   \overload
+    Fills the current path with the current fill style, and fill rule \a fillRule.
+    \sa setFillStyle()
+*/
+
+void QCanvasPainter::fill(FillRule fillRule)
+{
+    Q_D(QCanvasPainter);
+    d->m_e->fill(fillRule);
 }
 
 /*!
@@ -1715,8 +1750,8 @@ void QCanvasPainter::stroke()
 /*!
     \overload
 
-    Fills the \a path with current fill style and belonging into \a
-    pathGroup. Painting through QCanvasPath is optimal when the path
+    Fills the \a path with current fill style and fill rule, and belonging
+    into \a pathGroup. Painting through QCanvasPath is optimal when the path
     contains more commands is mostly static.
 
     When \a pathGroup is \c -1, the path will not be cached on GPU side.
@@ -1744,13 +1779,25 @@ void QCanvasPainter::stroke()
     \endcode
     \endtable
 
-    \sa setFillStyle(), removePathGroup()
+    \sa setFillStyle(), setFillRule(), removePathGroup()
 */
 
 void QCanvasPainter::fill(const QCanvasPath &path, int pathGroup)
 {
     Q_D(QCanvasPainter);
-    d->m_e->fill(path, pathGroup);
+    d->m_e->fill(path, d->m_e->fillRule(), pathGroup);
+}
+
+/*!
+    \overload
+
+    Fills the \a path with current fill style and fill rule \a fillRule
+*/
+
+void QCanvasPainter::fill(const QCanvasPath &path, FillRule fillRule, int pathGroup)
+{
+    Q_D(QCanvasPainter);
+    d->m_e->fill(path, fillRule, pathGroup);
 }
 
 /*!
@@ -1819,7 +1866,7 @@ void QCanvasPainter::fillRect(float x, float y, float width, float height)
     Q_D(QCanvasPainter);
     d->m_e->beginPath();
     d->m_e->addRect(x, y, width, height);
-    d->m_e->fill();
+    d->m_e->fill(FillRule::NonZero);
 }
 
 /*!

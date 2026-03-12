@@ -38,6 +38,7 @@ public:
     enum class TextAlign : quint8 { Left, Right, Center, Start, End };
     enum class TextBaseline : quint8 { Top, Hanging, Middle, Alphabetic, Bottom };
     enum class TextDirection : quint8 { LeftToRight, RightToLeft, Inherit, Auto };
+    enum class FillRule : quint8 { NonZero, EvenOdd };
 
     enum class CompositeOperation : quint8 {
         SourceOver,
@@ -93,6 +94,7 @@ public:
     Q_CANVASPAINTER_EXPORT void setGlobalBrightness(float value);
     Q_CANVASPAINTER_EXPORT void setGlobalContrast(float value);
     Q_CANVASPAINTER_EXPORT void setGlobalSaturate(float value);
+    Q_CANVASPAINTER_EXPORT void setFillRule(FillRule fillRule);
 
     // *** Transforms ***
 
@@ -186,9 +188,11 @@ public:
     Q_CANVASPAINTER_EXPORT void beginHoleSubPath();
 
     Q_CANVASPAINTER_EXPORT void fill();
+    Q_CANVASPAINTER_EXPORT void fill(FillRule fillRule);
     Q_CANVASPAINTER_EXPORT void stroke();
 
     Q_CANVASPAINTER_EXPORT void fill(const QCanvasPath &path, int pathGroup = -1);
+    Q_CANVASPAINTER_EXPORT void fill(const QCanvasPath &path, FillRule fillRule, int pathGroup = -1);
     Q_CANVASPAINTER_EXPORT void stroke(const QCanvasPath &path, int pathGroup = -1);
 
     // *** Direct drawing ***

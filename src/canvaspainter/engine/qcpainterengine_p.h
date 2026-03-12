@@ -64,6 +64,9 @@ public:
     void setGlobalContrast(float value);
     void setGlobalSaturate(float value);
 
+    void setFillRule(QCanvasPainter::FillRule fillRule);
+    QCanvasPainter::FillRule fillRule() const;
+
     // Custom paints
     void setCustomStrokeBrush(QCanvasCustomBrush *brush);
     void setCustomFillBrush(QCanvasCustomBrush *brush);
@@ -117,10 +120,10 @@ public:
     void addPath(const QCanvasPath &path, const QTransform &transform = QTransform());
     void addPath(const QCanvasPath &path, qsizetype start, qsizetype count, const QTransform &transform = QTransform());
     void setPathWinding(QCanvasPainter::PathWinding winding);
-    void fill(QCanvasPath *maybePath = nullptr, int pathGroup = -1, bool cachedPathUpdateRequired = false);
+    void fill(QCanvasPainter::FillRule fillRule, QCanvasPath *maybePath = nullptr, int pathGroup = -1, bool cachedPathUpdateRequired = false);
     void fillForClear();
     void stroke(QCanvasPath *maybePath = nullptr, int pathGroup = -1, bool cachedPathUpdateRequired = false);
-    void fill(const QCanvasPath &path, int pathGroup);
+    void fill(const QCanvasPath &path, QCanvasPainter::FillRule fillRule, int pathGroup);
     void stroke(const QCanvasPath &path, int pathGroup);
 
     // Blending

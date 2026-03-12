@@ -156,6 +156,7 @@ struct QCState {
     QCanvasPainter::TextAlign textAlignment = QCanvasPainter::TextAlign::Start;
     QCanvasPainter::TextBaseline textBaseline = QCanvasPainter::TextBaseline::Alphabetic;
     QCanvasPainter::TextDirection textDirection = QCanvasPainter::TextDirection::Inherit;
+    QCanvasPainter::FillRule fillRule = QCanvasPainter::FillRule::NonZero;
     bool blendEnable;
 };
 

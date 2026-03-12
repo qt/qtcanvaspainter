@@ -144,7 +144,8 @@ public:
     void renderFill(const QCPaint &paint, const QCState &state,
                     const QRectF &bounds,
                     std::optional<QCRhiUncachedPathDrawArgs> uncachedPathInfo,
-                    std::optional<QCRhiCachedPathDrawArgs> cachedPathInfo);
+                    std::optional<QCRhiCachedPathDrawArgs> cachedPathInfo,
+                    QCanvasPainter::FillRule fillRule);
     void renderStroke(const QCPaint &paint, const QCState &state,
                       float strokeWidth,
                       std::optional<QCRhiUncachedPathDrawArgs> uncachedPathInfo,

@@ -110,6 +110,7 @@ struct QCRHICall {
     QShader customFragShader;
     QShader customVertShader;
     bool textTriangleOffsetBakedInToIndices;
+    QCanvasPainter::FillRule fillRule;
 };
 
 struct QCRHIPath {
@@ -1349,13 +1350,15 @@ int QCPainterRhiRenderer::transferFillGeom(QCRHICall *call,
 void QCPainterRhiRenderer::renderFill(const QCPaint &paint, const QCState &state,
                                       const QRectF &bounds,
                                       std::optional<QCRhiUncachedPathDrawArgs> uncachedPathInfo,
-                                      std::optional<QCRhiCachedPathDrawArgs> cachedPathInfo)
+                                      std::optional<QCRhiCachedPathDrawArgs> cachedPathInfo,
+                                      QCanvasPainter::FillRule fillRule)
 {
     QCRHICall *call = allocCall();
     auto &ctx = m_e->ctx;
     const float aa = state.antialias;
 
     call->type = CallFill;
+    call->fillRule = fillRule;
     call->renderFlags = rhiCtx->flags;
     if (state.customFill) {
         auto *customBrushPriv = QCanvasCustomBrushPrivate::get(state.customFill);
@@ -1899,6 +1902,8 @@ void QCPainterRhiRenderer::endPrepare()
                 call->srb[0] = srbWithDummyTexture;
                 call->srb[1] = srbWithCallTexture;
 
+                bool winding = call->fillRule == QCanvasPainter::FillRule::NonZero;
+
                 // 1. Draw shapes
                 QCRHIPipelineState ps = basePs;
                 ps.stencilTestEnable = true;
@@ -1907,13 +1912,13 @@ void QCPainterRhiRenderer::endPrepare()
                 ps.stencilFront = {
                     QRhiGraphicsPipeline::Keep,
                     QRhiGraphicsPipeline::Keep,
-                    QRhiGraphicsPipeline::IncrementAndWrap,
+                    winding ? QRhiGraphicsPipeline::IncrementAndWrap : QRhiGraphicsPipeline::Invert,
                     QRhiGraphicsPipeline::Always
                 };
                 ps.stencilBack = {
                     QRhiGraphicsPipeline::Keep,
                     QRhiGraphicsPipeline::Keep,
-                    QRhiGraphicsPipeline::DecrementAndWrap,
+                    winding ? QRhiGraphicsPipeline::DecrementAndWrap : QRhiGraphicsPipeline::Invert,
                     QRhiGraphicsPipeline::Always
                 };
                 ps.cullMode = QRhiGraphicsPipeline::None;

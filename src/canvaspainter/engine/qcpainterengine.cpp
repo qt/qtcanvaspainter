@@ -178,6 +178,7 @@ void QCPainterEngine::reset()
     state.textAntialias = 1.0f;
     state.font = QFont();
     state.winding = QCanvasPainter::PathWinding::CounterClockWise;
+    state.fillRule = QCanvasPainter::FillRule::NonZero;
 
     // Blending is almost always enabled, so e.g. antialiasing,
     // non-opaque colors and composition modes work.
@@ -274,6 +275,16 @@ void QCPainterEngine::setGlobalSaturate(float value)
     state.saturate = value;
 }
 
+void QCPainterEngine::setFillRule(QCanvasPainter::FillRule fillRule)
+{
+    state.fillRule = fillRule;
+}
+
+QCanvasPainter::FillRule QCPainterEngine::fillRule() const
+{
+    return state.fillRule;
+}
+
 // ***** Custom paints *****
 
 void QCPainterEngine::setCustomStrokeBrush(QCanvasCustomBrush *brush)
@@ -360,7 +371,7 @@ void QCPainterEngine::fillPlainRect(const QCPaint &paint, float x, float y, floa
     state.customFill = nullptr;
     beginPath();
     addRect(x, y, width, height);
-    fill();
+    fill(QCanvasPainter::FillRule::NonZero);
     m_renderer->setFlag(QCPainterRhiRenderer::Antialiasing, prevAA);
     state.fill = prevFill;
     state.customFill = prevCustomFill;
@@ -795,7 +806,7 @@ void QCPainterEngine::setPathWinding(QCanvasPainter::PathWinding winding)
     appendCommand(c);
 }
 
-void QCPainterEngine::fill(QCanvasPath *maybePath, int pathGroup, bool cachedPathUpdateRequired)
+void QCPainterEngine::fill(QCanvasPainter::FillRule fillRule, QCanvasPath *maybePath, int pathGroup, bool cachedPathUpdateRequired)
 {
     const bool usingPathCaching = maybePath && pathGroup != -1;
     if (!usingPathCaching && ctx.commandsCount < 3)
@@ -813,7 +824,7 @@ void QCPainterEngine::fill(QCanvasPath *maybePath, int pathGroup, bool cachedPat
         const QCPaint fillPaint = getFillPaint(ignoreTransform);
 
         QCRhiUncachedPathDrawArgs args { ctx.paths, ctx.pathsCount };
-        m_renderer->renderFill(fillPaint, state, ctx.bounds, args, std::nullopt);
+        m_renderer->renderFill(fillPaint, state, ctx.bounds, args, std::nullopt, fillRule);
     } else {
         if (cachedPathUpdateRequired) {
             commandsToPaths();
@@ -825,11 +836,11 @@ void QCPainterEngine::fill(QCanvasPath *maybePath, int pathGroup, bool cachedPat
 
         if (cachedPathUpdateRequired) {
             QCRhiCachedPathDrawArgs args { maybePath, pathGroup, state.transform, { { ctx.paths, ctx.pathsCount } } };
-            m_renderer->renderFill(fillPaint, state, ctx.bounds, std::nullopt, args);
+            m_renderer->renderFill(fillPaint, state, ctx.bounds, std::nullopt, args, fillRule);
         } else {
             QCRhiCachedPathDrawArgs args { maybePath, pathGroup, state.transform, std::nullopt };
             // there was no commandsToPath -> ctx.bounds is stale -> do not pass it, should use the cached one anyway
-            m_renderer->renderFill(fillPaint, state, QRectF(), std::nullopt, args);
+            m_renderer->renderFill(fillPaint, state, QRectF(), std::nullopt, args, fillRule);
         }
     }
 
@@ -856,7 +867,7 @@ void QCPainterEngine::fillForClear()
     const bool wasBlendEnabled = state.blendEnable;
     state.blendEnable = false;
     QCRhiUncachedPathDrawArgs args { ctx.paths, ctx.pathsCount };
-    m_renderer->renderFill(fillPaint, state, ctx.bounds, args, std::nullopt);
+    m_renderer->renderFill(fillPaint, state, ctx.bounds, args, std::nullopt, QCanvasPainter::FillRule::NonZero);
     state.blendEnable = wasBlendEnabled;
 
 #ifdef QCPAINTER_PERF_DEBUG
@@ -902,7 +913,7 @@ void QCPainterEngine::stroke(QCanvasPath *maybePath, int pathGroup, bool cachedP
 #endif
 }
 
-void QCPainterEngine::fill(const QCanvasPath &path, int pathGroup)
+void QCPainterEngine::fill(const QCanvasPath &path, QCanvasPainter::FillRule fillRule, int pathGroup)
 {
     if (path.isEmpty())
         return;
@@ -920,7 +931,7 @@ void QCPainterEngine::fill(const QCanvasPath &path, int pathGroup)
             ctx.preparedPathTransform = state.transform;
         }
 
-        fill();
+        fill(fillRule);
     } else {
         // Caching.
         // In this case data points are untransformed, and transformation is applied in vertex shader.
@@ -930,7 +941,7 @@ void QCPainterEngine::fill(const QCanvasPath &path, int pathGroup)
             preparePainterPath(path, ignoreTransform);
         }
 
-        fill(p, pathGroup, pathUpdateRequired);
+        fill(fillRule, p, pathGroup, pathUpdateRequired);
     }
 }
 
