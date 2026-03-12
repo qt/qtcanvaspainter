@@ -1062,8 +1062,13 @@ QTransform QCanvasPainter::getTransform() const
 }
 
 /*!
+   \internal
     Sets the current brush transform to \a transform. This transform is
     applied to both stroke and fill brushes.
+
+    \note Setting the brush transform will change the internal state.
+    Make sure to set it back to the identity transform before doing other
+    paint operations.
 */
 
 void QCanvasPainter::setBrushTransform(const QTransform &transform)
