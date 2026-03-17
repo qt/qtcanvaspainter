@@ -2189,6 +2189,7 @@ bool QCPainterEngine::fillPathUpdateRequired(QCanvasPath *path, int pathGroup)
         pathd->pathIterations != cp.pathIterations ||
         pathd->commandsCount != cp.commandsCount ||
         !qFuzzyCompare(state.antialias, cp.edgeAAWidth) ||
+        int(m_renderer->flags()) != cp.renderFlags ||
         !m_renderer->isPathCached(path, pathGroup)) {
         updateRequired = true;
         // Reset cache states
@@ -2196,6 +2197,7 @@ bool QCPainterEngine::fillPathUpdateRequired(QCanvasPath *path, int pathGroup)
         cp.pathIterations = pathd->pathIterations;
         cp.commandsCount = pathd->commandsCount;
         cp.edgeAAWidth = state.antialias;
+        cp.renderFlags = int(m_renderer->flags());
     }
     return updateRequired;
 }
@@ -2214,6 +2216,7 @@ bool QCPainterEngine::strokePathUpdateRequired(QCanvasPath *path, int pathGroup)
         !qFuzzyCompare(state.strokeWidth, cp.strokeWidth) ||
         state.lineCap != cp.lineCap ||
         state.lineJoin != cp.lineJoin ||
+        int(m_renderer->flags()) != cp.renderFlags ||
         !m_renderer->isPathCached(path, pathGroup)) {
         updateRequired = true;
         // Reset cache states
@@ -2224,6 +2227,7 @@ bool QCPainterEngine::strokePathUpdateRequired(QCanvasPath *path, int pathGroup)
         cp.strokeWidth = state.strokeWidth;
         cp.lineCap = state.lineCap;
         cp.lineJoin = state.lineJoin;
+        cp.renderFlags = int(m_renderer->flags());
     }
     return updateRequired;
 }

@@ -2618,6 +2618,11 @@ void QCPainterRhiRenderer::setFlag(RenderFlags flag, bool enable)
     }
 }
 
+QCPainterRhiRenderer::RenderFlags QCPainterRhiRenderer::flags() const
+{
+    return rhiCtx ? rhiCtx->flags : QCPainterRhiRenderer::RenderFlags();
+}
+
 // Returns true if the \a path is in cache in \a pathGroup and
 // it has not been invalidated. Invalidation happens if some path
 // in the same pathGroup painted before this path has needed to be updated.

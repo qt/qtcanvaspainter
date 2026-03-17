@@ -173,6 +173,7 @@ struct QCCachedPath
     float edgeAAWidth = 1.0f;
     QCanvasPainter::LineCap lineCap = QCanvasPainter::LineCap::Butt;
     QCanvasPainter::LineJoin lineJoin = QCanvasPainter::LineJoin::Miter;
+    int renderFlags = 0;
 };
 
 
