@@ -116,6 +116,7 @@ public:
 
     bool testFlag(RenderFlag flag) const;
     void setFlag(RenderFlags flag, bool enable);
+    RenderFlags flags() const;
 
     bool renderCreate();
 
