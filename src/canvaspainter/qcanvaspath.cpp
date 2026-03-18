@@ -72,14 +72,17 @@ QT_BEGIN_NAMESPACE
     When painting paths using \l{QCanvasPainter::}{fill()} or \l{QCanvasPainter::}{stroke()}
     that take \l QCanvasPath as a parameter, it is possible to set a \c pathGroup
     as a second parameter. This defines the GPU buffer where the path is cached.
-    By default, \c pathGroup is \c 0, meaning that the first buffer is used.
-    Setting the \c pathGroup to \c -1 means that the path does not allocate its own
-    buffer, and the same dynamic buffer is used as with direct painting using
-    beginPath() followed by commands and fill/stroke.
 
-    Arranging paths into path groups allows efficient optimization of the rendering
-    performance and the GPU memory usage. Paths that belong together and often change
-    at the same time should be in the same group for optimal buffer usage.
+    By default, \c pathGroup is \c -1, which means that the path does not
+    allocate its own buffer, and so rendering happens almost identically to when
+    doing direct painting using beginPath(), followed by commands and
+    fill/stroke, and so not using QCanvasPath at all.
+
+    Setting \c pathGroup to a value of \c 0 or any higher number will enable the
+    caching and reuse of the path's generated geometry. Arranging paths into
+    path groups allows efficient optimization of the rendering performance and
+    the GPU memory usage. Paths that belong together and often change at the
+    same time should be in the same group for optimal buffer usage.
 
     When the path changes, its geometry (vertex buffer) is automatically updated.
     Things that cause a geometry update of the path group are:
@@ -88,6 +91,7 @@ QT_BEGIN_NAMESPACE
     \li Changing the stroke line width (\l{QCanvasPainter::setLineWidth()}).
     \li Adjusting antialiasing amount (\l{QCanvasPainter::setAntialias()}).
     \li Changing line cap or line join type (\l{QCanvasPainter::setLineCap()}, \l{QCanvasPainter::setLineJoin()}).
+    \li Adjusting \l{QCanvasPainter::setRenderHint()}{render hints}.
     \endlist
 
     Note that changing the state transform (\l{QCanvasPainter::transform()}, \l{QCanvasPainter::rotate()} etc.)

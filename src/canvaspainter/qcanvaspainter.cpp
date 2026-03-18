@@ -1710,14 +1710,17 @@ void QCanvasPainter::stroke()
 /*!
     \overload
 
-    Fills the \a path with current fill style and belonging
-    into \a pathGroup. Painting through QCanvasPath is optimal when
-    the path contains more commands is mostly static.
-    By default, \a pathGroup is \c 0, so using the
-    first group. When \a pathGroup is \c -1, the path will not be cached
-    on GPU side. More information about using path cache groups in
-    \l{QCanvasPath} documentation.
+    Fills the \a path with current fill style and belonging into \a
+    pathGroup. Painting through QCanvasPath is optimal when the path
+    contains more commands is mostly static.
+
+    When \a pathGroup is \c -1, the path will not be cached on GPU side.
+    This is the default. To request the caching of path data, pass a
+    value equal or greater to \c 0. More information about using path
+    cache groups in \l{QCanvasPath} documentation.
+
     Calling beginPath() before this method is not required.
+
     \table
     \row
     \li \inlineimage qcpainter-fill2.webp
@@ -1736,7 +1739,7 @@ void QCanvasPainter::stroke()
     \endcode
     \endtable
 
-    \sa setFillStyle()
+    \sa setFillStyle(), removePathGroup()
 */
 
 void QCanvasPainter::fill(const QCanvasPath &path, int pathGroup)
@@ -1748,14 +1751,17 @@ void QCanvasPainter::fill(const QCanvasPath &path, int pathGroup)
 /*!
     \overload
 
-    Strokes the \a path with current stroke style and belonging
-    into \a pathGroup. Painting through QCanvasPath is optimal when
-    the path contains more commands is mostly static.
-    By default, \a pathGroup is \c 0, so using the
-    first group. When \a pathGroup is \c -1, the path will not be cached
-    on GPU side. More information about using path cache groups in
-    \l{QCanvasPath} documentation.
+    Strokes the \a path with current stroke style and belonging into \a
+    pathGroup. Painting through QCanvasPath is optimal when the path
+    contains more commands is mostly static.
+
+    When \a pathGroup is \c -1, the path will not be cached on GPU side.
+    This is the default. To request the caching of path data, pass a
+    value equal or greater to \c 0. More information about using path
+    cache groups in \l{QCanvasPath} documentation.
+
     Calling beginPath() before this method is not required.
+
     \table
     \row
     \li \inlineimage qcpainter-stroke2.webp
@@ -1774,7 +1780,7 @@ void QCanvasPainter::fill(const QCanvasPath &path, int pathGroup)
     \endcode
     \endtable
 
-    \sa setStrokeStyle()
+    \sa setStrokeStyle(), removePathGroup()
 */
 
 void QCanvasPainter::stroke(const QCanvasPath &path, int pathGroup)
