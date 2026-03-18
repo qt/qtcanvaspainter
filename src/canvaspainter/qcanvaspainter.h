@@ -188,8 +188,8 @@ public:
     Q_CANVASPAINTER_EXPORT void fill();
     Q_CANVASPAINTER_EXPORT void stroke();
 
-    Q_CANVASPAINTER_EXPORT void fill(const QCanvasPath &path, int pathGroup = 0);
-    Q_CANVASPAINTER_EXPORT void stroke(const QCanvasPath &path, int pathGroup = 0);
+    Q_CANVASPAINTER_EXPORT void fill(const QCanvasPath &path, int pathGroup = -1);
+    Q_CANVASPAINTER_EXPORT void stroke(const QCanvasPath &path, int pathGroup = -1);
 
     // *** Direct drawing ***
 
