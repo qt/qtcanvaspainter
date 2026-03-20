@@ -17,7 +17,7 @@ Window {
     // How many times selected tests are rendered per item
     property int testCount: 1
     property bool fullScreen: true
-    // 0 = QCPainter, 1 = QQuickPaintedItem
+    // 0 = QCPainter, 1 = QQuickPaintedItem, 2 = Canvas2D, 3 = (old) Canvas
     property int renderType: 0
     // Resolution-independent dp
     readonly property real dp: Screen.pixelDensity * 25.4/160
@@ -130,6 +130,27 @@ Window {
                     qpAntialiasing: mainWindow.settingAntialiasing
                     qpRenderTargetFBO: mainWindow.settingFBORendering
                 }
+
+                DemoCanvas2DItem {
+                    id: qc2dItem
+                    width: parent.width
+                    height: visible ? parent.height : 0
+                    enabledTests: mainWindow.enabledTests
+                    testCount: mainWindow.testCount
+                    animationTime: visible ? mainWindow.animationTime : 0
+                    visible: renderType === 2
+                }
+
+                DemoCanvasItem {
+                    id: qcItem
+                    width: parent.width
+                    height: visible ? parent.height : 0
+                    enabledTests: mainWindow.enabledTests
+                    testCount: mainWindow.testCount
+                    animationTime: visible ? mainWindow.animationTime : 0
+                    visible: renderType === 3
+                }
+
             }
         }
     }
@@ -162,7 +183,7 @@ Window {
         anchors.verticalCenter: fpsItem.verticalCenter
         anchors.right: parent.right
         anchors.rightMargin: 60 * dp
-        model: ["Canvas Painter", "QPainter"]
+        model: ["Canvas Painter", "QPainter", "Canvas2D", "Canvas (old)"]
         onCurrentIndexChanged: {
             renderType = currentIndex;
         }

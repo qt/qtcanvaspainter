@@ -30,6 +30,8 @@ qt_add_qml_module(qcpainterbench
         qml/SliderSelector.qml
         qml/TabView.qml
         qml/DebugView.qml
+        qml/DemoCanvas2DItem.qml
+        qml/DemoCanvasItem.qml
     RESOURCE_PREFIX
         /
     RESOURCES
