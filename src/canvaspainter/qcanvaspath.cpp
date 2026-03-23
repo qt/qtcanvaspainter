@@ -46,9 +46,11 @@ QT_BEGIN_NAMESPACE
 
     A painter path is an object composed of a number of graphical building blocks,
     such as rectangles, ellipses, lines, and curves. QCanvasPath API matches to
-    QCanvasPainter path painting, making it easy to adjust code between paintind directly
+    QCanvasPainter path painting, making it easy to adjust code between painting directly
     or painting into a path. The main reason use QCanvasPath is to avoid recreating
-    the (static) paths and be able to cache the paths GPU buffers.
+    paths that are static and used in every frame of the rendering, and to possibly enable
+    the caching of the path-related rendering data (such, as the vertex and index data
+    generated from it), instead of regenerating it every time the path is filled or stroked.
 
     Compared to QPainterPath, QCanvasPath is more optimized for rendering with fewer
     features for comparing or adjusting the paths. In particular:
@@ -67,24 +69,24 @@ QT_BEGIN_NAMESPACE
 
     Painting paths through QCanvasPath allows the engine to cache the path
     geometry (vertices). This improves the performance of static paths,
-    while potentially increasing GPU memory consumption.
+    while potentially increasing CPU and GPU memory consumption.
 
     When painting paths using \l{QCanvasPainter::}{fill()} or \l{QCanvasPainter::}{stroke()}
     that take \l QCanvasPath as a parameter, it is possible to set a \c pathGroup
-    as a second parameter. This defines the GPU buffer where the path is cached.
+    as a second parameter.
 
-    By default, \c pathGroup is \c -1, which means that the path does not
-    allocate its own buffer, and so rendering happens almost identically to when
-    doing direct painting using beginPath(), followed by commands and
-    fill/stroke, and so not using QCanvasPath at all.
+    By default, \c pathGroup is \c -1, which means that the path data will not
+    be attempted to be cached, and so rendering happens mostly identically to
+    when doing direct painting using beginPath(), followed by path definition
+    commands, and finally a fill or stroke.
 
     Setting \c pathGroup to a value of \c 0 or any higher number will enable the
     caching and reuse of the path's generated geometry. Arranging paths into
     path groups allows efficient optimization of the rendering performance and
-    the GPU memory usage. Paths that belong together and often change at the
-    same time should be in the same group for optimal buffer usage.
+    memory usage. Paths that belong together and often change at the
+    same time should be in the same group for optimal results.
 
-    When the path changes, its geometry (vertex buffer) is automatically updated.
+    When the path changes, its data, even if it was cached, is automatically updated.
     Things that cause a geometry update of the path group are:
     \list
     \li Clearing the path elements or adding new elements.
@@ -98,7 +100,7 @@ QT_BEGIN_NAMESPACE
     does not invalidate the path, so moving/scaling/rotating a cached path is very efficient.
 
     In cases where the path does not need to be painted anymore, or the application
-    should release GPU memory, the cache can be released by calling
+    wants to free up memory as much as possible, the cache can be released by calling
     \l{QCanvasPainter::removePathGroup()}. This isn't usually needed, as the cached paths
     are automatically released during the painter destructor.
 
