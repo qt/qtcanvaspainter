@@ -166,14 +166,14 @@ typedef QVarLengthArray<QCPoint> QCPoints;
 // has changed so that paths, points & vertices need to be recreated.
 struct QCCachedPath
 {
-    int pathGroup = 0;
+    int pathGroup = -1;
     int pathIterations = -1;
     int commandsCount = 0;
     float strokeWidth = 1.0f;
     float edgeAAWidth = 1.0f;
     QCanvasPainter::LineCap lineCap = QCanvasPainter::LineCap::Butt;
     QCanvasPainter::LineJoin lineJoin = QCanvasPainter::LineJoin::Miter;
-    int renderFlags = 0;
+    int renderHints = 0;
 };
 
 
@@ -185,15 +185,11 @@ struct QCContext {
     QCVertices vertices;
     // Currently active path, so paths[pathsCount - 1]
     QCPath *currentPath = nullptr;
-    // Currently rendered painter path
-    QCanvasPath *currentPainterPath = nullptr;
-    int currentPathGroup = -1;
-    QTransform currentPathTransform;
     // Currently prepared painter path.
     // Means that current commands & commandsData are from this path.
-    const QCanvasPath *preparedPainterPath = nullptr;
+    const QCanvasPath *preparedPath = nullptr;
     // Transform which was used for preparedPainterPath
-    QTransform preparedTransform;
+    QTransform preparedPathTransform;
     QHash<const QCanvasPath*, QCCachedPath> cachedFillPaths;
     QHash<const QCanvasPath*, QCCachedPath> cachedStrokePaths;
     QList<QCState> states;

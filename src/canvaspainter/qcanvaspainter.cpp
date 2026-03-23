@@ -1755,10 +1755,10 @@ void QCanvasPainter::fill(const QCanvasPath &path, int pathGroup)
     pathGroup. Painting through QCanvasPath is optimal when the path
     contains more commands is mostly static.
 
-    When \a pathGroup is \c -1, the path will not be cached on GPU side.
-    This is the default. To request the caching of path data, pass a
-    value equal or greater to \c 0. More information about using path
-    cache groups in \l{QCanvasPath} documentation.
+    When \a pathGroup is \c -1, the path's rendering-related data will not be
+    cached. This is the default. To request the caching of path data, pass a
+    value equal or greater to \c 0. More information about using path cache
+    groups can be found in the \l{QCanvasPath} documentation.
 
     Calling beginPath() before this method is not required.
 

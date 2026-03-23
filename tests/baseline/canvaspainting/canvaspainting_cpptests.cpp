@@ -188,6 +188,20 @@ void CanvasPainterLancelotCppTests::testPathWinding()
     painter->translate(200, 0);
     painter->fill(p, 234);
     painter->stroke(p, 234);
+
+    painter->resetTransform();
+    painter->translate(0, 200);
+    painter->setFillStyle(Qt::black);
+    painter->fillText("Repeat the last and first (cache should hit for both)", 10, 0);
+    painter->setFillStyle(Qt::green);
+
+    painter->translate(0, 20);
+    painter->fill(p, 234);
+    painter->stroke(p, 234);
+
+    painter->translate(200, 0);
+    painter->fill(p2, 234);
+    painter->stroke(p2, 234);
 }
 
 void CanvasPainterLancelotCppTests::testStraightLinesInPathUncachedPath()
@@ -459,7 +473,7 @@ void CanvasPainterLancelotCppTests::testPathFill()
     painter->restore();
 }
 
-void CanvasPainterLancelotCppTests::testCurve()
+void CanvasPainterLancelotCppTests::testCurveImpl(int pathGroup)
 {
     QCanvasPath star;
     star.moveTo(50, 0);
@@ -492,18 +506,23 @@ void CanvasPainterLancelotCppTests::testCurve()
     painter->setLineWidth(10);
     painter->setFillStyle("#7f7fff");
 
+    int pg1 = pathGroup;
+    int pg2 = pathGroup != -1 ? pathGroup + 1 : -1;
+    int pg3 = pathGroup != -1 ? pathGroup + 2 : -1;
+    int pg4 = pathGroup != -1 ? pathGroup + 3 : -1;
+
     auto f = [&] {
-        painter->fill(star);
-        painter->stroke(star);
+        painter->fill(star, pg1);
+        painter->stroke(star, pg1);
         painter->translate(100, 0);
-        painter->fill(rectncircle);
-        painter->stroke(rectncircle);
+        painter->fill(rectncircle, pg2);
+        painter->stroke(rectncircle, pg2);
         painter->translate(100, 0);
-        painter->fill(curve);
-        painter->stroke(curve);
+        painter->fill(curve, pg3);
+        painter->stroke(curve, pg3);
         painter->translate(-100, 0);
-        painter->fill(curve2);
-        painter->stroke(curve2);
+        painter->fill(curve2, pg4);
+        painter->stroke(curve2, pg4);
     };
 
     f();
@@ -535,8 +554,18 @@ void CanvasPainterLancelotCppTests::testCurve()
     painter->setFillStyle(gp);
     painter->translate(0, 400);
     painter->setLineWidth(4);
-    painter->fill(arc);
-    painter->stroke(arc);
+    painter->fill(arc, pg1);
+    painter->stroke(arc, pg1);
+}
+
+void CanvasPainterLancelotCppTests::testCurve()
+{
+    testCurveImpl(-1);
+}
+
+void CanvasPainterLancelotCppTests::testCurveWithPathCaching()
+{
+    testCurveImpl(99);
 }
 
 void CanvasPainterLancelotCppTests::testSomeText()

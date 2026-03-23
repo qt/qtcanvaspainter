@@ -22,6 +22,7 @@
 #include "qcanvascustombrush_p.h"
 #include "qcanvasoffscreencanvas.h"
 #include <functional>
+#include <optional>
 
 QT_BEGIN_NAMESPACE
 
@@ -33,8 +34,6 @@ struct QCRHIPipelineStateKey;
 struct QCRHISamplerDesc;
 struct QCRHICall;
 struct QCRHICommonUniforms;
-struct QCRHICachedPath;
-struct QCRHICachedPathGroup;
 class QCanvasPath;
 
 struct QCRHITexture
@@ -60,6 +59,20 @@ struct QCRhiCanvas
 
 bool operator==(const QCRhiCanvas &a, const QCRhiCanvas &b) noexcept;
 bool operator!=(const QCRhiCanvas &a, const QCRhiCanvas &b) noexcept;
+
+struct QCRhiUncachedPathDrawArgs
+{
+    const QCPaths &paths;
+    int pathsCount;
+};
+
+struct QCRhiCachedPathDrawArgs
+{
+    QCanvasPath *canvasPath;
+    int pathGroup;
+    const QTransform &pathTransform;
+    std::optional<QCRhiUncachedPathDrawArgs> updateData;
+};
 
 class QCPainterRhiRenderer
 {
@@ -130,14 +143,13 @@ public:
     void setViewport(float x, float y, float width, float height);
     void renderFill(const QCPaint &paint, const QCState &state,
                     const QRectF &bounds,
-                    const QCPaths &paths, int pathsCount,
-                    QCanvasPath *painterPath, int pathGroup,
-                    const QTransform &pathTransform);
+                    std::optional<QCRhiUncachedPathDrawArgs> uncachedPathInfo,
+                    std::optional<QCRhiCachedPathDrawArgs> cachedPathInfo);
     void renderStroke(const QCPaint &paint, const QCState &state,
                       float strokeWidth,
-                      const QCPaths &paths, int pathsCount,
-                      QCanvasPath *painterPath, int pathGroup,
-                      const QTransform &pathTransform);
+                      std::optional<QCRhiUncachedPathDrawArgs> uncachedPathInfo,
+                      std::optional<QCRhiCachedPathDrawArgs> cachedPathInfo);
+
 #ifndef QCPAINTER_DISABLE_TEXT_SUPPORT
     void renderTextFill(
         const QCPaint &paint,
@@ -211,6 +223,15 @@ private:
                       const QRhiCommandBuffer::DynamicOffset &dynamicOffset,
                       bool indexedDraw,
                       bool *needsViewport);
+
+    template<typename T>
+    int transferFillGeom(QCRHICall *call,
+                         int vertexCount, const QCVertex *vertices, int indexCount,
+                         int pathCount, const T *pathInfos);
+    template<typename T>
+    void transferStrokeGeom(QCRHICall *call,
+                            int vertexCount, const QCVertex *vertices,
+                            int pathCount, const T *pathInfos);
 
 private:
     friend class QCanvasPainter;

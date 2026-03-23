@@ -27,6 +27,7 @@ private slots:
     void testPathCaching();
     void testPathFill();
     void testCurve();
+    void testCurveWithPathCaching();
     void testSomeText();
 
     // the tests below are adapted from the Gallery example
@@ -57,6 +58,8 @@ private:
     void drawCompositeItem1(float x, float y, float w, float h, QCanvasPainter::CompositeOperation mode);
     void drawCompositeItem2(float x, float y, float w, float h, QCanvasPainter::CompositeOperation mode);
     void drawCompositeItem3(float x, float y, float w, float h, QCanvasPainter::CompositeOperation mode);
+
+    void testCurveImpl(int pathGroup);
 
     QCanvasPainter *painter;
     QSize canvasPixelSize;
