@@ -69,6 +69,8 @@ enum QCRHIShaderType {
     ShaderImage = 10,
     ShaderStencilFill = 11,
     ShaderGridPattern = 12,
+    ShaderRadialGradientExtended = 13,
+    ShaderTexturedRadialGradientExtended = 14,
 };
 
 enum QCRHICallType {
@@ -1116,6 +1118,8 @@ static constexpr QCRHIShaderType shaderTypeFromBrush(QCanvasBrushType brushType,
         return ShaderBoxShadow;
     else if (brushType == BrushGrid)
         return ShaderGridPattern;
+    else if (brushType == BrushRadialGradientExtended)
+        return textured ? ShaderTexturedRadialGradientExtended : ShaderRadialGradientExtended;
 
     // BrushImage
     return ShaderImage;

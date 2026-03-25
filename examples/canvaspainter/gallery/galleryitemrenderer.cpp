@@ -229,9 +229,11 @@ void GalleryItemRenderer::drawRectsWithRadialGradient() {
     m_radGrad.setCenterPosition(rect4.x() + rect4.width()/2, rect4.y() + rect4.height()/2);
     m_radGrad.setOuterRadius(w/2);
     m_radGrad.setInnerRadius(w/16);
+    m_radGrad.setInnerCenterPosition(m_radGrad.outerCenterPosition().x() - 0.2 * w + 0.4 * w * m_animationSine,
+                                     m_radGrad.outerCenterPosition().y());
+
     auto stops = m_radGrad.stops();
-    stops[2].position = 0.2 + 0.6 * m_animationSine;
-    stops[0].color = QColor(255, m_animationSine*255, 0, 255-m_animationSine*255);
+    stops[0].color = QColor(m_animationSine * 255, 0, 0, 255);
     m_radGrad.setStops(stops);
     painter()->setFillStyle(m_radGrad);
     painter()->fillRect(rect4);

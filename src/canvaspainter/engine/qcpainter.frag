@@ -50,6 +50,21 @@ float createBars(float coord, float spacing, float strokeWidth) {
     return smoothstep(barWidth - barSmoothness, barWidth + barSmoothness, bar);
 }
 
+float extendedRadialGradient(vec2 pt) {
+    const float ocx = -pt.x;
+    const float ocy = -pt.y;
+    const float dx = -paintMat[2][0] - extent.x;
+    const float dy = -paintMat[2][1] - extent.y;
+    const float icr = radius;
+    const float ocr = feather;
+    const float dr = icr - ocr;
+    float a = (ocx * ocx) + (ocy * ocy) - (ocr * ocr);
+    float b = (dx * dx) + (dy * dy) - (dr * dr);
+    float c = 2.0 * (ocx * dx + ocy * dy + ocr * dr);
+    float d = 1.0 - 0.5 * (1.0 / b) * (c + sqrt(c * c - 4.0 * b * a));
+    return clamp(d, 0.0, 1.0);
+}
+
 #ifdef SCISSORING
 float clipMask() {
     vec2 sc = abs(scissorMat * vec3(fragCoord, 1.0)).xy - scissorExt;
@@ -132,11 +147,17 @@ void main()
             if (texType == 2) color = vec4(color.r);
             // Apply color tint and alpha.
             color *= innerCol;
-        } else { // Grid pattern
+        } else if (type == 12) { // Grid pattern
             float hLines = extent.x > 0 ? createBars(pt.x, extent.x, radius) : 0;
             float vLines = extent.y > 0 ? createBars(pt.y, extent.y, radius) : 0;
             float lines = max(hLines, vLines);
             color = mix(outerCol, innerCol, lines);
+        } else { // Entended radial gradient
+            float d = extendedRadialGradient(pt);
+            if (type == 14)
+                color = texture(tex, vec2(d, 0.5));
+            else
+                color = mix(innerCol, outerCol, d);
         }
         color *= globalAlpha * aaAlpha * clip;
     }

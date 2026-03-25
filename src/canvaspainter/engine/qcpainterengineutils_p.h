@@ -49,6 +49,7 @@ enum QCanvasBrushType {
     BrushBoxShadow,
     BrushImage,
     BrushGrid,
+    BrushRadialGradientExtended,
 };
 
 struct QCColor {

@@ -58,6 +58,25 @@ void tst_QCanvasBrush::testEqual()
     rg2.setStops({});
     QVERIFY(rg1 == rg2);
 
+    // Extended radial gradient
+    QCanvasRadialGradient rge1(100, 200, 10, 120, 210, 150);
+    QCanvasRadialGradient rge2(rge1);
+    QVERIFY(rge1 == rge2);
+    rge2.setInnerCenterPosition(101.5f, 202.5f);
+    QVERIFY(rge1 != rge2);
+    rge1.setInnerCenterPosition(rge2.innerCenterPosition());
+    QVERIFY(rge1 == rge2);
+    rge2.setOuterCenterPosition(121.5f, 222.5f);
+    QVERIFY(rge1 != rge2);
+    rge1.setOuterCenterPosition(rge2.outerCenterPosition());
+    QVERIFY(rge1 == rge2);
+    rge1.setInnerCenterPosition(12.3f, 34.5f);
+    rge1.setOuterCenterPosition(12.3f, 34.5f);
+    QVERIFY(rge1 != rge2);
+    // Sets the both in & out positions to same value.
+    rge2.setCenterPosition(rge1.centerPosition());
+    QVERIFY(rge1 == rge2);
+
     QCanvasImagePattern ip1;
     QCanvasImagePattern ip2;
     QVERIFY(ip1 == ip2);
@@ -136,6 +155,22 @@ void tst_QCanvasBrush::testDataStreams()
         sr >> rcStreamed;
     }
     QCOMPARE(rc1, rcStreamed);
+
+    // QCanvasRadialGradient - extended
+    QCanvasRadialGradient rce1(50, 100, 40, 60, 90, 80);
+    rce1.setStops(stops);
+    QCanvasRadialGradient rce2(rce1);
+    QCOMPARE(rce1, rce2);
+    {
+        QDataStream sw(&data, QIODevice::WriteOnly);
+        sw << rce1;
+    }
+    QCanvasRadialGradient rceStreamed;
+    {
+        QDataStream sr(&data, QIODevice::ReadOnly);
+        sr >> rceStreamed;
+    }
+    QCOMPARE(rce1, rceStreamed);
 
     // QCanvasConicalGradient
     QCanvasConicalGradient cc1(100, 200, float(M_PI));

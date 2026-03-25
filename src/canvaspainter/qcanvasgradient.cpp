@@ -114,10 +114,12 @@ bool comparesEqual(const QCanvasGradient &lhs, const QCanvasGradient &rhs) noexc
             || d->data.linear.ey != gd->data.linear.ey)
             return false;
     } else if (d->type == QCanvasBrush::BrushType::RadialGradient) {
-        if (d->data.radial.cx != gd->data.radial.cx
-            || d->data.radial.cy != gd->data.radial.cy
-            || d->data.radial.oRadius != gd->data.radial.oRadius
-            || d->data.radial.iRadius != gd->data.radial.iRadius)
+        if (d->data.radial.icx != gd->data.radial.icx
+            || d->data.radial.icy != gd->data.radial.icy
+            || d->data.radial.iRadius != gd->data.radial.iRadius
+            || d->data.radial.ocx != gd->data.radial.ocx
+            || d->data.radial.ocy != gd->data.radial.ocy
+            || d->data.radial.oRadius != gd->data.radial.oRadius)
             return false;
     } else if (d->type == QCanvasBrush::BrushType::ConicalGradient) {
         if (d->data.conical.cx != gd->data.conical.cx
@@ -230,10 +232,10 @@ QDataStream &operator<<(QDataStream &s, const QCanvasGradient &g)
         s << sp.x() << sp.y() << ep.x() << ep.y();
     } else if (g.type() == QCanvasBrush::BrushType::RadialGradient) {
         const auto rg = static_cast<const QCanvasRadialGradient *>(&g);
-        const auto &cp = rg->centerPosition();
-        s << cp.x() << cp.y();
-        s << rg->outerRadius();
-        s << rg->innerRadius();
+        const auto &icp = rg->innerCenterPosition();
+        s << icp.x() << icp.y() << rg->innerRadius();
+        const auto &ocp = rg->outerCenterPosition();
+        s << ocp.x() << ocp.y() << rg->outerRadius();
     } else if (g.type() == QCanvasBrush::BrushType::ConicalGradient) {
         const auto cg = static_cast<const QCanvasConicalGradient *>(&g);
         const auto &cp = cg->centerPosition();
@@ -274,9 +276,9 @@ QDataStream &operator>>(QDataStream &s, QCanvasGradient &g)
         QCanvasLinearGradient lg(startX, startY, endX, endY);
         g = lg;
     } else if (type == QCanvasBrush::BrushType::RadialGradient) {
-        float cX, cY, oRad, iRad;
-        s >> cX >> cY >> oRad >> iRad;
-        QCanvasRadialGradient rg(cX, cY, oRad, iRad);
+        float icX, icY, iRad, ocX, ocY, oRad;
+        s >> icX >> icY >> iRad >> ocX >> ocY >> oRad;
+        QCanvasRadialGradient rg(icX, icY, iRad, ocX, ocY, oRad);
         g = rg;
     } else if (type == QCanvasBrush::BrushType::ConicalGradient) {
         float cX, cY, angle;

@@ -69,10 +69,12 @@ QCanvasRadialGradient::QCanvasRadialGradient()
     : QCanvasGradient(new QCanvasRadialGradientPrivate)
 {
     G_D();
-    d->data.radial.cx = 0.0f;
-    d->data.radial.cy = 0.0f;
-    d->data.radial.oRadius = 100.0f;
+    d->data.radial.icx = 0.0f;
+    d->data.radial.icy = 0.0f;
     d->data.radial.iRadius = 0.0f;
+    d->data.radial.ocx = 0.0f;
+    d->data.radial.ocy = 0.0f;
+    d->data.radial.oRadius = 100.0f;
 }
 
 /*!
@@ -87,10 +89,12 @@ QCanvasRadialGradient::QCanvasRadialGradient(float centerX, float centerY, float
     : QCanvasGradient(new QCanvasRadialGradientPrivate)
 {
     G_D();
-    d->data.radial.cx = centerX;
-    d->data.radial.cy = centerY;
-    d->data.radial.oRadius = outerRadius;
+    d->data.radial.icx = centerX;
+    d->data.radial.icy = centerY;
     d->data.radial.iRadius = innerRadius;
+    d->data.radial.ocx = centerX;
+    d->data.radial.ocy = centerY;
+    d->data.radial.oRadius = outerRadius;
 }
 
 /*!
@@ -105,10 +109,56 @@ QCanvasRadialGradient::QCanvasRadialGradient(QPointF center, float outerRadius, 
     : QCanvasGradient(new QCanvasRadialGradientPrivate)
 {
     G_D();
-    d->data.radial.cx = float(center.x());
-    d->data.radial.cy = float(center.y());
-    d->data.radial.oRadius = outerRadius;
+    d->data.radial.icx = float(center.x());
+    d->data.radial.icy = float(center.y());
     d->data.radial.iRadius = innerRadius;
+    d->data.radial.ocx = float(center.x());
+    d->data.radial.ocy = float(center.y());
+    d->data.radial.oRadius = outerRadius;
+}
+
+/*!
+    \since 6.12
+    Constructs a radial gradient.
+    Gradient inner center position is (\a innerCenterX, \a innerCenterY).
+    Gradient outer center position is ( \a outerCenterX, \a outerCenterY).
+    Gradient outer radius is \a outerRadius and inner radius is \a innerRadius.
+    Gradient start color is white (255, 255, 255) and end color
+    transparent black (0, 0, 0, 0).
+*/
+
+QCanvasRadialGradient::QCanvasRadialGradient(float innerCenterX, float innerCenterY, float innerRadius, float outerCenterX, float outerCenterY, float outerRadius)
+    : QCanvasGradient(new QCanvasRadialGradientPrivate)
+{
+    G_D();
+    d->data.radial.icx = innerCenterX;
+    d->data.radial.icy = innerCenterY;
+    d->data.radial.iRadius = innerRadius;
+    d->data.radial.ocx = outerCenterX;
+    d->data.radial.ocy = outerCenterY;
+    d->data.radial.oRadius = outerRadius;
+}
+
+/*!
+    \since 6.12
+    Constructs a radial gradient.
+    Gradient inner center position is \a innerCenter.
+    Gradient outer center position is \a outerCenter.
+    Gradient outer radius is \a outerRadius and inner radius is \a innerRadius.
+    Gradient start color is white (255, 255, 255) and end color
+    transparent black (0, 0, 0, 0).
+*/
+
+QCanvasRadialGradient::QCanvasRadialGradient(QPointF innerCenter, float innerRadius, QPointF outerCenter, float outerRadius)
+    : QCanvasGradient(new QCanvasRadialGradientPrivate)
+{
+    G_D();
+    d->data.radial.icx = float(innerCenter.x());
+    d->data.radial.icy = float(innerCenter.y());
+    d->data.radial.iRadius = innerRadius;
+    d->data.radial.ocx = float(outerCenter.x());
+    d->data.radial.ocy = float(outerCenter.y());
+    d->data.radial.oRadius = outerRadius;
 }
 
 QCanvasRadialGradient::~QCanvasRadialGradient()
@@ -117,25 +167,92 @@ QCanvasRadialGradient::~QCanvasRadialGradient()
 
 /*!
     Returns the center point of radial gradient.
+    This is the same as \l outerCenterPosition().
+
+    \sa setCenterPosition()
 */
 
 QPointF QCanvasRadialGradient::centerPosition() const
 {
-    G_D();
-    return QPointF(d->data.radial.cx,
-                   d->data.radial.cy);
+    return outerCenterPosition();
 }
 
 /*!
-    Sets the center point of radial gradient to ( \a x, \a y).
+    Sets the both center points of radial gradient to ( \a x, \a y).
+    So after calling this, the gradient is symmetric (inner and outer
+    positions are the same).
+
+    \sa centerPosition()
 */
 
 void QCanvasRadialGradient::setCenterPosition(float x, float y)
 {
     G_D();
     detach();
-    d->data.radial.cx = x;
-    d->data.radial.cy = y;
+    d->data.radial.icx = x;
+    d->data.radial.icy = y;
+    d->data.radial.ocx = x;
+    d->data.radial.ocy = y;
+    d->dirty |= QCanvasGradientPrivate::DirtyFlag::Values;
+}
+
+/*!
+    \since 6.12
+    Returns the inner center point of radial gradient.
+
+    \sa setInnerCenterPosition()
+*/
+
+QPointF QCanvasRadialGradient::innerCenterPosition() const
+{
+    G_D();
+    return QPointF(d->data.radial.icx,
+                   d->data.radial.icy);
+}
+
+/*!
+    \since 6.12
+    Sets the inner center point of radial gradient to ( \a x, \a y).
+
+    \sa innerCenterPosition()
+*/
+
+void QCanvasRadialGradient::setInnerCenterPosition(float x, float y)
+{
+    G_D();
+    detach();
+    d->data.radial.icx = x;
+    d->data.radial.icy = y;
+    d->dirty |= QCanvasGradientPrivate::DirtyFlag::Values;
+}
+
+/*!
+    \since 6.12
+    Returns the outer center point of radial gradient.
+
+    \sa setOuterCenterPosition()
+*/
+
+QPointF QCanvasRadialGradient::outerCenterPosition() const
+{
+    G_D();
+    return QPointF(d->data.radial.ocx,
+                   d->data.radial.ocy);
+}
+
+/*!
+    \since 6.12
+    Sets the outer center point of radial gradient to ( \a x, \a y).
+
+    \sa outerCenterPosition()
+*/
+
+void QCanvasRadialGradient::setOuterCenterPosition(float x, float y)
+{
+    G_D();
+    detach();
+    d->data.radial.ocx = x;
+    d->data.radial.ocy = y;
     d->dirty |= QCanvasGradientPrivate::DirtyFlag::Values;
 }
 
@@ -143,7 +260,25 @@ void QCanvasRadialGradient::setCenterPosition(float x, float y)
     \fn void QCanvasRadialGradient::setCenterPosition(QPointF center)
     \overload
 
-    Sets the center point of radial gradient to \a center.
+    Sets the both center points of radial gradient to \a center.
+    So after calling this, the gradient is symmetric (inner and outer
+    positions are the same).
+*/
+
+/*!
+    \fn void QCanvasRadialGradient::setInnerCenterPosition(QPointF center)
+    \overload
+    \since 6.12
+
+    Sets the inner center point of radial gradient to \a center.
+*/
+
+/*!
+    \fn void QCanvasRadialGradient::setOuterCenterPosition(QPointF center)
+    \overload
+    \since 6.12
+
+    Sets the outer center point of radial gradient to \a center.
 */
 
 /*!
@@ -159,7 +294,7 @@ float QCanvasRadialGradient::outerRadius() const
 
 /*!
     Sets the outer radius of radial gradient to \a radius.
-    End color will be drawn at this radius from center position.
+    End color will be drawn at this radius from outer center position.
 */
 
 void QCanvasRadialGradient::setOuterRadius(float radius)
@@ -183,9 +318,9 @@ float QCanvasRadialGradient::innerRadius() const
 
 /*!
     Sets the inner radius of radial gradient to \a radius.
-    Start color will be drawn at this radius from center position.
+    Start color will be drawn at this radius from inner center position.
     The default inner radius is \c 0.0 meaning that gradient starts
-    directly from center position.
+    directly from inner center position.
 */
 
 void QCanvasRadialGradient::setInnerRadius(float radius)
@@ -237,16 +372,26 @@ void QCanvasRadialGradientPrivate::createRadialGradient(const QColor &iColor, co
     auto *d = this;
     const auto dd = d->data.radial;
     QCPaint &p = DECONST(d)->paint;
-    p.brushType = BrushRadialGradient;
-    const float r = (dd.iRadius + dd.oRadius) * 0.5f;
-    const float f = (dd.oRadius - dd.iRadius);
-    p.transform = QTransform::fromTranslate(dd.cx, dd.cy);
+    p.transform = QTransform::fromTranslate(dd.ocx, dd.ocy);
 
-    // Note: extent not used.
-
-    constexpr float small = 0.0001f;
-    p.radius = r;
-    p.feather = qMax(small, f);
+    if (!qFuzzyCompare(dd.icx, dd.ocx) || !qFuzzyCompare(dd.icy, dd.ocy)) {
+        // Inner and outer points are not the same, so use more complex
+        // extended type.
+        p.brushType = BrushRadialGradientExtended;
+        // extent used for inner center position.
+        p.extent[0] = dd.icx;
+        p.extent[1] = dd.icy;
+        p.radius = dd.iRadius;
+        // feather used for outer radius.
+        p.feather = dd.oRadius;
+    } else {
+        p.brushType = BrushRadialGradient;
+        constexpr float small = 0.0001f;
+        const float r = (dd.iRadius + dd.oRadius) * 0.5f;
+        const float f = (dd.oRadius - dd.iRadius);
+        p.radius = r;
+        p.feather = qMax(small, f);
+    }
 
     if (imageId != 0) {
         // Multistop gradient

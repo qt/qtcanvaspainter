@@ -52,7 +52,7 @@ public:
             float sx, sy, ex, ey;
         } linear;
         struct {
-            float cx, cy, oRadius, iRadius;
+            float icx, icy, iRadius, ocx, ocy, oRadius;
         } radial;
         struct {
             float cx, cy, angle;
