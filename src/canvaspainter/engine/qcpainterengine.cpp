@@ -2390,6 +2390,8 @@ void fillDebugCounters(QVariantMap *dst, const QCDebugCounters &src)
     dst->insert(QStringLiteral(u"textTriangleCount"), src.textTriangleCount);
     dst->insert(QStringLiteral(u"drawCallCount"), src.drawCallCount);
     dst->insert(QStringLiteral(u"triangleCount"), src.triangleCount);
+    dst->insert(QStringLiteral(u"imageMemoryUsage"), src.imageMemoryUsage);
+    dst->insert(QStringLiteral(u"imageCount"), src.imageCount);
 }
 
 } // namespace QQCanvasPainterDebugCounterUtils
