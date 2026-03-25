@@ -66,6 +66,11 @@ QT_BEGIN_NAMESPACE
     \li textTriangleCount
     \li drawCallCount
     \li triangleCount
+    \li imageMemoryUsage
+    \li imageCount
+    \li pathGroupCount
+    \li cachedSubpathCount
+    \li cachedPathVertexDataSize
     \endlist
 */
 

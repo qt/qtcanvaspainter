@@ -395,6 +395,8 @@ struct QCRhiCachedPath
 struct QCRhiCachedPathGroup
 {
     QHash<QCanvasPath *, QCRhiCachedPath> cachedPaths;
+    qsizetype totalSubpathCount;
+    qsizetype cachedVertexDataBytes;
 };
 
 struct QCRHIContext
@@ -1394,11 +1396,18 @@ void QCPainterRhiRenderer::renderFill(const QCPaint &paint, const QCState &state
             const int triangleCount = cp->isFillConvex ? 0 : call->triangleCount;
 
             int vertsCount = maxVertCount(pti.updateData->paths, pti.updateData->pathsCount, &cp->indexCount) + triangleCount;
+
             // As on the uncached path, vertsCount, and so cp->fillVerts,
             // includes the space for the fill quad (4 vertices unless convex),
             // even though that is isn't in ctx.vertices.
+            cpg->cachedVertexDataBytes -= cp->fillVerts.size() * sizeof(QCVertex);
             cp->fillVerts.resize(vertsCount);
+            cpg->cachedVertexDataBytes += cp->fillVerts.size() * sizeof(QCVertex);
+
+            cpg->totalSubpathCount -= cp->fillPaths.count();
             cp->fillPaths.resize(pti.updateData->pathsCount);
+            cpg->totalSubpathCount += cp->fillPaths.count();
+
             cp->fillQuadBounds = bounds;
 
             vertOffset = 0;
@@ -1552,8 +1561,14 @@ void QCPainterRhiRenderer::renderStroke(const QCPaint &paint, const QCState &sta
             // The cached vertex data in cp is stale. Update it from ctx.vertices.
 
             const int vertsCount = maxVertCount(pti.updateData->paths, pti.updateData->pathsCount);
+
+            cpg->cachedVertexDataBytes -= cp->strokeVerts.size() * sizeof(QCVertex);
             cp->strokeVerts.resize(vertsCount);
+            cpg->cachedVertexDataBytes += cp->strokeVerts.size() * sizeof(QCVertex);
+
+            cpg->totalSubpathCount -= cp->strokePaths.count();
             cp->strokePaths.resize(pti.updateData->pathsCount);
+            cpg->totalSubpathCount += cp->strokePaths.count();
 
             int vertOffset = 0;
             for (int i = 0; i < pti.updateData->pathsCount; i++) {
@@ -2410,14 +2425,28 @@ void QCPainterRhiRenderer::resetDebugCounters()
 
 void QCPainterRhiRenderer::syncDebugCounters()
 {
-    ctx->debugCounters.fillDrawCallCount = logFillDrawCallCount;
-    ctx->debugCounters.strokeDrawCallCount = logStrokeDrawCallCount;
-    ctx->debugCounters.textDrawCallCount = logTextDrawCallCount;
-    ctx->debugCounters.fillTriangleCount = logFillTriCount;
-    ctx->debugCounters.strokeTriangleCount = logStrokeTriCount;
-    ctx->debugCounters.textTriangleCount = logTextTriCount;
-    ctx->debugCounters.drawCallCount = logFillDrawCallCount + logStrokeDrawCallCount + logTextDrawCallCount;
-    ctx->debugCounters.triangleCount = logFillTriCount + logStrokeTriCount + logTextTriCount;
+    QCanvasPainterPrivate *pd = QCanvasPainterPrivate::get(m_painter);
+    auto &dc(ctx->debugCounters);
+
+    dc.fillDrawCallCount = logFillDrawCallCount;
+    dc.strokeDrawCallCount = logStrokeDrawCallCount;
+    dc.textDrawCallCount = logTextDrawCallCount;
+    dc.fillTriangleCount = logFillTriCount;
+    dc.strokeTriangleCount = logStrokeTriCount;
+    dc.textTriangleCount = logTextTriCount;
+    dc.drawCallCount = logFillDrawCallCount + logStrokeDrawCallCount + logTextDrawCallCount;
+    dc.triangleCount = logFillTriCount + logStrokeTriCount + logTextTriCount;
+
+    dc.imageMemoryUsage = pd->m_imageTracker.dataAmount() / 1000;
+    dc.imageCount = pd->m_imageTracker.size();
+
+    dc.pathGroupCount = rhiCtx->cachedPathGroups.count();
+    dc.cachedSubpathCount = 0;
+    dc.cachedPathVertexDataSize = 0;
+    for (auto it = rhiCtx->cachedPathGroups.cbegin(), end = rhiCtx->cachedPathGroups.cend(); it != end; ++it) {
+        dc.cachedSubpathCount += it->totalSubpathCount;
+        dc.cachedPathVertexDataSize += it->cachedVertexDataBytes;
+    }
 }
 
 // When hasDrawCalls() is false, it effectively means that

@@ -68,6 +68,7 @@ struct QCPaint {
 };
 
 struct QCDebugCounters {
+    // Draw
     int fillDrawCallCount = 0;
     int strokeDrawCallCount = 0;
     int textDrawCallCount = 0;
@@ -77,6 +78,13 @@ struct QCDebugCounters {
     // Total amounts
     int drawCallCount = 0;
     int triangleCount = 0;
+    // Images
+    qsizetype imageMemoryUsage = 0;
+    int imageCount = 0;
+    // Path caching
+    int pathGroupCount = 0;
+    int cachedSubpathCount = 0;
+    int cachedPathVertexDataSize = 0;
 };
 
 enum QCCommand : quint8 {
