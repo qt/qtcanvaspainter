@@ -395,8 +395,8 @@ struct QCRhiCachedPath
 struct QCRhiCachedPathGroup
 {
     QHash<QCanvasPath *, QCRhiCachedPath> cachedPaths;
-    qsizetype totalSubpathCount;
-    qsizetype cachedVertexDataBytes;
+    qsizetype totalSubpathCount = 0;
+    qsizetype cachedVertexDataBytes = 0;
 };
 
 struct QCRHIContext
