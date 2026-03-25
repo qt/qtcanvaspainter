@@ -53,7 +53,7 @@ SPDX-FileCopyrightText = "Copyright (C) The Qt Company Ltd."
 SPDX-License-Identifier = "LicenseRef-Qt-Commercial OR BSD-3-Clause"
 
 [[annotations]]
-path = ["src/canvaspainter/doc/images/**", "**.qdocconf", "**.metainfo"]
+path = ["src/canvaspainter/doc/images/**", "**.qdocconf", "**.metainfo", "CONTRIBUTING.md"]
 comment = "documentation"
 precedence = "closest"
 SPDX-FileCopyrightText = "Copyright (C) The Qt Company Ltd."
