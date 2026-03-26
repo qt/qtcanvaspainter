@@ -5,4 +5,8 @@ qt_examples_build_begin(EXTERNAL_BUILD)
 
 add_subdirectory(canvaspainter)
 
+if(TARGET Qt::Quick)
+    add_subdirectory(canvas2d)
+endif()
+
 qt_examples_build_end()

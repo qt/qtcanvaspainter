@@ -1,0 +1,17 @@
+// Copyright (C) 2026 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \example canvas2dtester
+    \ingroup canvas2d-examples
+    \title Qt Canvas 2D - Canvas 2D Tester Example
+    \examplecategory {Graphics}
+    \brief Demonstrates the use of Qt Canvas2D element.
+
+    \image canvas2dtester-example.webp
+
+    This example demonstrates using Qt \l{Canvas2D} element and painting with
+    the \l{Canvas2DContext}.
+
+    See the full example source code for implementation details.
+*/
