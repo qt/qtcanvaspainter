@@ -312,7 +312,8 @@ void QCanvasPainterItemRenderer::initialize(QRhiCommandBuffer *cb)
                 d->m_factory->destroy();
         } else {
             d->m_factory = QCanvasPainterFactory::sharedInstance(d->m_rhi);
-            d->m_sharedPainterNewFrameConn = QObject::connect(d->m_window, &QQuickWindow::beforeFrameBegin, [this] {
+            d->m_sharedPainterNewFrameConn = QObject::connect(d->m_window, &QQuickWindow::beforeFrameBegin,
+                                                              d->m_window, [this] {
                 Q_D(QCanvasPainterItemRenderer);
                 if (QCanvasPainterItemRendererPrivate::m_rendered.testAndSetAcquire(1, 0))
                     d->m_factory->paintDriver()->resetForNewFrame();
