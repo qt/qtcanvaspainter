@@ -383,15 +383,25 @@ struct QCRHIShaders
 
 Q_GLOBAL_STATIC(QCRHIShaders, QCPAINTER_RHI_SHADERS)
 
-struct QCRhiCachedPath
+struct QCRhiCachedPathFillData
 {
-    QVector<QCVertex> fillVerts; // might also contain stroke vertices
-    QVector<QCRHIPath> fillPaths;
-    QVector<QCVertex> strokeVerts;
-    QVector<QCRHIPath> strokePaths;
+    QVector<QCVertex> verts; // might also contain stroke vertices
+    QVector<QCRHIPath> paths;
     QRectF fillQuadBounds;
     int indexCount;
-    bool isFillConvex;
+    bool isConvex;
+};
+
+struct QCRhiCachedPathStrokeData
+{
+    QVector<QCVertex> verts;
+    QVector<QCRHIPath> paths;
+};
+
+struct QCRhiCachedPath
+{
+    QHash<QCCachedPathFillProperties, QCRhiCachedPathFillData> fill;
+    QHash<QCCachedPathStrokeProperties, QCRhiCachedPathStrokeData> stroke;
 };
 
 struct QCRhiCachedPathGroup
@@ -1390,33 +1400,35 @@ void QCPainterRhiRenderer::renderFill(const QCPaint &paint, const QCState &state
         // transform is applied in the vertex shader
         updateVertUniforms(call, pti.pathTransform);
 
-        auto *cpg = &rhiCtx->cachedPathGroups[pti.pathGroup];
-        auto *cp = &cpg->cachedPaths[pti.canvasPath];
+        QCRhiCachedPathGroup *cpg = &rhiCtx->cachedPathGroups[pti.pathGroup];
+        QCRhiCachedPath *cp = &cpg->cachedPaths[pti.canvasPath];
+        QCCachedPathFillProperties fillProps { state.antialias, int(ctx.renderHints) };
+        QCRhiCachedPathFillData *cpf = &cp->fill[fillProps];
 
         if (pti.updateData.has_value()) {
             // The cached vertex data in cp is stale. Update it from ctx.vertices.
 
-            cp->isFillConvex = (pti.updateData->pathsCount == 1 && pti.updateData->paths.first().isConvex);
-            const int triangleCount = cp->isFillConvex ? 0 : call->triangleCount;
+            cpf->isConvex = (pti.updateData->pathsCount == 1 && pti.updateData->paths.first().isConvex);
+            const int triangleCount = cpf->isConvex ? 0 : call->triangleCount;
 
-            int vertsCount = maxVertCount(pti.updateData->paths, pti.updateData->pathsCount, &cp->indexCount) + triangleCount;
+            int vertsCount = maxVertCount(pti.updateData->paths, pti.updateData->pathsCount, &cpf->indexCount) + triangleCount;
 
-            // As on the uncached path, vertsCount, and so cp->fillVerts,
+            // As on the uncached path, vertsCount, and so cpf->verts,
             // includes the space for the fill quad (4 vertices unless convex),
             // even though that is isn't in ctx.vertices.
-            cpg->cachedVertexDataBytes -= cp->fillVerts.size() * sizeof(QCVertex);
-            cp->fillVerts.resize(vertsCount);
-            cpg->cachedVertexDataBytes += cp->fillVerts.size() * sizeof(QCVertex);
+            cpg->cachedVertexDataBytes -= cpf->verts.size() * sizeof(QCVertex);
+            cpf->verts.resize(vertsCount);
+            cpg->cachedVertexDataBytes += cpf->verts.size() * sizeof(QCVertex);
 
-            cpg->totalSubpathCount -= cp->fillPaths.count();
-            cp->fillPaths.resize(pti.updateData->pathsCount);
-            cpg->totalSubpathCount += cp->fillPaths.count();
+            cpg->totalSubpathCount -= cpf->paths.count();
+            cpf->paths.resize(pti.updateData->pathsCount);
+            cpg->totalSubpathCount += cpf->paths.count();
 
-            cp->fillQuadBounds = bounds;
+            cpf->fillQuadBounds = bounds;
 
             vertOffset = 0;
             for (int i = 0; i < pti.updateData->pathsCount; ++i) {
-                QCRHIPath *cachedFillInfo = &cp->fillPaths[i];
+                QCRHIPath *cachedFillInfo = &cpf->paths[i];
                 memset(cachedFillInfo, 0, sizeof(QCRHIPath));
                 const QCPath *preparedPath = &pti.updateData->paths.at(i);
                 const int fillCount = preparedPath->fillCount;
@@ -1424,7 +1436,7 @@ void QCPainterRhiRenderer::renderFill(const QCPaint &paint, const QCState &state
                     cachedFillInfo->fillOffset = vertOffset;
                     cachedFillInfo->fillCount = fillCount;
                     const auto *vertices = &ctx.vertices;
-                    memcpy(&cp->fillVerts[vertOffset], &vertices->at(preparedPath->fillOffset), sizeof(QCVertex) * fillCount);
+                    memcpy(&cpf->verts[vertOffset], &vertices->at(preparedPath->fillOffset), sizeof(QCVertex) * fillCount);
                     vertOffset += fillCount;
                 }
                 const int strokeCount = preparedPath->strokeCount;
@@ -1432,21 +1444,21 @@ void QCPainterRhiRenderer::renderFill(const QCPaint &paint, const QCState &state
                     cachedFillInfo->strokeOffset = vertOffset;
                     cachedFillInfo->strokeCount = strokeCount;
                     const auto *vertices = &ctx.vertices;
-                    memcpy(&cp->fillVerts[vertOffset], &vertices->at(preparedPath->strokeOffset), sizeof(QCVertex) * strokeCount);
+                    memcpy(&cpf->verts[vertOffset], &vertices->at(preparedPath->strokeOffset), sizeof(QCVertex) * strokeCount);
                     vertOffset += strokeCount;
                 }
             }
         } else {
-            fillQuadBounds = cp->fillQuadBounds;
+            fillQuadBounds = cpf->fillQuadBounds;
         }
 
-        if (cp->isFillConvex) {
+        if (cpf->isConvex) {
             call->type = CallConvexFill;
             call->triangleCount = 0;
         }
 
-        vertOffset = transferFillGeom(call, cp->fillVerts.count(), cp->fillVerts.constData(), cp->indexCount,
-                                      cp->fillPaths.count(), cp->fillPaths.constData());
+        vertOffset = transferFillGeom(call, cpf->verts.count(), cpf->verts.constData(), cpf->indexCount,
+                                      cpf->paths.count(), cpf->paths.constData());
     }
 
     // Setup uniforms for draw calls
@@ -1558,25 +1570,27 @@ void QCPainterRhiRenderer::renderStroke(const QCPaint &paint, const QCState &sta
         // transform is applied in the vertex shader
         updateVertUniforms(call, pti.pathTransform);
 
-        auto *cpg = &rhiCtx->cachedPathGroups[pti.pathGroup];
-        auto *cp = &cpg->cachedPaths[pti.canvasPath];
+        QCRhiCachedPathGroup *cpg = &rhiCtx->cachedPathGroups[pti.pathGroup];
+        QCRhiCachedPath *cp = &cpg->cachedPaths[pti.canvasPath];
+        QCCachedPathStrokeProperties strokeProps { state.antialias, state.strokeWidth, state.lineCap, state.lineJoin, int(ctx.renderHints) };
+        QCRhiCachedPathStrokeData *cps = &cp->stroke[strokeProps];
 
         if (pti.updateData.has_value()) {
             // The cached vertex data in cp is stale. Update it from ctx.vertices.
 
             const int vertsCount = maxVertCount(pti.updateData->paths, pti.updateData->pathsCount);
 
-            cpg->cachedVertexDataBytes -= cp->strokeVerts.size() * sizeof(QCVertex);
-            cp->strokeVerts.resize(vertsCount);
-            cpg->cachedVertexDataBytes += cp->strokeVerts.size() * sizeof(QCVertex);
+            cpg->cachedVertexDataBytes -= cps->verts.size() * sizeof(QCVertex);
+            cps->verts.resize(vertsCount);
+            cpg->cachedVertexDataBytes += cps->verts.size() * sizeof(QCVertex);
 
-            cpg->totalSubpathCount -= cp->strokePaths.count();
-            cp->strokePaths.resize(pti.updateData->pathsCount);
-            cpg->totalSubpathCount += cp->strokePaths.count();
+            cpg->totalSubpathCount -= cps->paths.count();
+            cps->paths.resize(pti.updateData->pathsCount);
+            cpg->totalSubpathCount += cps->paths.count();
 
             int vertOffset = 0;
             for (int i = 0; i < pti.updateData->pathsCount; i++) {
-                QCRHIPath *cachedStrokeInfo = &cp->strokePaths[i];
+                QCRHIPath *cachedStrokeInfo = &cps->paths[i];
                 memset(cachedStrokeInfo, 0, sizeof(QCRHIPath));
                 const QCPath *preparedPath = &pti.updateData->paths.at(i);
                 const int strokeCount = preparedPath->strokeCount;
@@ -1584,14 +1598,14 @@ void QCPainterRhiRenderer::renderStroke(const QCPaint &paint, const QCState &sta
                     cachedStrokeInfo->strokeOffset = vertOffset;
                     cachedStrokeInfo->strokeCount = strokeCount;
                     const auto *vertices = &ctx.vertices;
-                    memcpy(&cp->strokeVerts[vertOffset], &vertices->at(preparedPath->strokeOffset), sizeof(QCVertex) * strokeCount);
+                    memcpy(&cps->verts[vertOffset], &vertices->at(preparedPath->strokeOffset), sizeof(QCVertex) * strokeCount);
                     vertOffset += strokeCount;
                 }
             }
         }
 
-        transferStrokeGeom(call, cp->strokeVerts.count(), cp->strokeVerts.constData(),
-                           cp->strokePaths.count(), cp->strokePaths.constData());
+        transferStrokeGeom(call, cps->verts.count(), cps->verts.constData(),
+                           cps->paths.count(), cps->paths.constData());
     }
 
     if (rhiCtx->flags & QCPainterRhiRenderer::StencilStrokes) {
@@ -2487,12 +2501,25 @@ QCPainterRhiRenderer::RenderFlags QCPainterRhiRenderer::flags() const
     return rhiCtx ? rhiCtx->flags : QCPainterRhiRenderer::RenderFlags();
 }
 
-bool QCPainterRhiRenderer::isPathCached(QCanvasPath *path, int pathGroup) const
+bool QCPainterRhiRenderer::isPathCachedForFill(QCanvasPath *path, int pathGroup, const QCCachedPathFillProperties &fillProperties)
 {
     auto it = rhiCtx->cachedPathGroups.constFind(pathGroup);
-    if (it != rhiCtx->cachedPathGroups.cend())
-        return it->cachedPaths.contains(path);
+    if (it != rhiCtx->cachedPathGroups.cend()) {
+        auto pit = it->cachedPaths.constFind(path);
+        if (pit != it->cachedPaths.cend())
+            return pit->fill.contains(fillProperties);
+    }
+    return false;
+}
 
+bool QCPainterRhiRenderer::isPathCachedForStroke(QCanvasPath *path, int pathGroup, const QCCachedPathStrokeProperties &strokeProperties)
+{
+    auto it = rhiCtx->cachedPathGroups.constFind(pathGroup);
+    if (it != rhiCtx->cachedPathGroups.cend()) {
+        auto pit = it->cachedPaths.constFind(path);
+        if (pit != it->cachedPaths.cend())
+            return pit->stroke.contains(strokeProperties);
+    }
     return false;
 }
 
