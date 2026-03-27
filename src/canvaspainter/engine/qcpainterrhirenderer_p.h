@@ -173,7 +173,8 @@ public:
 #endif
     void renderDelete();
 
-    bool isPathCached(QCanvasPath *path, int pathGroup) const;
+    bool isPathCachedForFill(QCanvasPath *path, int pathGroup, const QCCachedPathFillProperties &fillProperties);
+    bool isPathCachedForStroke(QCanvasPath *path, int pathGroup, const QCCachedPathStrokeProperties &strokeProperties);
     void removePathGroup(int pathGroup);
 
     static void textureFormatInfo(QRhiTexture::Format format, QSize size,

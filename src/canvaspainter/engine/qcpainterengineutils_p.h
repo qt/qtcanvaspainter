@@ -170,20 +170,68 @@ struct QCPoint {
 };
 typedef QVarLengthArray<QCPoint> QCPoints;
 
-// Variables to determine if the QCanvasPath or related state
-// has changed so that paths, points & vertices need to be recreated.
+// Variables to determine if the QCanvasPath has changed so that paths, points &
+// vertices need to be recreated.
 struct QCCachedPath
 {
     int pathGroup = -1;
     int pathIterations = -1;
     int commandsCount = 0;
+};
+
+// Variables to determine if related state has changed so that paths, points &
+// vertices need to be recreated.
+struct QCCachedPathFillProperties
+{
+    float antialias = 1.0f;
+    int renderHints = 0;
+};
+
+inline bool operator==(const QCCachedPathFillProperties &a, const QCCachedPathFillProperties &b) noexcept
+{
+    return qFuzzyCompare(a.antialias, b.antialias)
+           && a.renderHints == b.renderHints;
+}
+
+inline bool operator!=(const QCCachedPathFillProperties &a, const QCCachedPathFillProperties &b) noexcept
+{
+    return !(a == b);
+}
+
+inline size_t qHash(const QCCachedPathFillProperties &s, size_t seed) noexcept
+{
+    return qHash(s.antialias, seed) ^ s.renderHints;
+}
+
+// Variables to determine if related state has changed so that paths, points &
+// vertices need to be recreated.
+struct QCCachedPathStrokeProperties
+{
+    float antialias = 1.0f;
     float strokeWidth = 1.0f;
-    float edgeAAWidth = 1.0f;
     QCanvasPainter::LineCap lineCap = QCanvasPainter::LineCap::Butt;
     QCanvasPainter::LineJoin lineJoin = QCanvasPainter::LineJoin::Miter;
     int renderHints = 0;
 };
 
+inline bool operator==(const QCCachedPathStrokeProperties &a, const QCCachedPathStrokeProperties &b) noexcept
+{
+    return qFuzzyCompare(a.antialias, b.antialias)
+           && qFuzzyCompare(a.strokeWidth, b.strokeWidth)
+           && a.lineCap == b.lineCap
+           && a.lineJoin == b.lineJoin
+           && a.renderHints == b.renderHints;
+}
+
+inline bool operator!=(const QCCachedPathStrokeProperties &a, const QCCachedPathStrokeProperties &b) noexcept
+{
+    return !(a == b);
+}
+
+inline size_t qHash(const QCCachedPathStrokeProperties &s, size_t seed) noexcept
+{
+    return qHash(s.antialias, seed) ^ qHash(s.strokeWidth) ^ int(s.lineCap) ^ int(s.lineJoin) ^ s.renderHints;
+}
 
 struct QCContext {
     QCCommands commands;
@@ -198,8 +246,8 @@ struct QCContext {
     const QCanvasPath *preparedPath = nullptr;
     // Transform which was used for preparedPainterPath
     QTransform preparedPathTransform;
-    QHash<const QCanvasPath*, QCCachedPath> cachedFillPaths;
-    QHash<const QCanvasPath*, QCCachedPath> cachedStrokePaths;
+    QHash<QCanvasPath *, QCCachedPath> cachedFillPaths;
+    QHash<QCanvasPath *, QCCachedPath> cachedStrokePaths;
     QList<QCState> states;
     QRectF view;
     QRectF bounds;

@@ -1194,10 +1194,10 @@ void QCPainterEngine::setMiterLimit(float limit)
 void QCPainterEngine::removePathGroup(int pathGroup)
 {
     // Remove from engine side
-    erase_if(ctx.cachedStrokePaths, [pathGroup](const QHash<const QCanvasPath*, QCCachedPath>::iterator it) {
+    erase_if(ctx.cachedStrokePaths, [pathGroup](const QHash<QCanvasPath *, QCCachedPath>::iterator it) {
         return it->pathGroup == pathGroup;
     });
-    erase_if(ctx.cachedFillPaths, [pathGroup](const QHash<const QCanvasPath*, QCCachedPath>::iterator it) {
+    erase_if(ctx.cachedFillPaths, [pathGroup](const QHash<QCanvasPath *, QCCachedPath>::iterator it) {
         return it->pathGroup == pathGroup;
     });
     // Remove from renderer side
@@ -2193,21 +2193,18 @@ bool QCPainterEngine::fillPathUpdateRequired(QCanvasPath *path, int pathGroup)
 {
     QCanvasPathPrivate *pathd = QCanvasPathPrivate::get(path);
     QCCachedPath &cp = ctx.cachedFillPaths[path];
+    QCCachedPathFillProperties fillProps { state.antialias, int(ctx.renderHints) };
     bool updateRequired = false;
     if (pathGroup != cp.pathGroup
         || pathd->pathIterations != cp.pathIterations
         || pathd->commandsCount != cp.commandsCount
-        || !qFuzzyCompare(state.antialias, cp.edgeAAWidth)
-        || int(ctx.renderHints) != cp.renderHints
-        || !m_renderer->isPathCached(path, pathGroup))
+        || !m_renderer->isPathCachedForFill(path, pathGroup, fillProps))
     {
         updateRequired = true;
         // Reset cache states
         cp.pathGroup = pathGroup;
         cp.pathIterations = pathd->pathIterations;
         cp.commandsCount = pathd->commandsCount;
-        cp.edgeAAWidth = state.antialias;
-        cp.renderHints = int(ctx.renderHints);
     }
     return updateRequired;
 }
@@ -2220,27 +2217,18 @@ bool QCPainterEngine::strokePathUpdateRequired(QCanvasPath *path, int pathGroup)
 {
     QCanvasPathPrivate *pathd = QCanvasPathPrivate::get(path);
     QCCachedPath &cp = ctx.cachedStrokePaths[path];
+    QCCachedPathStrokeProperties strokeProps { state.antialias, state.strokeWidth, state.lineCap, state.lineJoin, int(ctx.renderHints) };
     bool updateRequired = false;
     if (pathGroup != cp.pathGroup
         || pathd->pathIterations != cp.pathIterations
         || pathd->commandsCount != cp.commandsCount
-        || !qFuzzyCompare(state.antialias, cp.edgeAAWidth)
-        || !qFuzzyCompare(state.strokeWidth, cp.strokeWidth)
-        || state.lineCap != cp.lineCap
-        || state.lineJoin != cp.lineJoin
-        || int(ctx.renderHints) != cp.renderHints
-        || !m_renderer->isPathCached(path, pathGroup))
+        || !m_renderer->isPathCachedForStroke(path, pathGroup, strokeProps))
     {
         updateRequired = true;
         // Reset cache states
         cp.pathGroup = pathGroup;
         cp.pathIterations = pathd->pathIterations;
         cp.commandsCount = pathd->commandsCount;
-        cp.edgeAAWidth = state.antialias;
-        cp.strokeWidth = state.strokeWidth;
-        cp.lineCap = state.lineCap;
-        cp.lineJoin = state.lineJoin;
-        cp.renderHints = int(ctx.renderHints);
     }
     return updateRequired;
 }
