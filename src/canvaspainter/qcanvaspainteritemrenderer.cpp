@@ -317,7 +317,7 @@ void QCanvasPainterItemRenderer::initialize(QRhiCommandBuffer *cb)
                 Q_D(QCanvasPainterItemRenderer);
                 if (QCanvasPainterItemRendererPrivate::m_rendered.testAndSetAcquire(1, 0))
                     d->m_factory->paintDriver()->resetForNewFrame();
-            });
+            }, Qt::DirectConnection);
         }
         if (!d->m_factory->isValid())
             d->m_factory->create(d->m_rhi);
