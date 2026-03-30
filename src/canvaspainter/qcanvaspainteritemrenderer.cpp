@@ -30,7 +30,7 @@ QAtomicInt QCanvasPainterItemRendererPrivate::m_rendered;
     Implement the paint() method to perform the rendering.
 
     To expose data from the item to the renderer in a thread-safe manner,
-    implement synchronize().
+    implement synchronizeData().
 
     The renderer object lives and operates on the \l {Scene Graph and
     Rendering}{Qt Quick scene graph render thread}, if there is one, since that
@@ -86,7 +86,7 @@ QCanvasPainterItemRenderer::~QCanvasPainterItemRenderer()
     \fn void QCanvasPainterItemRenderer::initializeResources(QCanvasPainter *painter)
 
     Reimplement this method to initialize resources using \a painter. This will
-    be called once \b before the first synchronize().
+    be called once \b before the first synchronizeData().
 
     \note This function is not called when the size of the QCanvasPainterItem changes.
 
@@ -120,9 +120,9 @@ void QCanvasPainterItemRenderer::prePaint(QCanvasPainter *painter)
     This will get called after the item has been filled with fillColor().
 
     paint() is called from renderer thread. To access item data safely, copy it
-    in synchronize().
+    in synchronizeData().
 
-    \sa synchronize()
+    \sa synchronizeData()
 */
 void QCanvasPainterItemRenderer::paint(QCanvasPainter *painter)
 {
@@ -139,12 +139,8 @@ void QCanvasPainterItemRenderer::paint(QCanvasPainter *painter)
 
     Usually you should static_cast \a item to your real item type, and then
     exchange the data.
-
-    \note Make sure to reimplement this overload, taking a QCanvasPainterItem,
-    instead of the \l{QQuickRhiItemRenderer::synchronize()}{base class' version}
-    that takes a QQuickRhiItem.
 */
-void QCanvasPainterItemRenderer::synchronize(QCanvasPainterItem *item)
+void QCanvasPainterItemRenderer::synchronizeData(QCanvasPainterItem *item)
 {
     Q_UNUSED(item);
 }
@@ -281,7 +277,11 @@ void QCanvasPainterItemRenderer::synchronize(QQuickRhiItem * item)
         initializeResources(d->m_factory->painter());
     }
 
+#if QT_VERSION < QT_VERSION_CHECK(6, 12, 0)
+    // Keep synchronize() working with Qt 6.11.x
     synchronize(realItem);
+#endif
+    synchronizeData(realItem);
 }
 
 QCanvasPainterItemRendererPrivate::QCanvasPainterItemRendererPrivate(QCanvasPainterItemRenderer *q)
