@@ -39,6 +39,9 @@ void tst_QCanvasBrush::testEqual()
     QVERIFY(lg != lg2);
     lg2.setStops(lg.stops());
     QVERIFY(lg == lg2);
+    lg.setColorAt(0.2f, Qt::black);
+    lg2.addColorStop(0.2f, Qt::black);
+    QVERIFY(lg == lg2);
     auto lg3 = lg2;
     QVERIFY(lg == lg3);
 
@@ -375,9 +378,9 @@ void tst_QCanvasBrush::testGradientStops()
     g1.setColorAt(0.05f, QColorConstants::Blue);
     g1.setColorAt(0.95f, QColorConstants::Blue);
     QCOMPARE(g1.stops().size(), 5);
-    g1.setColorAt(0.5f, QColorConstants::Blue);
-    g1.setColorAt(0.05f, QColorConstants::Blue);
-    g1.setColorAt(0.95f, QColorConstants::Blue);
+    g1.addColorStop(0.5f, QColorConstants::Blue);
+    g1.addColorStop(0.05f, QColorConstants::Blue);
+    g1.addColorStop(0.95f, QColorConstants::Blue);
     QCOMPARE(g1.stops().size(), 5);
 
     // Test stop order

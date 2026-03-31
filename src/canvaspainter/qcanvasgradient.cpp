@@ -427,6 +427,18 @@ QCanvasGradientStops QCanvasGradient::stops() const
     return d->gradientStops;
 }
 
+/*!
+    \fn void QCanvasGradient::addColorStop(float position, const QColor &color)
+    \since 6.12
+
+    Creates a stop point at the given \a position with the given \a
+    color. The given \a position must be in the range 0 to 1.
+
+    This method is provided for HTML CanvasGradient compatibility.
+    It is equivalent to \l setColorAt().
+
+    \sa setStops(), stops()
+*/
 
 /*!
     \struct QCanvasGradientStop

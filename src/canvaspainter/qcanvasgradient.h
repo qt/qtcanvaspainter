@@ -60,6 +60,7 @@ public:
     Q_CANVASPAINTER_EXPORT void setColorAt(float position, const QColor &color);
     Q_CANVASPAINTER_EXPORT void setStops(const QCanvasGradientStops &stops);
     Q_CANVASPAINTER_EXPORT QCanvasGradientStops stops() const;
+    inline void addColorStop(float position, const QColor &color);
 
 protected:
     Q_CANVASPAINTER_EXPORT QCanvasGradient(QCanvasGradientPrivate *);
@@ -74,6 +75,11 @@ private:
     friend Q_CANVASPAINTER_EXPORT QDebug operator<<(QDebug, const QCanvasGradient &);
 #endif
 };
+
+inline void QCanvasGradient::addColorStop(float position, const QColor &color)
+{
+    setColorAt(position, color);
+}
 
 #ifndef QT_NO_DEBUG_STREAM
 Q_CANVASPAINTER_EXPORT QDebug operator<<(QDebug dbg, const QCanvasGradientStop &stop);
