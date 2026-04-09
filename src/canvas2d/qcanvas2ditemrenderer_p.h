@@ -64,6 +64,7 @@ private:
     inline QRectF takeRect() { return rects.at(rectIdx++); }
 
     inline QPainterPath takePath() { return paths.at(pathIdx++); }
+    inline const QCanvasPath& takeCanvasPath() { return canvasPaths.at(canvasPathIdx++); }
 
     inline const QImage& takeImage() { return images.at(imageIdx++); }
     inline QQmlRefPointer<QCanvas2DPixmap> takePixmap() { return pixmaps.at(pixmapIdx++); }
@@ -86,6 +87,7 @@ private:
     int matrixIdx = 0;
     int brushIdx = 0;
     int pathIdx = 0;
+    int canvasPathIdx = 0;
     int imageIdx = 0;
     int fontIdx = 0;
     int pixmapIdx = 0;
@@ -103,6 +105,7 @@ private:
     QList<QTransform> matrixes;
     QList<QCanvasBrush *> brushes;
     QList<QPainterPath> paths;
+    QList<QCanvasPath> canvasPaths;
     QList<QImage> images;
     QList<QFont> fonts;
     QList<QQmlRefPointer<QCanvas2DPixmap> > pixmaps;

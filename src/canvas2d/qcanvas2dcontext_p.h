@@ -78,8 +78,10 @@ public:
         FillStyle,
         Fill,
         FillPath,
+        FillCanvasPath,
         Stroke,
         StrokePath,
+        StrokeCanvasPath,
         Clip,
         ClipRect,
         ResetClipping,
@@ -204,6 +206,8 @@ public:
     void resetClipping();
     void fill();
     void stroke();
+    void fillPath(const QCanvasPath &path, int pathGroup = -1);
+    void strokePath(const QCanvasPath &path, int pathGroup = -1);
 
     // ***** other *****
     void drawText(const QString& text, qreal x, qreal y, bool fill);

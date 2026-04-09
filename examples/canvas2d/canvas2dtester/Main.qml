@@ -12,6 +12,8 @@ ApplicationWindow {
     // Selected test case
     property int testCase: -1
 
+    property bool forceRepaint: false
+
     property real fontSizeSmall: 12
     property real fontSizeLarge: 20
     property real iconSize: 64
@@ -21,6 +23,9 @@ ApplicationWindow {
     visible: true
     title: qsTr("Canvas2D Tester")
     color: "#202020"
+
+    onWidthChanged: forceRepaint = true;
+    onHeightChanged: forceRepaint = true;
 
     Rectangle {
         id: toolbar
@@ -206,6 +211,10 @@ ApplicationWindow {
             ListElement {
                 name: "Grid Patterns"
                 testId: 205
+            }
+            ListElement {
+                name: "Path2D"
+                testId: 206
             }
         }
 

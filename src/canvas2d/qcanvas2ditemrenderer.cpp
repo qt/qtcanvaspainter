@@ -42,6 +42,7 @@ void QCanvas2DItemRenderer::synchronizeData(QCanvasPainterItem *item)
         colors = ccb->colors;
         matrixes = ccb->matrixes;
         paths = ccb->paths;
+        canvasPaths = ccb->canvasPaths;
         images = ccb->images;
         fonts = ccb->fonts;
         pixmaps = ccb->pixmaps;
@@ -252,6 +253,13 @@ void QCanvas2DItemRenderer::paint(QCanvasPainter *painter)
             fillPath(path);
             break;
         }
+        case QCanvas2DContext::FillCanvasPath:
+        {
+            const QCanvasPath &p = takeCanvasPath();
+            int pathGroup = takeInt();
+            m_painter->fill(p, pathGroup);
+            break;
+        }
         case QCanvas2DContext::Stroke:
         {
             m_painter->stroke();
@@ -261,6 +269,13 @@ void QCanvas2DItemRenderer::paint(QCanvasPainter *painter)
         {
             auto p = takePath();
             strokePath(p);
+            break;
+        }
+        case QCanvas2DContext::StrokeCanvasPath:
+        {
+            const QCanvasPath &p = takeCanvasPath();
+            int pathGroup = takeInt();
+            m_painter->stroke(p, pathGroup);
             break;
         }
         case QCanvas2DContext::Clip:
@@ -485,6 +500,7 @@ void QCanvas2DItemRenderer::reset()
     matrixIdx = 0;
     brushIdx = 0;
     pathIdx = 0;
+    canvasPathIdx = 0;
     imageIdx = 0;
     fontIdx = 0;
     pixmapIdx = 0;

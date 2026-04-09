@@ -28,7 +28,6 @@ public:
     ~QCanvas2DCommandBuffer();
 
     void clearBuffers();
-    void resetIndexes();
 
     inline void setGlobalAlpha(qreal alpha)
     {
@@ -276,23 +275,32 @@ public:
     }
 
 
-    // TODO: Support QCanvasPath
     inline void fillPath(const QPainterPath &path)
     {
         commands << QCanvas2DContext::FillPath;
         paths << path;
-
+    }
+    inline void fillPath(const QCanvasPath &path, int pathGroup)
+    {
+        commands << QCanvas2DContext::FillCanvasPath;
+        canvasPaths << path;
+        ints << pathGroup;
     }
     inline void fill()
     {
         commands << QCanvas2DContext::Fill;
     }
 
-    // TODO: Support QCanvasPath
     inline void strokePath(const QPainterPath &path)
     {
         commands << QCanvas2DContext::StrokePath;
         paths << path;
+    }
+    inline void strokePath(const QCanvasPath &path, int pathGroup)
+    {
+        commands << QCanvas2DContext::StrokeCanvasPath;
+        canvasPaths << path;
+        ints << pathGroup;
     }
     inline void stroke()
     {
@@ -411,6 +419,7 @@ private:
     QList<QTransform> matrixes;
     QList<QCanvasBrush *> brushes;
     QList<QPainterPath> paths;
+    QList<QCanvasPath> canvasPaths;
     QList<QImage> images;
     QList<QFont> fonts;
     QList<QQmlRefPointer<QCanvas2DPixmap> > pixmaps;

@@ -31,6 +31,7 @@ void QCanvas2DCommandBuffer::clearBuffers()
     matrixes.clear();
     brushes.clear();
     paths.clear();
+    canvasPaths.clear();
     images.clear();
     fonts.clear();
     pixmaps.clear();
