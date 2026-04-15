@@ -270,6 +270,8 @@ struct QCContext {
     int fontId;
     float fontAlphaMin;
     float fontAlphaMax;
+    int preparedPathIterations = -1;
+    int preparedPathCommandsCount = 0;
     bool customMatrixValid;
     bool antialiasingEnabled = true;
 };

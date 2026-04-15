@@ -204,8 +204,8 @@ private:
                            qsizetype start,
                            qsizetype count,
                            const QTransform &transform = QTransform());
-    bool fillPathUpdateRequired(QCanvasPath *path, int pathGroup);
-    bool strokePathUpdateRequired(QCanvasPath *path, int pathGroup);
+    bool fillCachedPathUpdateRequired(QCanvasPath *path, int pathGroup);
+    bool strokeCachedPathUpdateRequired(QCanvasPath *path, int pathGroup);
     QCanvasPainter::TextAlign effectiveTextAlign(QStringView text) const;
     void fillPlainRect(const QCPaint &paint, float x, float y, float width, float height);
 
