@@ -919,16 +919,22 @@ void QCPainterEngine::fill(const QCanvasPath &path, QCanvasPainter::FillRule fil
         return;
 
     QCanvasPath *p = const_cast<QCanvasPath *>(&path);
-    const bool pathUpdateRequired = fillPathUpdateRequired(p, pathGroup);
     if (pathGroup == -1) {
         // Not caching, so prepare and fill normally.
         // In this case we apply state transformation into commands data points.
         // So data needs to be prepared again if state transformation has changed.
 
-        if (pathUpdateRequired || ctx.preparedPath != &path || ctx.preparedPathTransform != state.transform) {
+        const QCanvasPathPrivate *pathd = QCanvasPathPrivate::get(&path);
+        if (ctx.preparedPath != &path
+            || ctx.preparedPathTransform != state.transform
+            || ctx.preparedPathCommandsCount != pathd->commandsCount
+            || ctx.preparedPathIterations != pathd->pathIterations)
+        {
             preparePainterPath(path);
             ctx.preparedPath = &path;
             ctx.preparedPathTransform = state.transform;
+            ctx.preparedPathCommandsCount = pathd->commandsCount;
+            ctx.preparedPathIterations = pathd->pathIterations;
         }
 
         fill(fillRule);
@@ -936,6 +942,7 @@ void QCPainterEngine::fill(const QCanvasPath &path, QCanvasPainter::FillRule fil
         // Caching.
         // In this case data points are untransformed, and transformation is applied in vertex shader.
 
+        const bool pathUpdateRequired = fillCachedPathUpdateRequired(p, pathGroup);
         if (pathUpdateRequired) {
             const bool ignoreTransform = true;
             preparePainterPath(path, ignoreTransform);
@@ -951,16 +958,22 @@ void QCPainterEngine::stroke(const QCanvasPath &path, int pathGroup)
         return;
 
     QCanvasPath *p = const_cast<QCanvasPath *>(&path);
-    const bool pathUpdateRequired = strokePathUpdateRequired(p, pathGroup);
     if (pathGroup == -1) {
         // Not caching, so prepare and stroke normally.
         // In this case we apply state transformation into commands data points.
         // So data needs to be prepared again if state transformation has changed.
 
-        if (pathUpdateRequired || ctx.preparedPath != &path || ctx.preparedPathTransform != state.transform) {
+        const QCanvasPathPrivate *pathd = QCanvasPathPrivate::get(&path);
+        if (ctx.preparedPath != &path
+            || ctx.preparedPathTransform != state.transform
+            || ctx.preparedPathCommandsCount != pathd->commandsCount
+            || ctx.preparedPathIterations != pathd->pathIterations)
+        {
             preparePainterPath(path);
             ctx.preparedPath = &path;
             ctx.preparedPathTransform = state.transform;
+            ctx.preparedPathCommandsCount = pathd->commandsCount;
+            ctx.preparedPathIterations = pathd->pathIterations;
         }
 
         stroke();
@@ -968,6 +981,7 @@ void QCPainterEngine::stroke(const QCanvasPath &path, int pathGroup)
         // Caching.
         // In this case data points are untransformed, and transformation is applied in vertex shader.
 
+        const bool pathUpdateRequired = strokeCachedPathUpdateRequired(p, pathGroup);
         if (pathUpdateRequired) {
             const bool ignoreTransform = true;
             preparePainterPath(path, ignoreTransform);
@@ -2200,8 +2214,9 @@ void QCPainterEngine::appendPainterPath(const QCanvasPath &path,
 // to fill vertices generation has changed compared to cached path.
 // Note: excluding the transform, because cached paths do not bake in the
 // transform in the geometry.
-bool QCPainterEngine::fillPathUpdateRequired(QCanvasPath *path, int pathGroup)
+bool QCPainterEngine::fillCachedPathUpdateRequired(QCanvasPath *path, int pathGroup)
 {
+    Q_ASSERT(pathGroup != -1);
     QCanvasPathPrivate *pathd = QCanvasPathPrivate::get(path);
     QCCachedPath &cp = ctx.cachedFillPaths[path];
     QCCachedPathFillProperties fillProps { state.antialias, int(ctx.renderHints) };
@@ -2212,7 +2227,6 @@ bool QCPainterEngine::fillPathUpdateRequired(QCanvasPath *path, int pathGroup)
         || !m_renderer->isPathCachedForFill(path, pathGroup, fillProps))
     {
         updateRequired = true;
-        // Reset cache states
         cp.pathGroup = pathGroup;
         cp.pathIterations = pathd->pathIterations;
         cp.commandsCount = pathd->commandsCount;
@@ -2224,8 +2238,9 @@ bool QCPainterEngine::fillPathUpdateRequired(QCanvasPath *path, int pathGroup)
 // to stroke vertices generation has changed compared to cached path.
 // Note: excluding the transform, because cached paths do not bake in the
 // transform in the geometry.
-bool QCPainterEngine::strokePathUpdateRequired(QCanvasPath *path, int pathGroup)
+bool QCPainterEngine::strokeCachedPathUpdateRequired(QCanvasPath *path, int pathGroup)
 {
+    Q_ASSERT(pathGroup != -1);
     QCanvasPathPrivate *pathd = QCanvasPathPrivate::get(path);
     QCCachedPath &cp = ctx.cachedStrokePaths[path];
     QCCachedPathStrokeProperties strokeProps { state.antialias, state.strokeWidth, state.lineCap, state.lineJoin, int(ctx.renderHints) };
@@ -2236,7 +2251,6 @@ bool QCPainterEngine::strokePathUpdateRequired(QCanvasPath *path, int pathGroup)
         || !m_renderer->isPathCachedForStroke(path, pathGroup, strokeProps))
     {
         updateRequired = true;
-        // Reset cache states
         cp.pathGroup = pathGroup;
         cp.pathIterations = pathd->pathIterations;
         cp.commandsCount = pathd->commandsCount;
