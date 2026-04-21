@@ -33,6 +33,7 @@ class QCanvasCustomBrush;
 struct QCRHIPipelineStateKey;
 struct QCRHISamplerDesc;
 struct QCRHICall;
+struct QCRHIPath;
 struct QCRHICommonUniforms;
 class QCanvasPath;
 
@@ -226,14 +227,13 @@ private:
                       bool indexedDraw,
                       bool *needsViewport);
 
-    template<typename T>
     int transferFillGeom(QCRHICall *call,
                          int vertexCount, const QCVertex *vertices, int indexCount,
-                         int pathCount, const T *pathInfos);
-    template<typename T>
+                         int pathCount, const QCPath *pathInfos);
     void transferStrokeGeom(QCRHICall *call,
                             int vertexCount, const QCVertex *vertices,
-                            int pathCount, const T *pathInfos);
+                            int pathCount, const QCPath *pathInfos);
+    void transferPathsFromCachedPathGroup(QCRHICall *call, int pathCount, const QCRHIPath *paths);
 
 private:
     friend class QCanvasPainter;
