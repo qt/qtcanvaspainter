@@ -111,8 +111,6 @@ Q_LOGGING_CATEGORY(QC_INFO, "qt.qcpainter.general")
     \list
     \li Clipping: All clipping is (transformed) rectangle and clipping to path shapes
     are not supported.
-    \li Fill mode: Only the default Non-zero fillrule is supported, no support for
-    Even-odd fillrule.
     \li Dashes: Strokes are always solid lines, dashed/dotted stroke patterns are
     not supported.
     \li Path testing: There are no isPointInPath() or isPointInStroke() methods.
@@ -160,7 +158,7 @@ Q_LOGGING_CATEGORY(QC_INFO, "qt.qcpainter.general")
     \endlist
 
     \section1 Winding rules
-    QCanvasPainter uses \c nonzero (\c{WindingFill}) fillrule. To select the filling
+    QCanvasPainter uses NonZero ({Qt::WindingFill}) fillrule by default. To select the filling
     based on the path points direction, disable the winding forcing by setting
     \c DisableWindingEnforce rendering hint with \l setRenderHint().
 
@@ -349,6 +347,7 @@ Q_LOGGING_CATEGORY(QC_INFO, "qt.qcpainter.general")
 
 /*!
     \enum QCanvasPainter::FillRule
+    \since 6.12
 
     This enum specifies how paths are filled.
 
@@ -866,6 +865,30 @@ void QCanvasPainter::setGlobalSaturate(float value)
 /*!
     Sets the path fill rule to \a fillRule. This value is applied to all fill() calls
     after the rule has been set. The default fill rule is \c QCanvasPainter::FillRule::NonZero
+    \since 6.12
+    \table
+    \row
+    \li \inlineimage qcpainter-fillrule.webp
+    \li
+    \code
+    auto paintStar = [p]() {
+        p->beginPath();
+        p->moveTo(120, 60);
+        for (int i = 1; i < 6; ++i) {
+            p->lineTo(60 + 60 * cos(0.8 * i * M_PI),
+                      60 + 60 * sin(0.8 * i * M_PI));
+        }
+        p->fill();
+        p->stroke();
+    };
+    p->setFillRule(QCanvasPainter::FillRule::NonZero);
+    paintStar();
+    p->translate(75, 75);
+    p->setFillRule(QCanvasPainter::FillRule::EvenOdd);
+    paintStar();
+    \endcode
+    \endtable
+
  */
 
 void QCanvasPainter::setFillRule(FillRule fillRule)
@@ -1541,9 +1564,9 @@ void QCanvasPainter::circle(float centerX, float centerY, float radius)
 /*!
     Adds \a path into the current path.
 
-    \note QCanvasPainter uses WindingFill (nonzero) fillrule,
-    which means that all QPainterPaths don't render correctly. This is notable
-    for example when path contains text characters with holes in them.
+    \note QCanvasPainter uses NonZero (Qt::WindingFill) fillrule by default,
+    while QPainterPath defaults to Qt::OddEvenFill. So remember to switch the
+    fillRule if needed, for example, by using \l setFillRule().
 
     \note This method is available mostly for the compatibility with QPainter
     and QPainterPath. It does not increase performance compared to painting
@@ -1714,6 +1737,8 @@ void QCanvasPainter::fill()
 
 /*!
    \overload
+    \since 6.12
+
     Fills the current path with the current fill style, and fill rule \a fillRule.
     \sa setFillStyle()
 */
@@ -1790,6 +1815,7 @@ void QCanvasPainter::fill(const QCanvasPath &path, int pathGroup)
 
 /*!
     \overload
+    \since 6.12
 
     Fills the \a path with current fill style and fill rule \a fillRule
 */
