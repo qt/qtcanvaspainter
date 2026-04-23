@@ -20,7 +20,6 @@ QStringList CanvasPainterLancelotCppTests::keys()
 {
     QStringList result;
     const QMetaObject *o = metaObject();
-    int count = o->methodCount();
     for (int i = o->methodOffset(); i < o->methodCount(); ++i)
         result.append(QString::fromLatin1(o->method(i).methodSignature()).replace("()", ""));
 
@@ -34,7 +33,6 @@ void CanvasPainterLancelotCppTests::run(const QString &key, QCanvasPainter *pain
 
     const QString methodName = key + QLatin1String("()");
     const QMetaObject *o = metaObject();
-    int count = o->methodCount();
     for (int i = o->methodOffset(); i < o->methodCount(); ++i) {
         if (methodName == QString::fromLatin1(o->method(i).methodSignature()))
             o->method(i).invoke(this);
@@ -1758,7 +1756,6 @@ void CanvasPainterLancelotCppTests::testImages()
 
     {
         float margin = height()*0.05f;
-        float posX = width()*0.1f;
         float posY = topMargin;
 
         QRectF rect1(0, 0, width(), height());
@@ -1809,7 +1806,6 @@ void CanvasPainterLancelotCppTests::testImages2()
         QCanvasPainter::ImageFlag::Nearest | QCanvasPainter::ImageFlag::GenerateMipmaps);
 
     {
-        float margin = height()*0.05f;
         float posY = topMargin;
         float cx = width() * 0.5f;
 
@@ -1862,7 +1858,6 @@ void CanvasPainterLancelotCppTests::testImages3()
         QCanvasPainter::ImageFlag::Nearest | QCanvasPainter::ImageFlag::GenerateMipmaps);
 
     {
-        float margin = height()*0.05f;
         float posY = topMargin;
         float cx = width() * 0.5f;
 
@@ -2007,7 +2002,6 @@ void CanvasPainterLancelotCppTests::testAntialiasing2()
         float margin = std::floor(width() * 0.1f);
         float w = std::floor(width() / (rects) - margin);
         float posX = margin/2;
-        float lineWidth = width()*0.01f;
         float posY = std::floor(topMargin);
         int lines = 12;
 

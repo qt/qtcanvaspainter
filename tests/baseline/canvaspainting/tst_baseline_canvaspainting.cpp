@@ -351,7 +351,7 @@ void tst_CanvasPainterLancelot::runTestSuite(QRhi::Implementation api, QImage::F
 #endif
 }
 
-void tst_CanvasPainterLancelot::paint(const QString &methodName, QCanvasPainter *painter, QImage::Format format)
+void tst_CanvasPainterLancelot::paint(const QString &methodName, QCanvasPainter *painter, QImage::Format)
 {
     if (m_checkersBackground) {
         painter->save();
