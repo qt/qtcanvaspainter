@@ -749,6 +749,90 @@ void CanvasPainterLancelotCppTests::testSomeText()
     painter->restore();
 }
 
+void CanvasPainterLancelotCppTests::testCanvasPathCommandsWithAndWithoutPathGroup()
+{
+    QCanvasPath path;
+
+    path.moveTo(10.f, 10.f);
+    path.lineTo(100.f, 10.f);
+    path.lineTo(100.f, 80.f);
+    path.lineTo(10.f, 80.f);
+    path.closePath();
+
+    path.moveTo(QPointF(120.f, 10.f));
+    path.lineTo(QPointF(200.f, 10.f));
+    path.lineTo(QPointF(200.f, 80.f));
+    path.closePath();
+
+    path.moveTo(10.f, 120.f);
+    path.bezierCurveTo(10.f, 90.f, 80.f, 90.f, 80.f, 120.f);
+
+    path.moveTo(QPointF(100.f, 120.f));
+    path.bezierCurveTo(QPointF(100.f, 90.f), QPointF(180.f, 90.f), QPointF(180.f, 120.f));
+
+    path.moveTo(10.f, 160.f);
+    path.quadraticCurveTo(55.f, 130.f, 100.f, 160.f);
+
+    path.moveTo(QPointF(120.f, 160.f));
+    path.quadraticCurveTo(QPointF(165.f, 130.f), QPointF(210.f, 160.f));
+
+    path.moveTo(10.f, 200.f);
+    path.arcTo(10.f, 250.f, 70.f, 250.f, 35.f);
+
+    path.moveTo(QPointF(120.f, 200.f));
+    path.arcTo(QPointF(120.f, 250.f), QPointF(180.f, 250.f), 35.f);
+
+    path.moveTo(260.f, 225.f);
+    path.arc(230.f, 225.f, 30.f, 0.f, float(M_PI));
+    path.arc(330.f, 225.f, 30.f, 0.f, float(M_PI),
+             QCanvasPainter::PathWinding::CounterClockWise,
+             QCanvasPainter::PathConnection::NotConnected);
+    path.arc(QPointF(430.f, 225.f), 30.f, 0.f, 2.f * float(M_PI),
+             QCanvasPainter::PathWinding::ClockWise,
+             QCanvasPainter::PathConnection::NotConnected);
+
+    path.rect(10.f, 280.f, 80.f, 50.f);
+    path.rect(QRectF(110.f, 280.f, 80.f, 50.f));
+    path.roundRect(210.f, 280.f, 80.f, 50.f, 10.f);
+    path.roundRect(QRectF(310.f, 280.f, 80.f, 50.f), 10.f);
+    path.roundRect(10.f, 350.f, 80.f, 50.f, 5.f, 10.f, 15.f, 20.f);
+    path.roundRect(QRectF(110.f, 350.f, 80.f, 50.f), 5.f, 10.f, 15.f, 20.f);
+    path.ellipse(260.f, 375.f, 40.f, 22.f);
+    path.ellipse(QRectF(310.f, 353.f, 80.f, 44.f));
+    path.circle(460.f, 375.f, 22.f);
+    path.circle(QPointF(530.f, 375.f), 22.f);
+    path.setPathWinding(QCanvasPainter::PathWinding::CounterClockWise);
+    path.circle(80.f, 460.f, 50.f);
+    path.beginHoleSubPath(); // ClockWise
+    path.circle(80.f, 460.f, 30.f);
+    path.beginSolidSubPath();  // CounterClockWise
+    path.circle(80.f, 460.f, 12.f);
+
+    painter->setFillStyle(Qt::green);
+    painter->fill(path);
+    painter->setStrokeStyle(Qt::red);
+    painter->setLineWidth(4);
+    painter->stroke(path);
+
+    int group = 5;
+    painter->scale(0.5f);
+
+    painter->translate(0, 1050);
+    painter->fill(path, group);
+    painter->stroke(path, group);
+
+    group = 6;
+    painter->translate(1000, -1050);
+    painter->fill(path, group);
+    painter->stroke(path, group);
+
+    painter->translate(0, 1050);
+    painter->fill(path, group);
+    painter->stroke(path, group);
+}
+
+// ----------- tests adapted from Gallery example start below
+
 void CanvasPainterLancelotCppTests::testRects()
 {
     float topMargin = height() * 0.02f;

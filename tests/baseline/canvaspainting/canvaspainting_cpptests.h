@@ -29,6 +29,7 @@ private slots:
     void testCurve();
     void testCurveWithPathCaching();
     void testSomeText();
+    void testCanvasPathCommandsWithAndWithoutPathGroup();
 
     // the tests below are adapted from the Gallery example
     void testRects();
