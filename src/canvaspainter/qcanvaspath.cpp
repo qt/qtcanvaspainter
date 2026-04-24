@@ -22,7 +22,6 @@ QT_BEGIN_NAMESPACE
  * - No translate() or translated() methods. Instead of translating all path elements one-by-one,
  *   they can be translated (and rotatated & scaled) when renderered.
  * - No addText() method. Text is not supported natively as a path element.
- * - The fillrule is always WindingFill (nonzero), OddEvenFill is not supported.
  *
  * So in terms of functionality, QCanvasPath is closer to HTML Canvas API Path2D object:
  * https://developer.mozilla.org/en-US/docs/Web/API/Path2D
@@ -58,7 +57,6 @@ QT_BEGIN_NAMESPACE
     \li There are no methods for intersection or subtraction between two paths.
     \li There is no method for translating the path.
     \li There is no method for adding text.
-    \li The fill rule is always \c WindingFill (nonzero), \c OddEvenFill is not supported.
     \endlist
 
     From a functionality point of view, QCanvasPath is more similar to HTML Canvas
