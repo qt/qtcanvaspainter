@@ -3,7 +3,11 @@
 
 # Special case: test includes the QBaselineTest module sources from qtbase directly
 if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/../../../qtbase/tests/baseline/shared")
+    add_subdirectory(scenegrabber)
     if(TARGET Qt::Network)
         add_subdirectory(canvaspainting)
+        if(QT_FEATURE_process)
+            add_subdirectory(qmlcanvaspainting)
+        endif()
     endif()
 endif()
