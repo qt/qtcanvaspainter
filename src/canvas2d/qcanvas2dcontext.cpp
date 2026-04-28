@@ -288,6 +288,7 @@ public:
         o->defineDefaultProperty(QStringLiteral("resetTransform"), method_resetTransform, 0);
         o->defineDefaultProperty(QStringLiteral("fillRect"), method_fillRect, 0);
         o->defineDefaultProperty(QStringLiteral("createConicalGradient"), method_createConicalGradient, 0);
+        o->defineDefaultProperty(QStringLiteral("createConicGradient"), method_createConicGradient, 0);
         o->defineDefaultProperty(QStringLiteral("drawFocusRing"), method_drawFocusRing, 0);
         o->defineDefaultProperty(QStringLiteral("beginPath"), method_beginPath, 0);
         o->defineDefaultProperty(QStringLiteral("clearRect"), method_clearRect, 0);
@@ -337,6 +338,7 @@ public:
     static QV4::ReturnedValue method_createLinearGradient(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc);
     static QV4::ReturnedValue method_createRadialGradient(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc);
     static QV4::ReturnedValue method_createConicalGradient(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc);
+    static QV4::ReturnedValue method_createConicGradient(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc);
     static QV4::ReturnedValue method_createBoxGradient(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc);
     static QV4::ReturnedValue method_createBoxShadow(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc);
     static QV4::ReturnedValue method_createGridPattern(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc);
@@ -1740,7 +1742,7 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_createConicalGradient(con
     if (argc >= 3) {
         qreal x = argv[0].toNumber();
         qreal y = argv[1].toNumber();
-        qreal angle = qRadiansToDegrees(argv[2].toNumber());
+        qreal angle = argv[2].toNumber();
         if (!qt_is_finite(x) || !qt_is_finite(y)) {
             THROW_DOM(DOMEXCEPTION_NOT_SUPPORTED_ERR, "createConicalGradient(): Incorrect arguments");
         }
@@ -1759,6 +1761,18 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_createConicalGradient(con
     }
 
     RETURN_RESULT(*thisObject);
+}
+
+QV4::ReturnedValue QCanvasJSContext2DPrototype::method_createConicGradient(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc)
+{
+    QV4::Scope scope(b);
+    Q_UNUSED(thisObject);
+    Q_UNUSED(argv);
+    Q_UNUSED(argc);
+
+    THROW_DOM(DOMEXCEPTION_NOT_SUPPORTED_ERR, "createConicGradient(): Please use createConicalGradient(x, y, angle) instead.");
+
+    RETURN_RESULT(QV4::Encode::null());
 }
 
 /*!
