@@ -131,7 +131,7 @@ QT_BEGIN_NAMESPACE
       painter->stroke(m_path, pathGroup);
       // ... other draw commands
       painter->translate(100, 0);
-      painter->stroke(*m_path, pathGroup);
+      painter->stroke(m_path, pathGroup);
       // ... other draw commands
     \endcode
 
@@ -154,7 +154,7 @@ QT_BEGIN_NAMESPACE
       // ... other draw commands
       painter->translate(100, 0);
       painter->setStrokeWidth(8);
-      painter->stroke(*m_path, pathGroup);
+      painter->stroke(m_path, pathGroup);
       // ... other draw commands
     \endcode
 
