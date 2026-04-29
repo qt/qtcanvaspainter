@@ -20,7 +20,6 @@ qt_internal_add_qml_module(Canvas2DPrivate
         qcanvas2ditemrenderer.cpp qcanvas2ditemrenderer_p.h
         qcanvas2dcontext.cpp qcanvas2dcontext_p.h
         qcanvas2dcommandbuffer.cpp qcanvas2dcommandbuffer_p.h
-        qcanvas2dsvgparser.cpp qcanvas2dsvgparser_p.h
         qcanvas2dutils.cpp qcanvas2dutils_p.h
     DEFINES
         QT_NO_FOREACH

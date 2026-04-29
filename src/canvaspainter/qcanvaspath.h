@@ -9,6 +9,7 @@
 #include <QtCanvasPainter/qtcanvaspainterglobal.h>
 #include <QtCore/qrect.h>
 #include <QtCore/qpoint.h>
+#include <QtCore/qstringview.h>
 #include <QtCanvasPainter/qcanvaspainter.h>
 
 QT_BEGIN_NAMESPACE
@@ -89,6 +90,7 @@ public:
 
     Q_CANVASPAINTER_EXPORT void addPath(const QCanvasPath &path, const QTransform &transform = QTransform());
     Q_CANVASPAINTER_EXPORT void addPath(const QCanvasPath &path, qsizetype start, qsizetype count, const QTransform &transform = QTransform());
+    Q_CANVASPAINTER_EXPORT void addPath(QStringView svgPath, const QTransform &transform = QTransform());
 
     // Memory and size management
     Q_CANVASPAINTER_EXPORT bool isEmpty() const;

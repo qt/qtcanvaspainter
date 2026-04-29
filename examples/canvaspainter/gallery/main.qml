@@ -88,7 +88,7 @@ Window {
         highlightRangeMode: ListView.StrictlyEnforceRange
         maximumFlickVelocity: 10000
         highlightMoveDuration: 2500
-        model: 15
+        model: 16
         // Disable this to not preload all views.
         cacheBuffer: 10000
         preferredHighlightBegin: width * 0.5 - delegateWidth * 0.5

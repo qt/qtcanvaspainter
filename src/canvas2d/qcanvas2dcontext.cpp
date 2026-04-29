@@ -5,7 +5,6 @@
 #include "qcanvas2dcontext_p.h"
 #include "qcanvas2dcommandbuffer_p.h"
 #include "qcanvas2ditem_p.h"
-#include "qcanvas2dsvgparser_p.h"
 #include "qcanvas2dutils_p.h"
 
 #include <QtCanvasPainter/qcanvasgradient.h>
@@ -2356,7 +2355,8 @@ QV4::ReturnedValue QCanvasJSContext2D::method_set_path(const QV4::FunctionObject
             r->d()->context()->m_path = path->path();
     } else {
         QString path = value->toQStringNoThrow();
-        QCanvas2DSvgParser::parsePathDataFast(path, r->d()->context()->m_path);
+        // TODO: Make this work, with proper Path2D.
+        //QCanvas2DSvgParser::parsePathDataFast(path, r->d()->context()->m_path);
     }
     r->d()->context()->m_v4path.set(scope.engine, value);
     RETURN_UNDEFINED();

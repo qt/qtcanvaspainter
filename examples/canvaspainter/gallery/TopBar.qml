@@ -48,33 +48,37 @@ Item {
             break;
         case 7:
             groupTitle = "Painting";
-            title = "States, Transitions and Clipping";
+            title = "Painter Paths #2";
             break;
         case 8:
             groupTitle = "Painting";
-            title = "Antialiasing and Line Width";
+            title = "States, Transitions and Clipping";
             break;
         case 9:
             groupTitle = "Painting";
-            title = "Composite Modes";
+            title = "Antialiasing and Line Width";
             break;
         case 10:
             groupTitle = "Painting";
-            title = "Color Effects";
+            title = "Composite Modes";
             break;
         case 11:
-            groupTitle = "Text";
-            title = "Fonts and Styles";
+            groupTitle = "Painting";
+            title = "Color Effects";
             break;
         case 12:
             groupTitle = "Text";
-            title = "Brushes";
+            title = "Fonts and Styles";
             break;
         case 13:
             groupTitle = "Text";
-            title = "Alignment";
+            title = "Brushes";
             break;
         case 14:
+            groupTitle = "Text";
+            title = "Alignment";
+            break;
+        case 15:
             groupTitle = "Text";
             title = "Wrapping";
             break;

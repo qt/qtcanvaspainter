@@ -41,6 +41,7 @@ private:
 
     // View - Painter Paths
     void drawPainterPaths();
+    void drawPainterPaths2();
 
     // View - States and transforms
     void drawTransforms();
@@ -77,6 +78,7 @@ private:
     void drawImages();
 
     void drawRect(float x, float y, float w, float h);
+    void loadTigerPath();
 
     //QCanvasPainter *m_painter;
     float m_animationTime = 0.0f;
@@ -109,6 +111,15 @@ private:
     QCanvasPath m_path4;
     QCanvasPath m_pathGraphLine;
     QCanvasPath m_pathGraphArea;
+
+    struct SvgData {
+        QColor fill = QColorConstants::Transparent;
+        QColor stroke = QColorConstants::Transparent;
+        float lineWidth = 0;
+        QString path;
+        QCanvasPath canvasPath;
+    };
+    QList<SvgData> m_tigerData;
 };
 
 #endif // GALLERYITEMRENDERER_H

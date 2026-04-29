@@ -1,12 +1,18 @@
 // Copyright (C) 2026 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
-// Qt-Security score:significant reason:default
+// Qt-Security score:critical reason:data-parser
 
-#include "qcanvas2dsvgparser_p.h"
+// This is a copy of QQuickSvgParser with slight changes:
+// - Use QCanvasPath instead of QCanvasPainter.
+// - Use QStringView.
+// - Other (future) optimizations.
+
+#include "qcanvassvgparser_p.h"
+#include "qcanvaspath.h"
 
 #include <QtCore/qmath.h>
 #include <QtCore/qvarlengtharray.h>
-#include <QtCore/qstring.h>
+#include <QtCore/qstringview.h>
 
 #include <QtCore/private/qlocale_tools_p.h>
 
@@ -117,7 +123,7 @@ static inline void parseNumbersArray(const QChar *&str, QVarLengthArray<qreal, 8
     }
 }
 
-static void pathArcSegment(QPainterPath &path,
+static void pathArcSegment(QCanvasPath &path,
                            qreal xc, qreal yc,
                            qreal th0, qreal th1,
                            qreal rx, qreal ry, qreal xAxisRotation)
@@ -145,21 +151,23 @@ static void pathArcSegment(QPainterPath &path,
     x2 = x3 + t * qSin(th1);
     y2 = y3 - t * qCos(th1);
 
-    path.cubicTo(a00 * x1 + a01 * y1, a10 * x1 + a11 * y1,
-                 a00 * x2 + a01 * y2, a10 * x2 + a11 * y2,
-                 a00 * x3 + a01 * y3, a10 * x3 + a11 * y3);
+    path.bezierCurveTo(a00 * x1 + a01 * y1, a10 * x1 + a11 * y1,
+                       a00 * x2 + a01 * y2, a10 * x2 + a11 * y2,
+                       a00 * x3 + a01 * y3, a10 * x3 + a11 * y3);
 }
 
-void QCanvas2DSvgParser::pathArc(QPainterPath &path,
-                    qreal               rx,
-                    qreal               ry,
-                    qreal               x_axis_rotation,
-                    int         large_arc_flag,
-                    int         sweep_flag,
-                    qreal               x,
-                    qreal               y,
-                    qreal curx, qreal cury)
+void QCanvasSvgParser::pathArc(QCanvasPath &path,
+                              qreal rx, qreal ry,
+                              qreal x_axis_rotation,
+                              int large_arc_flag,
+                              int sweep_flag,
+                              qreal x, qreal y,
+                              qreal curx, qreal cury)
 {
+    // Check if the start point is equal to the end point.
+    if (QPointF(curx, cury) == QPointF(x, y))
+        return;
+
     qreal sin_th, cos_th;
     qreal a00, a01, a10, a11;
     qreal x0, y0, x1, y1, xc, yc;
@@ -170,6 +178,14 @@ void QCanvas2DSvgParser::pathArc(QPainterPath &path,
 
     rx = qAbs(rx);
     ry = qAbs(ry);
+    // Avoid nans and division by zero.
+    if (qFuzzyIsNull(rx) || qFuzzyIsNull(ry)) {
+        // https://www.w3.org/TR/SVG/paths.html#ArcOutOfRangeParameters says:
+        // "If either rx or ry is 0, then this arc is treated as a straight line
+        // segment (a "lineto") joining the endpoints."
+        path.lineTo(x, y);
+        return;
+    }
 
     sin_th = qSin(qDegreesToRadians(x_axis_rotation));
     cos_th = qCos(qDegreesToRadians(x_axis_rotation));
@@ -231,7 +247,7 @@ void QCanvas2DSvgParser::pathArc(QPainterPath &path,
 }
 
 
-bool QCanvas2DSvgParser::parsePathDataFast(const QString &dataStr, QPainterPath &path)
+bool QCanvasSvgParser::parsePathDataFast(QStringView dataStr, QCanvasPath &path)
 {
     qreal x0 = 0, y0 = 0;              // starting point
     qreal x = 0, y = 0;                // current point
@@ -267,12 +283,12 @@ bool QCanvas2DSvgParser::parsePathDataFast(const QString &dataStr, QPainterPath 
                 count -= 2;
                 path.moveTo(x0, y0);
 
-                 // As per 1.2  spec 8.3.2 The "moveto" commands
-                 // If a 'moveto' is followed by multiple pairs of coordinates without explicit commands,
-                 // the subsequent pairs shall be treated as implicit 'lineto' commands.
-                 pathElem = QLatin1Char('l');
+                // As per 1.2  spec 8.3.2 The "moveto" commands
+                // If a 'moveto' is followed by multiple pairs of coordinates without explicit commands,
+                // the subsequent pairs shall be treated as implicit 'lineto' commands.
+                pathElem = QLatin1Char('l');
             }
-                break;
+            break;
             case 'M': {
                 if (count < 2) {
                     num++;
@@ -290,16 +306,16 @@ bool QCanvas2DSvgParser::parsePathDataFast(const QString &dataStr, QPainterPath 
                 // the subsequent pairs shall be treated as implicit 'lineto' commands.
                 pathElem = QLatin1Char('L');
             }
-                break;
+            break;
             case 'z':
             case 'Z': {
                 x = x0;
                 y = y0;
                 count--; // skip dummy
                 num++;
-                path.closeSubpath();
+                path.closePath();
             }
-                break;
+            break;
             case 'l': {
                 if (count < 2) {
                     num++;
@@ -313,7 +329,7 @@ bool QCanvas2DSvgParser::parsePathDataFast(const QString &dataStr, QPainterPath 
                 path.lineTo(x, y);
 
             }
-                break;
+            break;
             case 'L': {
                 if (count < 2) {
                     num++;
@@ -326,35 +342,35 @@ bool QCanvas2DSvgParser::parsePathDataFast(const QString &dataStr, QPainterPath 
                 count -= 2;
                 path.lineTo(x, y);
             }
-                break;
+            break;
             case 'h': {
                 x = num[0] + offsetX;
                 num++;
                 count--;
                 path.lineTo(x, y);
             }
-                break;
+            break;
             case 'H': {
                 x = num[0];
                 num++;
                 count--;
                 path.lineTo(x, y);
             }
-                break;
+            break;
             case 'v': {
                 y = num[0] + offsetY;
                 num++;
                 count--;
                 path.lineTo(x, y);
             }
-                break;
+            break;
             case 'V': {
                 y = num[0];
                 num++;
                 count--;
                 path.lineTo(x, y);
             }
-                break;
+            break;
             case 'c': {
                 if (count < 6) {
                     num += count;
@@ -366,7 +382,7 @@ bool QCanvas2DSvgParser::parsePathDataFast(const QString &dataStr, QPainterPath 
                 QPointF e(num[4] + offsetX, num[5] + offsetY);
                 num += 6;
                 count -= 6;
-                path.cubicTo(c1, c2, e);
+                path.bezierCurveTo(c1, c2, e);
                 ctrlPt = c2;
                 x = e.x();
                 y = e.y();
@@ -383,7 +399,7 @@ bool QCanvas2DSvgParser::parsePathDataFast(const QString &dataStr, QPainterPath 
                 QPointF e(num[4], num[5]);
                 num += 6;
                 count -= 6;
-                path.cubicTo(c1, c2, e);
+                path.bezierCurveTo(c1, c2, e);
                 ctrlPt = c2;
                 x = e.x();
                 y = e.y();
@@ -405,7 +421,7 @@ bool QCanvas2DSvgParser::parsePathDataFast(const QString &dataStr, QPainterPath 
                 QPointF e(num[2] + offsetX, num[3] + offsetY);
                 num += 4;
                 count -= 4;
-                path.cubicTo(c1, c2, e);
+                path.bezierCurveTo(c1, c2, e);
                 ctrlPt = c2;
                 x = e.x();
                 y = e.y();
@@ -427,7 +443,7 @@ bool QCanvas2DSvgParser::parsePathDataFast(const QString &dataStr, QPainterPath 
                 QPointF e(num[2], num[3]);
                 num += 4;
                 count -= 4;
-                path.cubicTo(c1, c2, e);
+                path.bezierCurveTo(c1, c2, e);
                 ctrlPt = c2;
                 x = e.x();
                 y = e.y();
@@ -443,7 +459,7 @@ bool QCanvas2DSvgParser::parsePathDataFast(const QString &dataStr, QPainterPath 
                 QPointF e(num[2] + offsetX, num[3] + offsetY);
                 num += 4;
                 count -= 4;
-                path.quadTo(c, e);
+                path.quadraticCurveTo(c, e);
                 ctrlPt = c;
                 x = e.x();
                 y = e.y();
@@ -459,7 +475,7 @@ bool QCanvas2DSvgParser::parsePathDataFast(const QString &dataStr, QPainterPath 
                 QPointF e(num[2], num[3]);
                 num += 4;
                 count -= 4;
-                path.quadTo(c, e);
+                path.quadraticCurveTo(c, e);
                 ctrlPt = c;
                 x = e.x();
                 y = e.y();
@@ -480,7 +496,7 @@ bool QCanvas2DSvgParser::parsePathDataFast(const QString &dataStr, QPainterPath 
                     c = QPointF(2*x-ctrlPt.x(), 2*y-ctrlPt.y());
                 else
                     c = QPointF(x, y);
-                path.quadTo(c, e);
+                path.quadraticCurveTo(c, e);
                 ctrlPt = c;
                 x = e.x();
                 y = e.y();
@@ -501,7 +517,7 @@ bool QCanvas2DSvgParser::parsePathDataFast(const QString &dataStr, QPainterPath 
                     c = QPointF(2*x-ctrlPt.x(), 2*y-ctrlPt.y());
                 else
                     c = QPointF(x, y);
-                path.quadTo(c, e);
+                path.quadraticCurveTo(c, e);
                 ctrlPt = c;
                 x = e.x();
                 y = e.y();
@@ -529,7 +545,7 @@ bool QCanvas2DSvgParser::parsePathDataFast(const QString &dataStr, QPainterPath 
                 x = ex;
                 y = ey;
             }
-                break;
+            break;
             case 'A': {
                 if (count < 7) {
                     num += count;
@@ -552,7 +568,7 @@ bool QCanvas2DSvgParser::parsePathDataFast(const QString &dataStr, QPainterPath 
                 x = ex;
                 y = ey;
             }
-                break;
+            break;
             default:
                 return false;
             }

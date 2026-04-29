@@ -5,6 +5,7 @@
 
 #include "qcanvaspath.h"
 #include "qcanvaspath_p.h"
+#include "qcanvassvgparser_p.h"
 #include "engine/qcpainterengineutils_p.h"
 #include <QTransform>
 
@@ -934,6 +935,38 @@ void QCanvasPath::addPath(const QCanvasPath &path, qsizetype start, qsizetype co
     d->ensureCommands(count);
     for (int i = 0; i < count; i++)
         d->commands[d->commandsCount++] = pathd->commands[start + i];
+}
+
+
+/*!
+    \since 6.12
+    Adds \a svgPath into this path, optionally using \a transform to
+    alter the path points.
+
+    \table
+    \row
+    \li \inlineimage qcpainter-addpath3.webp
+    \li
+    \code
+    // m_path is QCanvasPath
+    if (m_path.isEmpty()) {
+        QString path("M 20 20 C 40 120, 80 120, 100 20 Z");
+        m_path.addPath(path);
+        m_path.addPath(path, QTransform::fromTranslate(80, 80));
+    }
+    p->fill(m_path);
+    p->stroke(m_path);
+    \endcode
+    \endtable
+
+    See \l {http://www.w3.org/TR/SVG/paths.html#PathData}{W3C SVG Path Data}
+    for more details on this format.
+*/
+void QCanvasPath::addPath(QStringView svgPath, const QTransform &transform)
+{
+    QCanvasPath path;
+    QCanvasSvgParser::parsePathDataFast(svgPath, path);
+    addPath(path, transform);
 }
 
 /*!

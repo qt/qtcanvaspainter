@@ -15,6 +15,9 @@
 #include <math.h>
 #include <QFontDatabase>
 #include <QImage>
+#include <QFile>
+#include <QJsonDocument>
+#include <QJsonArray>
 
 GalleryItemRenderer::GalleryItemRenderer()
 {
@@ -80,9 +83,36 @@ void GalleryItemRenderer::synchronizeData(QCanvasPainterItem *item)
         } else {
             m_sizeChanged = false;
         }
+        loadTigerPath();
     }
+
 }
 //![synchronize]
+
+void GalleryItemRenderer::loadTigerPath()
+{
+    // Load tiger JSON data for the correct view, once.
+    if (m_viewIndex == 7 && m_tigerData.isEmpty()) {
+        QFile tigerFile(":/images/tiger.json");
+        if (tigerFile.open(QIODevice::ReadOnly)) {
+            QByteArray data = tigerFile.readAll();
+            QJsonDocument tigerDoc(QJsonDocument::fromJson(data));
+            QJsonArray json = tigerDoc["data"].toArray();
+            for (const QJsonValue &p : std::as_const(json)) {
+                SvgData d;
+                QString fillString = p["fill"].toString();
+                if (!fillString.isEmpty())
+                    d.fill = QColor::fromString(fillString);
+                QString strokeString = p["stroke"].toString();
+                if (!strokeString.isEmpty())
+                    d.stroke = QColor::fromString(strokeString);
+                d.lineWidth = p["width"].toDouble();
+                d.path = p["path"].toString();
+                m_tigerData << d;
+            }
+        }
+    }
+}
 
 //![paint]
 void GalleryItemRenderer::paint(QCanvasPainter *painter)
@@ -125,27 +155,30 @@ void GalleryItemRenderer::paint(QCanvasPainter *painter)
         drawPainterPaths();
         break;
     case 7:
-        drawTransforms();
+        drawPainterPaths2();
         break;
     case 8:
-        drawAntialiasing();
+        drawTransforms();
         break;
     case 9:
-        drawCompositeModes();
+        drawAntialiasing();
         break;
     case 10:
-        drawColorEffects();
+        drawCompositeModes();
         break;
     case 11:
-        drawTextsFonts();
+        drawColorEffects();
         break;
     case 12:
-        drawTextsBrushes();
+        drawTextsFonts();
         break;
     case 13:
-        drawTextsAlignments();
+        drawTextsBrushes();
         break;
     case 14:
+        drawTextsAlignments();
+        break;
+    case 15:
         drawTextsWrapping();
         break;
     default:
@@ -680,6 +713,44 @@ void GalleryItemRenderer::drawPainterPaths()
     painter()->setLineWidth(16);
     painter()->stroke(pathSelection);
     painter()->restore();
+}
+
+void GalleryItemRenderer::drawPainterPaths2()
+{
+    auto *p = painter();
+    float w = width();
+    float h = height();
+    int pathGroup = 1;
+
+    QTransform t;
+    t.translate(w * 0.5f, h * 0.5f);
+    float s = 0.2f + 2.0f * m_animationSine;
+    t.scale(s, s);
+    t = t.rotateRadians(m_animationTime);
+    t.translate(-100, -100);
+    p->setTransform(t);
+
+    const int pathCount = m_tigerData.size();
+    for (int i = 0; i < pathCount; i++) {
+        // First run, create paths from svg path strings.
+        // Then fill & stroke the paths.
+        auto &path = m_tigerData[i];
+        if (path.fill != QColorConstants::Transparent) {
+            p->setFillStyle(path.fill);
+            if (path.canvasPath.isEmpty())
+                path.canvasPath.addPath(path.path);
+            p->fill(path.canvasPath, pathGroup);
+        }
+        if (path.stroke != QColorConstants::Transparent) {
+            if (path.lineWidth > 0)
+                p->setLineWidth(path.lineWidth);
+            p->setStrokeStyle(path.stroke);
+            if (path.canvasPath.isEmpty())
+                path.canvasPath.addPath(path.path);
+            p->stroke(path.canvasPath, pathGroup);
+        }
+    }
+    p->resetTransform();
 }
 
 void GalleryItemRenderer::drawTransforms() {

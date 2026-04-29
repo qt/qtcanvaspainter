@@ -2,8 +2,8 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
 // Qt-Security score:significant reason:default
 
-#ifndef QCANVAS2DSVGPARSER_P_H
-#define QCANVAS2DSVGPARSER_P_H
+#ifndef QCANVASSVGPARSER_P_H
+#define QCANVASSVGPARSER_P_H
 
 //
 //  W A R N I N G
@@ -16,19 +16,21 @@
 // We mean it.
 //
 
-#include <QtCore/qstring.h>
-#include <QtGui/qpainterpath.h>
+#include <QtCanvasPainter/qtcanvaspainterglobal.h>
+#include <QtCore/qstringview.h>
 
 QT_BEGIN_NAMESPACE
 
-namespace QCanvas2DSvgParser
+class QCanvasPath;
+
+namespace QCanvasSvgParser
 {
-    bool parsePathDataFast(const QString &dataStr, QPainterPath &path);
-    void pathArc(QPainterPath &path, qreal rx, qreal ry, qreal x_axis_rotation,
+    bool parsePathDataFast(QStringView dataStr, QCanvasPath &path);
+    void pathArc(QCanvasPath &path, qreal rx, qreal ry, qreal x_axis_rotation,
                  int large_arc_flag, int sweep_flag, qreal x, qreal y, qreal curx,
                  qreal cury);
 }
 
 QT_END_NAMESPACE
 
-#endif // QCANVAS2DSVGPARSER_P_H
+#endif // QCANVASSVGPARSER_P_H
