@@ -1271,6 +1271,38 @@ void tst_CanvasRhiRendering::canvasRenderPathGroups()
         QVERIFY(greenCount < 55000);
     }
 
+    // Ninth frame: Make a copy, pass in the same local variable (as in, &p is
+    // the same) for both paths to fill() and stroke() and see if it does not
+    // get confused.
+    rhi->beginOffscreenFrame(&cb);
+    pd->resetForNewFrame();
+    pd->beginPaint(canvas, cb);
+    cb->debugMarkMsg("Ninth frame: like the previous, but paths are copied");
+    QCanvasPath p = pathLeft;
+    painter->setAntialias(1.0f);
+    painter->setFillStyle(Qt::green);
+    painter->fill(p, group);
+    painter->setStrokeStyle(Qt::red);
+    painter->setLineWidth(4.0f);
+    painter->stroke(p, group);
+    p = pathRight;
+    painter->translate(RT_WIDTH / 2 - 100, 0);
+    painter->fill(p, group);
+    painter->stroke(p, group);
+    pd->endPaint();
+    rhi->endOffscreenFrame();
+
+    if (impl != QRhi::Null) {
+        QImage image = imageFromReadback(rhi.get(), canvas.texture());
+        updateColorCounts(image);
+        // 11715
+        QVERIFY(redCount > 11000);
+        QVERIFY(redCount < 12000);
+        // 54499
+        QVERIFY(greenCount > 54000);
+        QVERIFY(greenCount < 55000);
+    }
+
 #ifdef FRAME_CAPTURE
     endFrameCapture(m_cap.get());
 #endif

@@ -185,6 +185,17 @@ QT_BEGIN_NAMESPACE
 
 */
 
+static uint nextSerialNumber()
+{
+    Q_CONSTINIT static QBasicAtomicInteger<uint> serial = Q_BASIC_ATOMIC_INITIALIZER(0);
+    return 1 + serial.fetchAndAddRelaxed(1);
+}
+
+QCanvasPathPrivate::QCanvasPathPrivate()
+    : serialNumber(nextSerialNumber())
+{
+}
+
 /*!
     Constructs an empty path.
 */
@@ -294,6 +305,10 @@ bool comparesEqual(const QCanvasPath &lhs, const QCanvasPath &rhs) noexcept
     auto *pd = QCanvasPathPrivate::get(&rhs);
     if (pd == d)
         return true;
+
+    // Do not compare pd->serialNumber to keep the existing equality logic.
+    // Ultimately the serialNumber if for the renderer's use, not affecting the
+    // comparison semantics.
 
     if (pd->commandsCount != d->commandsCount ||
         pd->commandsDataCount != d->commandsDataCount)
@@ -962,7 +977,7 @@ void QCanvasPath::clear()
     Q_D(QCanvasPath);
     d->commandsCount = 0;
     d->commandsDataCount = 0;
-    d->pathIterations++;
+    d->serialNumber = nextSerialNumber();
 }
 
 /*!
