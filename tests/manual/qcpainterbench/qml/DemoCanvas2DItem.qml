@@ -28,6 +28,9 @@ Item {
             loadImage("images/circle.png")
             canvas.requestPaint();
         }
+        // When size changes, reset flowerPath so it is transformed correctly.
+        onWidthChanged: if (rootItem.flowerPath) rootItem.flowerPath.clear();
+        onHeightChanged: if (rootItem.flowerPath) rootItem.flowerPath.clear();
     }
 
     property color m_colorWhite: Qt.rgba(1, 1, 1, 1)
@@ -36,6 +39,9 @@ Item {
     property color m_color1: Qt.rgba(180/255, 190/255, 40/255, 20/255)
     property color m_color2: Qt.rgba(1, 1, 1, 150/255)
     property color m_color3: Qt.rgba(1, 1, 1, 80/255)
+    property var flowerPath: null
+    // Set this false to draw directly
+    property bool usePath2D: true
 
     function paintView(ctx) {
         const w = rootItem.width;
@@ -291,26 +297,54 @@ Item {
         gradient1.addColorStop(0, startColor);
         gradient1.addColorStop(1, "#ffffff");
         ctx.fillStyle = gradient1;
-        ctx.translate(cx, cy);
-        ctx.rotate(Math.sin(t) * 20 * (Math.PI / 180));
-        ctx.translate(-cx, -cy);
-        ctx.beginPath();
-        ctx.moveTo(cx, cy);
-        const items = 12;
-        for (let i = 0; i < items; i += 2) {
-            ctx.quadraticCurveTo(
-                        cx + Math.cos(_flowerPos(i)) * leafSize,
-                        cy + Math.sin(_flowerPos(i)) * leafSize,
-                        cx + Math.cos(_flowerPos(i + 1)) * leafSize,
-                        cy + Math.sin(_flowerPos(i + 1)) * leafSize);
-            ctx.quadraticCurveTo(
-                        cx + Math.cos(_flowerPos(i + 2)) * leafSize,
-                        cy + Math.sin(_flowerPos(i + 2)) * leafSize,
+        if (rootItem.usePath2D) {
+            // Draw using Path2D
+            if (!rootItem.flowerPath || rootItem.flowerPath.isEmpty()) {
+                rootItem.flowerPath = ctx.createPath2D();
+                rootItem.flowerPath.moveTo(cx, cy);
+                const items = 12;
+                for (let j = 0; j < items; j += 2) {
+                    rootItem.flowerPath.quadraticCurveTo(
+                        cx + Math.cos(_flowerPos(j)) * leafSize,
+                        cy + Math.sin(_flowerPos(j)) * leafSize,
+                        cx + Math.cos(_flowerPos(j + 1)) * leafSize,
+                        cy + Math.sin(_flowerPos(j + 1)) * leafSize);
+                    rootItem.flowerPath.quadraticCurveTo(
+                        cx + Math.cos(_flowerPos(j + 2)) * leafSize,
+                        cy + Math.sin(_flowerPos(j + 2)) * leafSize,
                         cx,
                         cy);
+                }
+            }
+            ctx.translate(cx, cy);
+            ctx.rotate(Math.sin(t) * 20 * (Math.PI / 180));
+            ctx.translate(-cx, -cy);
+            const pathGroup = 1;
+            ctx.fill(rootItem.flowerPath, pathGroup);
+            ctx.stroke(rootItem.flowerPath, pathGroup);
+        } else {
+            // Draw directly
+            ctx.translate(cx, cy);
+            ctx.rotate(Math.sin(t) * 20 * (Math.PI / 180));
+            ctx.translate(-cx, -cy);
+            ctx.beginPath();
+            ctx.moveTo(cx, cy);
+            const items = 12;
+            for (let i = 0; i < items; i += 2) {
+                ctx.quadraticCurveTo(
+                            cx + Math.cos(_flowerPos(i)) * leafSize,
+                            cy + Math.sin(_flowerPos(i)) * leafSize,
+                            cx + Math.cos(_flowerPos(i + 1)) * leafSize,
+                            cy + Math.sin(_flowerPos(i + 1)) * leafSize);
+                ctx.quadraticCurveTo(
+                            cx + Math.cos(_flowerPos(i + 2)) * leafSize,
+                            cy + Math.sin(_flowerPos(i + 2)) * leafSize,
+                            cx,
+                            cy);
+            }
+            ctx.fill();
+            ctx.stroke();
         }
-        ctx.fill();
-        ctx.stroke();
 
         ctx.fillStyle = "#ffffff";
         ctx.beginPath();
