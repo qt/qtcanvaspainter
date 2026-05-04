@@ -28,6 +28,7 @@ public:
     ~QCanvas2DCommandBuffer();
 
     void clearBuffers();
+    QCanvasBrush *copyBrush(QCanvasBrush *brush);
 
     inline void setGlobalAlpha(qreal alpha)
     {
@@ -62,7 +63,7 @@ public:
     inline void setStrokeStyle(QCanvasBrush *style, bool repeatX = false, bool repeatY = false)
     {
         commands << QCanvas2DContext::StrokeStyle;
-        brushes << style;
+        brushes << copyBrush(style);
         bools << repeatX << repeatY;
     }
 
@@ -325,7 +326,7 @@ public:
     inline void setFillStyle(QCanvasBrush *style, bool repeatX = false, bool repeatY = false)
     {
         commands << QCanvas2DContext::FillStyle;
-        brushes << style;
+        brushes << copyBrush(style);
         bools << repeatX << repeatY;
     }
 
@@ -381,7 +382,7 @@ public:
     inline void drawBoxShadow(QCanvasBoxShadow *shadow)
     {
         commands << QCanvas2DContext::DrawBoxShadow;
-        brushes << shadow;
+        brushes << copyBrush(shadow);
     }
 
     inline void setTextAlign(QCanvasPainter::TextAlign ta)
