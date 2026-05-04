@@ -26,13 +26,19 @@ API from \l[QtDoc]{Compatibility promises}{Qt's compatibility promises}.
 
 \include {module-use.qdocinc} {using the c++ api}
 
+\section2 QML API
+
+\include {module-use.qdocinc} {using the qml api} {QtCanvas2D}
+
 \section3 Building with CMake
 
 \include {module-use.qdocinc} {building with cmake} {CanvasPainter}
 
 \section1 Class Reference
-
-\l{Qt Canvas Painter C++ Classes}
+\list
+\li \l{Qt Canvas Painter C++ Classes}
+\li \l{Qt Canvas2D QML types}
+\endlist
 
 \section1 Examples
 
