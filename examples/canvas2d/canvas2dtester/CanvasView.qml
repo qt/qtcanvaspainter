@@ -1034,17 +1034,16 @@ Item {
 
             let px = w * 0.2 - cx;
             let py = h * 0.5 - cy;
-            ctx.translate(px, py);
-
-            ctx.translate(cx, cy);
-            ctx.rotate(Math.sin(j * 0.2 + t) * 0.5);
-            ctx.scale(1.0 + 0.6 * Math.sin((j + t) * 0.1));
-            ctx.translate(-cx, -cy);
+            let m = ctx.createTransform2D();
+            m.translate(cx + px, cy + py);
+            m.rotateRadians(Math.sin(j * 0.2 + t) * 0.5);
+            m.scale(1.0 + 0.6 * Math.sin((j + 4 * t) * 0.1));
+            m.translate(-cx, -cy);
+            ctx.setTransform(m);
 
             ctx.strokeStyle = Qt.rgba(0, 1 - (j + 1) / complexity, 0);
             ctx.fill(personPath, personPathGroup);
             ctx.stroke(personPath, personPathGroup);
-            ctx.resetTransform();
         }
 
         // Hearts

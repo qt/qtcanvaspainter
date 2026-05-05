@@ -273,6 +273,7 @@ public:
         o->defineDefaultProperty(QStringLiteral("clipRect"), method_clipRect, 0);
         o->defineDefaultProperty(QStringLiteral("resetClipping"), method_resetClipping, 0);
         o->defineDefaultProperty(QStringLiteral("setTransform"), method_setTransform, 0);
+        o->defineDefaultProperty(QStringLiteral("getTransform"), method_getTransform, 0);
         o->defineDefaultProperty(QStringLiteral("createPattern"), method_createPattern, 0);
         o->defineDefaultProperty(QStringLiteral("stroke"), method_stroke, 0);
         o->defineDefaultProperty(QStringLiteral("measureText"), method_measureText, 0);
@@ -289,6 +290,7 @@ public:
         o->defineDefaultProperty(QStringLiteral("createBoxShadow"), method_createBoxShadow, 0);
         o->defineDefaultProperty(QStringLiteral("createGridPattern"), method_createGridPattern, 0);
         o->defineDefaultProperty(QStringLiteral("createPath2D"), method_createPath2D, 0);
+        o->defineDefaultProperty(QStringLiteral("createTransform2D"), method_createTransform2D, 0);
         o->defineDefaultProperty(QStringLiteral("drawBoxShadow"), method_drawBoxShadow, 0);
         // Note: Canvas Painter uses "skew" while Quick Canvas uses "shear", so support both.
         o->defineDefaultProperty(QStringLiteral("skew"), method_shear, 0);
@@ -341,6 +343,7 @@ public:
     static QV4::ReturnedValue method_scale(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc);
     static QV4::ReturnedValue method_translate(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc);
     static QV4::ReturnedValue method_setTransform(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc);
+    static QV4::ReturnedValue method_getTransform(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc);
     static QV4::ReturnedValue method_transform(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc);
     static QV4::ReturnedValue method_resetTransform(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc);
     static QV4::ReturnedValue method_shear(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc);
@@ -352,6 +355,7 @@ public:
     static QV4::ReturnedValue method_createBoxShadow(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc);
     static QV4::ReturnedValue method_createGridPattern(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc);
     static QV4::ReturnedValue method_createPath2D(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc);
+    static QV4::ReturnedValue method_createTransform2D(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc);
     static QV4::ReturnedValue method_drawBoxShadow(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc);
     static QV4::ReturnedValue method_createPattern(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc);
     static QV4::ReturnedValue method_clearRect(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc);
@@ -1170,6 +1174,12 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_transform(const QV4::Func
 }
 
 /*!
+    \qmlmethod object Canvas2DContext::setTransform(transform2d transform)
+
+    Changes the transformation matrix to the \a transform.
+    \sa getTransform()
+*/
+/*!
     \qmlmethod object Canvas2DContext::setTransform(real a, real b, real c, real d, real e, real f)
 
     Changes the transformation matrix to the matrix given by the arguments as described below.
@@ -1203,15 +1213,38 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_setTransform(const QV4::F
     CHECK_CONTEXT(r)
 
 
-    if (argc >= 6)
+    if (argc >= 6) {
         r->d()->context()->setTransform( argv[0].toNumber()
                                         , argv[1].toNumber()
                                         , argv[2].toNumber()
                                         , argv[3].toNumber()
                                         , argv[4].toNumber()
                                         , argv[5].toNumber());
+    } else if (argc >= 1) {
+        QV4::ScopedValue value(scope, argv[0]);
+        if (value->as<Object>()) {
+            QTransform t = QV4::ExecutionEngine::toVariant(value, QMetaType::fromType<QTransform>()).value<QTransform>();
+            r->d()->context()->setTransform(t.m11(), t.m12(), t.m21(), t.m22(), t.m31(), t.m32());
+        }
+    }
 
     RETURN_RESULT(*thisObject);
+}
+
+/*!
+    \qmlmethod transform2d Canvas2DContext::getTransform()
+
+    Returns the current transformation matrix.
+
+    \sa setTransform()
+*/
+QV4::ReturnedValue QCanvasJSContext2DPrototype::method_getTransform(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *, int)
+{
+    QV4::Scope scope(b);
+    QV4::Scoped<QCanvasJSContext2D> r(scope, thisObject->as<QCanvasJSContext2D>());
+    CHECK_CONTEXT(r)
+
+    RETURN_RESULT(scope.engine->fromVariant(r->d()->context()->state.transform));
 }
 
 /*!
@@ -2062,8 +2095,14 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_createPath2D(const QV4::F
         if (arg1->isString()) {
             // svg string as an parameter.
             QString svgPath = arg1->toQString();
+            QTransform transform;
+            if (argc >= 2) {
+                QV4::ScopedValue transformValue(scope, argv[1]);
+                if (transformValue->as<Object>())
+                    transform = QV4::ExecutionEngine::toVariant(transformValue, QMetaType::fromType<QTransform>()).value<QTransform>();
+            }
             auto p = new QCanvasPath();
-            p->addPath(svgPath);
+            p->addPath(svgPath, transform);
             path->d()->path = p;
         } else if (arg1->isObject()) {
             // Path2D as an parameter.
@@ -2077,6 +2116,24 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_createPath2D(const QV4::F
         path->d()->path = new QCanvasPath();
 
     RETURN_RESULT(*path);
+}
+
+/*!
+    \qmlmethod object Canvas2DContext::createTransform2D()
+
+    Returns a new transform2d object, initialized to identity matrix.
+
+    \sa getTransform()
+  */
+
+QV4::ReturnedValue QCanvasJSContext2DPrototype::method_createTransform2D(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *, int)
+{
+    QV4::Scope scope(b);
+    QV4::Scoped<QCanvasJSContext2D> r(scope, thisObject->as<QCanvasJSContext2D>());
+    CHECK_CONTEXT(r)
+
+    QTransform t;
+    RETURN_RESULT(scope.engine->fromVariant(t));
 }
 
 /*!
@@ -3192,6 +3249,11 @@ QV4::ReturnedValue QCanvas2DGradientObject::gradient_proto_addColorStop(const QV
 
     Adds a \a path into this path.
   */
+/*!
+    \qmlmethod object Canvas2DPath2D::addPath(var path, transform matrix)
+
+    Adds a \a path into this path, using \a matrix as a transformation matrix.
+  */
 QV4::ReturnedValue QCanvas2DPath2DObject::path_proto_addPath(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc)
 {
     QV4::Scope scope(b);
@@ -3199,11 +3261,18 @@ QV4::ReturnedValue QCanvas2DPath2DObject::path_proto_addPath(const QV4::Function
     CHECK_PATH_OBJECT(r)
     if (argc >= 1) {
         // Path2D as an parameter.
-        // Note: Optional transformation matrix as a second parameter is not supported.
         QV4::ScopedValue value(scope, argv[0]);
         QV4::Scoped<QCanvas2DPath2DObject> sourcePath(scope, value);
         if (!!sourcePath) {
-            r->d()->path->addPath(*sourcePath->d()->path);
+            QTransform transform;
+            if (argc >= 2) {
+                QV4::ScopedValue transformValue(scope, argv[1]);
+                if (transformValue->as<Object>()) {
+                    transform = QV4::ExecutionEngine::toVariant(transformValue,
+                                                                QMetaType::fromType<QTransform>()).value<QTransform>();
+                }
+            }
+            r->d()->path->addPath(*sourcePath->d()->path, transform);
         }
     }
     return thisObject->asReturnedValue();
@@ -3681,6 +3750,7 @@ void QCanvas2DContext::rotate(qreal angle)
     if (!qt_is_finite(angle))
         return;
 
+    state.transform.rotateRadians(angle);
     buffer()->rotate(angle);
 }
 
@@ -3689,6 +3759,7 @@ void QCanvas2DContext::scale(qreal x,  qreal y)
     if (!qt_is_finite(x) || !qt_is_finite(y))
         return;
 
+    state.transform.scale(x, y);
     buffer()->scale(x, y);
 }
 
@@ -3697,6 +3768,7 @@ void QCanvas2DContext::shear(qreal h, qreal v)
     if (!qt_is_finite(h) || !qt_is_finite(v))
         return ;
 
+    state.transform.shear(h, v);
     buffer()->shear(h, v);
 }
 
@@ -3705,6 +3777,7 @@ void QCanvas2DContext::translate(qreal x, qreal y)
     if (!qt_is_finite(x) || !qt_is_finite(y))
         return ;
 
+    state.transform.translate(x, y);
     buffer()->translate(x, y);
 }
 
@@ -3714,6 +3787,7 @@ void QCanvas2DContext::transform(qreal a, qreal b, qreal c, qreal d, qreal e, qr
         return;
 
     QTransform transform(a, b, c, d, e, f);
+    state.transform *= transform;
     buffer()->transform(transform);
 }
 
@@ -3723,6 +3797,7 @@ void QCanvas2DContext::setTransform(qreal a, qreal b, qreal c, qreal d, qreal e,
         return;
 
     QTransform transform(a, b, c, d, e, f);
+    state.transform = transform;
     buffer()->setTransform(transform);
 }
 

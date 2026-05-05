@@ -143,6 +143,7 @@ public:
         QPainterPath clipPath;
         QCanvasBrush *strokeStyle = nullptr;
         QCanvasBrush *fillStyle = nullptr;
+        QTransform transform;
         QColor strokeColor;
         QColor fillColor;
         bool fillPatternRepeatX:1;
