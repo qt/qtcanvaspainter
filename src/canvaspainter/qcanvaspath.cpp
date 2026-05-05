@@ -306,7 +306,7 @@ bool comparesEqual(const QCanvasPath &lhs, const QCanvasPath &rhs) noexcept
         return true;
 
     // Do not compare pd->serialNumber to keep the existing equality logic.
-    // Ultimately the serialNumber if for the renderer's use, not affecting the
+    // Ultimately the serialNumber is for the renderer's use, not affecting the
     // comparison semantics.
 
     if (pd->commandsCount != d->commandsCount ||
