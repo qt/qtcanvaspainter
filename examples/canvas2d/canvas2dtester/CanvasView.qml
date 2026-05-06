@@ -998,8 +998,8 @@ Item {
         ctx.stroke();
     }
 
-    property var heartPath: null
-    property var personPath: null
+    property path2d heartPath
+    property path2d personPath
 
     function path2DTest(ctx, complexity)
     {
@@ -1010,7 +1010,7 @@ Item {
         const personPathGroup = 1;
         const heartPathGroup = 2;
 
-        if (!personPath || personPath.isEmpty()) {
+        if (personPath.isEmpty()) {
             const path = "M152,84a36,36,0,1,0-36-36A36.04061,36.04061,0,0,0,152,84Zm0-48Z" +
                        "m64,112a12.00028,12.00028,0,0,1-12,12c-37.20215,0-55.50781-19.66406" +
                        "-70.21729-35.46484-.45459-.48828-.89794-.96192-1.34667-1.44239l-8.02393," +
@@ -1022,7 +1022,7 @@ Item {
                        "183.31075,0,0,1,70.03711,97.28027c36.06689-20.65234,58.03027-11.69433," +
                        "70.104-.54589,3.93116,3.63085,7.63037,7.60449,11.208,11.44726C164.667," +
                        "122.4873,177.24561,136,204,136A12.00028,12.00028,0,0,1,216,148Z";
-            personPath = ctx.createPath2D(path);
+            personPath.addPath(path);
         }
         var d = Math.min(w, h) * 0.1;
         ctx.lineWidth = d * 0.1;
@@ -1052,12 +1052,12 @@ Item {
         ctx.strokeStyle = "#000000";
 
         // If canvas size has changed, path needs to be recreated
-        if (heartPath && mainWindow.forceRepaint)
+        if (mainWindow.forceRepaint)
             heartPath.clear();
 
-        if (!heartPath || heartPath.isEmpty()) {
+        if (heartPath.isEmpty()) {
             console.debug("Recreating the path");
-            heartPath = ctx.createPath2D();
+            heartPath.clear();
             heartPath.moveTo(0, d / 4);
             heartPath.quadraticCurveTo(0, 0, d / 4, 0);
             heartPath.quadraticCurveTo(d / 2, 0, d / 2, d / 4);

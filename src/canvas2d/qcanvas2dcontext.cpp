@@ -87,9 +87,6 @@ QT_BEGIN_NAMESPACE
 #define CHECK_CONTEXT(r)     if (!r || !r->d()->context() || !r->d()->context()->bufferValid()) \
 THROW_GENERIC_ERROR("Not a Context2D object");
 
-#define CHECK_PATH_OBJECT(r)     if (!r || !r->d()->path) \
-THROW_GENERIC_ERROR("Not a Path2D object");
-
 class QCanvas2DContextEngineData : public QV4::ExecutionEngine::Deletable
 {
 public:
@@ -177,19 +174,6 @@ struct QCanvas2DGridObject : Object {
     }
 
     QCanvasBrush *brush;
-};
-
-struct QCanvas2DPath2DObject : Object {
-    void init()
-    {
-        path = nullptr;
-    }
-    void destroy() {
-        delete path;
-        Object::destroy();
-    }
-
-    QCanvasPath *path;
 };
 
 } // Heap
@@ -411,33 +395,6 @@ struct QCanvas2DGridObject : public QV4::Object
 };
 
 DEFINE_OBJECT_VTABLE(QCanvas2DGridObject);
-
-struct QCanvas2DPath2DObject : public QV4::Object
-{
-    V4_OBJECT2(QCanvas2DPath2DObject, QV4::Object)
-    V4_NEEDS_DESTROY
-
-    static QV4::ReturnedValue path_proto_addPath(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc);
-    static QV4::ReturnedValue path_proto_closePath(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc);
-    static QV4::ReturnedValue path_proto_moveTo(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc);
-    static QV4::ReturnedValue path_proto_lineTo(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc);
-    static QV4::ReturnedValue path_proto_bezierCurveTo(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc);
-    static QV4::ReturnedValue path_proto_quadraticCurveTo(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc);
-    static QV4::ReturnedValue path_proto_arcTo(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc);
-    static QV4::ReturnedValue path_proto_arc(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc);
-    static QV4::ReturnedValue path_proto_rect(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc);
-    static QV4::ReturnedValue path_proto_roundedRect(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc);
-    static QV4::ReturnedValue path_proto_roundRect(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc);
-    static QV4::ReturnedValue path_proto_ellipse(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc);
-    static QV4::ReturnedValue path_proto_ellipseRect(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc);
-    static QV4::ReturnedValue path_proto_circle(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc);
-    static QV4::ReturnedValue path_proto_beginSolidSubPath(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc);
-    static QV4::ReturnedValue path_proto_beginHoleSubPath(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc);
-    static QV4::ReturnedValue path_proto_isEmpty(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc);
-    static QV4::ReturnedValue path_proto_clear(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc);
-};
-
-DEFINE_OBJECT_VTABLE(QCanvas2DPath2DObject);
 
 static QCanvasPainter::CompositeOperation qcanvas_composite_mode_from_string(const QString &compositeOperator)
 {
@@ -2061,20 +2018,20 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_createGridPattern(const Q
 /*!
     \qmlmethod object Canvas2DContext::createPath2D()
 
-    Returns a new Path2D object. Calling this is equal to HTML canvas "new Path2D()" command.
+    Returns a new path2d object. Calling this is equal to HTML canvas "new Path2D()" command.
     \sa fill(), stroke()
   */
 /*!
-    \qmlmethod object Canvas2DContext::createPath2D(Path2D path)
+    \qmlmethod object Canvas2DContext::createPath2D(path2d path)
 
-    Returns a new Path2D object, with the copy of \a path.
+    Returns a new path2d object, with the copy of \a path.
     Calling this is equal to HTML canvas "new Path2D(path)" command.
     \sa fill(), stroke()
   */
 /*!
     \qmlmethod object Canvas2DContext::createPath2D(string svgPath)
 
-    Returns a new Path2D object, with the content of \a svgPath.
+    Returns a new path2d object, with the content of \a svgPath.
     Calling this is equal to HTML canvas "new Path2D(d)" command.
     \sa fill(), stroke()
   */
@@ -2085,11 +2042,7 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_createPath2D(const QV4::F
     QV4::Scoped<QCanvasJSContext2D> r(scope, thisObject->as<QCanvasJSContext2D>());
     CHECK_CONTEXT(r)
 
-    QCanvas2DContextEngineData *ed = engineData(scope.engine);
-    QV4::Scoped<QCanvas2DPath2DObject> path(scope, scope.engine->memoryManager->allocate<QCanvas2DPath2DObject>());
-    QV4::ScopedObject p(scope, ed->pathPrototype.value());
-    path->setPrototypeOf(p);
-
+    QCanvasPath path;
     if (argc > 0) {
         QV4::ScopedValue arg1(scope, argv[0]);
         if (arg1->isString()) {
@@ -2101,21 +2054,16 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_createPath2D(const QV4::F
                 if (transformValue->as<Object>())
                     transform = QV4::ExecutionEngine::toVariant(transformValue, QMetaType::fromType<QTransform>()).value<QTransform>();
             }
-            auto p = new QCanvasPath();
-            p->addPath(svgPath, transform);
-            path->d()->path = p;
+            path.addPath(svgPath, transform);
         } else if (arg1->isObject()) {
             // Path2D as an parameter.
-            QV4::Scoped<QCanvas2DPath2DObject> sourcePath(scope, arg1);
-            if (!!sourcePath)
-                path->d()->path = new QCanvasPath(*sourcePath->d()->path);
+            QCanvasPath inPath = QV4::ExecutionEngine::toVariant(arg1, QMetaType::fromType<QCanvasPath>()).value<QCanvasPath>();
+            if (!inPath.isEmpty())
+                path.addPath(inPath);
         }
     }
 
-    if (!path->d()->path)
-        path->d()->path = new QCanvasPath();
-
-    RETURN_RESULT(*path);
+    RETURN_RESULT(scope.engine->fromVariant(path));
 }
 
 /*!
@@ -2615,11 +2563,11 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_resetClipping(const QV4::
    \sa fillStyle, {http://www.w3.org/TR/2dcontext/#dom-context-2d-fill}{W3C 2d context standard for fill}
   */
 /*!
-  \qmlmethod object Canvas2DContext::fill(Canvas2DPath2D path)
+  \qmlmethod object Canvas2DContext::fill(path2d path)
 
    Fills the \a path with the current fill style.
 
-   \sa fillStyle, Canvas2DPath2D, {http://www.w3.org/TR/2dcontext/#dom-context-2d-fill}{W3C 2d context standard for fill}
+   \sa fillStyle, path2d, {http://www.w3.org/TR/2dcontext/#dom-context-2d-fill}{W3C 2d context standard for fill}
   */
 QV4::ReturnedValue QCanvasJSContext2DPrototype::method_fill(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc)
 {
@@ -2630,10 +2578,9 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_fill(const QV4::FunctionO
         r->d()->context()->fill();
     } else {
         // fill a path
-        QV4::ScopedValue value(scope, argc ? argv[0] : QV4::Value::undefinedValue());
-        QV4::Scoped<QCanvas2DPath2DObject> path(scope, value);
-        if (!!path) {
-            const QCanvasPath &p = *path->d()->path;
+        QV4::ScopedValue value(scope, argv[0]);
+        if (value->as<Object>()) {
+            QCanvasPath p = QV4::ExecutionEngine::toVariant(value, QMetaType::fromType<QCanvasPath>()).value<QCanvasPath>();
             if (argc >= 2) {
                 int pathGroup = argv[1].toInteger();
                 r->d()->context()->fillPath(p, pathGroup);
@@ -2653,11 +2600,11 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_fill(const QV4::FunctionO
    \sa strokeStyle, {http://www.w3.org/TR/2dcontext/#dom-context-2d-stroke}{W3C 2d context standard for stroke}
  */
 /*!
-  \qmlmethod object Canvas2DContext::stroke(Canvas2DPath2D path)
+  \qmlmethod object Canvas2DContext::stroke(path2d path)
 
    Strokes the \a path with the current stroke style.
 
-   \sa strokeStyle, Canvas2DPath2D, {http://www.w3.org/TR/2dcontext/#dom-context-2d-stroke}{W3C 2d context standard for stroke}
+   \sa strokeStyle, path2d, {http://www.w3.org/TR/2dcontext/#dom-context-2d-stroke}{W3C 2d context standard for stroke}
  */
 QV4::ReturnedValue QCanvasJSContext2DPrototype::method_stroke(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc)
 {
@@ -2668,10 +2615,9 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_stroke(const QV4::Functio
         r->d()->context()->stroke();
     } else {
         // stroke a path
-        QV4::ScopedValue value(scope, argc ? argv[0] : QV4::Value::undefinedValue());
-        QV4::Scoped<QCanvas2DPath2DObject> path(scope, value);
-        if (!!path) {
-            const QCanvasPath &p = *path->d()->path;
+        QV4::ScopedValue value(scope, argv[0]);
+        if (value->as<Object>()) {
+            QCanvasPath p = QV4::ExecutionEngine::toVariant(value, QMetaType::fromType<QCanvasPath>()).value<QCanvasPath>();
             if (argc >= 2) {
                 int pathGroup = argv[1].toInteger();
                 r->d()->context()->strokePath(p, pathGroup);
@@ -3235,513 +3181,6 @@ QV4::ReturnedValue QCanvas2DGradientObject::gradient_proto_addColorStop(const QV
     return thisObject->asReturnedValue();
 }
 
-// ***** Path2D *****
-
-/*!
-    \qmltype Canvas2DPath2D
-    \inqmlmodule QtCanvas2D
-    \since 6.12
-    \brief Provides Path2D object, matching to QCanvasPath.
-  */
-
-/*!
-    \qmlmethod object Canvas2DPath2D::addPath(var path)
-
-    Adds a \a path into this path.
-  */
-/*!
-    \qmlmethod object Canvas2DPath2D::addPath(var path, transform matrix)
-
-    Adds a \a path into this path, using \a matrix as a transformation matrix.
-  */
-QV4::ReturnedValue QCanvas2DPath2DObject::path_proto_addPath(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc)
-{
-    QV4::Scope scope(b);
-    QV4::Scoped<QCanvas2DPath2DObject> r(scope, thisObject->as<QCanvas2DPath2DObject>());
-    CHECK_PATH_OBJECT(r)
-    if (argc >= 1) {
-        // Path2D as an parameter.
-        QV4::ScopedValue value(scope, argv[0]);
-        QV4::Scoped<QCanvas2DPath2DObject> sourcePath(scope, value);
-        if (!!sourcePath) {
-            QTransform transform;
-            if (argc >= 2) {
-                QV4::ScopedValue transformValue(scope, argv[1]);
-                if (transformValue->as<Object>()) {
-                    transform = QV4::ExecutionEngine::toVariant(transformValue,
-                                                                QMetaType::fromType<QTransform>()).value<QTransform>();
-                }
-            }
-            r->d()->path->addPath(*sourcePath->d()->path, transform);
-        }
-    }
-    return thisObject->asReturnedValue();
-}
-
-/*!
-  \qmlmethod object Canvas2DPath2D::closePath()
-   Closes the current subpath by drawing a line to the beginning of the subpath, automatically starting a new path.
-   The current point of the new path is the previous subpath's first point.
-  */
-QV4::ReturnedValue QCanvas2DPath2DObject::path_proto_closePath(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *, int)
-{
-    QV4::Scope scope(b);
-    QV4::Scoped<QCanvas2DPath2DObject> r(scope, thisObject->as<QCanvas2DPath2DObject>());
-    CHECK_PATH_OBJECT(r)
-
-    r->d()->path->closePath();
-    return thisObject->asReturnedValue();
-}
-
-/*!
-  \qmlmethod object Canvas2DPath2D::moveTo(real x, real y)
-
-   Creates a new subpath with a point at (\a x, \a y).
- */
-QV4::ReturnedValue QCanvas2DPath2DObject::path_proto_moveTo(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc)
-{
-    QV4::Scope scope(b);
-    QV4::Scoped<QCanvas2DPath2DObject> r(scope, thisObject->as<QCanvas2DPath2DObject>());
-    CHECK_PATH_OBJECT(r)
-
-    if (argc >= 2) {
-        qreal x = argv[0].toNumber();
-        qreal y = argv[1].toNumber();
-
-        if (!qt_is_finite(x) || !qt_is_finite(y))
-            RETURN_UNDEFINED();
-
-        r->d()->path->moveTo(x, y);
-    }
-    return thisObject->asReturnedValue();
-}
-/*!
-  \qmlmethod object Canvas2DPath2D::lineTo(real x, real y)
-
-   Draws a line from the current position to the point at (\a x, \a y).
- */
-QV4::ReturnedValue QCanvas2DPath2DObject::path_proto_lineTo(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc)
-{
-    QV4::Scope scope(b);
-    QV4::Scoped<QCanvas2DPath2DObject> r(scope, thisObject->as<QCanvas2DPath2DObject>());
-    CHECK_PATH_OBJECT(r)
-
-    if (argc >= 2) {
-        qreal x = argv[0].toNumber();
-        qreal y = argv[1].toNumber();
-
-        if (!qt_is_finite(x) || !qt_is_finite(y))
-            RETURN_UNDEFINED();
-
-        r->d()->path->lineTo(x, y);
-    }
-
-    return thisObject->asReturnedValue();
-}
-
-/*!
-  \qmlmethod object Canvas2DPath2D::bezierCurveTo(real cp1x, real cp1y, real cp2x, real cp2y, real x, real y)
-
-  Adds a cubic bezier curve between the current position and the given endPoint using the control points specified by (\a {cp1x}, \a {cp1y}),
-  and (\a {cp2x}, \a {cp2y}).
-  After the curve is added, the current position is updated to be at the end point (\a {x}, \a {y}) of the curve.
-  */
-QV4::ReturnedValue QCanvas2DPath2DObject::path_proto_bezierCurveTo(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc)
-{
-    QV4::Scope scope(b);
-    QV4::Scoped<QCanvas2DPath2DObject> r(scope, thisObject->as<QCanvas2DPath2DObject>());
-    CHECK_PATH_OBJECT(r)
-
-    if (argc >= 6) {
-        qreal cp1x = argv[0].toNumber();
-        qreal cp1y = argv[1].toNumber();
-        qreal cp2x = argv[2].toNumber();
-        qreal cp2y = argv[3].toNumber();
-        qreal x = argv[4].toNumber();
-        qreal y = argv[5].toNumber();
-
-        if (!qt_is_finite(cp1x) || !qt_is_finite(cp1y) ||
-            !qt_is_finite(cp2x) || !qt_is_finite(cp2y) ||
-            !qt_is_finite(x) || !qt_is_finite(y)) {
-            RETURN_UNDEFINED();
-        }
-
-        r->d()->path->bezierCurveTo(cp1x, cp1y, cp2x, cp2y, x, y);
-    }
-    return thisObject->asReturnedValue();
-}
-
-/*!
-    \qmlmethod object Canvas2DPath2D::quadraticCurveTo(real cpx, real cpy, real x, real y)
-
-    Adds a quadratic bezier curve between the current point and the endpoint
-    (\a x, \a y) with the control point specified by (\a cpx, \a cpy).
- */
-QV4::ReturnedValue QCanvas2DPath2DObject::path_proto_quadraticCurveTo(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc)
-{
-    QV4::Scope scope(b);
-    QV4::Scoped<QCanvas2DPath2DObject> r(scope, thisObject->as<QCanvas2DPath2DObject>());
-    CHECK_PATH_OBJECT(r)
-
-    if (argc >= 4) {
-        qreal cpx = argv[0].toNumber();
-        qreal cpy = argv[1].toNumber();
-        qreal x = argv[2].toNumber();
-        qreal y = argv[3].toNumber();
-
-        if (!qt_is_finite(cpx) || !qt_is_finite(cpy) || !qt_is_finite(x) || !qt_is_finite(y))
-            RETURN_UNDEFINED();
-
-        r->d()->path->quadraticCurveTo(cpx, cpy, x, y);
-    }
-    return thisObject->asReturnedValue();
-}
-
-/*!
-    \qmlmethod object Canvas2DPath2D::arcTo(real x1, real y1, real x2,
-        real y2, real radius)
-
-    Adds an arc with starting point (\a x1, \a y1), ending point (\a x2, \a y2),
-    and \a radius to the current subpath and connects it to the previous subpath
-    by a straight line.
-
- */
-QV4::ReturnedValue QCanvas2DPath2DObject::path_proto_arcTo(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc)
-{
-    QV4::Scope scope(b);
-    QV4::Scoped<QCanvas2DPath2DObject> r(scope, thisObject->as<QCanvas2DPath2DObject>());
-    CHECK_PATH_OBJECT(r)
-
-    if (argc >= 5) {
-        qreal c1x = argv[0].toNumber();
-        qreal c1y = argv[1].toNumber();
-        qreal c2x = argv[2].toNumber();
-        qreal c2y = argv[3].toNumber();
-        qreal radius = argv[4].toNumber();
-
-        if (!qt_is_finite(c1x) || !qt_is_finite(c1y) ||
-            !qt_is_finite(c2x) || !qt_is_finite(c2y)) {
-            RETURN_UNDEFINED();
-        }
-
-        if (qt_is_finite(radius) && radius < 0)
-            THROW_DOM(DOMEXCEPTION_INDEX_SIZE_ERR, "Incorrect argument radius");
-
-        r->d()->path->arcTo(c1x, c1y, c2x, c2y, radius);
-    }
-
-    return thisObject->asReturnedValue();
-}
-
-/*!
-    \qmlmethod object Canvas2DPath2D::arc(real x, real y, real radius,
-        real startAngle, real endAngle, bool anticlockwise)
-
-    Adds an arc to the current subpath that lies on the circumference of the
-    circle whose center is at the point (\a x, \a y) and whose radius is
-    \a radius.
-
-    Both \a startAngle and \a endAngle are measured from the x-axis in radians.
-
-    The default curve direction is clockwise. To change direction to opposite,
-    set \a anticlockwise to true.
-*/
-QV4::ReturnedValue QCanvas2DPath2DObject::path_proto_arc(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc)
-{
-    QV4::Scope scope(b);
-    QV4::Scoped<QCanvas2DPath2DObject> r(scope, thisObject->as<QCanvas2DPath2DObject>());
-    CHECK_PATH_OBJECT(r)
-
-    if (argc >= 5) {
-        qreal centerX = argv[0].toNumber();
-        qreal centerY = argv[1].toNumber();
-        qreal radius = argv[2].toNumber();
-        qreal a0 = argv[3].toNumber();
-        qreal a1 = argv[4].toNumber();
-        bool antiClockwise = (argc >= 6) ? argv[5].toBoolean() : false;
-
-        if (!qt_is_finite(centerX) || !qt_is_finite(centerY) ||
-            !qt_is_finite(a0) || !qt_is_finite(a1)) {
-            RETURN_UNDEFINED();
-        }
-
-        if (qt_is_finite(radius) && radius < 0)
-            THROW_DOM(DOMEXCEPTION_INDEX_SIZE_ERR, "Incorrect argument radius");
-
-        auto direction = antiClockwise ? QCanvasPainter::PathWinding::CounterClockWise :
-                QCanvasPainter::PathWinding::ClockWise;
-        r->d()->path->arc(centerX, centerY, radius, a0, a1, direction);
-    }
-    return thisObject->asReturnedValue();
-}
-
-/*!
-    \qmlmethod object Canvas2DPath2D::rect(real x, real y, real w, real h)
-
-    Adds a rectangle at position (\a x, \a y), with the given width \a w and
-    height \a h, as a closed subpath.
- */
-QV4::ReturnedValue QCanvas2DPath2DObject::path_proto_rect(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc)
-{
-    QV4::Scope scope(b);
-    QV4::Scoped<QCanvas2DPath2DObject> r(scope, thisObject->as<QCanvas2DPath2DObject>());
-    CHECK_PATH_OBJECT(r)
-
-    if (argc >= 4) {
-        qreal x = argv[0].toNumber();
-        qreal y = argv[1].toNumber();
-        qreal w = argv[2].toNumber();
-        qreal h = argv[3].toNumber();
-
-        if (!qt_is_finite(x) || !qt_is_finite(y) || !qt_is_finite(w) || !qt_is_finite(h))
-            RETURN_UNDEFINED();
-
-        r->d()->path->rect(x, y, w, h);
-    }
-    return thisObject->asReturnedValue();
-}
-
-/*!
-    \qmlmethod object Canvas2DPath2D::roundedRect(real x, real y, real w, real h, real xRadius, real yRadius)
-
-    Adds a rounded-corner rectangle, specified by (\a x, \a y, \a w, \a h), to the path.
-    The \a xRadius and \a yRadius arguments specify the radius of the
-    ellipses defining the corners of the rounded rectangle.
- */
-QV4::ReturnedValue QCanvas2DPath2DObject::path_proto_roundedRect(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc)
-{
-    QV4::Scope scope(b);
-    QV4::Scoped<QCanvas2DPath2DObject> r(scope, thisObject->as<QCanvas2DPath2DObject>());
-    CHECK_PATH_OBJECT(r)
-
-    if (argc >= 6) {
-        qreal x = argv[0].toNumber();
-        qreal y = argv[1].toNumber();
-        qreal w = argv[2].toNumber();
-        qreal h = argv[3].toNumber();
-        qreal yr = argv[4].toNumber();
-        qreal xr = argv[5].toNumber();
-
-        if (!qt_is_finite(x) || !qt_is_finite(y) || !qt_is_finite(w) || !qt_is_finite(h) ||
-            !qt_is_finite(yr) || !qt_is_finite(xr)) {
-            RETURN_UNDEFINED();
-        }
-
-        r->d()->path->roundRect(x, y, w, h, yr, yr, xr, xr);
-    }
-    return thisObject->asReturnedValue();
-}
-
-/*!
-    \qmlmethod object Canvas2DPath2D::roundRect(real x, real y, real w, real h, real radius)
-
-    Adds a rounded-corner rectangle, specified by (\a x, \a y, \a w, \a h), to the path.
-    The \a radius argument specify the radius of the
-    ellipses defining the corners of the rounded rectangle.
- */
-
-/*!
-    \qmlmethod object Canvas2DPath2D::roundRect(real x, real y, real w, real h,
-                   real radiusTopLeft, real radiusTopRight,
-                   real radiusBottomRight, real radiusBottomLeft)
-    Adds a rounded-corner rectangle, specified by (\a x, \a y, \a w, \a h), to the path.
-    The \a radiusTopLeft, \a radiusTopRight, \a radiusBottomRight and \a radiusBottomLeft
-    arguments specify the radius of the ellipses defining the corners of the rounded rectangle.
- */
-QV4::ReturnedValue QCanvas2DPath2DObject::path_proto_roundRect(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc)
-{
-    QV4::Scope scope(b);
-    QV4::Scoped<QCanvas2DPath2DObject> r(scope, thisObject->as<QCanvas2DPath2DObject>());
-    CHECK_PATH_OBJECT(r)
-
-    if (argc >= 8) {
-        qreal x = argv[0].toNumber();
-        qreal y = argv[1].toNumber();
-        qreal w = argv[2].toNumber();
-        qreal h = argv[3].toNumber();
-        qreal rtl = argv[4].toNumber();
-        qreal rtr = argv[5].toNumber();
-        qreal rbr = argv[6].toNumber();
-        qreal rbl = argv[7].toNumber();
-
-        if (!qt_is_finite(x) || !qt_is_finite(y) || !qt_is_finite(w) || !qt_is_finite(h) ||
-            !qt_is_finite(rtl) || !qt_is_finite(rtr) || !qt_is_finite(rbr) || !qt_is_finite(rbl)) {
-            RETURN_UNDEFINED();
-        }
-
-        r->d()->path->roundRect(x, y, w, h,
-                                rtl, rtr,
-                                rbr, rbl);
-    } else if (argc >= 5) {
-        qreal x = argv[0].toNumber();
-        qreal y = argv[1].toNumber();
-        qreal w = argv[2].toNumber();
-        qreal h = argv[3].toNumber();
-        qreal rad = argv[4].toNumber();
-
-        if (!qt_is_finite(x) || !qt_is_finite(y) || !qt_is_finite(w) || !qt_is_finite(h) ||
-            !qt_is_finite(rad)) {
-            RETURN_UNDEFINED();
-        }
-        r->d()->path->roundRect(x, y, w, h, rad);
-    }
-    return thisObject->asReturnedValue();
-}
-
-/*!
-    \qmlmethod object Canvas2DPath2D::ellipse(real centerX, real centerY, real radiusX, real radiusY)
-
-    Creates new ellipse shaped sub-path into ( \a centerX, \a centerY) with
-    \a radiusX and \a radiusY.
-
-    The ellipse is composed of a clockwise curve, starting and finishing at
-    zero degrees (the 3 o'clock position).
- */
-QV4::ReturnedValue QCanvas2DPath2DObject::path_proto_ellipse(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc)
-{
-    QV4::Scope scope(b);
-    QV4::Scoped<QCanvas2DPath2DObject> r(scope, thisObject->as<QCanvas2DPath2DObject>());
-    CHECK_PATH_OBJECT(r)
-
-    if (argc >= 4) {
-        qreal cx = argv[0].toNumber();
-        qreal cy = argv[1].toNumber();
-        qreal rx = argv[2].toNumber();
-        qreal ry = argv[3].toNumber();
-
-        if (!qt_is_finite(cx) || !qt_is_finite(cy) ||
-            !qt_is_finite(rx) || !qt_is_finite(ry)) {
-            RETURN_UNDEFINED();
-        }
-
-        r->d()->path->ellipse(cx, cy, rx, ry);
-    }
-    return thisObject->asReturnedValue();
-}
-
-/*!
-    \qmlmethod object Canvas2DPath2D::ellipseRect(real x, real y, real w, real h)
-
-    Creates an ellipse within the bounding rectangle defined by its top-left
-    corner at (\a x, \a y), width \a w and height \a h, and adds it to the
-    path as a closed subpath.
-
-    The ellipse is composed of a clockwise curve, starting and finishing at
-    zero degrees (the 3 o'clock position).
-
-    \note This method matches to \l QtQuick::Context2D::ellipse()
- */
-QV4::ReturnedValue QCanvas2DPath2DObject::path_proto_ellipseRect(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc)
-{
-    QV4::Scope scope(b);
-    QV4::Scoped<QCanvas2DPath2DObject> r(scope, thisObject->as<QCanvas2DPath2DObject>());
-    CHECK_PATH_OBJECT(r)
-
-    if (argc >= 4) {
-        qreal x = argv[0].toNumber();
-        qreal y = argv[1].toNumber();
-        qreal w = argv[2].toNumber();
-        qreal h = argv[3].toNumber();
-
-        if (!qt_is_finite(x) || !qt_is_finite(y) || !qt_is_finite(w) || !qt_is_finite(h))
-            RETURN_UNDEFINED();
-
-        QRectF rect(x, y, w, h);
-        r->d()->path->ellipse(rect);
-    }
-    return thisObject->asReturnedValue();
-}
-
-/*!
-    \qmlmethod object Canvas2DPath2D::circle(real centerX, real centerY, real radius)
-
-    Creates a circle defined by its center (\a centerX, \a centerY), and
-    radius \a radius, and adds it to the path as a closed subpath.
-
-    \note Compared to arc(), this method does not add a straight line from
-    the last point in the subpath to the start point of the circle.
- */
-QV4::ReturnedValue QCanvas2DPath2DObject::path_proto_circle(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc)
-{
-    QV4::Scope scope(b);
-    QV4::Scoped<QCanvas2DPath2DObject> r(scope, thisObject->as<QCanvas2DPath2DObject>());
-    CHECK_PATH_OBJECT(r)
-
-    if (argc >= 3) {
-        qreal cx = argv[0].toNumber();
-        qreal cy = argv[1].toNumber();
-        qreal rad = argv[2].toNumber();
-
-        if (!qt_is_finite(cx) || !qt_is_finite(cy) || !qt_is_finite(rad))
-            RETURN_UNDEFINED();
-
-        r->d()->path->circle(cx, cy, rad);
-    }
-    return thisObject->asReturnedValue();
-}
-
-/*!
-  \qmlmethod object Canvas2DPath2D::beginSolidSubPath()
-
-  Start a solid subpath.
- */
-QV4::ReturnedValue QCanvas2DPath2DObject::path_proto_beginSolidSubPath(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *, int)
-{
-    QV4::Scope scope(b);
-    QV4::Scoped<QCanvas2DPath2DObject> r(scope, thisObject->as<QCanvas2DPath2DObject>());
-    CHECK_PATH_OBJECT(r)
-
-    r->d()->path->beginSolidSubPath();
-    return thisObject->asReturnedValue();
-}
-
-/*!
-  \qmlmethod object Canvas2DPath2D::beginHoleSubPath()
-
-  Start a hole subpath.
- */
-QV4::ReturnedValue QCanvas2DPath2DObject::path_proto_beginHoleSubPath(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *, int)
-{
-    QV4::Scope scope(b);
-    QV4::Scoped<QCanvas2DPath2DObject> r(scope, thisObject->as<QCanvas2DPath2DObject>());
-    CHECK_PATH_OBJECT(r)
-
-    r->d()->path->beginHoleSubPath();
-    return thisObject->asReturnedValue();
-}
-
-/*!
-  \qmlmethod bool Canvas2DPath2D::isEmpty()
-
-  Returns true when the path does not contain any painting commands.
-  \sa clear()
- */
-
-QV4::ReturnedValue QCanvas2DPath2DObject::path_proto_isEmpty(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *, int)
-{
-    QV4::Scope scope(b);
-    QV4::Scoped<QCanvas2DPath2DObject> r(scope, thisObject->as<QCanvas2DPath2DObject>());
-    CHECK_PATH_OBJECT(r)
-
-    bool isEmpty = r->d()->path->isEmpty();
-    RETURN_RESULT(QV4::Encode(isEmpty));
-}
-
-/*!
-  \qmlmethod object Canvas2DPath2D::clear()
-
-  Clears the path from all the painting commands.
-  \sa isEmpty()
- */
-QV4::ReturnedValue QCanvas2DPath2DObject::path_proto_clear(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *, int)
-{
-    QV4::Scope scope(b);
-    QV4::Scoped<QCanvas2DPath2DObject> r(scope, thisObject->as<QCanvas2DPath2DObject>());
-    CHECK_PATH_OBJECT(r)
-
-    r->d()->path->clear();
-    return thisObject->asReturnedValue();
-}
 
 // ***** transformations *****
 
@@ -4036,28 +3475,6 @@ QCanvas2DContextEngineData::QCanvas2DContextEngineData(QV4::ExecutionEngine *v4)
     proto = scope.engine->newObject();
     proto->defineDefaultProperty(QStringLiteral("addColorStop"), QCanvas2DGradientObject::gradient_proto_addColorStop, 0);
     gradientPrototype = proto;
-
-    proto = scope.engine->newObject();
-    proto->defineDefaultProperty(QStringLiteral("addPath"), QCanvas2DPath2DObject::path_proto_addPath, 0);
-    proto->defineDefaultProperty(QStringLiteral("closePath"), QCanvas2DPath2DObject::path_proto_closePath, 0);
-    proto->defineDefaultProperty(QStringLiteral("moveTo"), QCanvas2DPath2DObject::path_proto_moveTo, 0);
-    proto->defineDefaultProperty(QStringLiteral("lineTo"), QCanvas2DPath2DObject::path_proto_lineTo, 0);
-    proto->defineDefaultProperty(QStringLiteral("bezierCurveTo"), QCanvas2DPath2DObject::path_proto_bezierCurveTo, 0);
-    proto->defineDefaultProperty(QStringLiteral("quadraticCurveTo"), QCanvas2DPath2DObject::path_proto_quadraticCurveTo, 0);
-    proto->defineDefaultProperty(QStringLiteral("arcTo"), QCanvas2DPath2DObject::path_proto_arcTo, 0);
-    proto->defineDefaultProperty(QStringLiteral("arc"), QCanvas2DPath2DObject::path_proto_arc, 0);
-    proto->defineDefaultProperty(QStringLiteral("rect"), QCanvas2DPath2DObject::path_proto_rect, 0);
-    proto->defineDefaultProperty(QStringLiteral("roundedRect"), QCanvas2DPath2DObject::path_proto_roundedRect, 0);
-    proto->defineDefaultProperty(QStringLiteral("roundRect"), QCanvas2DPath2DObject::path_proto_roundRect, 0);
-    proto->defineDefaultProperty(QStringLiteral("ellipse"), QCanvas2DPath2DObject::path_proto_ellipse, 0);
-    proto->defineDefaultProperty(QStringLiteral("ellipseRect"), QCanvas2DPath2DObject::path_proto_ellipseRect, 0);
-    proto->defineDefaultProperty(QStringLiteral("circle"), QCanvas2DPath2DObject::path_proto_circle, 0);
-    proto->defineDefaultProperty(QStringLiteral("beginSolidSubPath"), QCanvas2DPath2DObject::path_proto_beginSolidSubPath, 0);
-    proto->defineDefaultProperty(QStringLiteral("beginHoleSubPath"), QCanvas2DPath2DObject::path_proto_beginHoleSubPath, 0);
-    // Memory and size management
-    proto->defineDefaultProperty(QStringLiteral("isEmpty"), QCanvas2DPath2DObject::path_proto_isEmpty, 0);
-    proto->defineDefaultProperty(QStringLiteral("clear"), QCanvas2DPath2DObject::path_proto_clear, 0);
-    pathPrototype = proto;
 }
 
 QCanvas2DContextEngineData::~QCanvas2DContextEngineData()

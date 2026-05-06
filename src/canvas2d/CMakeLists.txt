@@ -22,6 +22,7 @@ qt_internal_add_qml_module(Canvas2DPrivate
         qcanvas2dcommandbuffer.cpp qcanvas2dcommandbuffer_p.h
         qcanvas2dutils.cpp qcanvas2dutils_p.h
         qcanvas2dtransformvaluetype.cpp qcanvas2dtransformvaluetype_p.h
+        qcanvas2dpathvaluetype.cpp qcanvas2dpathvaluetype_p.h
     DEFINES
         QT_NO_FOREACH
         QT_NO_INTEGER_EVENT_COORDINATES
