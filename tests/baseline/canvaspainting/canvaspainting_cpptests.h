@@ -51,6 +51,7 @@ private slots:
     void testTextWrapping();
     void testTextBrushes();
     void testTextFonts();
+    void testCanvasPathWithAddPath();
 
 private:
     float width() const { return canvasPixelSize.width(); }

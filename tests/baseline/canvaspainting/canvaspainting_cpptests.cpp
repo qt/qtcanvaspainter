@@ -2412,3 +2412,63 @@ void CanvasPainterLancelotCppTests::testTextFonts()
         painter->fillText("This is text with varying word spacing", posX, posY);
     }
 }
+
+void CanvasPainterLancelotCppTests::testCanvasPathWithAddPath()
+{
+    const int personPathGroup = 5;
+    const int heartPathGroup = 5;
+    const float d = std::min(width(), height()) * 0.1f;
+
+    QCanvasPath personPath;
+    personPath.addPath(QStringLiteral(
+        "M152,84a36,36,0,1,0-36-36A36.04061,36.04061,0,0,0,152,84Zm0-48Z"
+        "m64,112a12.00028,12.00028,0,0,1-12,12c-37.20215,0-55.50781-19.66406"
+        "-70.21729-35.46484-.45459-.48828-.89794-.96192-1.34667-1.44239l-8.02393,"
+        "18.45484,34.5625,24.68774A11.999,11.999,0,0,1,164,176v56a12,12,0,0,1-24,"
+        "0V182.17578l-25.37207-18.12353L83.00488,236.78516a12.00021,12.00021,0,0,"
+        "1-22.00976-9.57032l37.55322-86.37255.02881-.06592,13.74463-31.61377c-"
+        "8.09571-.96167-18.24219,2.0072-30.35889,8.94482a159.5463,159.5463,0,0,0-"
+        "29.47754,22.37793,12.0001,12.0001,0,0,1-16.9707-16.9707A183.31075,"
+        "183.31075,0,0,1,70.03711,97.28027c36.06689-20.65234,58.03027-11.69433,"
+        "70.104-.54589,3.93116,3.63085,7.63037,7.60449,11.208,11.44726C164.667,"
+        "122.4873,177.24561,136,204,136A12.00028,12.00028,0,0,1,216,148Z"
+    ));
+
+    painter->setLineWidth(d * 0.1f);
+    painter->setFillStyle(Qt::white);
+    painter->setStrokeStyle(Qt::black);
+    {
+        const float cx = 120.0f;
+        const float cy = 120.0f;
+        painter->translate(width() * 0.2f - cx, height() * 0.5f - cy);
+        painter->fill(personPath, personPathGroup);
+        painter->stroke(personPath, personPathGroup);
+        painter->resetTransform();
+    }
+
+    painter->setFillStyle(QColor(0xE0, 0x20, 0x20));
+    painter->setStrokeStyle(Qt::black);
+    painter->setLineWidth(d * 0.05f);
+
+    QCanvasPath heartPath;
+    heartPath.moveTo(0, d / 4);
+    heartPath.quadraticCurveTo(0, 0, d / 4, 0);
+    heartPath.quadraticCurveTo(d / 2, 0, d / 2, d / 4);
+    heartPath.quadraticCurveTo(d / 2, 0, d * 3 / 4, 0);
+    heartPath.quadraticCurveTo(d, 0, d, d / 4);
+    heartPath.quadraticCurveTo(d, d / 2, d * 3 / 4, d * 3 / 4);
+    heartPath.lineTo(d / 2, d);
+    heartPath.lineTo(d / 4, d * 3 / 4);
+    heartPath.quadraticCurveTo(0, d / 2, 0, d / 4);
+
+    const int items = 20;
+    for (int i = 0; i < items; i++) {
+        float posX = 0.4f * width() + 0.5f * (width() - d) * (float(i) / items);
+        float posY = (height() - d) * 0.5f + (height() - d) * 0.3f * std::sin(float(i) / items * 10.0f);
+        painter->resetTransform();
+        painter->translate(posX, posY);
+        painter->stroke(heartPath, heartPathGroup);
+        painter->fill(heartPath, heartPathGroup);
+    }
+    painter->resetTransform();
+}
