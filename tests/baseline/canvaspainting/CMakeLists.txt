@@ -12,6 +12,7 @@ file(GLOB_RECURSE test_data_glob
     scripts/*
     fonts/* )
 list(APPEND test_data ${test_data_glob})
+list(APPEND test_data "../data")
 
 set(BASELINE_DIR "../../../../qtbase/tests/baseline/shared")
 
@@ -36,6 +37,8 @@ qt_internal_add_test(tst_baseline_canvaspainting
         Qt::CanvasPainter
     TESTDATA ${test_data}
 )
+
+add_dependencies(tst_baseline_canvaspainting canvaspainter_qmlscenegrabber)
 
 qt_internal_add_resource(tst_baseline_canvaspainting "resources"
     PREFIX

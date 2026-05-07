@@ -15,6 +15,15 @@
 
 #include "canvaspainting_cpptests.h"
 
+#include <QtCore/QCoreApplication>
+#include <QtCore/QDir>
+#include <QtCore/QDirIterator>
+#include <QtCore/QFile>
+#if QT_CONFIG(process)
+#include <QtCore/QProcess>
+#endif
+#include <algorithm>
+
 constexpr int WIDTH = 800;
 constexpr int HEIGHT = 800;
 
@@ -29,6 +38,33 @@ constexpr int HEIGHT = 800;
 #ifdef FRAME_CAPTURE
 #include <QtGui/private/qgraphicsframecapture_p.h>
 #endif
+
+static quint16 checksumFileOrDir(const QString &path)
+{
+    QFileInfo fi(path);
+    if (!fi.exists() || !fi.isReadable())
+        return 0;
+    if (fi.isFile()) {
+        QFile f(path);
+        const bool isBinary = path.endsWith(QLatin1String(".png")) || path.endsWith(QLatin1String(".jpg"));
+        if (!f.open(isBinary ? QIODevice::ReadOnly : QIODevice::ReadOnly | QIODevice::Text)) {
+            qCritical() << "Failed to open file" << path << f.errorString();
+            return 0;
+        }
+        return qChecksum(f.readAll());
+    }
+    if (fi.isDir()) {
+        static const QStringList nameFilters = {
+            QLatin1String("*.qml"), QLatin1String("*.cpp"),
+            QLatin1String("*.png"), QLatin1String("*.jpg")
+        };
+        quint16 cs = 0;
+        for (const QString &item : QDir(fi.filePath()).entryList(nameFilters, QDir::Dirs | QDir::Files | QDir::NoDotAndDotDot))
+            cs ^= checksumFileOrDir(path + QLatin1Char('/') + item);
+        return cs;
+    }
+    return 0;
+}
 
 class tst_CanvasPainterLancelot : public QObject
 {
@@ -64,6 +100,9 @@ private slots:
     void testMetal();
 #endif
 
+    void testCanvas2D_data();
+    void testCanvas2D();
+
 private:
     struct RI { // RenderingInfrastructure
 #if QT_CONFIG(opengl)
@@ -94,6 +133,9 @@ private:
     void runTestSuite(QRhi::Implementation api, QImage::Format format);
     void paint(const QString &methodName, QCanvasPainter *painter, QImage::Format format);
 
+    void setupCanvas2DTestSuite();
+    bool renderAndGrab(const QString &qmlFile, QImage *screenshot, QString *errMsg);
+
 #if QT_CONFIG(vulkan)
     QVulkanInstance m_vulkanInstance;
 #endif
@@ -110,6 +152,11 @@ private:
     QCanvasImagePattern m_checkerPattern;
 
     CanvasPainterLancelotCppTests cppTests;
+
+    QString m_canvas2dSuitePath;
+    int m_grabberTimeout;
+    int m_canvas2dConsecutiveErrors = 0;
+    bool m_canvas2dAborted = false;
 };
 
 #ifdef FRAME_CAPTURE
@@ -150,6 +197,10 @@ static void endFrameCapture(QGraphicsFrameCapture *cap)
 
 tst_CanvasPainterLancelot::tst_CanvasPainterLancelot()
 {
+    int sceneTimeout = qEnvironmentVariableIntValue("LANCELOT_SCENE_TIMEOUT");
+    if (!sceneTimeout)
+        sceneTimeout = 6000;
+    m_grabberTimeout = (sceneTimeout * 4) / 3;
 }
 
 void tst_CanvasPainterLancelot::initTestCase()
@@ -186,6 +237,17 @@ void tst_CanvasPainterLancelot::initTestCase()
     if (!m_vulkanInstance.create())
         qWarning("Failed to create Vulkan instance, will not do testing on Vulkan");
 #endif
+
+    {
+        QString dataDir = QFINDTESTDATA("../data/.");
+        if (dataDir.isEmpty())
+            dataDir = QStringLiteral("../data");
+        const QFileInfo fi(dataDir);
+        if (fi.exists() && fi.isDir() && fi.isReadable())
+            m_canvas2dSuitePath = fi.canonicalFilePath();
+        else
+            qWarning() << "Canvas2D test suite data directory missing or unreadable:" << fi.filePath();
+    }
 }
 
 void tst_CanvasPainterLancelot::init()
@@ -423,6 +485,134 @@ void tst_CanvasPainterLancelot::testMetal()
     runTestSuite(QRhi::Metal, QImage::Format_RGBA8888);
 }
 #endif
+
+void tst_CanvasPainterLancelot::setupCanvas2DTestSuite()
+{
+    QTest::addColumn<QString>("qmlFile");
+
+    if (m_canvas2dSuitePath.isEmpty())
+        QSKIP("Canvas2D test suite data directory not found");
+
+    QStringList ignoreItems;
+    QFile ignoreFile(m_canvas2dSuitePath + QLatin1String("/Ignore"));
+    if (ignoreFile.open(QIODevice::ReadOnly)) {
+        while (!ignoreFile.atEnd()) {
+            const QByteArray line = ignoreFile.readLine().trimmed();
+            if (!line.isEmpty() && !line.startsWith('#'))
+                ignoreItems += QString::fromLatin1(line);
+        }
+    }
+
+    QStringList itemFiles;
+    QDirIterator it(m_canvas2dSuitePath, QDirIterator::Subdirectories);
+    while (it.hasNext()) {
+        const QString fp = it.next();
+        if (fp.endsWith(QLatin1String(".qml"))) {
+            const QString itemName = fp.mid(m_canvas2dSuitePath.length() + 1);
+            if (!ignoreItems.contains(itemName))
+                itemFiles.append(fp);
+        }
+    }
+    std::sort(itemFiles.begin(), itemFiles.end());
+
+    int numItems = 0;
+    for (const QString &filePath : std::as_const(itemFiles)) {
+        const QByteArray itemName = filePath.mid(m_canvas2dSuitePath.length() + 1).toLatin1();
+        QBaselineTest::newRow(itemName, checksumFileOrDir(filePath)) << filePath;
+        numItems++;
+    }
+
+    if (!numItems)
+        QSKIP("No .qml test files found in " + m_canvas2dSuitePath.toLatin1());
+}
+
+void tst_CanvasPainterLancelot::testCanvas2D_data()
+{
+    setupCanvas2DTestSuite();
+    m_canvas2dConsecutiveErrors = 0;
+    m_canvas2dAborted = false;
+}
+
+void tst_CanvasPainterLancelot::testCanvas2D()
+{
+    if (m_canvas2dAborted)
+        QSKIP("System too unstable.");
+
+    QFETCH(QString, qmlFile);
+
+    QImage screenShot;
+    QString errorMessage;
+    if (renderAndGrab(qmlFile, &screenShot, &errorMessage)) {
+        m_canvas2dConsecutiveErrors = 0;
+    } else {
+        if (++m_canvas2dConsecutiveErrors >= 3 && QBaselineTest::shouldAbortIfUnstable())
+            m_canvas2dAborted = true;
+        QFAIL(qPrintable(QLatin1String("QML scene grabbing failed: ") + errorMessage));
+    }
+
+#ifdef USE_SERVER
+    QBASELINE_TEST(screenShot);
+#else
+    const QByteArray fn = QFileInfo(qmlFile).baseName().toLatin1();
+    screenShot.save(QString::asprintf("result_canvas2d_%s.png", fn.constData()));
+#endif
+}
+
+bool tst_CanvasPainterLancelot::renderAndGrab(const QString &qmlFile, QImage *screenshot, QString *errMsg)
+{
+#if QT_CONFIG(process)
+#if defined(Q_OS_WIN)
+    const bool usePipe = false;
+#else
+    const bool usePipe = true;
+#endif
+    QProcess grabber;
+    grabber.setProcessChannelMode(QProcess::ForwardedErrorChannel);
+    const QString cmd = QCoreApplication::applicationDirPath() + QDir::separator()
+                        + QLatin1String("canvaspainter_qmlscenegrabber");
+    QStringList args;
+#if defined(Q_OS_WIN)
+    args << QLatin1String("-platform") << QLatin1String("windows:fontengine=freetype");
+#elif defined(Q_OS_DARWIN)
+    args << QLatin1String("-platform") << QLatin1String("cocoa:fontengine=freetype");
+#endif
+    const QString tmpfile = usePipe
+        ? QLatin1String("-")
+        : QString::fromLatin1("%1/canvaspainter-qmlscenegrabber-%2-out.ppm")
+              .arg(QDir::tempPath()).arg(QCoreApplication::applicationPid());
+    args << qmlFile << QLatin1String("-o") << tmpfile;
+
+    grabber.start(cmd, args, QIODevice::ReadOnly);
+    grabber.waitForFinished(m_grabberTimeout);
+    if (grabber.state() != QProcess::NotRunning) {
+        grabber.terminate();
+        grabber.waitForFinished(m_grabberTimeout / 4);
+    }
+
+    QImage img;
+    const bool res = usePipe ? img.load(&grabber, "ppm") : img.load(tmpfile);
+    if (!res || img.isNull()) {
+        if (errMsg) {
+            *errMsg = QString::fromLatin1("Failed to grab screen. qmlscenegrabber exitcode: %1. Process error: %2.")
+                          .arg(grabber.exitCode()).arg(grabber.errorString());
+        }
+        if (!usePipe)
+            QFile::remove(tmpfile);
+        return false;
+    }
+    if (screenshot)
+        *screenshot = img;
+    if (!usePipe)
+        QFile::remove(tmpfile);
+    return true;
+#else
+    Q_UNUSED(qmlFile);
+    Q_UNUSED(screenshot);
+    if (errMsg)
+        *errMsg = QLatin1String("QProcess not available");
+    return false;
+#endif // QT_CONFIG(process)
+}
 
 QBASELINETEST_MAIN(tst_CanvasPainterLancelot);
 
