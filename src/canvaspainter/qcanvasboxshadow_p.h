@@ -34,9 +34,10 @@ public:
     QCanvasBrushPrivate *clone() override;
 
     static QCanvasBoxShadowPrivate *get(QCanvasBoxShadow *brush)
-    { return static_cast<QCanvasBoxShadowPrivate*>(brush->baseData.get()); }
+    { return brush->d.data(); }
     static const QCanvasBoxShadowPrivate *get(const QCanvasBoxShadow *brush)
-    { return static_cast<QCanvasBoxShadowPrivate*>(brush->baseData.get()); }
+    { return brush->d.data(); }
+    static QCanvasBoxShadow create(QCanvasBoxShadowPrivate *p) { return QCanvasBoxShadow(p); }
 
     QCPaint createPaint(QCanvasPainter *painter) const override;
     void createBoxShadow(float x, float y, float width, float height,

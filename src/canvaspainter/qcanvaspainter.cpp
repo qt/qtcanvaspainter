@@ -549,8 +549,7 @@ void QCanvasPainter::setStrokeStyle(const QCanvasBrush &brush)
 {
     Q_D(QCanvasPainter);
     if (brush.type() == QCanvasBrush::BrushType::Custom) {
-        auto b = static_cast<QCanvasCustomBrush *>(const_cast<QCanvasBrush *>(&brush));
-        d->m_e->setCustomStrokeBrush(b);
+        d->m_e->setCustomStrokeBrush(brush);
     } else {
         d->m_e->setStrokePaint(brush.createPaint(this));
     }
@@ -606,8 +605,7 @@ void QCanvasPainter::setFillStyle(const QCanvasBrush &brush)
 {
     Q_D(QCanvasPainter);
     if (brush.type() == QCanvasBrush::BrushType::Custom) {
-        auto b = static_cast<QCanvasCustomBrush *>(const_cast<QCanvasBrush *>(&brush));
-        d->m_e->setCustomFillBrush(b);
+        d->m_e->setCustomFillBrush(brush);
     } else {
         d->m_e->setFillPaint(brush.createPaint(this));
     }
@@ -2967,7 +2965,8 @@ QRectF QCanvasPainterPrivate::textBoundingBox(const QString &text, const QRectF 
 
 void QCanvasPainterPrivate::drawBoxShadow(QCanvasPainter *painter, const QCanvasBoxShadow &shadow)
 {
-    const auto paint = shadow.createPaint(painter);
+    QCanvasBrush shadowBrush = shadow;
+    const auto paint = shadowBrush.createPaint(painter);
     const auto r = shadow.boundingRect();
     m_e->fillPlainRect(paint, r.x(), r.y(), r.width(), r.height());
     static bool shadowRectDebug = qEnvironmentVariableIsSet("QCPAINTER_DEBUG_SHADOW_RECT");

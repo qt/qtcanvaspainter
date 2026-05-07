@@ -20,14 +20,21 @@ class QCanvasBoxShadowPrivate;
 class QCanvasBoxShadow;
 class QCanvasImage;
 
-class QCanvasBoxShadow : public QCanvasBrush
+QT_DECLARE_QESDP_SPECIALIZATION_DTOR(QCanvasBoxShadowPrivate)
+
+class QCanvasBoxShadow
 {
 public:
     Q_CANVASPAINTER_EXPORT QCanvasBoxShadow();
     Q_CANVASPAINTER_EXPORT QCanvasBoxShadow(const QRectF &rect, float radius = 0.0f, float blur = 0.0f, const QColor &color = QColorConstants::Black);
     Q_CANVASPAINTER_EXPORT QCanvasBoxShadow(float x, float y, float width, float height, float radius = 0.0f, float blur = 0.0f, const QColor &color = QColorConstants::Black);
+    Q_CANVASPAINTER_EXPORT QCanvasBoxShadow(const QCanvasBoxShadow &) noexcept;
+    Q_CANVASPAINTER_EXPORT QCanvasBoxShadow &operator=(const QCanvasBoxShadow &) noexcept;
+    QCanvasBoxShadow(QCanvasBoxShadow &&) = default;
+    QT_MOVE_ASSIGNMENT_OPERATOR_IMPL_VIA_PURE_SWAP(QCanvasBoxShadow)
     Q_CANVASPAINTER_EXPORT ~QCanvasBoxShadow();
 
+    Q_CANVASPAINTER_EXPORT operator QCanvasBrush() const;
     Q_CANVASPAINTER_EXPORT operator QVariant() const;
 
     Q_CANVASPAINTER_EXPORT QRectF rect() const;
@@ -51,14 +58,18 @@ public:
     Q_CANVASPAINTER_EXPORT void setBottomLeftRadius(float radius);
     Q_CANVASPAINTER_EXPORT float bottomRightRadius() const;
     Q_CANVASPAINTER_EXPORT void setBottomRightRadius(float radius);
+    void swap(QCanvasBoxShadow &other) noexcept { d.swap(other.d); }
 
 private:
     friend Q_CANVASPAINTER_EXPORT bool comparesEqual(const QCanvasBoxShadow &lhs, const QCanvasBoxShadow &rhs) noexcept;
     Q_DECLARE_EQUALITY_COMPARABLE(QCanvasBoxShadow)
 
+    Q_CANVASPAINTER_EXPORT void detach();
     friend class QCanvasPainter;
     friend class QCanvasPainterPrivate;
+    explicit QCanvasBoxShadow(QCanvasBoxShadowPrivate *p);
     friend class QCanvasBoxShadowPrivate;
+    QExplicitlySharedDataPointer<QCanvasBoxShadowPrivate> d;
 #ifndef QT_NO_DATASTREAM
     friend Q_CANVASPAINTER_EXPORT QDataStream &operator<<(QDataStream &, const QCanvasBoxShadow &);
     friend Q_CANVASPAINTER_EXPORT QDataStream &operator>>(QDataStream &, QCanvasBoxShadow &);
@@ -82,6 +93,8 @@ inline void QCanvasBoxShadow::setRect(const QRectF &rect)
 {
     setRect(float(rect.x()), float(rect.y()), float(rect.width()), float(rect.height()));
 }
+
+template<> Q_CANVASPAINTER_EXPORT QCanvasBoxShadow QCanvasBrush::as<QCanvasBoxShadow>() const;
 
 QT_END_NAMESPACE
 

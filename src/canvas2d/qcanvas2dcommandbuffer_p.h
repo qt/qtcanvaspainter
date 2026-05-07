@@ -28,7 +28,6 @@ public:
     ~QCanvas2DCommandBuffer();
 
     void clearBuffers();
-    QCanvasBrush *copyBrush(QCanvasBrush *brush);
 
     inline void setGlobalAlpha(qreal alpha)
     {
@@ -60,10 +59,10 @@ public:
         ints << int(co);
     }
 
-    inline void setStrokeStyle(QCanvasBrush *style)
+    inline void setStrokeStyle(const QCanvasBrush &style)
     {
         commands << QCanvas2DContext::StrokeStyle;
-        brushes << copyBrush(style);
+        brushes << style;
     }
 
     inline void setStrokeColor(const QColor &color)
@@ -330,10 +329,10 @@ public:
     {
         commands << QCanvas2DContext::ResetClipping;
     }
-    inline void setFillStyle(QCanvasBrush *style, bool repeatX = false, bool repeatY = false)
+    inline void setFillStyle(const QCanvasBrush &style, bool repeatX = false, bool repeatY = false)
     {
         commands << QCanvas2DContext::FillStyle;
-        brushes << copyBrush(style);
+        brushes << style;
         bools << repeatX << repeatY;
     }
 
@@ -389,7 +388,7 @@ public:
     inline void drawBoxShadow(QCanvasBoxShadow *shadow)
     {
         commands << QCanvas2DContext::DrawBoxShadow;
-        brushes << copyBrush(shadow);
+        brushes << QCanvasBrush(*shadow);
     }
 
     inline void setTextAlign(QCanvasPainter::TextAlign ta)
@@ -425,7 +424,7 @@ private:
     QList<QRectF> rects;
     QList<QColor> colors;
     QList<QTransform> matrixes;
-    QList<QCanvasBrush *> brushes;
+    QList<QCanvasBrush> brushes;
     QList<QPainterPath> paths;
     QList<QCanvasPath> canvasPaths;
     QList<QImage> images;

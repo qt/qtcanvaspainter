@@ -37,9 +37,10 @@ public:
     QCPaint createPaint(QCanvasPainter *painter) const override;
 
     static QCanvasImagePatternPrivate *get(QCanvasImagePattern *brush)
-    { return static_cast<QCanvasImagePatternPrivate*>(brush->baseData.get()); }
+    { return brush->d.data(); }
     static const QCanvasImagePatternPrivate *get(const QCanvasImagePattern *brush)
-    { return static_cast<QCanvasImagePatternPrivate*>(brush->baseData.get()); }
+    { return brush->d.data(); }
+    static QCanvasImagePattern create(QCanvasImagePatternPrivate *p) { return QCanvasImagePattern(p); }
 
     QCanvasImage image;
     QCPaint paint;

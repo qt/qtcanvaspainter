@@ -168,8 +168,8 @@ void QCPainterEngine::reset()
     state.brushTransform.reset();
     state.clip.extent[0] = -1.0f;
     state.clip.extent[1] = -1.0f;
-    state.customFill = nullptr;
-    state.customStroke = nullptr;
+    state.customFill = {};
+    state.customStroke = {};
     state.textWrapMode = QCanvasPainter::WrapMode::NoWrap;
     state.textAlignment = QCanvasPainter::TextAlign::Start;
     state.textBaseline = QCanvasPainter::TextBaseline::Alphabetic;
@@ -211,13 +211,13 @@ void QCPainterEngine::setStrokeColor(const QColor &color)
     // Set inner and outer color
     state.stroke.innerColor = { color.redF(), color.greenF(), color.blueF(), color.alphaF() };
     state.stroke.outerColor = state.stroke.innerColor;
-    state.customStroke = nullptr;
+    state.customStroke = {};
 }
 
 void QCPainterEngine::setStrokePaint(const QCPaint &paint)
 {
     state.stroke = paint;
-    state.customStroke = nullptr;
+    state.customStroke = {};
 }
 
 void QCPainterEngine::setFillColor(const QColor &color)
@@ -231,13 +231,13 @@ void QCPainterEngine::setFillColor(const QColor &color)
     // Set inner and outer color
     state.fill.innerColor = { color.redF(), color.greenF(), color.blueF(), color.alphaF() };
     state.fill.outerColor = state.fill.innerColor;
-    state.customFill = nullptr;
+    state.customFill = {};
 }
 
 void QCPainterEngine::setFillPaint(const QCPaint &paint)
 {
     state.fill = paint;
-    state.customFill = nullptr;
+    state.customFill = {};
 }
 
 void QCPainterEngine::setLineWidth(float width)
@@ -287,12 +287,12 @@ QCanvasPainter::FillRule QCPainterEngine::fillRule() const
 
 // ***** Custom paints *****
 
-void QCPainterEngine::setCustomStrokeBrush(QCanvasCustomBrush *brush)
+void QCPainterEngine::setCustomStrokeBrush(QCanvasBrush brush)
 {
     state.customStroke = brush;
 }
 
-void QCPainterEngine::setCustomFillBrush(QCanvasCustomBrush *brush)
+void QCPainterEngine::setCustomFillBrush(QCanvasBrush brush)
 {
     state.customFill = brush;
 }
@@ -368,7 +368,7 @@ void QCPainterEngine::fillPlainRect(const QCPaint &paint, float x, float y, floa
     const bool prevAA = m_renderer->testFlag(QCPainterRhiRenderer::Antialiasing);
     m_renderer->setFlag(QCPainterRhiRenderer::Antialiasing, false);
     state.fill = paint;
-    state.customFill = nullptr;
+    state.customFill = {};
     beginPath();
     addRect(x, y, width, height);
     fill(QCanvasPainter::FillRule::NonZero);
@@ -1111,11 +1111,14 @@ void QCPainterEngine::fillText(const QString &text, const QRectF &rect)
     ctx.fontId = tex;
     updateStateFontVars();
 
-    if (!state.customFill) {
+    QCanvasCustomBrushPrivate *customPriv = nullptr;
+    if (state.customFill.type() == QCanvasBrush::BrushType::Custom)
+        customPriv = static_cast<QCanvasCustomBrushPrivate *>(QCanvasBrushPrivate::get(state.customFill));
+    if (!customPriv) {
         m_renderer->renderTextFill(p, state, textVertices, textIndices);
     } else {
         m_renderer->renderTextFillCustom(
-                p, state, state.customFill, textVertices, textIndices);
+                p, state, customPriv, textVertices, textIndices);
     }
 
     // simple memory usage cap; drawing huge texts will not reuse the containers (and their allocations)

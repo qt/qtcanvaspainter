@@ -9,6 +9,7 @@
 #include "qcanvasradialgradient.h"
 #include "qcanvasconicalgradient.h"
 #include "qcanvasboxgradient.h"
+#include "qcanvasimage.h"
 #include "qcanvaspainter.h"
 #include "qcanvaspainter_p.h"
 #include "qdatastream.h"
@@ -68,237 +69,10 @@ QT_BEGIN_NAMESPACE
 #define QCPAINTER_GRADIENT_MAX_STOPS 16
 #endif
 
-
-QCanvasGradient::QCanvasGradient(QCanvasGradientPrivate *priv)
-    : QCanvasBrush(priv)
+QCanvasGradient::QCanvasGradient(QCanvasBrush::BrushType type)
+    : m_type(type)
 {
 }
-
-
-/*!
-   Returns the gradient as a \l QVariant.
-*/
-
-QCanvasGradient::operator QVariant() const
-{
-    return QVariant::fromValue(*this);
-}
-
-/*!
-    \fn bool QCanvasGradient::operator!=(const QCanvasGradient &lhs, const QCanvasGradient &rhs)
-
-    \return \c true if the gradient \a lhs is different from \a rhs; \c false otherwise.
-
-    \sa operator==()
-*/
-
-/*!
-    \fn bool QCanvasGradient::operator==(const QCanvasGradient &lhs, const QCanvasGradient &rhs)
-
-    \return \c true if the gradient \a lhs is equal to \a rhs; \c false otherwise.
-
-    \sa operator!=()
-*/
-bool comparesEqual(const QCanvasGradient &lhs, const QCanvasGradient &rhs) noexcept
-{
-    auto *d = QCanvasGradientPrivate::get(&lhs);
-    auto *gd = QCanvasGradientPrivate::get(&rhs);
-    if (gd == d)
-        return true;
-    if (gd->type != d->type)
-        return false;
-    if (d->type == QCanvasBrush::BrushType::LinearGradient) {
-        if (d->data.linear.sx != gd->data.linear.sx
-            || d->data.linear.sy != gd->data.linear.sy
-            || d->data.linear.ex != gd->data.linear.ex
-            || d->data.linear.ey != gd->data.linear.ey)
-            return false;
-    } else if (d->type == QCanvasBrush::BrushType::RadialGradient) {
-        if (d->data.radial.icx != gd->data.radial.icx
-            || d->data.radial.icy != gd->data.radial.icy
-            || d->data.radial.iRadius != gd->data.radial.iRadius
-            || d->data.radial.ocx != gd->data.radial.ocx
-            || d->data.radial.ocy != gd->data.radial.ocy
-            || d->data.radial.oRadius != gd->data.radial.oRadius)
-            return false;
-    } else if (d->type == QCanvasBrush::BrushType::ConicalGradient) {
-        if (d->data.conical.cx != gd->data.conical.cx
-            || d->data.conical.cy != gd->data.conical.cy
-            || d->data.conical.angle != gd->data.conical.angle)
-            return false;
-    } else if (d->type == QCanvasBrush::BrushType::BoxGradient) {
-        if (d->data.box.x != gd->data.box.x
-            || d->data.box.y != gd->data.box.y
-            || d->data.box.width != gd->data.box.width
-            || d->data.box.height != gd->data.box.height
-            || d->data.box.feather != gd->data.box.feather
-            || d->data.box.radius != gd->data.box.radius)
-            return false;
-    }
-    return gd->gradientStops == d->gradientStops
-            && gd->imageId == d->imageId
-            && gd->imageY == d->imageY;
-}
-
-#ifndef QT_NO_DEBUG_STREAM
-/*!
-  \internal
-*/
-QDebug operator<<(QDebug dbg, const QCanvasGradientStop &stop)
-{
-    QDebugStateSaver saver(dbg);
-    dbg.nospace() << "QCanvasGradientStop(" << stop.position << ", " << stop.color << ')';
-    return dbg;
-}
-
-/*!
-  \internal
-*/
-QDebug operator<<(QDebug dbg, const QCanvasGradient &g)
-{
-    QDebugStateSaver saver(dbg);
-    const auto t = g.type();
-    if (t == QCanvasBrush::BrushType::LinearGradient)
-        dbg.nospace() << "QCanvasLinearGradient(" << g.stops() << ')';
-    else if (t == QCanvasBrush::BrushType::RadialGradient)
-        dbg.nospace() << "QCanvasRadialGradient(" << g.stops() << ')';
-    else if (t == QCanvasBrush::BrushType::ConicalGradient)
-        dbg.nospace() << "QCanvasConicalGradient(" << g.stops() << ')';
-    else if (t == QCanvasBrush::BrushType::BoxGradient)
-        dbg.nospace() << "QCanvasBoxGradient(" << g.stops() << ')';
-    else // QCanvasGradient
-        dbg.nospace() << "QCanvasGradient(" << g.stops() << ')';
-    return dbg;
-}
-#endif // QT_NO_DEBUG_STREAM
-
-/*****************************************************************************
-  QCanvasGradient stream functions
- *****************************************************************************/
-#ifndef QT_NO_DATASTREAM
-
-/*!
-    \fn QDataStream &operator<<(QDataStream &stream, const QCanvasGradientStop &stop)
-    \relates QCanvasGradient
-
-    Writes gradient \a stop to the given \a stream and returns a
-    reference to the \a stream.
-
-    \sa {Serializing Qt Data Types}
-*/
-QDataStream &operator<<(QDataStream &s, const QCanvasGradientStop &stop)
-{
-    s << stop.position;
-    s << stop.color;
-    return s;
-}
-
-/*!
-    \fn QDataStream &operator>>(QDataStream &stream, QCanvasGradientStop &stop)
-    \relates QCanvasGradient
-
-    Reads a gradient \a stop from the given \a stream and returns a
-    reference to the \a stream.
-
-    \sa {Serializing Qt Data Types}
-*/
-QDataStream &operator>>(QDataStream &s, QCanvasGradientStop &stop)
-{
-    float position;
-    s >> position;
-    QColor color;
-    s >> color;
-    stop.position = position;
-    stop.color = color;
-    return s;
-}
-
-/*!
-    \fn QDataStream &operator<<(QDataStream &stream, const QCanvasGradient &gradient)
-    \relates QCanvasGradient
-
-    Writes the given \a gradient to the given \a stream and returns a
-    reference to the \a stream.
-
-    \sa {Serializing Qt Data Types}
-*/
-
-QDataStream &operator<<(QDataStream &s, const QCanvasGradient &g)
-{
-    s << g.type();
-    s << g.stops();
-    if (g.type() == QCanvasBrush::BrushType::LinearGradient) {
-        const auto lg = static_cast<const QCanvasLinearGradient *>(&g);
-        const auto &sp = lg->startPosition();
-        const auto &ep = lg->endPosition();
-        s << sp.x() << sp.y() << ep.x() << ep.y();
-    } else if (g.type() == QCanvasBrush::BrushType::RadialGradient) {
-        const auto rg = static_cast<const QCanvasRadialGradient *>(&g);
-        const auto &icp = rg->innerCenterPosition();
-        s << icp.x() << icp.y() << rg->innerRadius();
-        const auto &ocp = rg->outerCenterPosition();
-        s << ocp.x() << ocp.y() << rg->outerRadius();
-    } else if (g.type() == QCanvasBrush::BrushType::ConicalGradient) {
-        const auto cg = static_cast<const QCanvasConicalGradient *>(&g);
-        const auto &cp = cg->centerPosition();
-        s << cp.x() << cp.y();
-        s << cg->angle();
-    } else if (g.type() == QCanvasBrush::BrushType::BoxGradient) {
-        const auto bg = static_cast<const QCanvasBoxGradient *>(&g);
-        const auto &r = bg->rect();
-        s << r.x() << r.y() << r.width() << r.height();
-        s << bg->feather();
-        s << bg->radius();
-    }
-    return s;
-}
-
-/*!
-    \fn QDataStream &operator>>(QDataStream &stream, QCanvasGradient &gradient)
-    \relates QCanvasGradient
-
-    Reads the given \a gradient from the given \a stream and returns a
-    reference to the \a stream.
-
-    \sa {Serializing Qt Data Types}
-*/
-
-QDataStream &operator>>(QDataStream &s, QCanvasGradient &g)
-{
-    int type_as_int;
-    s >> type_as_int;
-    QCanvasBrush::BrushType type = QCanvasBrush::BrushType(type_as_int);
-    // Stops
-    QCanvasGradientStops stops;
-    s >> stops;
-    // Gradient specifics
-    if (type == QCanvasBrush::BrushType::LinearGradient) {
-        float startX, startY, endX, endY;
-        s >> startX >> startY >> endX >> endY;
-        QCanvasLinearGradient lg(startX, startY, endX, endY);
-        g = lg;
-    } else if (type == QCanvasBrush::BrushType::RadialGradient) {
-        float icX, icY, iRad, ocX, ocY, oRad;
-        s >> icX >> icY >> iRad >> ocX >> ocY >> oRad;
-        QCanvasRadialGradient rg(icX, icY, iRad, ocX, ocY, oRad);
-        g = rg;
-    } else if (type == QCanvasBrush::BrushType::ConicalGradient) {
-        float cX, cY, angle;
-        s >> cX >> cY >> angle;
-        QCanvasConicalGradient cg(cX, cY, angle);
-        g = cg;
-    } else if (type == QCanvasBrush::BrushType::BoxGradient) {
-        float x, y, w, h, feather, radius;
-        s >> x >> y >> w >> h >> feather >> radius;
-        QCanvasBoxGradient bg(x, y, w, h, feather, radius);
-        g = bg;
-    }
-    g.setStops(stops);
-    return s;
-}
-
-#endif // QT_NO_DATASTREAM
-
 
 /*!
     Returns the type of gradient.
@@ -306,8 +80,7 @@ QDataStream &operator>>(QDataStream &s, QCanvasGradient &g)
 
 QCanvasBrush::BrushType QCanvasGradient::type() const
 {
-    auto *d = QCanvasGradientPrivate::get(this);
-    return d->type;
+    return m_type;
 }
 
 /*!
@@ -319,10 +92,9 @@ QCanvasBrush::BrushType QCanvasGradient::type() const
 
 QColor QCanvasGradient::startColor() const
 {
-    auto *d = QCanvasGradientPrivate::get(this);
-    if (d->gradientStops.isEmpty())
+    if (m_stops.isEmpty())
         return QColor(255, 255, 255);
-    return d->gradientStops.constFirst().color;
+    return m_stops.constFirst().color;
 }
 
 /*!
@@ -344,11 +116,9 @@ void QCanvasGradient::setStartColor(const QColor &color)
 
 QColor QCanvasGradient::endColor() const
 {
-    auto *d = QCanvasGradientPrivate::get(this);
-
-    if (d->gradientStops.isEmpty())
+    if (m_stops.isEmpty())
         return QColor(0, 0, 0, 0);
-    return d->gradientStops.constLast().color;
+    return m_stops.constLast().color;
 }
 
 /*!
@@ -370,16 +140,14 @@ void QCanvasGradient::setEndColor(const QColor &color)
 
 void QCanvasGradient::setColorAt(float position, const QColor &color)
 {
-    if (Q_UNLIKELY(QCanvasGradientPrivate::get(this)->gradientStops.size() >= QCPAINTER_GRADIENT_MAX_STOPS)) {
+    if (Q_UNLIKELY(m_stops.size() >= QCPAINTER_GRADIENT_MAX_STOPS)) {
         qWarning("QCanvasGradient::setColorAt: The maximum amount of color stops is: %d",
                  QCPAINTER_GRADIENT_MAX_STOPS);
         return;
     }
 
     position = qBound(0.0f, position, 1.0f);
-    detach();
-    auto *d = QCanvasGradientPrivate::get(this);
-    auto &stops = d->gradientStops;
+    auto &stops = m_stops;
     // Add or replace stop in the correct index so that stops remains sorted.
     qsizetype index = 0;
     while (index < stops.size() && stops.at(index).position < position) ++index;
@@ -388,9 +156,6 @@ void QCanvasGradient::setColorAt(float position, const QColor &color)
         stops[index].color = color;
     else
         stops.insert(index, { position, color });
-
-    d->dirty |= QCanvasGradientPrivate::DirtyFlag::Stops;
-
 }
 
 /*!
@@ -410,10 +175,7 @@ void QCanvasGradient::setColorAt(float position, const QColor &color)
 
 void QCanvasGradient::setStops(const QCanvasGradientStops &stops)
 {
-    detach();
-    auto *d = QCanvasGradientPrivate::get(this);
-    d->gradientStops = stops;
-    d->dirty |= QCanvasGradientPrivate::DirtyFlag::Stops;
+    m_stops = stops;
 }
 
 /*!
@@ -423,8 +185,7 @@ void QCanvasGradient::setStops(const QCanvasGradientStops &stops)
 */
 QCanvasGradientStops QCanvasGradient::stops() const
 {
-    auto *d = QCanvasGradientPrivate::get(this);
-    return d->gradientStops;
+    return m_stops;
 }
 
 /*!
@@ -514,21 +275,353 @@ QCanvasGradientStops QCanvasGradient::stops() const
 
 void QCanvasGradient::setImage(const QCanvasImage &image, int index)
 {
-    detach();
-    auto *d = QCanvasGradientPrivate::get(this);
-    d->imageId = image.id();
+    m_imageId = image.id();
     // Y-coordinate of the texture is the middle of the pixel at index.
-    d->imageY = (index + 0.5f) / image.height();
+    m_imageY = (index + 0.5f) / image.height();
 }
 
-// ***** Private *****
+/*!
+   Returns the gradient as a \l QCanvasBrush.
+*/
 
-QCanvasGradientPrivate::QCanvasGradientPrivate(QCanvasBrush::BrushType type)
+QCanvasGradient::operator QCanvasBrush() const
+{
+    QCanvasGradientBrushPrivate *p = nullptr;
+    switch (m_type) {
+    case QCanvasBrush::BrushType::LinearGradient: {
+        auto *lp = new QCanvasLinearGradientBrushPrivate;
+        lp->data.linear.sx = m_data.linear.sx;
+        lp->data.linear.sy = m_data.linear.sy;
+        lp->data.linear.ex = m_data.linear.ex;
+        lp->data.linear.ey = m_data.linear.ey;
+        p = lp;
+        break;
+    }
+    case QCanvasBrush::BrushType::RadialGradient: {
+        auto *rp = new QCanvasRadialGradientBrushPrivate;
+        rp->data.radial.icx = m_data.radial.icx;
+        rp->data.radial.icy = m_data.radial.icy;
+        rp->data.radial.iRadius = m_data.radial.iRadius;
+        rp->data.radial.ocx = m_data.radial.ocx;
+        rp->data.radial.ocy = m_data.radial.ocy;
+        rp->data.radial.oRadius = m_data.radial.oRadius;
+        p = rp;
+        break;
+    }
+    case QCanvasBrush::BrushType::ConicalGradient: {
+        auto *cp = new QCanvasConicalGradientBrushPrivate;
+        cp->data.conical.cx = m_data.conical.cx;
+        cp->data.conical.cy = m_data.conical.cy;
+        cp->data.conical.angle = m_data.conical.angle;
+        p = cp;
+        break;
+    }
+    case QCanvasBrush::BrushType::BoxGradient: {
+        auto *bp = new QCanvasBoxGradientBrushPrivate;
+        bp->data.box.x = m_data.box.x;
+        bp->data.box.y = m_data.box.y;
+        bp->data.box.width = m_data.box.width;
+        bp->data.box.height = m_data.box.height;
+        bp->data.box.feather = m_data.box.feather;
+        bp->data.box.radius = m_data.box.radius;
+        p = bp;
+        break;
+    }
+    default:
+        Q_ASSERT_X(false, "QCanvasGradient::operator QCanvasBrush()", "Invalid gradient type");
+        return QCanvasBrush();
+    }
+    p->gradientStops = m_stops;
+    p->imageId = m_imageId;
+    p->imageY = m_imageY;
+    return QCanvasBrushPrivate::create(p);
+}
+
+/*!
+   Returns the gradient as a \l QVariant.
+*/
+
+QCanvasGradient::operator QVariant() const
+{
+    switch (m_type) {
+    case QCanvasBrush::BrushType::LinearGradient:
+        return QVariant::fromValue(static_cast<const QCanvasLinearGradient &>(*this));
+    case QCanvasBrush::BrushType::RadialGradient:
+        return QVariant::fromValue(static_cast<const QCanvasRadialGradient &>(*this));
+    case QCanvasBrush::BrushType::ConicalGradient:
+        return QVariant::fromValue(static_cast<const QCanvasConicalGradient &>(*this));
+    case QCanvasBrush::BrushType::BoxGradient:
+        return QVariant::fromValue(static_cast<const QCanvasBoxGradient &>(*this));
+    default:
+        return QVariant::fromValue(*this);
+    }
+}
+
+/*!
+    \fn bool QCanvasGradient::operator!=(const QCanvasGradient &lhs, const QCanvasGradient &rhs)
+
+    \return \c true if the gradient \a lhs is different from \a rhs; \c false otherwise.
+
+    \sa operator==()
+*/
+
+/*!
+    \fn bool QCanvasGradient::operator==(const QCanvasGradient &lhs, const QCanvasGradient &rhs)
+
+    \return \c true if the gradient \a lhs is equal to \a rhs; \c false otherwise.
+
+    \sa operator!=()
+*/
+bool comparesEqual(const QCanvasGradient &lhs, const QCanvasGradient &rhs) noexcept
+{
+    if (&lhs == &rhs)
+        return true;
+    if (lhs.m_type != rhs.m_type)
+        return false;
+    if (lhs.m_type == QCanvasBrush::BrushType::LinearGradient) {
+        if (lhs.m_data.linear.sx != rhs.m_data.linear.sx
+            || lhs.m_data.linear.sy != rhs.m_data.linear.sy
+            || lhs.m_data.linear.ex != rhs.m_data.linear.ex
+            || lhs.m_data.linear.ey != rhs.m_data.linear.ey)
+            return false;
+    } else if (lhs.m_type == QCanvasBrush::BrushType::RadialGradient) {
+        if (lhs.m_data.radial.icx != rhs.m_data.radial.icx
+            || lhs.m_data.radial.icy != rhs.m_data.radial.icy
+            || lhs.m_data.radial.iRadius != rhs.m_data.radial.iRadius
+            || lhs.m_data.radial.ocx != rhs.m_data.radial.ocx
+            || lhs.m_data.radial.ocy != rhs.m_data.radial.ocy
+            || lhs.m_data.radial.oRadius != rhs.m_data.radial.oRadius)
+            return false;
+    } else if (lhs.m_type == QCanvasBrush::BrushType::ConicalGradient) {
+        if (lhs.m_data.conical.cx != rhs.m_data.conical.cx
+            || lhs.m_data.conical.cy != rhs.m_data.conical.cy
+            || lhs.m_data.conical.angle != rhs.m_data.conical.angle)
+            return false;
+    } else if (lhs.m_type == QCanvasBrush::BrushType::BoxGradient) {
+        if (lhs.m_data.box.x != rhs.m_data.box.x
+            || lhs.m_data.box.y != rhs.m_data.box.y
+            || lhs.m_data.box.width != rhs.m_data.box.width
+            || lhs.m_data.box.height != rhs.m_data.box.height
+            || lhs.m_data.box.feather != rhs.m_data.box.feather
+            || lhs.m_data.box.radius != rhs.m_data.box.radius)
+            return false;
+    }
+    return lhs.m_stops == rhs.m_stops
+            && lhs.m_imageId == rhs.m_imageId
+            && lhs.m_imageY == rhs.m_imageY;
+}
+
+#ifndef QT_NO_DEBUG_STREAM
+/*!
+  \internal
+*/
+QDebug operator<<(QDebug dbg, const QCanvasGradientStop &stop)
+{
+    QDebugStateSaver saver(dbg);
+    dbg.nospace() << "QCanvasGradientStop(" << stop.position << ", " << stop.color << ')';
+    return dbg;
+}
+
+/*!
+  \internal
+*/
+QDebug operator<<(QDebug dbg, const QCanvasGradient &g)
+{
+    QDebugStateSaver saver(dbg);
+    const auto t = g.type();
+    if (t == QCanvasBrush::BrushType::LinearGradient)
+        dbg.nospace() << "QCanvasLinearGradient(" << g.stops() << ')';
+    else if (t == QCanvasBrush::BrushType::RadialGradient)
+        dbg.nospace() << "QCanvasRadialGradient(" << g.stops() << ')';
+    else if (t == QCanvasBrush::BrushType::ConicalGradient)
+        dbg.nospace() << "QCanvasConicalGradient(" << g.stops() << ')';
+    else if (t == QCanvasBrush::BrushType::BoxGradient)
+        dbg.nospace() << "QCanvasBoxGradient(" << g.stops() << ')';
+    else
+        dbg.nospace() << "QCanvasGradient(" << g.stops() << ')';
+    return dbg;
+}
+#endif // QT_NO_DEBUG_STREAM
+
+/*****************************************************************************
+  QCanvasGradient stream functions
+ *****************************************************************************/
+#ifndef QT_NO_DATASTREAM
+
+/*!
+    \fn QDataStream &operator<<(QDataStream &stream, const QCanvasGradientStop &stop)
+    \relates QCanvasGradient
+
+    Writes gradient \a stop to the given \a stream and returns a
+    reference to the \a stream.
+
+    \sa {Serializing Qt Data Types}
+*/
+QDataStream &operator<<(QDataStream &s, const QCanvasGradientStop &stop)
+{
+    s << stop.position;
+    s << stop.color;
+    return s;
+}
+
+/*!
+    \fn QDataStream &operator>>(QDataStream &stream, QCanvasGradientStop &stop)
+    \relates QCanvasGradient
+
+    Reads a gradient \a stop from the given \a stream and returns a
+    reference to the \a stream.
+
+    \sa {Serializing Qt Data Types}
+*/
+QDataStream &operator>>(QDataStream &s, QCanvasGradientStop &stop)
+{
+    float position;
+    s >> position;
+    QColor color;
+    s >> color;
+    stop.position = position;
+    stop.color = color;
+    return s;
+}
+
+/*!
+    \fn QDataStream &operator<<(QDataStream &stream, const QCanvasGradient &gradient)
+    \relates QCanvasGradient
+
+    Writes the given \a gradient to the given \a stream and returns a
+    reference to the \a stream.
+
+    \sa {Serializing Qt Data Types}
+*/
+
+QDataStream &operator<<(QDataStream &s, const QCanvasGradient &g)
+{
+    s << g.type();
+    s << g.stops();
+    if (g.type() == QCanvasBrush::BrushType::LinearGradient) {
+        const auto &lg = static_cast<const QCanvasLinearGradient &>(g);
+        const auto &sp = lg.startPosition();
+        const auto &ep = lg.endPosition();
+        s << sp.x() << sp.y() << ep.x() << ep.y();
+    } else if (g.type() == QCanvasBrush::BrushType::RadialGradient) {
+        const auto &rg = static_cast<const QCanvasRadialGradient &>(g);
+        const auto &icp = rg.innerCenterPosition();
+        s << icp.x() << icp.y() << rg.innerRadius();
+        const auto &ocp = rg.outerCenterPosition();
+        s << ocp.x() << ocp.y() << rg.outerRadius();
+    } else if (g.type() == QCanvasBrush::BrushType::ConicalGradient) {
+        const auto &cg = static_cast<const QCanvasConicalGradient &>(g);
+        const auto &cp = cg.centerPosition();
+        s << cp.x() << cp.y();
+        s << cg.angle();
+    } else if (g.type() == QCanvasBrush::BrushType::BoxGradient) {
+        const auto &bg = static_cast<const QCanvasBoxGradient &>(g);
+        const auto &r = bg.rect();
+        s << r.x() << r.y() << r.width() << r.height();
+        s << bg.feather();
+        s << bg.radius();
+    }
+    return s;
+}
+
+/*!
+    \fn QDataStream &operator>>(QDataStream &stream, QCanvasGradient &gradient)
+    \relates QCanvasGradient
+
+    Reads the given \a gradient from the given \a stream and returns a
+    reference to the \a stream.
+
+    \sa {Serializing Qt Data Types}
+*/
+
+QDataStream &operator>>(QDataStream &s, QCanvasGradient &g)
+{
+    int type_as_int;
+    s >> type_as_int;
+    QCanvasBrush::BrushType type = QCanvasBrush::BrushType(type_as_int);
+    // Stops
+    QCanvasGradientStops stops;
+    s >> stops;
+    // Gradient specifics
+    if (type == QCanvasBrush::BrushType::LinearGradient) {
+        float startX, startY, endX, endY;
+        s >> startX >> startY >> endX >> endY;
+        g = QCanvasLinearGradient(startX, startY, endX, endY);
+    } else if (type == QCanvasBrush::BrushType::RadialGradient) {
+        float icX, icY, iRad, ocX, ocY, oRad;
+        s >> icX >> icY >> iRad >> ocX >> ocY >> oRad;
+        g = QCanvasRadialGradient(icX, icY, iRad, ocX, ocY, oRad);
+    } else if (type == QCanvasBrush::BrushType::ConicalGradient) {
+        float cX, cY, angle;
+        s >> cX >> cY >> angle;
+        g = QCanvasConicalGradient(cX, cY, angle);
+    } else if (type == QCanvasBrush::BrushType::BoxGradient) {
+        float x, y, w, h, feather, radius;
+        s >> x >> y >> w >> h >> feather >> radius;
+        g = QCanvasBoxGradient(x, y, w, h, feather, radius);
+    }
+    g.setStops(stops);
+    return s;
+}
+
+#endif // QT_NO_DATASTREAM
+
+// ***** QCanvasGradientBrushPrivate *****
+
+QCanvasGradientBrushPrivate::QCanvasGradientBrushPrivate(QCanvasBrush::BrushType type)
     : QCanvasBrushPrivate(type)
     , dirty(DirtyFlag::All)
     , imageId(0)
     , imageY(0.5f)
 {
+}
+
+QCanvasGradient QCanvasGradientBrushPrivate::reconstruct(const QCanvasGradientBrushPrivate *gd)
+{
+    QCanvasGradient g(gd->type);
+    g.m_stops = gd->gradientStops;
+    g.m_imageId = gd->imageId;
+    g.m_imageY = gd->imageY;
+    switch (gd->type) {
+    case QCanvasBrush::BrushType::LinearGradient:
+        g.m_data.linear.sx = gd->data.linear.sx;
+        g.m_data.linear.sy = gd->data.linear.sy;
+        g.m_data.linear.ex = gd->data.linear.ex;
+        g.m_data.linear.ey = gd->data.linear.ey;
+        break;
+    case QCanvasBrush::BrushType::RadialGradient:
+        g.m_data.radial.icx = gd->data.radial.icx;
+        g.m_data.radial.icy = gd->data.radial.icy;
+        g.m_data.radial.iRadius = gd->data.radial.iRadius;
+        g.m_data.radial.ocx = gd->data.radial.ocx;
+        g.m_data.radial.ocy = gd->data.radial.ocy;
+        g.m_data.radial.oRadius = gd->data.radial.oRadius;
+        break;
+    case QCanvasBrush::BrushType::ConicalGradient:
+        g.m_data.conical.cx = gd->data.conical.cx;
+        g.m_data.conical.cy = gd->data.conical.cy;
+        g.m_data.conical.angle = gd->data.conical.angle;
+        break;
+    case QCanvasBrush::BrushType::BoxGradient:
+        g.m_data.box.x = gd->data.box.x;
+        g.m_data.box.y = gd->data.box.y;
+        g.m_data.box.width = gd->data.box.width;
+        g.m_data.box.height = gd->data.box.height;
+        g.m_data.box.feather = gd->data.box.feather;
+        g.m_data.box.radius = gd->data.box.radius;
+        break;
+    default:
+        break;
+    }
+    return g;
+}
+
+template<> QCanvasGradient QCanvasBrush::as<QCanvasGradient>() const
+{
+    Q_ASSERT(type() == BrushType::LinearGradient || type() == BrushType::RadialGradient
+             || type() == BrushType::ConicalGradient || type() == BrushType::BoxGradient);
+    const auto *gd = static_cast<const QCanvasGradientBrushPrivate *>(QCanvasBrushPrivate::get(*this));
+    return QCanvasGradientBrushPrivate::reconstruct(gd);
 }
 
 // Convert quint64 into qint64
@@ -543,7 +636,7 @@ static constexpr qint64 toInt64(quint64 value) noexcept
 
 // Create unique id hash for the gradient
 // Required for caching the gradient textures
-qint64 QCanvasGradientPrivate::generateGradientKey() const
+qint64 QCanvasGradientBrushPrivate::generateGradientKey() const
 {
     quint64 id = 0;
     for (const auto &v : std::as_const(gradientStops)) {
@@ -583,10 +676,10 @@ static void gradientColorSpan(quint32 *data, QRgb color1, QRgb color2, float off
     }
 }
 
-void QCanvasGradientPrivate::updateGradientTexture(QCanvasPainter *painter)
+void QCanvasGradientBrushPrivate::updateGradientTexture(QCanvasPainter *painter)
 {
     // If stops haven't changed, texture doesn't need changes
-    if (!(dirty & QCanvasGradientPrivate::DirtyFlag::Stops))
+    if (!(dirty & QCanvasGradientBrushPrivate::DirtyFlag::Stops))
         return;
 
     const qint64 key = generateGradientKey();
@@ -620,6 +713,5 @@ void QCanvasGradientPrivate::updateGradientTexture(QCanvasPainter *painter)
         imageId = painterPriv->getQCanvasImage(gradientTexture, flags, key).id();
     }
 }
-
 
 QT_END_NAMESPACE

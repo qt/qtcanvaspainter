@@ -20,15 +20,22 @@ QT_BEGIN_NAMESPACE
 class QCanvasImagePatternPrivate;
 class QCanvasImagePattern;
 
-class QCanvasImagePattern : public QCanvasBrush
+QT_DECLARE_QESDP_SPECIALIZATION_DTOR(QCanvasImagePatternPrivate)
+
+class QCanvasImagePattern
 {
 public:
     Q_CANVASPAINTER_EXPORT QCanvasImagePattern();
     Q_CANVASPAINTER_EXPORT QCanvasImagePattern(const QCanvasImage &image);
     Q_CANVASPAINTER_EXPORT QCanvasImagePattern(const QCanvasImage &image, const QRectF &rect, float angle = 0.0f, const QColor &tintColor = QColorConstants::White);
     Q_CANVASPAINTER_EXPORT QCanvasImagePattern(const QCanvasImage &image, float x, float y, float width, float height, float angle = 0.0f, const QColor &tintColor = QColorConstants::White);
+    Q_CANVASPAINTER_EXPORT QCanvasImagePattern(const QCanvasImagePattern &) noexcept;
+    Q_CANVASPAINTER_EXPORT QCanvasImagePattern &operator=(const QCanvasImagePattern &) noexcept;
+    QCanvasImagePattern(QCanvasImagePattern &&) = default;
+    QT_MOVE_ASSIGNMENT_OPERATOR_IMPL_VIA_PURE_SWAP(QCanvasImagePattern)
     Q_CANVASPAINTER_EXPORT ~QCanvasImagePattern();
 
+    Q_CANVASPAINTER_EXPORT operator QCanvasBrush() const;
     Q_CANVASPAINTER_EXPORT operator QVariant() const;
 
     Q_CANVASPAINTER_EXPORT QPointF startPosition() const;
@@ -43,12 +50,16 @@ public:
     Q_CANVASPAINTER_EXPORT void setRotation(float rotation);
     Q_CANVASPAINTER_EXPORT QColor tintColor() const;
     Q_CANVASPAINTER_EXPORT void setTintColor(const QColor &color);
+    void swap(QCanvasImagePattern &other) noexcept { d.swap(other.d); }
 
 private:
     friend Q_CANVASPAINTER_EXPORT bool comparesEqual(const QCanvasImagePattern &lhs, const QCanvasImagePattern &rhs) noexcept;
     Q_DECLARE_EQUALITY_COMPARABLE(QCanvasImagePattern)
 
+    Q_CANVASPAINTER_EXPORT void detach();
+    explicit QCanvasImagePattern(QCanvasImagePatternPrivate *p);
     friend class QCanvasImagePatternPrivate;
+    QExplicitlySharedDataPointer<QCanvasImagePatternPrivate> d;
 #ifndef QT_NO_DATASTREAM
     friend Q_CANVASPAINTER_EXPORT QDataStream &operator<<(QDataStream &, const QCanvasImagePattern &);
     friend Q_CANVASPAINTER_EXPORT QDataStream &operator>>(QDataStream &, QCanvasImagePattern &);
@@ -76,6 +87,8 @@ inline void QCanvasImagePattern::setImageSize(QSizeF size)
 {
     setImageSize(float(size.width()), float(size.height()));
 }
+
+template<> Q_CANVASPAINTER_EXPORT QCanvasImagePattern QCanvasBrush::as<QCanvasImagePattern>() const;
 
 QT_END_NAMESPACE
 

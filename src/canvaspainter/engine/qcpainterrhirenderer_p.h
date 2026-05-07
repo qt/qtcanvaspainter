@@ -161,7 +161,7 @@ public:
     void renderTextFillCustom(
         const QCPaint &paint,
         const QCState &state,
-        QCanvasCustomBrush *brush,
+        QCanvasCustomBrushPrivate *privBrush,
         const QCRhiDistanceFieldGlyphCache::VertexList &verts,
         const QCRhiDistanceFieldGlyphCache::IndexList &indices);
     int populateFont(
@@ -217,7 +217,7 @@ private:
                       const QCState &state, float width, float aa, float strokeThr,
                       float fontAlphaMin, float fontAlphaMax);
     void prepareCustomPaint(QCanvasCustomBrushPrivate::CommonUniforms* frag, const QCPaint &paint,
-                            QCanvasCustomBrush *brush, const QCState &state,
+                            QCanvasCustomBrushPrivate *privBrush, const QCState &state,
                             float width, float aa, float strokeThr,
                             float fontAlphaMin, float fontAlphaMax);
     void bindPipeline(QCRHICall *call,

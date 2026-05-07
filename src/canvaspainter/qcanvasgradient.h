@@ -9,13 +9,11 @@
 #include <QtCanvasPainter/qtcanvaspainterglobal.h>
 #include <QtCanvasPainter/qcanvasbrush.h>
 #include <QtGui/qcolor.h>
-#include <QtCore/qshareddata.h>
-#include <QtGui/qtguiglobal.h>
+#include <QtCore/qlist.h>
 
 QT_BEGIN_NAMESPACE
 
-class QCanvasGradientPrivate;
-class QCanvasGradient;
+class QCanvasGradientBrushPrivate;
 class QCanvasImage;
 
 struct QCanvasGradientStop
@@ -47,10 +45,15 @@ Q_CANVASPAINTER_EXPORT QDataStream &operator<<(QDataStream &, const QCanvasGradi
 Q_CANVASPAINTER_EXPORT QDataStream &operator>>(QDataStream &, QCanvasGradient &);
 #endif
 
-class QCanvasGradient : public QCanvasBrush
+class QCanvasGradient
 {
 public:
-    Q_CANVASPAINTER_EXPORT operator QVariant() const;
+    QCanvasGradient() = default;
+    ~QCanvasGradient() = default;
+    QCanvasGradient(const QCanvasGradient &) = default;
+    QCanvasGradient &operator=(const QCanvasGradient &) = default;
+    QCanvasGradient(QCanvasGradient &&) = default;
+    QCanvasGradient &operator=(QCanvasGradient &&) = default;
 
     Q_CANVASPAINTER_EXPORT QCanvasBrush::BrushType type() const;
 
@@ -64,14 +67,28 @@ public:
     Q_CANVASPAINTER_EXPORT void setImage(const QCanvasImage &image, int index = 0);
     inline void addColorStop(float position, const QColor &color);
 
+    Q_CANVASPAINTER_EXPORT operator QCanvasBrush() const;
+    Q_CANVASPAINTER_EXPORT operator QVariant() const;
+
 protected:
-    Q_CANVASPAINTER_EXPORT QCanvasGradient(QCanvasGradientPrivate *);
+    Q_CANVASPAINTER_EXPORT explicit QCanvasGradient(QCanvasBrush::BrushType type);
+
+    QCanvasBrush::BrushType m_type = QCanvasBrush::BrushType::Invalid;
+    QCanvasGradientStops m_stops;
+    int m_imageId = 0;
+    float m_imageY = 0.5f;
+    union {
+        struct { float sx, sy, ex, ey; } linear;
+        struct { float icx, icy, iRadius, ocx, ocy, oRadius; } radial;
+        struct { float cx, cy, angle; } conical;
+        struct { float x, y, width, height, feather, radius; } box;
+    } m_data {};
 
 private:
     friend Q_CANVASPAINTER_EXPORT bool comparesEqual(const QCanvasGradient &lhs, const QCanvasGradient &rhs) noexcept;
     Q_DECLARE_EQUALITY_COMPARABLE(QCanvasGradient)
+    friend class QCanvasGradientBrushPrivate;
 
-    friend class QCanvasGradientPrivate;
 #ifndef QT_NO_DEBUG_STREAM
     friend Q_CANVASPAINTER_EXPORT QDebug operator<<(QDebug dbg, const QCanvasGradientStop &stop);
     friend Q_CANVASPAINTER_EXPORT QDebug operator<<(QDebug, const QCanvasGradient &);
@@ -87,6 +104,8 @@ inline void QCanvasGradient::addColorStop(float position, const QColor &color)
 Q_CANVASPAINTER_EXPORT QDebug operator<<(QDebug dbg, const QCanvasGradientStop &stop);
 Q_CANVASPAINTER_EXPORT QDebug operator<<(QDebug, const QCanvasGradient &);
 #endif
+
+template<> Q_CANVASPAINTER_EXPORT QCanvasGradient QCanvasBrush::as<QCanvasGradient>() const;
 
 QT_END_NAMESPACE
 

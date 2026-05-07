@@ -1400,6 +1400,28 @@ QV4::ReturnedValue QCanvasJSContext2D::method_get_fillStyle(const QV4::FunctionO
     RETURN_RESULT(r->d()->context()->m_fillStyle.value());
 }
 
+static QCanvasBrush toBrush(const QV4::ScopedValue &value)
+{
+    QVariant var = QV4::ExecutionEngine::toVariant(value, QMetaType::fromType<QCanvasBrush>());
+    if (var.canConvert<QCanvasLinearGradient>())
+        return var.value<QCanvasLinearGradient>();
+    else if (var.canConvert<QCanvasRadialGradient>())
+        return var.value<QCanvasRadialGradient>();
+    else if (var.canConvert<QCanvasConicalGradient>())
+        return var.value<QCanvasConicalGradient>();
+    else if (var.canConvert<QCanvasBoxGradient>())
+        return var.value<QCanvasBoxGradient>();
+    else if (var.canConvert<QCanvasBoxShadow>())
+        return var.value<QCanvasBoxShadow>();
+    else if (var.canConvert<QCanvasCustomBrush>())
+        return var.value<QCanvasCustomBrush>();
+    else if (var.canConvert<QCanvasGridPattern>())
+        return var.value<QCanvasGridPattern>();
+    else if (var.canConvert<QCanvasImagePattern>())
+        return var.value<QCanvasImagePattern>();
+    return var.value<QCanvasBrush>();
+}
+
 QV4::ReturnedValue QCanvasJSContext2D::method_set_fillStyle(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc)
 {
     QV4::Scope scope(b);
@@ -1415,9 +1437,10 @@ QV4::ReturnedValue QCanvasJSContext2D::method_set_fillStyle(const QV4::FunctionO
             r->d()->context()->buffer()->setFillColor(color);
             r->d()->context()->m_fillStyle.set(scope.engine, value);
         } else {
-            QCanvasBrush g = QV4::ExecutionEngine::toVariant(value, QMetaType::fromType<QCanvasBrush>()).value<QCanvasBrush>();
-            r->d()->context()->state.fillStyle = &g;
-            r->d()->context()->buffer()->setFillStyle(&g);
+            QCanvasBrush g = toBrush(value);
+            r->d()->context()->state.fillStyle = g;
+
+            r->d()->context()->buffer()->setFillStyle(g);
             r->d()->context()->m_fillStyle.set(scope.engine, value);
         }
     } else if (value->isString()) {
@@ -1512,9 +1535,9 @@ QV4::ReturnedValue QCanvasJSContext2D::method_set_strokeStyle(const QV4::Functio
             r->d()->context()->buffer()->setStrokeColor(color);
             r->d()->context()->m_strokeStyle.set(scope.engine, value);
         } else {
-            QCanvasBrush g = QV4::ExecutionEngine::toVariant(value, QMetaType::fromType<QCanvasBrush>()).value<QCanvasBrush>();
-            r->d()->context()->state.strokeStyle = &g;
-            r->d()->context()->buffer()->setStrokeStyle(&g);
+            QCanvasBrush g = toBrush(value);
+            r->d()->context()->state.strokeStyle = g;
+            r->d()->context()->buffer()->setStrokeStyle(g);
             r->d()->context()->m_strokeStyle.set(scope.engine, value);
         }
     } else if (value->isString()) {
@@ -3293,10 +3316,10 @@ void QCanvas2DContext::popState()
     if (newState.globalCompositeOperation != state.globalCompositeOperation)
         buffer()->setGlobalCompositeOperation(newState.globalCompositeOperation);
 
-    if (newState.fillStyle && newState.fillStyle != state.fillStyle)
+    if (newState.fillStyle.type() != QCanvasBrush::BrushType::Invalid && newState.fillStyle != state.fillStyle)
         buffer()->setFillStyle(newState.fillStyle);
 
-    if (newState.strokeStyle && newState.strokeStyle != state.strokeStyle)
+    if (newState.strokeStyle.type() != QCanvasBrush::BrushType::Invalid && newState.strokeStyle != state.strokeStyle)
         buffer()->setStrokeStyle(newState.strokeStyle);
 
     if (newState.fillColor != state.fillColor)

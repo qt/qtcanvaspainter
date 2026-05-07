@@ -34,9 +34,14 @@ public:
     QCPaint createPaint(QCanvasPainter *painter) const override;
 
     static QCanvasCustomBrushPrivate *get(QCanvasCustomBrush *brush)
-    { return static_cast<QCanvasCustomBrushPrivate*>(brush->baseData.get()); }
+    { return brush->d.data(); }
     static const QCanvasCustomBrushPrivate *get(const QCanvasCustomBrush *brush)
-    { return static_cast<QCanvasCustomBrushPrivate*>(brush->baseData.get()); }
+    { return brush->d.data(); }
+    static QCanvasCustomBrushPrivate *get(QCanvasCustomBrush &brush)
+    { return brush.d.data(); }
+    static const QCanvasCustomBrushPrivate *get(const QCanvasCustomBrush &brush)
+    { return brush.d.data(); }
+    static QCanvasCustomBrush create(QCanvasCustomBrushPrivate *p) { return QCanvasCustomBrush(p); }
 
     struct CommonUniforms {
         // Total size 112 + 112 = 224 bytes.

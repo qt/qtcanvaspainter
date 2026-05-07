@@ -1252,16 +1252,14 @@ void QCPainterRhiRenderer::preparePaint(QCRHICommonUniforms *frag, const QCPaint
 
 // Prepare custom fragment shader uniforms according to brush & clip.
 void QCPainterRhiRenderer::prepareCustomPaint(QCanvasCustomBrushPrivate::CommonUniforms *frag, const QCPaint &paint,
-                                              QCanvasCustomBrush *brush, const QCState &state,
+                                              QCanvasCustomBrushPrivate *privBrush, const QCState &state,
                                               float width, float aa, float strokeThr,
                                               float fontAlphaMin, float fontAlphaMax)
 {
     Q_UNUSED(paint);
-    Q_ASSERT(brush);
     memset((void*)frag, 0, sizeof(*frag));
 
     // Apply custom data
-    auto *privBrush = QCanvasCustomBrushPrivate::get(brush);
     frag->data[0] = privBrush->data[0];
     frag->data[1] = privBrush->data[1];
     frag->data[2] = privBrush->data[2];
@@ -1272,7 +1270,7 @@ void QCPainterRhiRenderer::prepareCustomPaint(QCanvasCustomBrushPrivate::CommonU
     frag->fontAlphaMax = fontAlphaMax;
 
     // Handle iTime animation
-    if (brush->timeRunning()) {
+    if (privBrush->timeRunning) {
         auto ms = rhiCtx->renderTimeElapsedMs;
         float s = ms * 0.001;
         privBrush->time += s;
@@ -1392,8 +1390,9 @@ void QCPainterRhiRenderer::renderFill(const QCPaint &paint, const QCState &state
     call->type = CallFill;
     call->fillRule = fillRule;
     call->renderFlags = rhiCtx->flags;
-    if (state.customFill) {
-        auto *customBrushPriv = QCanvasCustomBrushPrivate::get(state.customFill);
+
+    if (state.customFill.type() == QCanvasBrush::BrushType::Custom) {
+        auto *customBrushPriv = QCanvasCustomBrushPrivate::get(state.customFill.as<QCanvasCustomBrush>());
         call->customFragShader = customBrushPriv->fragmentShader;
         call->customVertShader = customBrushPriv->vertexShader;
     }
@@ -1509,6 +1508,10 @@ void QCPainterRhiRenderer::renderFill(const QCPaint &paint, const QCState &state
         transferPathsFromCachedPathGroup(call, cpf->paths.count(), cpf->paths.constData());
     }
 
+    QCanvasCustomBrushPrivate *customPriv = nullptr;
+    if (state.customFill.type() == QCanvasBrush::BrushType::Custom)
+        customPriv = static_cast<QCanvasCustomBrushPrivate *>(QCanvasBrushPrivate::get(state.customFill));
+
     // Setup uniforms for draw calls
     if (call->type == CallFill) {
         if (uncachedPathInfo) {
@@ -1528,9 +1531,9 @@ void QCPainterRhiRenderer::renderFill(const QCPaint &paint, const QCState &state
         frag->strokeThr = -1.0f;
         frag->type = ShaderStencilFill;
         // Fill shader
-        if (state.customFill) {
+        if (customPriv) {
             prepareCustomPaint(customUniformPtr(call->commonUniformBufferOffset + rhiCtx->oneCommonUniformBufferSize),
-                               paint, state.customFill, state, aa, aa, -1.0f,
+                               paint, customPriv, state, aa, aa, -1.0f,
                                -1.0f, -1.0f);
         } else {
             preparePaint(uniformPtr(call->commonUniformBufferOffset + rhiCtx->oneCommonUniformBufferSize),
@@ -1540,9 +1543,9 @@ void QCPainterRhiRenderer::renderFill(const QCPaint &paint, const QCState &state
         // CallConvexFill
         // Fill shader
         call->commonUniformBufferOffset = allocCommonUniforms(1);
-        if (state.customFill) {
+        if (customPriv) {
             prepareCustomPaint(customUniformPtr(call->commonUniformBufferOffset),
-                               paint, state.customFill, state, aa, aa, -1.0f,
+                               paint, customPriv, state, aa, aa, -1.0f,
                                -1.0f, -1.0f);
         } else {
             preparePaint(uniformPtr(call->commonUniformBufferOffset),
@@ -1585,10 +1588,14 @@ void QCPainterRhiRenderer::renderStroke(const QCPaint &paint, const QCState &sta
     const float aa = state.antialias;
     call->type = CallStroke;
     call->renderFlags = rhiCtx->flags;
-    if (state.customStroke) {
-        auto *customBrushPriv = QCanvasCustomBrushPrivate::get(state.customStroke);
-        call->customFragShader = customBrushPriv->fragmentShader;
-        call->customVertShader = customBrushPriv->vertexShader;
+
+    QCanvasCustomBrushPrivate *customStrokePriv = nullptr;
+    if (state.customStroke.type() == QCanvasBrush::BrushType::Custom)
+        customStrokePriv = static_cast<QCanvasCustomBrushPrivate *>(QCanvasBrushPrivate::get(state.customStroke));
+
+    if (customStrokePriv) {
+        call->customFragShader = customStrokePriv->fragmentShader;
+        call->customVertShader = customStrokePriv->vertexShader;
     }
     call->image = paint.imageId;
     call->blendFunc = blendCompositeOperation(state.compositeOperation, state.blendEnable);
@@ -1661,12 +1668,12 @@ void QCPainterRhiRenderer::renderStroke(const QCPaint &paint, const QCState &sta
 
     if (rhiCtx->flags & QCPainterRhiRenderer::StencilStrokes) {
         call->commonUniformBufferOffset = allocCommonUniforms(2);
-        if (state.customStroke) {
+        if (customStrokePriv) {
             prepareCustomPaint(customUniformPtr(call->commonUniformBufferOffset),
-                               paint, state.customStroke, state, strokeWidth, aa, -1.0f,
+                               paint, customStrokePriv, state, strokeWidth, aa, -1.0f,
                                -1.0f, -1.0f);
             prepareCustomPaint(customUniformPtr(call->commonUniformBufferOffset + rhiCtx->oneCommonUniformBufferSize),
-                               paint, state.customStroke, state, strokeWidth, aa, 1.0f - 0.5f/255.0f,
+                               paint, customStrokePriv, state, strokeWidth, aa, 1.0f - 0.5f/255.0f,
                                -1.0f, -1.0f);
         } else {
             preparePaint(uniformPtr(call->commonUniformBufferOffset),
@@ -1678,9 +1685,9 @@ void QCPainterRhiRenderer::renderStroke(const QCPaint &paint, const QCState &sta
         }
     } else {
         call->commonUniformBufferOffset = allocCommonUniforms(1);
-        if (state.customStroke) {
+        if (customStrokePriv) {
             prepareCustomPaint(customUniformPtr(call->commonUniformBufferOffset),
-                               paint, state.customStroke, state, strokeWidth, aa, -1.0f,
+                               paint, customStrokePriv, state, strokeWidth, aa, -1.0f,
                                -1.0f, -1.0f);
         } else {
             preparePaint(uniformPtr(call->commonUniformBufferOffset),
@@ -1745,13 +1752,13 @@ void QCPainterRhiRenderer::renderTextFill(
     preparePaint(frag, paint, state, 1.0f, aa, -1.0f, ctx.fontAlphaMin, ctx.fontAlphaMax);
 }
 
-// Fill direct text with custom brush
+// Fill direct text with a custom brush
 void QCPainterRhiRenderer::renderTextFillCustom(
-    const QCPaint &paint,
-    const QCState &state,
-    QCanvasCustomBrush *brush,
-    const QCRhiDistanceFieldGlyphCache::VertexList &verts,
-    const QCRhiDistanceFieldGlyphCache::IndexList &indices)
+        const QCPaint &paint,
+        const QCState &state,
+        QCanvasCustomBrushPrivate *customBrushPriv,
+        const QCRhiDistanceFieldGlyphCache::VertexList &verts,
+        const QCRhiDistanceFieldGlyphCache::IndexList &indices)
 {
     QCRHICall *call = allocCall();
     auto &ctx = m_e->ctx;
@@ -1762,8 +1769,7 @@ void QCPainterRhiRenderer::renderTextFillCustom(
     call->renderFlags &= ~RenderFlag::Antialiasing;
     call->image = paint.imageId;
     call->font = ctx.fontId;
-    if (brush) {
-        auto *customBrushPriv = QCanvasCustomBrushPrivate::get(brush);
+    if (customBrushPriv){
         call->customFragShader = customBrushPriv->fragmentShader;
         call->customVertShader = customBrushPriv->vertexShader;
     }
@@ -1801,7 +1807,7 @@ void QCPainterRhiRenderer::renderTextFillCustom(
     call->commonUniformBufferOffset = allocCommonUniforms(1);
     auto frag = customUniformPtr(call->commonUniformBufferOffset);
     const float aa = 1.0f;
-    prepareCustomPaint(frag, paint, brush, state, 0.1f, aa, -1.0f,
+    prepareCustomPaint(frag, paint, customBrushPriv, state, 0.1f, aa, -1.0f,
                        ctx.fontAlphaMin, ctx.fontAlphaMax);
 }
 

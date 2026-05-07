@@ -17,7 +17,11 @@
 
 QT_BEGIN_NAMESPACE
 
-class QCanvasGridPattern : public QCanvasBrush
+class QCanvasGridPatternPrivate;
+
+QT_DECLARE_QESDP_SPECIALIZATION_DTOR(QCanvasGridPatternPrivate)
+
+class QCanvasGridPattern
 {
 public:
     Q_CANVASPAINTER_EXPORT QCanvasGridPattern();
@@ -29,8 +33,13 @@ public:
                   const QColor &lineColor = QColorConstants::White,
                   const QColor &backgroundColor = QColorConstants::Black,
                   float lineWidth = 1.0f, float feather = 1.0f, float angle = 0.0f);
+    Q_CANVASPAINTER_EXPORT QCanvasGridPattern(const QCanvasGridPattern &) noexcept;
+    Q_CANVASPAINTER_EXPORT QCanvasGridPattern &operator=(const QCanvasGridPattern &) noexcept;
+    QCanvasGridPattern(QCanvasGridPattern &&) = default;
+    QT_MOVE_ASSIGNMENT_OPERATOR_IMPL_VIA_PURE_SWAP(QCanvasGridPattern)
     Q_CANVASPAINTER_EXPORT ~QCanvasGridPattern();
 
+    Q_CANVASPAINTER_EXPORT operator QCanvasBrush() const;
     Q_CANVASPAINTER_EXPORT operator QVariant() const;
 
     Q_CANVASPAINTER_EXPORT QPointF startPosition() const;
@@ -49,12 +58,16 @@ public:
     Q_CANVASPAINTER_EXPORT void setLineColor(const QColor &color);
     Q_CANVASPAINTER_EXPORT QColor backgroundColor() const;
     Q_CANVASPAINTER_EXPORT void setBackgroundColor(const QColor &color);
+    void swap(QCanvasGridPattern &other) noexcept { d.swap(other.d); }
 
 private:
     friend Q_CANVASPAINTER_EXPORT bool comparesEqual(const QCanvasGridPattern &lhs, const QCanvasGridPattern &rhs) noexcept;
     Q_DECLARE_EQUALITY_COMPARABLE(QCanvasGridPattern)
 
+    Q_CANVASPAINTER_EXPORT void detach();
+    explicit QCanvasGridPattern(QCanvasGridPatternPrivate *p);
     friend class QCanvasGridPatternPrivate;
+    QExplicitlySharedDataPointer<QCanvasGridPatternPrivate> d;
 #ifndef QT_NO_DATASTREAM
     friend Q_CANVASPAINTER_EXPORT QDataStream &operator<<(QDataStream &, const QCanvasGridPattern &);
     friend Q_CANVASPAINTER_EXPORT QDataStream &operator>>(QDataStream &, QCanvasGridPattern &);
@@ -82,6 +95,8 @@ inline void QCanvasGridPattern::setCellSize(QSizeF size)
 {
     setCellSize(float(size.width()), float(size.height()));
 }
+
+template<> Q_CANVASPAINTER_EXPORT QCanvasGridPattern QCanvasBrush::as<QCanvasGridPattern>() const;
 
 QT_END_NAMESPACE
 

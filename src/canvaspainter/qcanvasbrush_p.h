@@ -29,6 +29,9 @@ public:
     QCanvasBrush::BrushType type;
     virtual QCanvasBrushPrivate *clone() = 0;
     virtual QCPaint createPaint(QCanvasPainter *painter) const = 0;
+
+    static QCanvasBrushPrivate *get(const QCanvasBrush &brush) { return brush.baseData.data(); }
+    static QCanvasBrush create(QCanvasBrushPrivate *p) { return QCanvasBrush(p); }
 };
 
 template <>

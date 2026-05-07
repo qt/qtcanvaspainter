@@ -25,15 +25,12 @@
 
 QT_BEGIN_NAMESPACE
 
-class QCanvasGradientPrivate : public QCanvasBrushPrivate
+class QCanvasGradientBrushPrivate : public QCanvasBrushPrivate
 {
 public:
-    QCanvasGradientPrivate(QCanvasBrush::BrushType type);
+    QCanvasGradientBrushPrivate(QCanvasBrush::BrushType type);
 
-    static QCanvasGradientPrivate *get(QCanvasGradient *brush)
-    { return static_cast<QCanvasGradientPrivate*>(brush->baseData.get()); }
-    static const QCanvasGradientPrivate *get(const QCanvasGradient *brush)
-    { return static_cast<QCanvasGradientPrivate*>(brush->baseData.get()); }
+    static QCanvasGradient reconstruct(const QCanvasGradientBrushPrivate *p);
 
     qint64 generateGradientKey() const;
     void updateGradientTexture(QCanvasPainter *painter);
@@ -67,6 +64,46 @@ public:
     DirtyFlags dirty;
     int imageId;
     float imageY;
+};
+
+class QCanvasLinearGradientBrushPrivate : public QCanvasGradientBrushPrivate
+{
+public:
+    QCanvasLinearGradientBrushPrivate() : QCanvasGradientBrushPrivate(QCanvasBrush::BrushType::LinearGradient) {}
+    QCanvasLinearGradientBrushPrivate(const QCanvasLinearGradientBrushPrivate &) = default;
+    QCPaint createPaint(QCanvasPainter *painter) const override;
+    void createLinearGradient(const QColor &iColor, const QColor &oColor, int imageId) const;
+    QCanvasBrushPrivate *clone() override { return new QCanvasLinearGradientBrushPrivate(*this); }
+};
+
+class QCanvasRadialGradientBrushPrivate : public QCanvasGradientBrushPrivate
+{
+public:
+    QCanvasRadialGradientBrushPrivate() : QCanvasGradientBrushPrivate(QCanvasBrush::BrushType::RadialGradient) {}
+    QCanvasRadialGradientBrushPrivate(const QCanvasRadialGradientBrushPrivate &) = default;
+    QCPaint createPaint(QCanvasPainter *painter) const override;
+    void createRadialGradient(const QColor &iColor, const QColor &oColor, int imageId) const;
+    QCanvasBrushPrivate *clone() override { return new QCanvasRadialGradientBrushPrivate(*this); }
+};
+
+class QCanvasConicalGradientBrushPrivate : public QCanvasGradientBrushPrivate
+{
+public:
+    QCanvasConicalGradientBrushPrivate() : QCanvasGradientBrushPrivate(QCanvasBrush::BrushType::ConicalGradient) {}
+    QCanvasConicalGradientBrushPrivate(const QCanvasConicalGradientBrushPrivate &) = default;
+    QCPaint createPaint(QCanvasPainter *painter) const override;
+    void createConicalGradient(const QColor &iColor, const QColor &oColor, int imageId) const;
+    QCanvasBrushPrivate *clone() override { return new QCanvasConicalGradientBrushPrivate(*this); }
+};
+
+class QCanvasBoxGradientBrushPrivate : public QCanvasGradientBrushPrivate
+{
+public:
+    QCanvasBoxGradientBrushPrivate() : QCanvasGradientBrushPrivate(QCanvasBrush::BrushType::BoxGradient) {}
+    QCanvasBoxGradientBrushPrivate(const QCanvasBoxGradientBrushPrivate &) = default;
+    QCPaint createPaint(QCanvasPainter *painter) const override;
+    void createBoxGradient(const QColor &iColor, const QColor &oColor, int imageId) const;
+    QCanvasBrushPrivate *clone() override { return new QCanvasBoxGradientBrushPrivate(*this); }
 };
 
 QT_END_NAMESPACE

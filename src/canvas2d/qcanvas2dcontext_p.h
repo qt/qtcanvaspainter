@@ -138,8 +138,8 @@ public:
         }
 
         QPainterPath clipPath;
-        QCanvasBrush *strokeStyle = nullptr;
-        QCanvasBrush *fillStyle = nullptr;
+        QCanvasBrush strokeStyle;
+        QCanvasBrush fillStyle;
         QTransform transform;
         QColor strokeColor;
         QColor fillColor;

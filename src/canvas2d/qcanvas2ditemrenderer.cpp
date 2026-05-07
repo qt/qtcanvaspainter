@@ -241,6 +241,7 @@ void QCanvas2DItemRenderer::paint(QCanvasPainter *painter)
             setPaintStyle(m_state.fillStyle, true);
             break;
         }
+
         case QCanvas2DContext::Fill:
         {
             m_painter->fill();
@@ -461,11 +462,9 @@ void QCanvas2DItemRenderer::paint(QCanvasPainter *painter)
         }
         case QCanvas2DContext::DrawBoxShadow:
         {
-            auto brush = takeBrush();
-            if (brush->type() == QCanvasBrush::BrushType::BoxShadow) {
-                const auto shadow = *static_cast<QCanvasBoxShadow *>(brush);
-                m_painter->drawBoxShadow(shadow);
-            }
+            const auto &brush = takeBrush();
+            if (brush.type() == QCanvasBrush::BrushType::BoxShadow)
+                m_painter->drawBoxShadow(brush.as<QCanvasBoxShadow>());
             break;
         }
         case QCanvas2DContext::Antialias: {
@@ -516,140 +515,22 @@ void QCanvas2DItemRenderer::reset()
 
 // Copies brushes from buffer locally as buffer can remove its
 // buffers at any time.
-void QCanvas2DItemRenderer::copyBrushes(QList<QCanvasBrush *> &newBrushes)
+void QCanvas2DItemRenderer::copyBrushes(const QList<QCanvasBrush> &newBrushes)
 {
-    // Remove previous brushes
-    for (auto *brush : brushes)
-        delete brush;
-    brushes.clear();
-
-    // Add new ones
-    for (auto *brush : newBrushes) {
-        switch (brush->type()) {
-        case QCanvasBrush::BrushType::LinearGradient:
-        {
-            auto *b = static_cast<QCanvasLinearGradient *>(brush);
-            brushes << new QCanvasLinearGradient(*b);
-            break;
-        }
-        case QCanvasBrush::BrushType::RadialGradient:
-        {
-            auto *b = static_cast<QCanvasRadialGradient *>(brush);
-            brushes << new QCanvasRadialGradient(*b);
-            break;
-        }
-        case QCanvasBrush::BrushType::ConicalGradient:
-        {
-            auto *b = static_cast<QCanvasConicalGradient *>(brush);
-            brushes << new QCanvasConicalGradient(*b);
-            break;
-        }
-        case QCanvasBrush::BrushType::BoxGradient:
-        {
-            auto *b = static_cast<QCanvasBoxGradient *>(brush);
-            brushes << new QCanvasBoxGradient(*b);
-            break;
-        }
-        case QCanvasBrush::BrushType::BoxShadow:
-        {
-            auto *b = static_cast<QCanvasBoxShadow *>(brush);
-            brushes << new QCanvasBoxShadow(*b);
-            break;
-        }
-        case QCanvasBrush::BrushType::ImagePattern:
-        {
-            auto *b = static_cast<QCanvasImagePattern *>(brush);
-            auto *ip = new QCanvasImagePattern(*b);
-            ip->setImage(b->image());
-            brushes << ip;
-            break;
-        }
-        case QCanvasBrush::BrushType::GridPattern:
-        {
-            auto *b = static_cast<QCanvasGridPattern *>(brush);
-            brushes << new QCanvasGridPattern(*b);
-            break;
-        }
-        case QCanvasBrush::BrushType::Custom:
-        {
-            auto *b = static_cast<QCanvasCustomBrush *>(brush);
-            brushes << new QCanvasCustomBrush(*b);
-            break;
-        }
-        case QCanvasBrush::BrushType::Invalid:
-        default:
-            break;
-        }
-    }
+    brushes = newBrushes;
 }
 
-void QCanvas2DItemRenderer::setPaintStyle(QCanvasBrush *brush, bool fill)
+void QCanvas2DItemRenderer::setPaintStyle(const QCanvasBrush &brush, bool fill)
 {
-    if (!brush)
+    if (brush.type() == QCanvasBrush::BrushType::Invalid)
         return;
 
-    switch (brush->type()) {
-    case QCanvasBrush::BrushType::LinearGradient:
-    {
-        QCanvasLinearGradient *b = static_cast<QCanvasLinearGradient *>(brush);
-        if (fill)
-            m_painter->setFillStyle(*b);
-        else
-            m_painter->setStrokeStyle(*b);
-        break;
-    }
-    case QCanvasBrush::BrushType::RadialGradient:
-    {
-        QCanvasRadialGradient *b = static_cast<QCanvasRadialGradient *>(brush);
-        if (fill)
-            m_painter->setFillStyle(*b);
-        else
-            m_painter->setStrokeStyle(*b);
-        break;
-    }
-    case QCanvasBrush::BrushType::ConicalGradient:
-    {
-        QCanvasConicalGradient *b = static_cast<QCanvasConicalGradient *>(brush);
-        if (fill)
-            m_painter->setFillStyle(*b);
-        else
-            m_painter->setStrokeStyle(*b);
-        break;
-    }
-    case QCanvasBrush::BrushType::BoxGradient:
-    {
-        QCanvasBoxGradient *b = static_cast<QCanvasBoxGradient *>(brush);
-        if (fill)
-            m_painter->setFillStyle(*b);
-        else
-            m_painter->setStrokeStyle(*b);
-        break;
-    }
-    case QCanvasBrush::BrushType::BoxShadow:
-    {
-        QCanvasBoxShadow *b = static_cast<QCanvasBoxShadow *>(brush);
-        if (fill)
-            m_painter->setFillStyle(*b);
-        else
-            m_painter->setStrokeStyle(*b);
-        break;
-    }
-    case QCanvasBrush::BrushType::GridPattern:
-    {
-        QCanvasGridPattern *b = static_cast<QCanvasGridPattern *>(brush);
-        if (fill)
-            m_painter->setFillStyle(*b);
-        else
-            m_painter->setStrokeStyle(*b);
-        break;
-    }
-    case QCanvasBrush::BrushType::ImagePattern:
-    {
+    if (brush.type() == QCanvasBrush::BrushType::ImagePattern) {
         if (images.size() <= imageIdx) {
             qDebug() << "QCanvasBrush::BrushType::ImagePattern - No image available!";
-            break;
+            return;
         }
-        auto image = takeImage();
+        QImage image = takeImage();
         QCanvasPainter::ImageFlags imageFlags;
         bool repeatX = takeBool();
         bool repeatY = takeBool();
@@ -660,33 +541,23 @@ void QCanvas2DItemRenderer::setPaintStyle(QCanvasBrush *brush, bool fill)
         auto i = image.cacheKey();
         QString filename = QString(QStringLiteral("pattern_%1")).arg(QString::number(i));
         auto qcImage = getCachedImage(&image, filename, imageFlags);
-
-        QCanvasImagePattern *b = static_cast<QCanvasImagePattern *>(brush);
-        b->setImage(qcImage);
-        b->setImageSize(image.width(), image.height());
+        auto b = brush.as<QCanvasImagePattern>();
+        b.setImage(qcImage);
+        b.setImageSize(image.width(), image.height());
         // TODO: Consider extending canvas API to support these.
-        //b->setRotation(45);
-        //b->setStartPosition(10, 20);
+        //b.setRotation(45);
+        //b.setStartPosition(10, 20);
+        if (fill)
+            m_painter->setFillStyle(b);
+        else
+            m_painter->setStrokeStyle(b);
+        return;
+    }
 
-        if (fill)
-            m_painter->setFillStyle(*b);
-        else
-            m_painter->setStrokeStyle(*b);
-        break;
-    }
-    case QCanvasBrush::BrushType::Custom:
-    {
-        QCanvasCustomBrush *b = static_cast<QCanvasCustomBrush *>(brush);
-        if (fill)
-            m_painter->setFillStyle(*b);
-        else
-            m_painter->setStrokeStyle(*b);
-        break;
-    }
-    case QCanvasBrush::BrushType::Invalid:
-    default:
-        break;
-    }
+    if (fill)
+        m_painter->setFillStyle(brush);
+    else
+        m_painter->setStrokeStyle(brush);
 }
 
 QCanvasImage QCanvas2DItemRenderer::getCachedImage(QImage *image, const QString &filename, QCanvasPainter::ImageFlags flags)

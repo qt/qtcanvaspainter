@@ -56,11 +56,25 @@ public:
     Q_CANVASPAINTER_EXPORT BrushType type() const;
     Q_CANVASPAINTER_EXPORT void detach();
 
+    template<typename T>
+    T as() const
+    {
+        static_assert(!sizeof(T), "QCanvasBrush::as<T>() is not supported for this brush type");
+        return T{};
+    }
+
 protected:
     Q_CANVASPAINTER_EXPORT explicit QCanvasBrush(QCanvasBrushPrivate *priv);
     QExplicitlySharedDataPointer<QCanvasBrushPrivate> baseData;
 private:
+    friend bool comparesEqual(const QCanvasBrush &lhs, const QCanvasBrush &rhs) noexcept
+    {
+        return lhs.baseData.data() == rhs.baseData.data();
+    }
+    Q_DECLARE_EQUALITY_COMPARABLE(QCanvasBrush)
+
     QCPaint createPaint(QCanvasPainter *painter) const;
+    friend class QCanvasBrushPrivate;
     friend class QCanvasPainter;
     friend class QCanvasPainterPrivate;
 #ifndef QT_NO_DEBUG_STREAM

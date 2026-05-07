@@ -18,16 +18,23 @@ class QCanvasCustomBrushPrivate;
 class QCanvasCustomBrush;
 class QShader;
 
+QT_DECLARE_QESDP_SPECIALIZATION_DTOR(QCanvasCustomBrushPrivate)
+
 // TODO: Should this have QDataStream support?
 
-class QCanvasCustomBrush : public QCanvasBrush
+class QCanvasCustomBrush
 {
 public:
     Q_CANVASPAINTER_EXPORT QCanvasCustomBrush();
     Q_CANVASPAINTER_EXPORT QCanvasCustomBrush(const QString &fragmentShader,
                                               const QString &vertexShader = {});
+    Q_CANVASPAINTER_EXPORT QCanvasCustomBrush(const QCanvasCustomBrush &) noexcept;
+    Q_CANVASPAINTER_EXPORT QCanvasCustomBrush &operator=(const QCanvasCustomBrush &) noexcept;
+    QCanvasCustomBrush(QCanvasCustomBrush &&) = default;
+    QT_MOVE_ASSIGNMENT_OPERATOR_IMPL_VIA_PURE_SWAP(QCanvasCustomBrush)
     Q_CANVASPAINTER_EXPORT ~QCanvasCustomBrush();
 
+    Q_CANVASPAINTER_EXPORT operator QCanvasBrush() const;
     Q_CANVASPAINTER_EXPORT operator QVariant() const;
 
     Q_CANVASPAINTER_EXPORT void setFragmentShader(const QString &fragmentShader);
@@ -42,12 +49,16 @@ public:
     Q_CANVASPAINTER_EXPORT void setData2(const QVector4D &data);
     Q_CANVASPAINTER_EXPORT void setData3(const QVector4D &data);
     Q_CANVASPAINTER_EXPORT void setData4(const QVector4D &data);
+    void swap(QCanvasCustomBrush &other) noexcept { d.swap(other.d); }
 
 private:
     friend Q_CANVASPAINTER_EXPORT bool comparesEqual(const QCanvasCustomBrush &lhs, const QCanvasCustomBrush &rhs) noexcept;
     Q_DECLARE_EQUALITY_COMPARABLE(QCanvasCustomBrush)
 
+    Q_CANVASPAINTER_EXPORT void detach();
+    explicit QCanvasCustomBrush(QCanvasCustomBrushPrivate *p);
     friend class QCanvasCustomBrushPrivate;
+    QExplicitlySharedDataPointer<QCanvasCustomBrushPrivate> d;
 #ifndef QT_NO_DEBUG_STREAM
     friend Q_CANVASPAINTER_EXPORT QDebug operator<<(QDebug, const QCanvasCustomBrush &);
 #endif
@@ -56,6 +67,8 @@ private:
 #ifndef QT_NO_DEBUG_STREAM
 Q_CANVASPAINTER_EXPORT QDebug operator<<(QDebug, const QCanvasCustomBrush &);
 #endif
+
+template<> Q_CANVASPAINTER_EXPORT QCanvasCustomBrush QCanvasBrush::as<QCanvasCustomBrush>() const;
 
 QT_END_NAMESPACE
 

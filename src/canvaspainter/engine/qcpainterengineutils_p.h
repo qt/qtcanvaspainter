@@ -27,6 +27,7 @@
 #include <QMetaEnum>
 #include <QVariantMap>
 #include "qcanvaspainter.h"
+#include "qcanvasbrush.h"
 #ifndef QCPAINTER_DISABLE_TEXT_SUPPORT
 #include "engine/qcrhidistancefieldglyphcache_p.h"
 #endif
@@ -137,8 +138,8 @@ struct QCState {
     QCClip clip;
     QCPaint fill;
     QCPaint stroke;
-    QCanvasCustomBrush *customFill = nullptr;
-    QCanvasCustomBrush *customStroke = nullptr;
+    QCanvasBrush customFill;
+    QCanvasBrush customStroke;
     float strokeWidth;
     float antialias;
     float miterLimit;

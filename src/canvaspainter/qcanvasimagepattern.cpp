@@ -58,8 +58,19 @@ QT_BEGIN_NAMESPACE
     \sa setImage()
 */
 
+QCanvasImagePattern::QCanvasImagePattern(QCanvasImagePatternPrivate *p)
+    : d(p)
+{
+}
+
+void QCanvasImagePattern::detach()
+{
+    if (d)
+        d.detach();
+}
+
 QCanvasImagePattern::QCanvasImagePattern()
-    : QCanvasBrush(new QCanvasImagePatternPrivate)
+    : d(new QCanvasImagePatternPrivate)
 {
 }
 
@@ -72,9 +83,8 @@ QCanvasImagePattern::QCanvasImagePattern()
 */
 
 QCanvasImagePattern::QCanvasImagePattern(const QCanvasImage &image)
-    : QCanvasBrush(new QCanvasImagePatternPrivate)
+    : d(new QCanvasImagePatternPrivate)
 {
-    auto *d = QCanvasImagePatternPrivate::get(this);
     d->image = image;
     d->width = d->image.width();
     d->height = d->image.height();
@@ -89,10 +99,8 @@ QCanvasImagePattern::QCanvasImagePattern(const QCanvasImage &image)
 */
 
 QCanvasImagePattern::QCanvasImagePattern(const QCanvasImage &image, const QRectF &rect, float angle, const QColor &tintColor)
-    : QCanvasBrush(new QCanvasImagePatternPrivate)
+    : d(new QCanvasImagePatternPrivate)
 {
-    auto *d = QCanvasImagePatternPrivate::get(this);
-
     d->image = image;
     d->x = float(rect.x());
     d->y = float(rect.y());
@@ -111,10 +119,8 @@ QCanvasImagePattern::QCanvasImagePattern(const QCanvasImage &image, const QRectF
 */
 
 QCanvasImagePattern::QCanvasImagePattern(const QCanvasImage &image, float x, float y, float width, float height, float angle, const QColor &tintColor)
-    : QCanvasBrush(new QCanvasImagePatternPrivate)
+    : d(new QCanvasImagePatternPrivate)
 {
-    auto *d = QCanvasImagePatternPrivate::get(this);
-
     d->image = image;
     d->x = x;
     d->y = y;
@@ -128,9 +134,23 @@ QCanvasImagePattern::QCanvasImagePattern(const QCanvasImage &image, float x, flo
     Destroys the image pattern.
 */
 
+QCanvasImagePattern::QCanvasImagePattern(const QCanvasImagePattern &) noexcept = default;
+QCanvasImagePattern &QCanvasImagePattern::operator=(const QCanvasImagePattern &) noexcept = default;
 QCanvasImagePattern::~QCanvasImagePattern() = default;
 
 QT_DEFINE_QESDP_SPECIALIZATION_DTOR(QCanvasImagePatternPrivate)
+
+QCanvasImagePattern::operator QCanvasBrush() const
+{
+    return QCanvasBrushPrivate::create(d.get());
+}
+
+template<> QCanvasImagePattern QCanvasBrush::as<QCanvasImagePattern>() const
+{
+    Q_ASSERT(type() == BrushType::ImagePattern);
+    return QCanvasImagePatternPrivate::create(
+        static_cast<QCanvasImagePatternPrivate *>(QCanvasBrushPrivate::get(*this)));
+}
 
 /*!
    Returns the image pattern as a QVariant.
@@ -255,7 +275,6 @@ QDataStream &operator>>(QDataStream &s, QCanvasImagePattern &p)
 
 QPointF QCanvasImagePattern::startPosition() const
 {
-    auto *d = QCanvasImagePatternPrivate::get(this);
     return QPointF(d->x, d->y);
 }
 
@@ -269,7 +288,6 @@ QPointF QCanvasImagePattern::startPosition() const
 void QCanvasImagePattern::setStartPosition(float x, float y)
 {
     detach();
-    auto *d = QCanvasImagePatternPrivate::get(this);
     d->x = x;
     d->y = y;
     d->changed = true;
@@ -292,7 +310,6 @@ void QCanvasImagePattern::setStartPosition(float x, float y)
 
 QSizeF QCanvasImagePattern::imageSize() const
 {
-    auto *d = QCanvasImagePatternPrivate::get(this);
     return QSizeF(d->width,
                   d->height);
 }
@@ -304,7 +321,6 @@ QSizeF QCanvasImagePattern::imageSize() const
 void QCanvasImagePattern::setImageSize(float width, float height)
 {
     detach();
-    auto *d = QCanvasImagePatternPrivate::get(this);
     d->width = width;
     d->height = height;
     d->changed = true;
@@ -323,7 +339,6 @@ void QCanvasImagePattern::setImageSize(float width, float height)
 */
 QCanvasImage QCanvasImagePattern::image() const
 {
-    auto *d = QCanvasImagePatternPrivate::get(this);
     return d->image;
 }
 
@@ -336,7 +351,6 @@ QCanvasImage QCanvasImagePattern::image() const
 void QCanvasImagePattern::setImage(const QCanvasImage &image)
 {
     detach();
-    auto *d = QCanvasImagePatternPrivate::get(this);
     d->image = image;
     d->changed = true;
 }
@@ -347,7 +361,6 @@ void QCanvasImagePattern::setImage(const QCanvasImage &image)
 
 float QCanvasImagePattern::rotation() const
 {
-    auto *d = QCanvasImagePatternPrivate::get(this);
     return d->angle;
 }
 
@@ -360,7 +373,6 @@ float QCanvasImagePattern::rotation() const
 void QCanvasImagePattern::setRotation(float rotation)
 {
     detach();
-    auto *d = QCanvasImagePatternPrivate::get(this);
     d->angle = rotation;
     d->changed = true;
 }
@@ -371,7 +383,6 @@ void QCanvasImagePattern::setRotation(float rotation)
 
 QColor QCanvasImagePattern::tintColor() const
 {
-    auto *d = QCanvasImagePatternPrivate::get(this);
     return d->tintColor;
 }
 
@@ -386,7 +397,6 @@ QColor QCanvasImagePattern::tintColor() const
 void QCanvasImagePattern::setTintColor(const QColor &color)
 {
     detach();
-    auto *d = QCanvasImagePatternPrivate::get(this);
     d->tintColor = color;
     d->changed = true;
 }

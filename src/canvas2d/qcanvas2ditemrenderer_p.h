@@ -43,10 +43,10 @@ Q_SIGNALS:
 private:
     void strokePath(const QPainterPath &path);
     void fillPath(const QPainterPath &path);
-    void setPaintStyle(QCanvasBrush *brush, bool fill);
+    void setPaintStyle(const QCanvasBrush &brush, bool fill);
     QCanvasImage getCachedImage(QImage *image, const QString &filename, QCanvasPainter::ImageFlags flags);
     void drawImage(const QImage &image, const QString &filename, const QRectF &sr, const QRectF &dr);
-    void copyBrushes(QList<QCanvasBrush *> &newBrushes);
+    void copyBrushes(const QList<QCanvasBrush> &newBrushes);
 
     QCanvasPainter *m_painter = nullptr;
     QCanvas2DContext::State m_state;
@@ -73,7 +73,7 @@ private:
     inline bool takeBool() {return bools.at(boolIdx++); }
     inline qreal takeReal() { return reals.at(realIdx++); }
     inline QColor takeColor() { return colors.at(colorIdx++); }
-    inline QCanvasBrush *takeBrush() { return brushes.at(brushIdx++); }
+    inline const QCanvasBrush &takeBrush() { return brushes.at(brushIdx++); }
     inline QString takeString() { return strings.at(stringIdx++); }
     inline const QFont& takeFont() { return fonts.at(fontIdx++); }
 
@@ -103,7 +103,7 @@ private:
     QList<QRectF> rects;
     QList<QColor> colors;
     QList<QTransform> matrixes;
-    QList<QCanvasBrush *> brushes;
+    QList<QCanvasBrush> brushes;
     QList<QPainterPath> paths;
     QList<QCanvasPath> canvasPaths;
     QList<QImage> images;

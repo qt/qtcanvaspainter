@@ -34,9 +34,10 @@ public:
     QCPaint createPaint(QCanvasPainter *painter) const override;
 
     static QCanvasGridPatternPrivate *get(QCanvasGridPattern *brush)
-    { return static_cast<QCanvasGridPatternPrivate*>(brush->baseData.get()); }
+    { return brush->d.data(); }
     static const QCanvasGridPatternPrivate *get(const QCanvasGridPattern *brush)
-    { return static_cast<QCanvasGridPatternPrivate*>(brush->baseData.get()); }
+    { return brush->d.data(); }
+    static QCanvasGridPattern create(QCanvasGridPatternPrivate *p) { return QCanvasGridPattern(p); }
 
     void createGridPattern() const;
 

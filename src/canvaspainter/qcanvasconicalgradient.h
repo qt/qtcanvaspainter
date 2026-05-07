@@ -18,6 +18,10 @@ public:
     Q_CANVASPAINTER_EXPORT QCanvasConicalGradient();
     Q_CANVASPAINTER_EXPORT QCanvasConicalGradient(float centerX, float centerY, float startAngle);
     Q_CANVASPAINTER_EXPORT QCanvasConicalGradient(QPointF center, float startAngle);
+    QCanvasConicalGradient(const QCanvasConicalGradient &) = default;
+    QCanvasConicalGradient &operator=(const QCanvasConicalGradient &) = default;
+    QCanvasConicalGradient(QCanvasConicalGradient &&) = default;
+    QCanvasConicalGradient &operator=(QCanvasConicalGradient &&) = default;
     Q_CANVASPAINTER_EXPORT ~QCanvasConicalGradient();
 
     Q_CANVASPAINTER_EXPORT QPointF centerPosition() const;
@@ -25,12 +29,15 @@ public:
     inline void setCenterPosition(QPointF center);
     Q_CANVASPAINTER_EXPORT float angle() const;
     Q_CANVASPAINTER_EXPORT void setAngle(float angle);
+
 };
 
 inline void QCanvasConicalGradient::setCenterPosition(QPointF center)
 {
     setCenterPosition(float(center.x()), float(center.y()));
 }
+
+template<> Q_CANVASPAINTER_EXPORT QCanvasConicalGradient QCanvasBrush::as<QCanvasConicalGradient>() const;
 
 QT_END_NAMESPACE
 
