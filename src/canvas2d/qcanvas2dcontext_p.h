@@ -118,10 +118,6 @@ public:
         State()
             : strokeColor(QColor(Qt::black))
             , fillColor(QColor(Qt::black))
-            , fillPatternRepeatX(false)
-            , fillPatternRepeatY(false)
-            , strokePatternRepeatX(false)
-            , strokePatternRepeatY(false)
             , clip(false)
             , fillRule(Qt::WindingFill)
             , globalAlpha(1.0)
@@ -147,10 +143,6 @@ public:
         QTransform transform;
         QColor strokeColor;
         QColor fillColor;
-        bool fillPatternRepeatX:1;
-        bool fillPatternRepeatY:1;
-        bool strokePatternRepeatX:1;
-        bool strokePatternRepeatY:1;
         bool clip:1;
         Qt::FillRule fillRule;
         qreal globalAlpha;

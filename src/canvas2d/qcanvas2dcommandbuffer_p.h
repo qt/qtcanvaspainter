@@ -60,11 +60,10 @@ public:
         ints << int(co);
     }
 
-    inline void setStrokeStyle(QCanvasBrush *style, bool repeatX = false, bool repeatY = false)
+    inline void setStrokeStyle(QCanvasBrush *style)
     {
         commands << QCanvas2DContext::StrokeStyle;
         brushes << copyBrush(style);
-        bools << repeatX << repeatY;
     }
 
     inline void setStrokeColor(const QColor &color)
@@ -80,9 +79,10 @@ public:
         rects << sr << dr;
     }
 
-    inline void addImage(const QImage &image)
+    inline void addImage(const QImage &image, bool repeatX = false, bool repeatY = false)
     {
         images << image;
+        bools << repeatX << repeatY;
     }
 
     inline void drawPixmap(QQmlRefPointer<QCanvas2DPixmap> pixmap, const QString filename, const QRectF &sr, const QRectF &dr)

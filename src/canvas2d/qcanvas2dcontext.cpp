@@ -94,8 +94,6 @@ public:
     ~QCanvas2DContextEngineData();
 
     QV4::PersistentValue contextPrototype;
-    QV4::PersistentValue gradientPrototype;
-    QV4::PersistentValue pathPrototype;
 };
 
 V4_DEFINE_EXTENSION(QCanvas2DContextEngineData, engineData)
@@ -131,49 +129,6 @@ private:
 
 struct QCanvasJSContext2DPrototype : Object {
     void init() { Object::init(); }
-};
-
-struct QCanvas2DGradientObject : Object {
-    void init()
-    {
-        brush = nullptr;
-        patternRepeatX = false;
-        patternRepeatY = false;
-    }
-    void destroy() {
-        delete brush;
-        Object::destroy();
-    }
-
-    QCanvasBrush *brush;
-    bool patternRepeatX:1;
-    bool patternRepeatY:1;
-};
-
-struct QCanvas2DShadowObject : Object {
-    void init()
-    {
-        brush = nullptr;
-    }
-    void destroy() {
-        delete brush;
-        Object::destroy();
-    }
-
-    QCanvasBrush *brush;
-};
-
-struct QCanvas2DGridObject : Object {
-    void init()
-    {
-        brush = nullptr;
-    }
-    void destroy() {
-        delete brush;
-        Object::destroy();
-    }
-
-    QCanvasBrush *brush;
 };
 
 } // Heap
@@ -370,33 +325,6 @@ public:
 };
 
 DEFINE_OBJECT_VTABLE(QCanvasJSContext2DPrototype);
-
-
-struct QCanvas2DGradientObject : public QV4::Object
-{
-    V4_OBJECT2(QCanvas2DGradientObject, QV4::Object)
-    V4_NEEDS_DESTROY
-
-    static QV4::ReturnedValue gradient_proto_addColorStop(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc);
-};
-
-DEFINE_OBJECT_VTABLE(QCanvas2DGradientObject);
-
-struct QCanvas2DShadowObject : public QV4::Object
-{
-    V4_OBJECT2(QCanvas2DShadowObject, QV4::Object)
-    V4_NEEDS_DESTROY
-};
-
-DEFINE_OBJECT_VTABLE(QCanvas2DShadowObject);
-
-struct QCanvas2DGridObject : public QV4::Object
-{
-    V4_OBJECT2(QCanvas2DGridObject, QV4::Object)
-    V4_NEEDS_DESTROY
-};
-
-DEFINE_OBJECT_VTABLE(QCanvas2DGridObject);
 
 static QCanvasPainter::CompositeOperation qcanvas_composite_mode_from_string(const QString &compositeOperator)
 {
@@ -1454,7 +1382,7 @@ QV4::ReturnedValue QCanvasJSContext2D::method_set_globalCompositeOperation(const
 /*!
     \qmlproperty variant Canvas2DContext::fillStyle
      Holds the current style used for filling shapes.
-     The style can be either a string containing a CSS color, a Canvas2DGradient or CanvasPattern object. Invalid values are ignored.
+     The style can be either a string containing a CSS color, QML color, or canvas brush object. Invalid values are ignored.
      This property accepts several color syntaxes:
      \list
      \li 'rgb(red, green, blue)' - for example: 'rgb(255, 100, 55)' or 'rgb(100%, 70%, 30%)'
@@ -1509,23 +1437,10 @@ QV4::ReturnedValue QCanvasJSContext2D::method_set_fillStyle(const QV4::FunctionO
             r->d()->context()->buffer()->setFillColor(color);
             r->d()->context()->m_fillStyle.set(scope.engine, value);
         } else {
-            QV4::Scoped<QCanvas2DGradientObject> style(scope, value->as<QCanvas2DGradientObject>());
-            if (style && style->d()->brush != r->d()->context()->state.fillStyle) {
-                // Gradient
-                r->d()->context()->state.fillStyle = style->d()->brush;
-                r->d()->context()->buffer()->setFillStyle(style->d()->brush, style->d()->patternRepeatX, style->d()->patternRepeatY);
-                r->d()->context()->m_fillStyle.set(scope.engine, value);
-                r->d()->context()->state.fillPatternRepeatX = style->d()->patternRepeatX;
-                r->d()->context()->state.fillPatternRepeatY = style->d()->patternRepeatY;
-            } else {
-                QV4::Scoped<QCanvas2DGridObject> style(scope, value->as<QCanvas2DGridObject>());
-                if (style && style->d()->brush != r->d()->context()->state.fillStyle) {
-                    // Grid pattern
-                    r->d()->context()->state.fillStyle = style->d()->brush;
-                    r->d()->context()->buffer()->setFillStyle(style->d()->brush);
-                    r->d()->context()->m_fillStyle.set(scope.engine, value);
-                }
-            }
+            QCanvasBrush g = QV4::ExecutionEngine::toVariant(value, QMetaType::fromType<QCanvasBrush>()).value<QCanvasBrush>();
+            r->d()->context()->state.fillStyle = &g;
+            r->d()->context()->buffer()->setFillStyle(&g);
+            r->d()->context()->m_fillStyle.set(scope.engine, value);
         }
     } else if (value->isString()) {
         QColor color = QCanvas2DUtils::qColorFromString(value);
@@ -1573,7 +1488,7 @@ QV4::ReturnedValue QCanvasJSContext2D::method_set_fillRule(const QV4::FunctionOb
 /*!
     \qmlproperty variant Canvas2DContext::strokeStyle
      Holds the current color or style to use for the lines around shapes,
-     The style can be either a string containing a CSS color, a Canvas2DGradient or CanvasPattern object.
+     The style can be either a string containing a CSS color, QML color, or canvas brush object.
      Invalid values are ignored.
 
      The default value is  '#000000'.
@@ -1619,30 +1534,10 @@ QV4::ReturnedValue QCanvasJSContext2D::method_set_strokeStyle(const QV4::Functio
             r->d()->context()->buffer()->setStrokeColor(color);
             r->d()->context()->m_strokeStyle.set(scope.engine, value);
         } else {
-            QV4::Scoped<QCanvas2DGradientObject> style(scope, value->as<QCanvas2DGradientObject>());
-            if (style && style->d()->brush != r->d()->context()->state.strokeStyle) {
-                // Gradient
-                r->d()->context()->state.strokeStyle = style->d()->brush;
-                r->d()->context()->buffer()->setStrokeStyle(style->d()->brush, style->d()->patternRepeatX, style->d()->patternRepeatY);
-                r->d()->context()->m_strokeStyle.set(scope.engine, value);
-                r->d()->context()->state.strokePatternRepeatX = style->d()->patternRepeatX;
-                r->d()->context()->state.strokePatternRepeatY = style->d()->patternRepeatY;
-            } else {
-                QV4::Scoped<QCanvas2DGridObject> style(scope, value->as<QCanvas2DGridObject>());
-                if (style && style->d()->brush != r->d()->context()->state.strokeStyle) {
-                    // Grid pattern
-                    r->d()->context()->state.strokeStyle = style->d()->brush;
-                    r->d()->context()->buffer()->setStrokeStyle(style->d()->brush);
-                    r->d()->context()->m_strokeStyle.set(scope.engine, value);
-                }
-                if (!style && !r->d()->context()->state.strokeStyle) {
-                    // If there is no style object, then ensure that the strokeStyle is at least
-                    // QColor in case it was previously set
-                    r->d()->context()->state.strokeColor = color;
-                    r->d()->context()->buffer()->setStrokeColor(color);
-                    r->d()->context()->m_strokeStyle.set(scope.engine, value);
-                }
-            }
+            QCanvasBrush g = QV4::ExecutionEngine::toVariant(value, QMetaType::fromType<QCanvasBrush>()).value<QCanvasBrush>();
+            r->d()->context()->state.strokeStyle = &g;
+            r->d()->context()->buffer()->setStrokeStyle(&g);
+            r->d()->context()->m_strokeStyle.set(scope.engine, value);
         }
     } else if (value->isString()) {
         QColor color = QCanvas2DUtils::qColorFromString(value);
@@ -1657,14 +1552,14 @@ QV4::ReturnedValue QCanvasJSContext2D::method_set_strokeStyle(const QV4::Functio
 
 /*!
   \qmlmethod object Canvas2DContext::createLinearGradient(real x0, real y0, real x1, real y1)
-   Returns a Canvas2DGradient object that represents a linear gradient that transitions the color along a line between
+   Returns a \l{lineargradient2d} object that represents a linear gradient that transitions the color along a line between
    the start point (\a x0, \a y0) and the end point (\a x1, \a y1).
 
    A gradient is a smooth transition between colors. There are two types of gradients: linear and radial.
    Gradients must have two or more color stops, representing color shifts positioned from 0 to 1 between
    to the gradient's starting and end points or circles.
 
-    \sa Canvas2DGradient::addColorStop()
+    \sa lineargradient2d::addColorStop()
     \sa createRadialGradient()
     \sa createConicalGradient()
     \sa createPattern()
@@ -1675,8 +1570,6 @@ QV4::ReturnedValue QCanvasJSContext2D::method_set_strokeStyle(const QV4::Functio
 QV4::ReturnedValue QCanvasJSContext2DPrototype::method_createLinearGradient(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc)
 {
     QV4::Scope scope(b);
-    QV4::Scoped<QCanvasJSContext2D> r(scope, thisObject->as<QCanvasJSContext2D>());
-    CHECK_CONTEXT(r)
 
     if (argc >= 4) {
         qreal x0 = argv[0].toNumber();
@@ -1690,13 +1583,9 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_createLinearGradient(cons
             || !qt_is_finite(y1)) {
             THROW_DOM(DOMEXCEPTION_NOT_SUPPORTED_ERR, "createLinearGradient(): Incorrect arguments")
         }
-        QCanvas2DContextEngineData *ed = engineData(scope.engine);
 
-        QV4::Scoped<QCanvas2DGradientObject> gradient(scope, scope.engine->memoryManager->allocate<QCanvas2DGradientObject>());
-        QV4::ScopedObject p(scope, ed->gradientPrototype.value());
-        gradient->setPrototypeOf(p);
-        gradient->d()->brush = new QCanvasLinearGradient(x0, y0, x1, y1);
-        RETURN_RESULT(*gradient);
+        QCanvasLinearGradient lg(x0, y0, x1, y1);
+        RETURN_RESULT(scope.engine->fromVariant(QVariant::fromValue(lg)));
     }
 
     RETURN_RESULT(*thisObject);
@@ -1705,12 +1594,12 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_createLinearGradient(cons
 /*!
     \qmlmethod object Canvas2DContext::createRadialGradient(real x0, real y0, real r0, real x1, real y1, real r1)
 
-    Returns a Canvas2DGradient object that represents a radial gradient that
+    Returns a \l{radialgradient2d} object that represents a radial gradient that
     paints along the cone given by the start circle with origin (\a x0, \a y0)
     and radius \a r0, and the end circle with origin (\a x1, \a y1) and radius
     \a r1.
 
-    \sa Canvas2DGradient::addColorStop()
+    \sa radialgradient2d::addColorStop()
     \sa createLinearGradient()
     \sa createConicalGradient()
     \sa createPattern()
@@ -1721,8 +1610,6 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_createLinearGradient(cons
 QV4::ReturnedValue QCanvasJSContext2DPrototype::method_createRadialGradient(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc)
 {
     QV4::Scope scope(b);
-    QV4::Scoped<QCanvasJSContext2D> r(scope, thisObject->as<QCanvasJSContext2D>());
-    CHECK_CONTEXT(r)
 
     if (argc >= 3) {
         qreal icx, icy, iRad, ocx, ocy, oRad;
@@ -1759,18 +1646,12 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_createRadialGradient(cons
         if (iRad < 0 || oRad < 0)
             THROW_DOM(DOMEXCEPTION_INDEX_SIZE_ERR, "createRadialGradient(): Incorrect arguments")
 
-        QCanvas2DContextEngineData *ed = engineData(scope.engine);
-
-        QV4::Scoped<QCanvas2DGradientObject> gradient(scope, scope.engine->memoryManager->allocate<QCanvas2DGradientObject>());
-        QV4::ScopedObject p(scope, ed->gradientPrototype.value());
-        gradient->setPrototypeOf(p);
-
+        QCanvasRadialGradient rg;
         if (extended)
-            gradient->d()->brush = new QCanvasRadialGradient(icx, icy, iRad, ocx, ocy, oRad);
+            rg = QCanvasRadialGradient(icx, icy, iRad, ocx, ocy, oRad);
         else
-            gradient->d()->brush = new QCanvasRadialGradient(icx, icy, oRad, iRad);
-
-        RETURN_RESULT(*gradient);
+            rg = QCanvasRadialGradient(icx, icy, oRad, iRad);
+        RETURN_RESULT(scope.engine->fromVariant(QVariant::fromValue(rg)));
     }
 
     RETURN_RESULT(*thisObject);
@@ -1779,11 +1660,11 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_createRadialGradient(cons
 /*!
   \qmlmethod object Canvas2DContext::createConicalGradient(real x, real y, real angle)
 
-   Returns a Canvas2DGradient object that represents a conical gradient that
+   Returns a \l{conicalgradient2d} object that represents a conical gradient that
    interpolates colors counter-clockwise around a center point (\a x, \a y)
    with a start angle \a angle in units of radians.
 
-    \sa Canvas2DGradient::addColorStop()
+    \sa conicalgradient2d::addColorStop()
     \sa createLinearGradient()
     \sa createRadialGradient()
     \sa createPattern()
@@ -1794,8 +1675,6 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_createRadialGradient(cons
 QV4::ReturnedValue QCanvasJSContext2DPrototype::method_createConicalGradient(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc)
 {
     QV4::Scope scope(b);
-    QV4::Scoped<QCanvasJSContext2D> r(scope, thisObject->as<QCanvasJSContext2D>());
-    CHECK_CONTEXT(r)
 
     if (argc >= 3) {
         qreal x = argv[0].toNumber();
@@ -1809,13 +1688,8 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_createConicalGradient(con
             THROW_DOM(DOMEXCEPTION_INDEX_SIZE_ERR, "createConicalGradient(): Incorrect arguments");
         }
 
-        QCanvas2DContextEngineData *ed = engineData(scope.engine);
-
-        QV4::Scoped<QCanvas2DGradientObject> gradient(scope, scope.engine->memoryManager->allocate<QCanvas2DGradientObject>());
-        QV4::ScopedObject p(scope, ed->gradientPrototype.value());
-        gradient->setPrototypeOf(p);
-        gradient->d()->brush = new QCanvasConicalGradient(x, y, angle);
-        RETURN_RESULT(*gradient);
+        QCanvasConicalGradient cg(x, y, angle);
+        RETURN_RESULT(scope.engine->fromVariant(QVariant::fromValue(cg)));
     }
 
     RETURN_RESULT(*thisObject);
@@ -1836,11 +1710,11 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_createConicGradient(const
 /*!
     \qmlmethod object Canvas2DContext::createBoxGradient(real x, real y, real width, real height, real feather, real radius)
 
-    Returns a Canvas2DGradient object that represents a box gradient that
+    Returns a \l{boxgradient2d} object that represents a box gradient that
     covers rectangle area (\a x, \a y, \a width, \a height) with feather
     (smoothing) \a feather and corner radius \a radius.
 
-    \sa Canvas2DGradient::addColorStop()
+    \sa boxgradient2d::addColorStop()
     \sa fillStyle
     \sa strokeStyle
   */
@@ -1848,8 +1722,6 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_createConicGradient(const
 QV4::ReturnedValue QCanvasJSContext2DPrototype::method_createBoxGradient(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc)
 {
     QV4::Scope scope(b);
-    QV4::Scoped<QCanvasJSContext2D> r(scope, thisObject->as<QCanvasJSContext2D>());
-    CHECK_CONTEXT(r)
 
     if (argc >= 5) {
         qreal x = argv[0].toNumber();
@@ -1870,14 +1742,8 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_createBoxGradient(const Q
             THROW_DOM(DOMEXCEPTION_NOT_SUPPORTED_ERR, "createBoxGradient(): Incorrect arguments")
         }
 
-        QCanvas2DContextEngineData *ed = engineData(scope.engine);
-
-        QV4::Scoped<QCanvas2DGradientObject> gradient(scope, scope.engine->memoryManager->allocate<QCanvas2DGradientObject>());
-        QV4::ScopedObject p(scope, ed->gradientPrototype.value());
-        gradient->setPrototypeOf(p);
-
-        gradient->d()->brush = new QCanvasBoxGradient(x, y, w, h, feather, radius);
-        RETURN_RESULT(*gradient);
+        QCanvasBoxGradient bg(x, y, w, h, feather, radius);
+        RETURN_RESULT(scope.engine->fromVariant(QVariant::fromValue(bg)));
     }
 
     RETURN_RESULT(*thisObject);
@@ -1887,7 +1753,7 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_createBoxGradient(const Q
     \qmlmethod object Canvas2DContext::createBoxShadow(real x, real y, real width, real height,
                                                        real blur, string color, real radius)
 
-    Returns a Canvas2DShadow object with color \a color that represents
+    Returns a \l{boxshadow2d} object with color \a color that represents
     a box shadow that covers rectangle area (\a x, \a y, \a width, \a height)
     with blur \a blur and corner radius \a radius.
 
@@ -1900,7 +1766,7 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_createBoxGradient(const Q
                                                        real radiusTopLeft, real radiusTopRight,
                                                        real radiusBottomRight, real radiusBottomLeft)
 
-    Returns a Canvas2DShadow object with color \a color that represents
+    Returns a \l{boxshadow2d} object with color \a color that represents
     a box shadow that covers rectangle area (\a x, \a y, \a width, \a height)
     with blur \a blur and corner radius (\a radiusTopLeft, \a radiusTopRight,
     \a radiusBottomRight, \a radiusBottomLeft).
@@ -1911,8 +1777,6 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_createBoxGradient(const Q
 QV4::ReturnedValue QCanvasJSContext2DPrototype::method_createBoxShadow(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc)
 {
     QV4::Scope scope(b);
-    QV4::Scoped<QCanvasJSContext2D> r(scope, thisObject->as<QCanvasJSContext2D>());
-    CHECK_CONTEXT(r)
 
     if (argc >= 4) {
         qreal x = argv[0].toNumber();
@@ -1965,16 +1829,12 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_createBoxShadow(const QV4
             THROW_DOM(DOMEXCEPTION_NOT_SUPPORTED_ERR, "createBoxShadow(): Incorrect arguments")
         }
 
-        // TODO: Consider adding methods for QCanvas2DShadowObject
-        QV4::Scoped<QCanvas2DShadowObject> shadow(scope, scope.engine->memoryManager->allocate<QCanvas2DShadowObject>());
-
-        auto b = new QCanvasBoxShadow(x, y, w, h, 0, blur, color);
-        b->setTopLeftRadius(radiusTL);
-        b->setTopRightRadius(radiusTR);
-        b->setBottomRightRadius(radiusBR);
-        b->setBottomLeftRadius(radiusBL);
-        shadow->d()->brush = b;
-        RETURN_RESULT(*shadow);
+        QCanvasBoxShadow b(x, y, w, h, 0, blur, color);
+        b.setTopLeftRadius(radiusTL);
+        b.setTopRightRadius(radiusTR);
+        b.setBottomRightRadius(radiusBR);
+        b.setBottomLeftRadius(radiusBL);
+        RETURN_RESULT(scope.engine->fromVariant(QVariant::fromValue(b)));
     }
 
     RETURN_RESULT(*thisObject);
@@ -1985,7 +1845,7 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_createBoxShadow(const QV4
                                                        string lineColor, string backgroundColor,
                                                        real lineWidth, real feather, real angle)
 
-    Returns a Canvas2DGrid object that covers rectangle area (\a x, \a y, \a width, \a height).
+    Returns a \l{gridpattern2d} object that covers rectangle area (\a x, \a y, \a width, \a height).
     The grid uses \a lineColor for lines and \a backgroundColor for the background.
     The line width is \a lineWidth, line feather \a feather and rotation angle \a angle in radians.
   */
@@ -1993,8 +1853,6 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_createBoxShadow(const QV4
 QV4::ReturnedValue QCanvasJSContext2DPrototype::method_createGridPattern(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc)
 {
     QV4::Scope scope(b);
-    QV4::Scoped<QCanvasJSContext2D> r(scope, thisObject->as<QCanvasJSContext2D>());
-    CHECK_CONTEXT(r)
 
     if (argc >= 4) {
         qreal x = argv[0].toNumber();
@@ -2035,12 +1893,8 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_createGridPattern(const Q
             THROW_DOM(DOMEXCEPTION_NOT_SUPPORTED_ERR, "createGridPattern(): Incorrect arguments")
         }
 
-        // TODO: Consider adding methods for QCanvas2DGridObject
-        QV4::Scoped<QCanvas2DGridObject> grid(scope, scope.engine->memoryManager->allocate<QCanvas2DGridObject>());
-
-        auto b = new QCanvasGridPattern(x, y, w, h, lineColor, backgroundColor, lineWidth, feather, angle);
-        grid->d()->brush = b;
-        RETURN_RESULT(*grid);
+        QCanvasGridPattern gp(x, y, w, h, lineColor, backgroundColor, lineWidth, feather, angle);
+        RETURN_RESULT(scope.engine->fromVariant(QVariant::fromValue(gp)));
     }
 
     RETURN_RESULT(*thisObject);
@@ -2116,7 +1970,7 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_createTransform2D(const Q
 }
 
 /*!
-    \qmlmethod object Canvas2DContext::drawBoxShadow(shadow)
+    \qmlmethod object Canvas2DContext::drawBoxShadow(boxshadow2d shadow)
 
     Draws a given box \a shadow. The shadow will be painted with the
     position, size, color, blur etc. set in the \a shadow.
@@ -2132,20 +1986,14 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_drawBoxShadow(const QV4::
     CHECK_CONTEXT(r)
 
     QV4::ScopedValue value(scope, argc ? argv[0] : QV4::Value::undefinedValue());
-    QV4::Scoped<QCanvas2DShadowObject> shadow(scope, value);
-    if (!!shadow) {
-        auto b = shadow->d()->brush;
-        if (b->type() == QCanvasBrush::BrushType::BoxShadow) {
-            auto s = static_cast<QCanvasBoxShadow *>(b);
-            r->d()->context()->drawBoxShadow(s);
-        }
-    }
+    QCanvasBoxShadow s = QV4::ExecutionEngine::toVariant(value, QMetaType::fromType<QCanvasBoxShadow>()).value<QCanvasBoxShadow>();
+    r->d()->context()->drawBoxShadow(&s);
     RETURN_RESULT(*thisObject);
 }
 
 /*!
     \qmlmethod object Canvas2DContext::createPattern(Image image, string repetition)
-    Returns a CanvasPattern object that uses the given image and repeats in the
+    Returns a \l{imagepattern2d} object that uses the given image and repeats in the
     direction(s) given by the repetition argument.
 
     The \a image parameter must be a valid Image item
@@ -2169,37 +2017,36 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_createPattern(const QV4::
     QV4::Scope scope(b);
     QV4::Scoped<QCanvasJSContext2D> r(scope, *thisObject);
     CHECK_CONTEXT(r)
+
     if (argc >= 2) {
-        // TODO: Consider adding own object type for image patterns than QCanvas2DGradientObject,
-        // so that these don't have addColorStop methods.
-        QV4::Scoped<QCanvas2DGradientObject> pattern(scope, scope.engine->memoryManager->allocate<QCanvas2DGradientObject>());
+        QCanvasImagePattern pattern;
         QImage patternTexture;
         patternTexture = r->d()->context()->createPixmap(QUrl(argv[0].toQStringNoThrow()))->image();
 
         if (!patternTexture.isNull()) {
-            r->d()->context()->buffer()->addImage(patternTexture);
-            pattern->d()->brush = new QCanvasImagePattern();
-
             QString repetition = argv[1].toQStringNoThrow();
+            // "repeat" is the default, even if the string is empty.
+            bool repeatX = true;
+            bool repeatY = true;
             if (repetition == QStringLiteral("repeat") || repetition.isEmpty()) {
-                pattern->d()->patternRepeatX = true;
-                pattern->d()->patternRepeatY = true;
+                repeatX = true;
+                repeatY = true;
             } else if (repetition == QStringLiteral("repeat-x")) {
-                pattern->d()->patternRepeatX = true;
-                pattern->d()->patternRepeatY = false;
+                repeatX = true;
+                repeatY = false;
             } else if (repetition == QStringLiteral("repeat-y")) {
-                pattern->d()->patternRepeatX = false;
-                pattern->d()->patternRepeatY = true;
+                repeatX = false;
+                repeatY = true;
             } else if (repetition == QStringLiteral("no-repeat")) {
-                pattern->d()->patternRepeatX = false;
-                pattern->d()->patternRepeatY = false;
-            } else {
-                //TODO: exception: SYNTAX_ERR
+                repeatX = false;
+                repeatY = false;
             }
+            r->d()->context()->buffer()->addImage(patternTexture, repeatX, repeatY);
         }
 
-        RETURN_RESULT(*pattern);
+        RETURN_RESULT(scope.engine->fromVariant(QVariant::fromValue(pattern)));
     }
+
     RETURN_UNDEFINED();
 }
 
@@ -3151,68 +2998,6 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_putImageData(const QV4::F
     RETURN_UNDEFINED();
 }
 
-/*!
-    \qmltype Canvas2DGradient
-    \inqmlmodule QtCanvas2D
-    \since 6.12
-    \brief Provides an opaque Canvas2DGradient interface.
-  */
-
-/*!
-    \qmlmethod object Canvas2DGradient::addColorStop(real offset, string color)
-
-    Adds a color stop with the given \a color to the gradient at the given \a offset.
-    0.0 is the offset at one end of the gradient, 1.0 is the offset at the other end.
-
-    For example:
-
-    \code
-    const gradient = ctx.createLinearGradient(0, 0, 100, 100);
-    gradient.addColorStop(0.0, Qt.rgba(1, 0, 0, 1));
-    gradient.addColorStop(1.0, 'rgba(0, 255, 255, 1)');
-    \endcode
-  */
-QV4::ReturnedValue QCanvas2DGradientObject::gradient_proto_addColorStop(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc)
-{
-    QV4::Scope scope(b);
-    QV4::Scoped<QCanvas2DGradientObject> style(scope, thisObject->as<QCanvas2DGradientObject>());
-    if (!style)
-        THROW_GENERIC_ERROR("Not a Canvas2DGradient object");
-
-    if (argc == 2) {
-
-        auto type = style->d()->brush->type();
-        if (type != QCanvasBrush::BrushType::LinearGradient &&
-            type != QCanvasBrush::BrushType::RadialGradient &&
-            type != QCanvasBrush::BrushType::ConicalGradient &&
-            type != QCanvasBrush::BrushType::BoxGradient) {
-            THROW_GENERIC_ERROR("Not a valid Canvas2DGradient object, can't get the gradient information");
-        }
-        QCanvasGradient *gradient = static_cast<QCanvasGradient *>(style->d()->brush);
-        qreal pos = argv[0].toNumber();
-        QColor color;
-
-        if (argv[1].as<Object>()) {
-            color = QV4::ExecutionEngine::toVariant(
-                            argv[1], QMetaType::fromType<QColor>()).value<QColor>();
-        } else {
-            color = QCanvas2DUtils::qColorFromString(argv[1]);
-        }
-        if (pos < 0.0 || pos > 1.0 || !qt_is_finite(pos)) {
-            THROW_DOM(DOMEXCEPTION_INDEX_SIZE_ERR, "Canvas2DGradient: parameter offset out of range");
-        }
-
-        if (color.isValid()) {
-            gradient->setColorAt(pos, color);
-        } else {
-            THROW_DOM(DOMEXCEPTION_SYNTAX_ERR, "Canvas2DGradient: parameter color is not a valid color string");
-        }
-    }
-
-    return thisObject->asReturnedValue();
-}
-
-
 // ***** transformations *****
 
 void QCanvas2DContext::rotate(qreal angle)
@@ -3502,10 +3287,6 @@ QCanvas2DContextEngineData::QCanvas2DContextEngineData(QV4::ExecutionEngine *v4)
     proto->defineAccessorProperty(QStringLiteral("lineDashOffset"), QCanvasJSContext2D::method_get_lineDashOffset, QCanvasJSContext2D::method_set_lineDashOffset);
     proto->defineAccessorProperty(QStringLiteral("antialias"), QCanvasJSContext2D::method_get_antialias, QCanvasJSContext2D::method_set_antialias);
     contextPrototype = proto;
-
-    proto = scope.engine->newObject();
-    proto->defineDefaultProperty(QStringLiteral("addColorStop"), QCanvas2DGradientObject::gradient_proto_addColorStop, 0);
-    gradientPrototype = proto;
 }
 
 QCanvas2DContextEngineData::~QCanvas2DContextEngineData()
