@@ -48,8 +48,6 @@ public:
     Q_INVOKABLE void roundRect(float x, float y, float width, float height,
                                float radiusTopLeft, float radiusTopRight,
                                float radiusBottomRight, float radiusBottomLeft);
-    Q_INVOKABLE void roundedRect(float x, float y, float width, float height, float xRadius, float yRadius);
-
     Q_INVOKABLE void ellipse(float x, float y, float radiusX, float radiusY);
     Q_INVOKABLE void ellipseRect(float x, float y, float width, float height);
     Q_INVOKABLE void circle(float x, float y, float radius);

@@ -620,36 +620,14 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_rect(const QV4::FunctionO
     RETURN_RESULT(*thisObject);
 }
 
-/*!
-    \qmlmethod object Canvas2DContext::roundedRect(real x, real y, real w, real h, real xRadius, real yRadius)
-
-    Adds a rounded-corner rectangle, specified by (\a x, \a y, \a w, \a h), to the path.
-    The \a xRadius and \a yRadius arguments specify the radius of the
-    ellipses defining the corners of the rounded rectangle.
- */
-QV4::ReturnedValue QCanvasJSContext2DPrototype::method_roundedRect(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc)
+QV4::ReturnedValue QCanvasJSContext2DPrototype::method_roundedRect(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *, int)
 {
     QV4::Scope scope(b);
-    QV4::Scoped<QCanvasJSContext2D> r(scope, *thisObject);
-    CHECK_CONTEXT(r)
+    Q_UNUSED(thisObject);
 
-    if (argc >= 6) {
-        qreal x = argv[0].toNumber();
-        qreal y = argv[1].toNumber();
-        qreal w = argv[2].toNumber();
-        qreal h = argv[3].toNumber();
-        qreal yr = argv[4].toNumber();
-        qreal xr = argv[5].toNumber();
+    THROW_DOM(DOMEXCEPTION_NOT_SUPPORTED_ERR, "roundedRect(): Please use roundRect() instead.");
 
-        if (!qt_is_finite(x) || !qt_is_finite(y) || !qt_is_finite(w) || !qt_is_finite(h) ||
-            !qt_is_finite(yr) || !qt_is_finite(xr)) {
-            RETURN_UNDEFINED();
-        }
-
-        r->d()->context()->buffer()->roundRect(x, y, w, h, yr, yr, xr, xr);
-    }
-
-    RETURN_RESULT(*thisObject);
+    RETURN_RESULT(QV4::Encode::null());
 }
 
 /*!

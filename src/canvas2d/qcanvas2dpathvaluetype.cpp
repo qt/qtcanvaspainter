@@ -169,21 +169,6 @@ void QCanvas2DPathValueType::roundRect(
 }
 
 /*!
-    \qmlmethod void path2d::roundedRect(real x, real y, real width, real height, real xRadius, real yRadius)
-
-    Adds a rounded-corner rectangle, specified by (\a x, \a y, \a width, \a height),
-    to the path. The \a xRadius and \a yRadius arguments specify the radius of the
-    ellipses defining the corners of the rounded rectangle.
-*/
-
-void QCanvas2DPathValueType::roundedRect(float x, float y, float width, float height, float xRadius, float yRadius)
-{
-    QCanvasPath::roundRect(x, y, width, height,
-                           yRadius, yRadius,
-                           xRadius, xRadius);
-}
-
-/*!
     \qmlmethod void path2d::ellipse(real x, real y, real radiusX, real radiusY)
 
     Creates new ellipse shaped sub-path into center ( \a x, \a y) with
