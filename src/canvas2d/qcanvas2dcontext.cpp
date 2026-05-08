@@ -249,6 +249,7 @@ public:
         o->defineDefaultProperty(QStringLiteral("circle"), method_circle, 0);
         o->defineDefaultProperty(QStringLiteral("beginSolidSubPath"), method_beginSolidSubPath, 0);
         o->defineDefaultProperty(QStringLiteral("beginHoleSubPath"), method_beginHoleSubPath, 0);
+        o->defineDefaultProperty(QStringLiteral("addPath"), method_addPath, 0);
         // TODO: Missing compared to QCanvasPath: setPathWinding(), addPath()
         // End: Path Methods.
         o->defineDefaultProperty(QStringLiteral("restore"), method_restore, 0);
@@ -318,6 +319,7 @@ public:
     static QV4::ReturnedValue method_circle(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc);
     static QV4::ReturnedValue method_beginSolidSubPath(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc);
     static QV4::ReturnedValue method_beginHoleSubPath(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc);
+    static QV4::ReturnedValue method_addPath(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc);
     // End: Path Methods.
     static QV4::ReturnedValue method_get_canvas(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc);
     static QV4::ReturnedValue method_restore(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc);
@@ -902,6 +904,35 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_beginHoleSubPath(const QV
     CHECK_CONTEXT(r)
 
     r->d()->context()->buffer()->beginHoleSubPath();
+
+    RETURN_RESULT(*thisObject);
+}
+
+/*!
+    \qmlmethod object Canvas2DContext::addPath(path2d path, transform2d transform)
+
+    Adds a \a path into the current path, using \a transform as a transformation matrix.
+    Providing \a transform parameter is optional.
+*/
+
+QV4::ReturnedValue QCanvasJSContext2DPrototype::method_addPath(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc)
+{
+    QV4::Scope scope(b);
+    QV4::Scoped<QCanvasJSContext2D> r(scope, *thisObject);
+    CHECK_CONTEXT(r)
+
+    if (argc >= 1) {
+        QV4::ScopedValue arg1(scope, argv[0]);
+        if (arg1->as<Object>()) {
+            QCanvasPath path = QV4::ExecutionEngine::toVariant(arg1, QMetaType::fromType<QCanvasPath>()).value<QCanvasPath>();
+            QTransform transform;
+            if (argc >= 2) {
+                QV4::ScopedValue arg2(scope, argv[1]);
+                transform = QV4::ExecutionEngine::toVariant(arg2, QMetaType::fromType<QTransform>()).value<QTransform>();
+            }
+            r->d()->context()->buffer()->addPath(path, transform);
+        }
+    }
 
     RETURN_RESULT(*thisObject);
 }

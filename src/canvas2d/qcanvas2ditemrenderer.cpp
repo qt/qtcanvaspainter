@@ -278,6 +278,13 @@ void QCanvas2DItemRenderer::paint(QCanvasPainter *painter)
             m_painter->stroke(p, pathGroup);
             break;
         }
+        case QCanvas2DContext::AddCanvasPath:
+        {
+            const QCanvasPath &p = takeCanvasPath();
+            const QTransform t = takeMatrix();
+            m_painter->addPath(p, t);
+            break;
+        }
         case QCanvas2DContext::Clip:
         {
             m_state.clip = takeBool();

@@ -308,6 +308,13 @@ public:
         commands << QCanvas2DContext::Stroke;
     }
 
+    inline void addPath(const QCanvasPath &path, const QTransform &transform)
+    {
+        commands << QCanvas2DContext::AddCanvasPath;
+        canvasPaths << path;
+        matrixes << transform;
+    }
+
     inline void clip(bool enabled, const QPainterPath &path)
     {
         commands << QCanvas2DContext::Clip;

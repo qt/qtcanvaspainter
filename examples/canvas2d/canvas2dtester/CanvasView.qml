@@ -1010,44 +1010,10 @@ Item {
         const personPathGroup = 1;
         const heartPathGroup = 2;
 
-        if (personPath.isEmpty()) {
-            const path = "M152,84a36,36,0,1,0-36-36A36.04061,36.04061,0,0,0,152,84Zm0-48Z" +
-                       "m64,112a12.00028,12.00028,0,0,1-12,12c-37.20215,0-55.50781-19.66406" +
-                       "-70.21729-35.46484-.45459-.48828-.89794-.96192-1.34667-1.44239l-8.02393," +
-                       "18.45484,34.5625,24.68774A11.999,11.999,0,0,1,164,176v56a12,12,0,0,1-24," +
-                       "0V182.17578l-25.37207-18.12353L83.00488,236.78516a12.00021,12.00021,0,0," +
-                       "1-22.00976-9.57032l37.55322-86.37255.02881-.06592,13.74463-31.61377c-" +
-                       "8.09571-.96167-18.24219,2.0072-30.35889,8.94482a159.5463,159.5463,0,0,0-" +
-                       "29.47754,22.37793,12.0001,12.0001,0,0,1-16.9707-16.9707A183.31075," +
-                       "183.31075,0,0,1,70.03711,97.28027c36.06689-20.65234,58.03027-11.69433," +
-                       "70.104-.54589,3.93116,3.63085,7.63037,7.60449,11.208,11.44726C164.667," +
-                       "122.4873,177.24561,136,204,136A12.00028,12.00028,0,0,1,216,148Z";
-            personPath.addPath(path);
-        }
         var d = Math.min(w, h) * 0.1;
         ctx.lineWidth = d * 0.1;
-        ctx.fillStyle = "#FFFFFF";
-
-        for (let j = 0; j < complexity; j++) {
-            let cx = 120;
-            let cy = 120;
-
-            let px = w * 0.2 - cx;
-            let py = h * 0.5 - cy;
-            let m = ctx.createTransform2D();
-            m.translate(cx + px, cy + py);
-            m.rotateRadians(Math.sin(j * 0.2 + t) * 0.5);
-            m.scale(1.0 + 0.6 * Math.sin((j + 4 * t) * 0.1));
-            m.translate(-cx, -cy);
-            ctx.setTransform(m);
-
-            ctx.strokeStyle = Qt.rgba(0, 1 - (j + 1) / complexity, 0);
-            ctx.fill(personPath, personPathGroup);
-            ctx.stroke(personPath, personPathGroup);
-        }
 
         // Hearts
-
         ctx.fillStyle = "#E02020";
         ctx.strokeStyle = "#000000";
 
@@ -1077,6 +1043,65 @@ Item {
             ctx.stroke(heartPath, heartPathGroup);
             ctx.fill(heartPath, heartPathGroup);
         }
+
+        // Flower from combined hearts
+
+        ctx.resetTransform();
+        ctx.beginPath();
+        ctx.translate(-d * 0.5, -d * 1.2);
+        let leafs = 4;
+        for (let k = 0; k < leafs; k++) {
+            const px = w * 0.2;
+            const py = h * 0.5;
+            let transform = ctx.createTransform2D();
+            transform.translate(px, py);
+            let s = 2.5 + 0.5 * Math.sin(t + k);
+            transform.scale(2, s);
+            transform.rotateRadians(Math.PI * 2 * (k / leafs) + 0.2 * t);
+            ctx.addPath(heartPath, transform);
+        }
+        ctx.fillStyle = "#E0E020";
+        ctx.strokeStyle = "#8080f0";
+        ctx.fill();
+        ctx.stroke();
+
+        // Person from SVG path
+
+        if (personPath.isEmpty()) {
+            const path = "M152,84a36,36,0,1,0-36-36A36.04061,36.04061,0,0,0,152,84Zm0-48Z" +
+                       "m64,112a12.00028,12.00028,0,0,1-12,12c-37.20215,0-55.50781-19.66406" +
+                       "-70.21729-35.46484-.45459-.48828-.89794-.96192-1.34667-1.44239l-8.02393," +
+                       "18.45484,34.5625,24.68774A11.999,11.999,0,0,1,164,176v56a12,12,0,0,1-24," +
+                       "0V182.17578l-25.37207-18.12353L83.00488,236.78516a12.00021,12.00021,0,0," +
+                       "1-22.00976-9.57032l37.55322-86.37255.02881-.06592,13.74463-31.61377c-" +
+                       "8.09571-.96167-18.24219,2.0072-30.35889,8.94482a159.5463,159.5463,0,0,0-" +
+                       "29.47754,22.37793,12.0001,12.0001,0,0,1-16.9707-16.9707A183.31075," +
+                       "183.31075,0,0,1,70.03711,97.28027c36.06689-20.65234,58.03027-11.69433," +
+                       "70.104-.54589,3.93116,3.63085,7.63037,7.60449,11.208,11.44726C164.667," +
+                       "122.4873,177.24561,136,204,136A12.00028,12.00028,0,0,1,216,148Z";
+            personPath.addPath(path);
+        }
+
+        ctx.fillStyle = "#FFFFFF";
+
+        for (let j = 0; j < complexity; j++) {
+            let cx = 120;
+            let cy = 120;
+
+            let px = w * 0.2 - cx;
+            let py = h * 0.5 - cy;
+            let m = ctx.createTransform2D();
+            m.translate(cx + px, cy + py);
+            m.rotateRadians(Math.sin(j * 0.2 + t) * 0.5);
+            m.scale(1.0 + 0.6 * Math.sin((j + 4 * t) * 0.1));
+            m.translate(-cx, -cy);
+            ctx.setTransform(m);
+
+            ctx.strokeStyle = Qt.rgba(0, 1 - (j + 1) / complexity, 0);
+            ctx.fill(personPath, personPathGroup);
+            ctx.stroke(personPath, personPathGroup);
+        }
+
     }
 
     Canvas2D {
