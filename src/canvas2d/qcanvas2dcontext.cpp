@@ -1360,7 +1360,8 @@ QV4::ReturnedValue QCanvasJSContext2D::method_set_globalCompositeOperation(const
 /*!
     \qmlproperty variant Canvas2DContext::fillStyle
      Holds the current style used for filling shapes.
-     The style can be either a string containing a CSS color, QML color, or canvas brush object. Invalid values are ignored.
+     The style can be either a string containing a CSS color, \l{colorvaluetypedocs}{QML color}, or canvas brush object.
+     Invalid values are ignored.
      This property accepts several color syntaxes:
      \list
      \li 'rgb(red, green, blue)' - for example: 'rgb(255, 100, 55)' or 'rgb(100%, 70%, 30%)'
@@ -1368,15 +1369,22 @@ QV4::ReturnedValue QCanvasJSContext2D::method_set_globalCompositeOperation(const
      \li 'hsl(hue, saturation, lightness)'
      \li 'hsla(hue, saturation, lightness, alpha)'
      \li '#RRGGBB' - for example: '#00FFCC'
+     \li '#AARRGGBB' - for example: '#8000FFCC'
+     \li SVG color name - for example: 'black', 'green' or 'lightsteelblue'
+     \li Qt.hsla(hue, saturation, lightness, alpha) - for example: Qt.hsla(0.3, 0.7, 1, 1.0)
      \li Qt.rgba(red, green, blue, alpha) - for example: Qt.rgba(0.3, 0.7, 1, 1.0)
      \endlist
      If the \c fillStyle or \l strokeStyle is assigned many times in a loop, the last Qt.rgba() syntax should be chosen, as it has the
      best performance, because it's already a valid QColor value, does not need to be parsed everytime.
 
-     The default value is  '#000000'.
+     The default value is black ('#000000').
      \sa createLinearGradient()
      \sa createRadialGradient()
+     \sa createConicalGradient()
+     \sa createBoxGradient()
+     \sa createBoxShadow()
      \sa createPattern()
+     \sa createGridPattern()
      \sa strokeStyle
  */
 QV4::ReturnedValue QCanvasJSContext2D::method_get_fillStyle(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *, int)
@@ -1489,14 +1497,18 @@ QV4::ReturnedValue QCanvasJSContext2D::method_set_fillRule(const QV4::FunctionOb
 /*!
     \qmlproperty variant Canvas2DContext::strokeStyle
      Holds the current color or style to use for the lines around shapes,
-     The style can be either a string containing a CSS color, QML color, or canvas brush object.
+     The style can be either a string containing a CSS color, \l{colorvaluetypedocs}{QML color}, or canvas brush object.
      Invalid values are ignored.
 
-     The default value is  '#000000'.
+     The default value is black ('#000000').
 
      \sa createLinearGradient()
      \sa createRadialGradient()
+     \sa createConicalGradient()
+     \sa createBoxGradient()
+     \sa createBoxShadow()
      \sa createPattern()
+     \sa createGridPattern()
      \sa fillStyle
  */
 QV4::ReturnedValue QCanvasJSContext2D::method_get_strokeStyle(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *, int)
