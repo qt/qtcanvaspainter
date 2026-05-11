@@ -50,7 +50,12 @@ private slots:
     void testTextAlignment();
     void testTextWrapping();
     void testTextBrushes();
+    void testTextCustomBrushes();
     void testTextFonts();
+    void testTextDecorations();
+    void testTextDecorationsWrapping();
+    void testTextDecorationsBrushes();
+    void testTextDecorationsCustomBrushes();
     void testCanvasPathWithAddPath();
     void testTiger();
 

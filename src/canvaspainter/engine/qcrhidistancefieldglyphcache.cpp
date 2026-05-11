@@ -10,6 +10,13 @@ QT_BEGIN_NAMESPACE
 
 #define RHI_DISTANCEFIELD_GLYPH_CACHE_PADDING 2
 
+// Edge length (in atlas pixels) of the always-0xFF tile reserved for callers
+// that need a "fully inside" SDF sample (currently: text decoration lines drawn
+// through the text/custom-brush pipeline). 4 is more than enough — sampling
+// anywhere inside avoids bleed from neighboring atlas regions under linear
+// filtering.
+static constexpr int QC_SOLID_TILE_SIZE = 4;
+
 QCRhiDistanceFieldGlyphCache::TextureInfo QCRhiDistanceFieldGlyphCache::s_emptyTexture;
 
 QCRhiDistanceFieldGlyphCache::QCRhiDistanceFieldGlyphCache(QRhi *rhi)
@@ -33,7 +40,69 @@ QCRhiDistanceFieldGlyphCache::~QCRhiDistanceFieldGlyphCache()
 bool QCRhiDistanceFieldGlyphCache::addGlyphs(
     QPointF position, const QGlyphRun &glyphs)
 {
+    // Reserve the solid tile before the run's glyphs so the area allocator
+    // packs it next to the very first glyph rather than mid-atlas. The actual
+    // texel upload happens in update() once the texture has been created.
+    ensureSolidTile();
     return setGlyphs(position + QPointF(0, glyphs.rawFont().ascent()), glyphs);
+}
+
+void QCRhiDistanceFieldGlyphCache::ensureSolidTile()
+{
+    if (m_solidTileTexCoord.isValid())
+        return;
+
+    if (m_areaAllocator == nullptr)
+        m_areaAllocator = new QCAreaAllocator(
+            QSize(maxTextureSize(), m_maxTextureCount * maxTextureSize()));
+
+    QRect alloc = m_areaAllocator->allocate(QSize(QC_SOLID_TILE_SIZE, QC_SOLID_TILE_SIZE));
+    if (alloc.isNull())
+        return;
+
+    TextureInfo *tex = textureInfo(alloc.y() / maxTextureSize());
+    alloc = QRect(alloc.x(), alloc.y() % maxTextureSize(), alloc.width(), alloc.height());
+    tex->allocatedArea |= alloc;
+    if (tex->padding < 0)
+        tex->padding = RHI_DISTANCEFIELD_GLYPH_CACHE_PADDING;
+
+    m_solidTileTexCoord.x = alloc.x();
+    m_solidTileTexCoord.y = alloc.y();
+    m_solidTileTexCoord.width = alloc.width();
+    m_solidTileTexCoord.height = alloc.height();
+    m_solidTileTexture = tex;
+    m_solidTileUploadPending = true;
+}
+
+void QCRhiDistanceFieldGlyphCache::uploadSolidTileIfNeeded()
+{
+    if (!m_solidTileUploadPending)
+        return;
+    if (!m_solidTileTexture || !m_solidTileTexture->texture)
+        return;
+
+    const int w = int(m_solidTileTexCoord.width);
+    const int h = int(m_solidTileTexCoord.height);
+    const int x = int(m_solidTileTexCoord.x);
+    const int y = int(m_solidTileTexCoord.y);
+
+    QByteArray bytes(w * h, char(0xFF));
+    QRhiTextureSubresourceUploadDescription subresDesc(bytes.constData(), bytes.size());
+    subresDesc.setSourceSize(QSize(w, h));
+    subresDesc.setDestinationTopLeft(QPoint(x, y));
+    m_batch->uploadTexture(m_solidTileTexture->texture, QRhiTextureUploadEntry(0, 0, subresDesc));
+
+    // Mirror the write into the CPU shadow image so the tile survives a
+    // resizeTexture() that goes through the OpenGL ES2 copy path.
+    if (useTextureResizeWorkaround() && !m_solidTileTexture->image.isNull()) {
+        uchar *out = m_solidTileTexture->image.scanLine(y) + x;
+        for (int row = 0; row < h; ++row) {
+            memset(out, 0xFF, w);
+            out += m_solidTileTexture->image.width();
+        }
+    }
+
+    m_solidTileUploadPending = false;
 }
 
 void QCRhiDistanceFieldGlyphCache::createTexture(TextureInfo *texInfo, int width, int height)
@@ -345,30 +414,33 @@ void QCRhiDistanceFieldGlyphCache::update()
 {
     m_populatingGlyphs.clear();
 
-    if (m_pendingGlyphs.isEmpty())
-        return;
+    if (!m_pendingGlyphs.isEmpty()) {
+        QList<QDistanceField> distanceFields;
+        const int pendingGlyphsSize = m_pendingGlyphs.size();
+        distanceFields.reserve(pendingGlyphsSize);
+        for (int i = 0; i < pendingGlyphsSize; ++i) {
+            GlyphData &gd = glyphData(m_pendingGlyphs.at(i));
 
-    QList<QDistanceField> distanceFields;
-    const int pendingGlyphsSize = m_pendingGlyphs.size();
-    distanceFields.reserve(pendingGlyphsSize);
-    for (int i = 0; i < pendingGlyphsSize; ++i) {
-        GlyphData &gd = glyphData(m_pendingGlyphs.at(i));
+            QSize size = QSize(
+                qCeil(gd.texCoord.width + gd.texCoord.xMargin * 2),
+                qCeil(gd.texCoord.height + gd.texCoord.yMargin * 2));
 
-        QSize size = QSize(
-            qCeil(gd.texCoord.width + gd.texCoord.xMargin * 2),
-            qCeil(gd.texCoord.height + gd.texCoord.yMargin * 2));
+            distanceFields.append(QDistanceField(
+                size,
+                gd.path,
+                m_pendingGlyphs.at(i),
+                m_rawFontCache[m_referenceFont].doubleGlyphResolution));
+            gd.path = QPainterPath(); // no longer needed, so release memory used by the painter path
+        }
 
-        distanceFields.append(QDistanceField(
-            size,
-            gd.path,
-            m_pendingGlyphs.at(i),
-            m_rawFontCache[m_referenceFont].doubleGlyphResolution));
-        gd.path = QPainterPath(); // no longer needed, so release memory used by the painter path
+        m_pendingGlyphs.reset();
+
+        storeGlyphs(distanceFields);
     }
 
-    m_pendingGlyphs.reset();
-
-    storeGlyphs(distanceFields);
+    // The texture exists by now if any glyphs ever populated it; flush the
+    // solid-tile bytes into it on the first call after allocation.
+    uploadSolidTileIfNeeded();
 }
 
 void QCRhiDistanceFieldGlyphCache::setRawFont(const QRawFont &font)

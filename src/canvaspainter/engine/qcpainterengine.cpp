@@ -1106,7 +1106,8 @@ void QCPainterEngine::fillText(const QString &text, const QRectF &rect)
 {
 #ifndef QCPAINTER_DISABLE_TEXT_SUPPORT
     int width, height;
-    auto tex = m_renderer->populateFont(state.font, rect, text, textVertices, textIndices, &width, &height);
+    auto tex = m_renderer->populateFont(state.font, rect, text, textVertices, textIndices,
+                                        &width, &height);
 
     if (textVertices.empty())
         return;
@@ -1115,6 +1116,10 @@ void QCPainterEngine::fillText(const QString &text, const QRectF &rect)
     ctx.fontId = tex;
     updateStateFontVars();
 
+    // Decoration rects (underline/overline/strikeout) are appended to
+    // textVertices/textIndices by the glyph cache with a texCoord pointing
+    // into a reserved 0xFF region of the SDF atlas, so they participate in
+    // this same draw call and pick up the same shader as the glyphs.
     QCanvasCustomBrushPrivate *customPriv = nullptr;
     if (state.customFill.type() == QCanvasBrush::BrushType::Custom)
         customPriv = static_cast<QCanvasCustomBrushPrivate *>(QCanvasBrushPrivate::get(state.customFill));

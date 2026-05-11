@@ -19,6 +19,8 @@
 #include <QCanvasGridPattern>
 #include <QCanvasBoxShadow>
 #include <QCanvasPath>
+#include <QCanvasCustomBrush>
+#include <QVector4D>
 
 QStringList CanvasPainterLancelotCppTests::keys()
 {
@@ -726,6 +728,7 @@ void CanvasPainterLancelotCppTests::testSomeText()
 
     painter->translate(0, 35);
     painter->save();
+    font = QFont();
     font.setPointSize(12);
     font.setStrikeOut(true);
     painter->setFont(font);
@@ -734,6 +737,7 @@ void CanvasPainterLancelotCppTests::testSomeText()
 
     painter->translate(0, 35);
     painter->save();
+    font = QFont();
     font.setPointSize(12);
     font.setOverline(true);
     painter->setFont(font);
@@ -742,6 +746,7 @@ void CanvasPainterLancelotCppTests::testSomeText()
 
     painter->translate(0, 35);
     painter->save();
+    font = QFont();
     font.setPointSize(12);
     font.setUnderline(true);
     font.setOverline(true);
@@ -2318,6 +2323,58 @@ void CanvasPainterLancelotCppTests::testTextBrushes()
     }
 }
 
+void CanvasPainterLancelotCppTests::testTextCustomBrushes()
+{
+    float margin = height() * 0.04f;
+    float fontSize1 = width() * 0.09f;
+    float fontSize2 = width() * 0.13f;
+
+    // Light gray background so the glow brush's transparent regions are visible.
+    painter->setFillStyle(Qt::white);
+    painter->fillRect(0, 0, width(), height());
+
+    QCanvasCustomBrush wobbleBrush;
+    wobbleBrush.setVertexShader(":/wobblebrush.vert.qsb");
+    wobbleBrush.setFragmentShader(":/wobblebrush.frag.qsb");
+
+    QCanvasCustomBrush glowBrush;
+    glowBrush.setFragmentShader(":/glowbrush.frag.qsb");
+    glowBrush.setData1(QVector4D(0.0f, 0.0f, 0.0f, 1.0f));
+
+    painter->setTextAlign(QCanvasPainter::TextAlign::Center);
+    painter->setTextBaseline(QCanvasPainter::TextBaseline::Middle);
+
+    // Four lines (fontSize1, fontSize2, fontSize1, fontSize2) with three
+    // inter-line margins, centered both horizontally and vertically.
+    float totalHeight = 2.0f * fontSize1 + 2.0f * fontSize2 + 3.0f * margin;
+    float posX = width() * 0.5f;
+    float posY = (height() - totalHeight) * 0.5f + fontSize1 * 0.5f;
+
+    QFont f;
+    f.setPixelSize(fontSize1);
+    painter->setFont(f);
+    painter->setFillStyle(wobbleBrush);
+    painter->fillText("Custom Brush", posX, posY);
+
+    posY += fontSize1 * 0.5f + margin + fontSize2 * 0.5f;
+    f.setPixelSize(fontSize2);
+    painter->setFont(f);
+    painter->setFillStyle(wobbleBrush);
+    painter->fillText("WOBBLE", posX, posY);
+
+    posY += fontSize2 * 0.5f + margin + fontSize1 * 0.5f;
+    f.setPixelSize(fontSize1);
+    painter->setFont(f);
+    painter->setFillStyle(glowBrush);
+    painter->fillText("Text with some glowing", posX, posY);
+
+    posY += fontSize1 * 0.5f + margin + fontSize2 * 0.5f;
+    f.setPixelSize(fontSize2);
+    painter->setFont(f);
+    painter->setFillStyle(glowBrush);
+    painter->fillText("GLOWING", posX, posY);
+}
+
 void CanvasPainterLancelotCppTests::testTextFonts()
 {
     float topMargin = height() * 0.02f;
@@ -2415,6 +2472,253 @@ void CanvasPainterLancelotCppTests::testTextFonts()
         painter->setFont(f5);
         painter->fillText("This is text with varying word spacing", posX, posY);
     }
+}
+
+void CanvasPainterLancelotCppTests::testTextDecorations()
+{
+    painter->setFillStyle(Qt::black);
+    painter->setTextBaseline(QCanvasPainter::TextBaseline::Alphabetic);
+
+    struct Variant { const char *label; bool u; bool o; bool s; };
+    const Variant variants[] = {
+        { "plain",     false, false, false },
+        { "underline", true,  false, false },
+        { "overline",  false, true,  false },
+        { "strikeout", false, false, true  },
+        { "u+s",       true,  false, true  },
+        { "u+o+s",     true,  true,  true  },
+    };
+    // Several sizes including 12pt — the size that exposed the strikeout
+    // pixel-snapping bug fixed alongside this test.
+    const int sizes[] = { 8, 10, 12, 14, 18, 24, 32 };
+
+    const float colX = 10.0f;
+    const float colWidth = width() / float(std::size(variants));
+    float posY = 24.0f;
+
+    for (int size : sizes) {
+        for (size_t i = 0; i < std::size(variants); ++i) {
+            const Variant &v = variants[i];
+            QFont f;
+            f.setPixelSize(size);
+            f.setUnderline(v.u);
+            f.setOverline(v.o);
+            f.setStrikeOut(v.s);
+            painter->setFont(f);
+            painter->fillText(QString::fromLatin1("%1 %2px").arg(QLatin1String(v.label)).arg(size),
+                              colX + i * colWidth, posY);
+        }
+        posY += size + 12.0f;
+    }
+
+    // Verify decorations interact correctly with bold/italic and colored fills.
+    posY += 16.0f;
+    const struct { QFont::Weight w; bool italic; bool u; bool o; bool s; QColor color; const char *label; } styled[] = {
+        { QFont::Weight::Bold,   false, false, false, true,  Qt::black,                 "bold strikeout"     },
+        { QFont::Weight::Normal, true,  true,  false, false, Qt::black,                 "italic underline"   },
+        { QFont::Weight::Bold,   true,  true,  true,  true,  QColor(180, 40, 40),       "bold+italic all, red" },
+        { QFont::Weight::Normal, false, false, true,  false, QColor( 40, 90, 180),      "overline, blue"      },
+    };
+    for (const auto &row : styled) {
+        QFont f;
+        f.setPixelSize(16);
+        f.setWeight(row.w);
+        f.setItalic(row.italic);
+        f.setUnderline(row.u);
+        f.setOverline(row.o);
+        f.setStrikeOut(row.s);
+        painter->setFont(f);
+        painter->setFillStyle(row.color);
+        painter->fillText(QLatin1String(row.label), colX, posY);
+        posY += 28.0f;
+    }
+}
+
+void CanvasPainterLancelotCppTests::testTextDecorationsWrapping()
+{
+    float topMargin = height() * 0.02f;
+    float anim = 0.5f;
+
+    float margin = height() * 0.02f;
+    float fontSize = height() * 0.03f;
+    float posX = margin + (anim * width() * 0.2f);
+    float posY = topMargin;
+    float rectW = (width() - 2 * margin) - (anim * width() * 0.4f);
+    float rectH = height() * 0.18f;
+
+    painter->setFillStyle(Qt::black);
+    painter->setTextWrapMode(QCanvasPainter::WrapMode::WordWrap);
+
+    struct Variant { const char *label; bool u; bool o; bool s; };
+    const Variant variants[] = {
+        { "Underline wrapped: ", true,  false, false },
+        { "Overline wrapped: ",  false, true,  false },
+        { "Strikeout wrapped: ", false, false, true  },
+        { "U+O+S wrapped: ",     true,  true,  true  },
+    };
+
+    const QString filler = QStringLiteral(
+        "this is a long test string that has to wrap onto multiple lines so we can verify decorations span every wrapped line.");
+
+    for (const Variant &v : variants) {
+        QFont f;
+        f.setPixelSize(fontSize);
+        f.setUnderline(v.u);
+        f.setOverline(v.o);
+        f.setStrikeOut(v.s);
+        painter->setFont(f);
+        painter->setTextBaseline(QCanvasPainter::TextBaseline::Top);
+        painter->setTextAlign(QCanvasPainter::TextAlign::Left);
+        painter->setTextLineHeight(0);
+        QRectF rect(posX, posY, rectW, rectH);
+        // painter->setStrokeStyle(0xFF393E46);
+        // painter->strokeRect(rect);
+        const QString s = QLatin1String(v.label) + filler;
+        painter->fillText(s, rect);
+        // QRectF boundingRect = painter->textBoundingBox(s, rect);
+        // painter->setStrokeStyle(0xFFDFD0B8);
+        // painter->strokeRect(boundingRect);
+        posY += rectH + margin;
+    }
+}
+
+void CanvasPainterLancelotCppTests::testTextDecorationsBrushes()
+{
+    float topMargin = height() * 0.02f;
+    float anim = 0.5f;
+
+    QCanvasPainter::ImageFlags flags = QCanvasPainter::ImageFlag::Repeat | QCanvasPainter::ImageFlag::GenerateMipmaps;
+    QCanvasImage patternImage2 = painter->addImage(QImage(":/images/pattern2.png"), flags);
+
+    float margin = height() * 0.04f;
+    float posX = margin * 0.5f;
+    float posY = topMargin + margin + 0.1f;
+    float fontSize1 = width() * 0.09f;
+    float fontSize2 = width() * 0.13f;
+
+    QFont f;
+    f.setPixelSize(fontSize1);
+    f.setUnderline(true);
+    f.setOverline(true);
+    f.setStrikeOut(true);
+    painter->setFont(f);
+    float w = width();
+
+    QCanvasLinearGradient g1(0, 0, 0, 0);
+    g1.setStartColor(QColor(100, 150, 100));
+    g1.setEndColor(QColor(0, 0, 0));
+    g1.setStartPosition(posX + (w * 0.5f * anim), 0);
+    g1.setEndPosition(posX + w + 1 - (w * 0.5f * anim), 0);
+    painter->setFillStyle(g1);
+    painter->fillText("Text with linear gradient", posX, posY);
+
+    posY += margin + fontSize1;
+    float h = 80;
+    QCanvasRadialGradient g2;
+    g2.setStartColor(QColor(100, 100, 20, 255));
+    g2.setColorAt(0.5, QColor(140, 50, 20, 255));
+    g2.setEndColor(QColor(0, 0, 0, 0));
+    g2.setCenterPosition(posX + w / 2, posY + h / 2);
+    g2.setOuterRadius(0.6 * w * anim);
+    g2.setInnerRadius(0.1 * w * anim);
+    painter->setFillStyle(g2);
+    painter->fillText("Text with radial gradient", posX, posY);
+
+    posY += margin + fontSize2;
+    QCanvasConicalGradient g4;
+    g4.setCenterPosition(width() * 0.5, posY - fontSize2 * 0.5);
+    g4.setAngle(anim);
+    g4.setStartColor(QColor(255, 255, 0, 255));
+    g4.setColorAt(0.25, QColor(0, 255, 0, 255));
+    g4.setColorAt(0.5, QColor(0, 0, 255, 255));
+    g4.setColorAt(0.75, QColor(255, 0, 255, 255));
+    g4.setEndColor(QColor(255, 255, 0, 255));
+    painter->setFillStyle(g4);
+    f.setPixelSize(fontSize2);
+    f.setUnderline(true);
+    f.setOverline(true);
+    f.setStrikeOut(true);
+    painter->setFont(f);
+    painter->fillText("MULTIGRADIENT", posX, posY);
+
+    painter->setFillStyle(Qt::black);
+    painter->fillRect(0, posY, width(), height() - posY);
+
+    posY += margin + fontSize2;
+    QCanvasImagePattern p1 = QCanvasImagePattern(patternImage2);
+    p1.setImageSize(64, 64);
+    p1.setStartPosition(0, anim * 10);
+    painter->setFillStyle(p1);
+    painter->fillText("IMAGE PATTERN", posX, posY);
+
+    posY += margin + fontSize2;
+    QCanvasGridPattern p2;
+    p2.setStartPosition(anim * 10, 0);
+    p2.setLineWidth(2);
+    p2.setCellSize(4, 4);
+    p2.setLineColor("#00414A");
+    p2.setBackgroundColor("#2CDE85");
+    painter->setFillStyle(p2);
+    painter->fillText("GRID PATTERN", posX, posY);
+}
+
+void CanvasPainterLancelotCppTests::testTextDecorationsCustomBrushes()
+{
+    float margin = height() * 0.04f;
+    float fontSize1 = width() * 0.09f;
+    float fontSize2 = width() * 0.13f;
+
+    // Light gray background so the glow brush's transparent regions are visible.
+    painter->setFillStyle(Qt::white);
+    painter->fillRect(0, 0, width(), height());
+
+    // At the time of making this text, custom brushes are not used for text decorations.
+    // Instead the last color is used. This should be fixed later.
+    painter->setFillStyle(Qt::green);
+
+    QCanvasCustomBrush wobbleBrush;
+    wobbleBrush.setVertexShader(":/wobblebrush.vert.qsb");
+    wobbleBrush.setFragmentShader(":/wobblebrush.frag.qsb");
+
+    QCanvasCustomBrush glowBrush;
+    glowBrush.setFragmentShader(":/glowbrush.frag.qsb");
+    glowBrush.setData1(QVector4D(0.0f, 0.0f, 0.0f, 1.0f));
+
+    painter->setTextAlign(QCanvasPainter::TextAlign::Center);
+    painter->setTextBaseline(QCanvasPainter::TextBaseline::Middle);
+
+    // Four lines (fontSize1, fontSize2, fontSize1, fontSize2) with three
+    // inter-line margins, centered both horizontally and vertically.
+    float totalHeight = 2.0f * fontSize1 + 2.0f * fontSize2 + 3.0f * margin;
+    float posX = width() * 0.5f;
+    float posY = (height() - totalHeight) * 0.5f + fontSize1 * 0.5f;
+
+    QFont f;
+    f.setPixelSize(fontSize1);
+    f.setUnderline(true);
+    f.setOverline(true);
+    f.setStrikeOut(true);
+    painter->setFont(f);
+    painter->setFillStyle(wobbleBrush);
+    painter->fillText("Custom Brush", posX, posY);
+
+    posY += fontSize1 * 0.5f + margin + fontSize2 * 0.5f;
+    f.setPixelSize(fontSize2);
+    painter->setFont(f);
+    painter->setFillStyle(wobbleBrush);
+    painter->fillText("WOBBLE", posX, posY);
+
+    posY += fontSize2 * 0.5f + margin + fontSize1 * 0.5f;
+    f.setPixelSize(fontSize1);
+    painter->setFont(f);
+    painter->setFillStyle(glowBrush);
+    painter->fillText("Text with some glowing", posX, posY);
+
+    posY += fontSize1 * 0.5f + margin + fontSize2 * 0.5f;
+    f.setPixelSize(fontSize2);
+    painter->setFont(f);
+    painter->setFillStyle(glowBrush);
+    painter->fillText("GLOWING", posX, posY);
 }
 
 void CanvasPainterLancelotCppTests::testCanvasPathWithAddPath()

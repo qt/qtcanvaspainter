@@ -132,6 +132,16 @@ public:
 
     GlyphData &glyphData(glyph_t glyph);
 
+    // A small region of the atlas filled with the maximum SDF value (0xFF) so
+    // that sdfFontAlpha() returns ~1.0 when sampled from any point within it.
+    // The intent is to let callers draw non-glyph geometry through the same
+    // shader pipeline as the glyphs — today's sole consumer is the underline /
+    // overline / strikeout quads emitted alongside glyph quads in
+    // QCDistanceFieldGlyphCache::generate(); add other "needs a flat-coverage
+    // SDF sample" callers (selection backgrounds, cursors, …) here when they
+    // appear. Returns an invalid TexCoord if the tile could not be allocated.
+    TexCoord solidTileTexCoord() const { return m_solidTileTexCoord; }
+
 private:
 
     struct ReferenceFont {
@@ -160,6 +170,13 @@ private:
     QList<TextureInfo> m_textures;
     QDataBuffer<glyph_t> m_pendingGlyphs;
     QHash<QRawFont, ReferenceFont> m_rawFontCache;
+
+    TexCoord m_solidTileTexCoord;
+    TextureInfo *m_solidTileTexture = nullptr;
+    bool m_solidTileUploadPending = false;
+
+    void ensureSolidTile();
+    void uploadSolidTileIfNeeded();
 
     GlyphData &emptyData(glyph_t glyph);
     int maxTextureSize() const;

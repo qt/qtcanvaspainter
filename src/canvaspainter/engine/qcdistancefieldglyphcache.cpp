@@ -7,6 +7,7 @@
 #include "qcdistancefieldglyphcache_p.h"
 #include "qcanvaspainter_p.h"
 #include <private/qrawfont_p.h>
+#include <cmath>
 
 QT_BEGIN_NAMESPACE
 
@@ -127,6 +128,115 @@ void QCDistanceFieldGlyphCache::generate(const QString &text, const QRectF &rect
         // TODO: Add proper bounding box
         QRectF box{};
         cache->generateVertices(verts, indices, state->transform, &box);
+    }
+
+    const bool fontUnderline = font.underline();
+    const bool fontOverline = font.overline();
+    const bool fontStrikeOut = font.strikeOut();
+    if (!(fontUnderline || fontOverline || fontStrikeOut))
+        return;
+
+    const QCRhiDistanceFieldGlyphCache::TexCoord solidTC = cache->solidTileTexCoord();
+    if (solidTC.isNull())
+        return;
+    // Sample from the center of the reserved 0xFF tile so linear filtering
+    // never picks up neighbouring atlas content. All four corners of every
+    // decoration quad share the same texCoord — the rect is a flat lookup.
+    const float solidTx = float(solidTC.x + solidTC.width * 0.5);
+    const float solidTy = float(solidTC.y + solidTC.height * 0.5);
+
+    auto appendDecorationQuad = [&](float x, float y, float w, float h) {
+        QPointF p1(x,     y);
+        QPointF p2(x + w, y);
+        QPointF p3(x,     y + h);
+        QPointF p4(x + w, y + h);
+        if (!state->transform.isIdentity()) {
+            p1 = state->transform.map(p1);
+            p2 = state->transform.map(p2);
+            p3 = state->transform.map(p3);
+            p4 = state->transform.map(p4);
+        }
+        const uint32_t baseIndex = uint32_t(verts->size());
+        QCRhiDistanceFieldGlyphCache::TexturedPoint2D v;
+        v.set(float(p1.x()), float(p1.y()), solidTx, solidTy);
+        verts->append(v);
+        v.set(float(p2.x()), float(p2.y()), solidTx, solidTy);
+        verts->append(v);
+        v.set(float(p3.x()), float(p3.y()), solidTx, solidTy);
+        verts->append(v);
+        v.set(float(p4.x()), float(p4.y()), solidTx, solidTy);
+        verts->append(v);
+        indices->append(baseIndex + 0);
+        indices->append(baseIndex + 2);
+        indices->append(baseIndex + 3);
+        indices->append(baseIndex + 3);
+        indices->append(baseIndex + 1);
+        indices->append(baseIndex + 0);
+    };
+
+    for (const QGlyphRun &run : std::as_const(glyphRuns)) {
+        const QList<QPointF> &positions = run.positions();
+        const QList<quint32> &indexes = run.glyphIndexes();
+        if (positions.isEmpty() || indexes.isEmpty())
+            continue;
+
+        QRawFont rawFont = run.rawFont();
+        // Sub-pixel-thick rects at fractional y can fall between pixel centers
+        // when rendered without AA; clamp thickness to >= 1 px and snap y to
+        // the pixel grid below. With the SDF-pipeline path the underlying draw
+        // does keep AA enabled, but the glyph path already turns it off at the
+        // call level (the text fill marks itself non-AA), so the same snapping
+        // remains the safe choice here.
+        const qreal lineThickness = qMax<qreal>(1.0, std::round(rawFont.lineThickness()));
+        const QList<QPointF> advances = rawFont.advancesForGlyphIndexes(indexes);
+
+        // For wrapped text, QTextLayout::glyphRuns() may return a single
+        // QGlyphRun whose positions span every line — same x ranges, but
+        // different baseline y per line. Glyphs are emitted in reading order,
+        // so positions on a line are contiguous: scan sequentially and flush
+        // the running (xMin, xMax) whenever y changes. Uses glyph advances so
+        // spaces and RTL runs are covered.
+        auto emitLine = [&](qreal baselineY, qreal xMin, qreal xMax) {
+            if (xMin >= xMax)
+                return;
+            // Glyph positions use the baseline as the y-origin (standard Qt convention).
+            const qreal worldX = glyphPos.x() + xMin;
+            const qreal runWidth = xMax - xMin;
+            const qreal worldBaseline = glyphPos.y() + baselineY;
+            if (fontUnderline) {
+                appendDecorationQuad(float(worldX),
+                                     float(std::floor(worldBaseline + rawFont.underlinePosition())),
+                                     float(runWidth), float(lineThickness));
+            }
+            if (fontOverline) {
+                appendDecorationQuad(float(worldX),
+                                     float(std::floor(worldBaseline - rawFont.ascent())),
+                                     float(runWidth), float(lineThickness));
+            }
+            if (fontStrikeOut) {
+                appendDecorationQuad(float(worldX),
+                                     float(std::floor(worldBaseline - rawFont.ascent() / 3.0)),
+                                     float(runWidth), float(lineThickness));
+            }
+        };
+
+        const int count = qMin(positions.size(), advances.size());
+        qreal lineY = positions.first().y();
+        qreal xMin = positions.first().x();
+        qreal xMax = xMin + advances.first().x();
+        for (int i = 1; i < count; ++i) {
+            const qreal y = positions[i].y();
+            if (y != lineY) {
+                emitLine(lineY, xMin, xMax);
+                lineY = y;
+                xMin = positions[i].x();
+                xMax = xMin + advances[i].x();
+            } else {
+                xMin = qMin(xMin, positions[i].x());
+                xMax = qMax(xMax, positions[i].x() + advances[i].x());
+            }
+        }
+        emitLine(lineY, xMin, xMax);
     }
 }
 

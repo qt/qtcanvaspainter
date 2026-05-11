@@ -53,3 +53,14 @@ qt_internal_add_resource(tst_baseline_canvaspainting "resources"
         "images/dome_rgb32.png"
         "images/tiger.json"
 )
+
+qc_add_shaders(tst_baseline_canvaspainting "custombrushes"
+    PREFIX
+        "/"
+    BASE
+        "shaders"
+    FILES
+        "shaders/wobblebrush.vert"
+        "shaders/wobblebrush.frag"
+        "shaders/glowbrush.frag"
+)
