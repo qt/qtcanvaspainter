@@ -57,7 +57,9 @@ public:
     // Distance tolerance for consecutive points
     float distTol = 0.01f;
     uint serialNumber = 0;
-
+    // When this increases, path has been (re)created
+    // so all commands need to be re-evaluated.
+    int pathIterations = 0;
 };
 
 QT_END_NAMESPACE

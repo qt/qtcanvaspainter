@@ -1008,7 +1008,7 @@ void QCanvasPath::clear()
     Q_D(QCanvasPath);
     d->commandsCount = 0;
     d->commandsDataCount = 0;
-    d->serialNumber = nextSerialNumber();
+    d->pathIterations++;
 }
 
 /*!
