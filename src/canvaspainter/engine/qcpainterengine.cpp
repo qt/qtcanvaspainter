@@ -916,11 +916,13 @@ void QCPainterEngine::fill(const QCanvasPath &path, int pathGroup)
         const QCanvasPathPrivate *pathd = QCanvasPathPrivate::get(&path);
         if (ctx.preparedPathSerial != pathd->serialNumber
             || ctx.preparedPathTransform != state.transform
+            || ctx.preparedPathIterations != pathd->pathIterations
             || ctx.preparedPathCommandsCount != pathd->commandsCount)
         {
             preparePainterPath(path);
             ctx.preparedPathTransform = state.transform;
             ctx.preparedPathCommandsCount = pathd->commandsCount;
+            ctx.preparedPathIterations = pathd->pathIterations;
             ctx.preparedPathSerial = pathd->serialNumber;
         }
 
@@ -953,11 +955,13 @@ void QCPainterEngine::stroke(const QCanvasPath &path, int pathGroup)
         const QCanvasPathPrivate *pathd = QCanvasPathPrivate::get(&path);
         if (ctx.preparedPathSerial != pathd->serialNumber
             || ctx.preparedPathTransform != state.transform
+            || ctx.preparedPathIterations != pathd->pathIterations
             || ctx.preparedPathCommandsCount != pathd->commandsCount)
         {
             preparePainterPath(path);
             ctx.preparedPathTransform = state.transform;
             ctx.preparedPathCommandsCount = pathd->commandsCount;
+            ctx.preparedPathIterations = pathd->pathIterations;
             ctx.preparedPathSerial = pathd->serialNumber;
         }
 
@@ -2207,11 +2211,13 @@ bool QCPainterEngine::fillCachedPathUpdateRequired(QCanvasPath *path, int pathGr
     QCCachedPathFillProperties fillProps { state.antialias, int(ctx.renderHints) };
     bool updateRequired = false;
     if (pathGroup != cp.pathGroup
+        || pathd->pathIterations != cp.pathIterations
         || pathd->commandsCount != cp.commandsCount
         || !m_renderer->isPathCachedForFill(path, pathGroup, fillProps))
     {
         updateRequired = true;
         cp.pathGroup = pathGroup;
+        cp.pathIterations = pathd->pathIterations;
         cp.commandsCount = pathd->commandsCount;
     }
     return updateRequired;
@@ -2229,11 +2235,13 @@ bool QCPainterEngine::strokeCachedPathUpdateRequired(QCanvasPath *path, int path
     QCCachedPathStrokeProperties strokeProps { state.antialias, state.strokeWidth, state.lineCap, state.lineJoin, int(ctx.renderHints) };
     bool updateRequired = false;
     if (pathGroup != cp.pathGroup
+        || pathd->pathIterations != cp.pathIterations
         || pathd->commandsCount != cp.commandsCount
         || !m_renderer->isPathCachedForStroke(path, pathGroup, strokeProps))
     {
         updateRequired = true;
         cp.pathGroup = pathGroup;
+        cp.pathIterations = pathd->pathIterations;
         cp.commandsCount = pathd->commandsCount;
     }
     return updateRequired;

@@ -175,6 +175,7 @@ typedef QVarLengthArray<QCPoint> QCPoints;
 struct QCCachedPath
 {
     int pathGroup = -1;
+    int pathIterations = -1;
     int commandsCount = 0;
 };
 
@@ -269,6 +270,7 @@ struct QCContext {
     // Currently prepared painter path.
     // Means that current commands & commandsData are from this path.
     uint preparedPathSerial = 0;
+    int preparedPathIterations = -1;
     int preparedPathCommandsCount = 0;
     bool customMatrixValid;
     bool antialiasingEnabled = true;
