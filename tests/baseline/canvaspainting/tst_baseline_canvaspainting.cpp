@@ -488,6 +488,11 @@ void tst_CanvasPainterLancelot::testMetal()
 
 void tst_CanvasPainterLancelot::setupCanvas2DTestSuite()
 {
+#ifdef ONLY_THIS_TEST
+    QSKIP("Skipping .qml tests in ONLY_THIS_TEST mode.");
+    return;
+#endif
+
     QTest::addColumn<QString>("qmlFile");
 
     if (m_canvas2dSuitePath.isEmpty())
