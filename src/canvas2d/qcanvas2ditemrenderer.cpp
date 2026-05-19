@@ -543,10 +543,6 @@ void QCanvas2DItemRenderer::setPaintStyle(const QCanvasBrush &brush, bool fill)
         auto qcImage = getCachedImage(&image, filename, imageFlags);
         auto b = brush.as<QCanvasImagePattern>();
         b.setImage(qcImage);
-        b.setImageSize(image.width(), image.height());
-        // TODO: Consider extending canvas API to support these.
-        //b.setRotation(45);
-        //b.setStartPosition(10, 20);
         if (fill)
             m_painter->setFillStyle(b);
         else

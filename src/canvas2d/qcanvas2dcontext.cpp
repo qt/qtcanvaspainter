@@ -2054,6 +2054,7 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_createPattern(const QV4::
                 repeatX = false;
                 repeatY = false;
             }
+            pattern.setImageSize(patternTexture.size()); // Default to image original size
             r->d()->context()->buffer()->addImage(patternTexture, repeatX, repeatY);
         }
 

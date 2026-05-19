@@ -329,11 +329,10 @@ public:
     {
         commands << QCanvas2DContext::ResetClipping;
     }
-    inline void setFillStyle(const QCanvasBrush &style, bool repeatX = false, bool repeatY = false)
+    inline void setFillStyle(const QCanvasBrush &style)
     {
         commands << QCanvas2DContext::FillStyle;
         brushes << style;
-        bools << repeatX << repeatY;
     }
 
     inline void setFillColor(const QColor &color)
