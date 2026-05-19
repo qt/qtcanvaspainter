@@ -6,6 +6,10 @@
 #include <QMetaMethod>
 #include <QDebug>
 #include <QImage>
+#include <QFile>
+#include <QJsonArray>
+#include <QJsonDocument>
+#include <QJsonValue>
 
 #include <QCanvasLinearGradient>
 #include <QCanvasRadialGradient>
@@ -2469,6 +2473,65 @@ void CanvasPainterLancelotCppTests::testCanvasPathWithAddPath()
         painter->translate(posX, posY);
         painter->stroke(heartPath, heartPathGroup);
         painter->fill(heartPath, heartPathGroup);
+    }
+    painter->resetTransform();
+}
+
+void CanvasPainterLancelotCppTests::testTiger()
+{
+    struct SvgData {
+        QColor fill = QColorConstants::Transparent;
+        QColor stroke = QColorConstants::Transparent;
+        float lineWidth = 0;
+        QString path;
+        QCanvasPath canvasPath;
+    };
+    QList<SvgData> tigerData;
+
+    QFile tigerFile(":/images/tiger.json");
+    if (!tigerFile.open(QIODevice::ReadOnly)) {
+        qWarning() << "Failed to open tiger.json";
+        return;
+    }
+    const QJsonDocument tigerDoc = QJsonDocument::fromJson(tigerFile.readAll());
+    const QJsonArray json = tigerDoc["data"].toArray();
+    for (const QJsonValue &p : json) {
+        SvgData d;
+        const QString fillString = p["fill"].toString();
+        if (!fillString.isEmpty())
+            d.fill = QColor::fromString(fillString);
+        const QString strokeString = p["stroke"].toString();
+        if (!strokeString.isEmpty())
+            d.stroke = QColor::fromString(strokeString);
+        d.lineWidth = p["width"].toDouble();
+        d.path = p["path"].toString();
+        tigerData << d;
+    }
+
+    const int pathGroup = 1;
+
+    QTransform t;
+    t.translate(width() * 0.5f, height() * 0.5f);
+    const float s = std::min(width(), height()) / 1000.0f;
+    t.scale(s, s);
+    t.translate(-100, -100);
+    painter->setTransform(t);
+
+    for (auto &path : tigerData) {
+        if (path.fill != QColorConstants::Transparent) {
+            painter->setFillStyle(path.fill);
+            if (path.canvasPath.isEmpty())
+                path.canvasPath.addPath(path.path);
+            painter->fill(path.canvasPath, pathGroup);
+        }
+        if (path.stroke != QColorConstants::Transparent) {
+            if (path.lineWidth > 0)
+                painter->setLineWidth(path.lineWidth);
+            painter->setStrokeStyle(path.stroke);
+            if (path.canvasPath.isEmpty())
+                path.canvasPath.addPath(path.path);
+            painter->stroke(path.canvasPath, pathGroup);
+        }
     }
     painter->resetTransform();
 }

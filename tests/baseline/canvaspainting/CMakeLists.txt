@@ -51,4 +51,5 @@ qt_internal_add_resource(tst_baseline_canvaspainting "resources"
         "images/qt_development_white.png"
         "images/dome_argb32.png"
         "images/dome_rgb32.png"
+        "images/tiger.json"
 )
