@@ -63,6 +63,7 @@ public:
     Q_INVOKABLE qreal determinant() const;
     Q_INVOKABLE QTransform inverted() const;
     Q_INVOKABLE QTransform transposed() const;
+    Q_INVOKABLE void reset();
 };
 
 QT_END_NAMESPACE

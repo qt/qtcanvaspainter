@@ -285,4 +285,16 @@ QTransform QCanvas2DTransformValueType::transposed() const
     return QTransform::transposed();
 }
 
+/*!
+    \qmlmethod void transform2d::reset()
+
+    Resets the matrix to an identity matrix, i.e. all elements are set to zero,
+    except m11 and m22 (specifying the scale) and m33 which are set to 1.
+*/
+
+void QCanvas2DTransformValueType::reset()
+{
+    QTransform::reset();
+}
+
 QT_END_NAMESPACE
