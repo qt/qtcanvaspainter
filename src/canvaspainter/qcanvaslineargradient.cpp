@@ -114,6 +114,7 @@ void QCanvasLinearGradient::setStartPosition(float x, float y)
 {
     m_data.linear.sx = x;
     m_data.linear.sy = y;
+    m_cachedBrush = {};
 }
 
 /*!
@@ -140,6 +141,7 @@ void QCanvasLinearGradient::setEndPosition(float x, float y)
 {
     m_data.linear.ex = x;
     m_data.linear.ey = y;
+    m_cachedBrush = {};
 }
 
 /*!

@@ -82,6 +82,7 @@ protected:
         struct { float cx, cy, angle; } conical;
         struct { float x, y, width, height, feather, radius; } box;
     } m_data {};
+    mutable QCanvasBrush m_cachedBrush;
 
 private:
     friend Q_CANVASPAINTER_EXPORT bool comparesEqual(const QCanvasGradient &lhs, const QCanvasGradient &rhs) noexcept;

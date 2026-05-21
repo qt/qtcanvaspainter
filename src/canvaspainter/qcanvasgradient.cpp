@@ -156,6 +156,8 @@ void QCanvasGradient::setColorAt(float position, const QColor &color)
         stops[index].color = color;
     else
         stops.insert(index, { position, color });
+
+    m_cachedBrush = {};
 }
 
 /*!
@@ -176,6 +178,7 @@ void QCanvasGradient::setColorAt(float position, const QColor &color)
 void QCanvasGradient::setStops(const QCanvasGradientStops &stops)
 {
     m_stops = stops;
+    m_cachedBrush = {};
 }
 
 /*!
@@ -278,6 +281,7 @@ void QCanvasGradient::setImage(const QCanvasImage &image, int index)
     m_imageId = image.id();
     // Y-coordinate of the texture is the middle of the pixel at index.
     m_imageY = (index + 0.5f) / image.height();
+    m_cachedBrush = {};
 }
 
 /*!
@@ -286,6 +290,9 @@ void QCanvasGradient::setImage(const QCanvasImage &image, int index)
 
 QCanvasGradient::operator QCanvasBrush() const
 {
+    if (m_cachedBrush.type() != QCanvasBrush::BrushType::Invalid)
+        return m_cachedBrush;
+
     QCanvasGradientBrushPrivate *p = nullptr;
     switch (m_type) {
     case QCanvasBrush::BrushType::LinearGradient: {
@@ -334,7 +341,8 @@ QCanvasGradient::operator QCanvasBrush() const
     p->gradientStops = m_stops;
     p->imageId = m_imageId;
     p->imageY = m_imageY;
-    return QCanvasBrushPrivate::create(p);
+    m_cachedBrush = QCanvasBrushPrivate::create(p);
+    return m_cachedBrush;
 }
 
 /*!

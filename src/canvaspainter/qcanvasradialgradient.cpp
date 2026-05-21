@@ -171,6 +171,7 @@ void QCanvasRadialGradient::setCenterPosition(float x, float y)
     m_data.radial.icy = y;
     m_data.radial.ocx = x;
     m_data.radial.ocy = y;
+    m_cachedBrush = {};
 }
 
 /*!
@@ -196,6 +197,7 @@ void QCanvasRadialGradient::setInnerCenterPosition(float x, float y)
 {
     m_data.radial.icx = x;
     m_data.radial.icy = y;
+    m_cachedBrush = {};
 }
 
 /*!
@@ -221,6 +223,7 @@ void QCanvasRadialGradient::setOuterCenterPosition(float x, float y)
 {
     m_data.radial.ocx = x;
     m_data.radial.ocy = y;
+    m_cachedBrush = {};
 }
 
 /*!
@@ -266,6 +269,7 @@ float QCanvasRadialGradient::outerRadius() const
 void QCanvasRadialGradient::setOuterRadius(float radius)
 {
     m_data.radial.oRadius = radius;
+    m_cachedBrush = {};
 }
 
 /*!
@@ -288,6 +292,7 @@ float QCanvasRadialGradient::innerRadius() const
 void QCanvasRadialGradient::setInnerRadius(float radius)
 {
     m_data.radial.iRadius = radius;
+    m_cachedBrush = {};
 }
 
 // ***** Private *****

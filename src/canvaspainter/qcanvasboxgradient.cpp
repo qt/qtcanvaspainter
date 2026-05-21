@@ -132,6 +132,7 @@ void QCanvasBoxGradient::setRect(float x, float y, float width, float height)
     m_data.box.y = y;
     m_data.box.width = width;
     m_data.box.height = height;
+    m_cachedBrush = {};
 }
 
 /*!
@@ -158,6 +159,7 @@ float QCanvasBoxGradient::feather() const
 void QCanvasBoxGradient::setFeather(float feather)
 {
     m_data.box.feather = feather;
+    m_cachedBrush = {};
 }
 
 /*!
@@ -179,6 +181,7 @@ float QCanvasBoxGradient::radius() const
 void QCanvasBoxGradient::setRadius(float radius)
 {
     m_data.box.radius = radius;
+    m_cachedBrush = {};
 }
 
 // ***** Private *****

@@ -112,6 +112,7 @@ void QCanvasConicalGradient::setCenterPosition(float x, float y)
 {
     m_data.conical.cx = x;
     m_data.conical.cy = y;
+    m_cachedBrush = {};
 }
 
 /*!
@@ -139,6 +140,7 @@ float QCanvasConicalGradient::angle() const
 void QCanvasConicalGradient::setAngle(float angle)
 {
     m_data.conical.angle = angle;
+    m_cachedBrush = {};
 }
 
 // ***** Private *****
