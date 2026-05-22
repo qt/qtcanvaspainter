@@ -18,6 +18,8 @@
 
 #include "qtcanvas2dglobal_p.h"
 #include "qcanvaspainteritem.h"
+#include <QtCanvasPainter/qcanvaspainter.h>
+#include <QtCanvasPainter/qcanvasimagepattern.h>
 #include <QtQml/private/qqmlrefcount_p.h>
 #include <QtGui/qimage.h>
 #include <QtCore/qrect.h>
@@ -62,6 +64,14 @@ public:
     QCanvas2DItem(QQuickItem *parent = nullptr);
     ~QCanvas2DItem();
 
+    // Managing QCanvasImages for image patterns.
+    struct ImageData {
+        QCanvasImagePattern pattern;
+        QImage image;
+        QCanvasPainter::ImageFlags flags;
+        QString url;
+    };
+
     bool isAvailable() const;
 
     QString contextType() const;
@@ -82,6 +92,9 @@ public:
     QCanvas2DCommandBuffer *ccb() const;
     void setCcb(QCanvas2DCommandBuffer *ccb);
     QCanvasPainterItemRenderer *createItemRenderer() const override;
+    void addImagePattern(const QCanvasImagePattern &pattern, const QString &url, const QImage &image, QCanvasPainter::ImageFlags flags);
+    QHash<uint, ImageData> imageData() const;
+    void clearImageDataCache();
 
 Q_SIGNALS:
     void paint();

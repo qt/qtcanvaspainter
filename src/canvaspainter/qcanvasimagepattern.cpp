@@ -401,6 +401,15 @@ void QCanvasImagePattern::setTintColor(const QColor &color)
     d->changed = true;
 }
 
+/*!
+   \internal
+*/
+
+uint QCanvasImagePattern::serialNumber() const
+{
+    return d->serialNumber;
+}
+
 // ***** Private *****
 
 /*!

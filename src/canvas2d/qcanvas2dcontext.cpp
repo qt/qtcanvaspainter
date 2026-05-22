@@ -2033,29 +2033,22 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_createPattern(const QV4::
 
     if (argc >= 2) {
         QCanvasImagePattern pattern;
-        QImage patternTexture;
-        patternTexture = r->d()->context()->createPixmap(QUrl(argv[0].toQStringNoThrow()))->image();
-
+        QString filename = argv[0].toQStringNoThrow();
+        QImage patternTexture = r->d()->context()->createPixmap(QUrl(filename))->image();
         if (!patternTexture.isNull()) {
             QString repetition = argv[1].toQStringNoThrow();
             // "repeat" is the default, even if the string is empty.
-            bool repeatX = true;
-            bool repeatY = true;
+            QCanvasPainter::ImageFlags flags;
             if (repetition == QStringLiteral("repeat") || repetition.isEmpty()) {
-                repeatX = true;
-                repeatY = true;
+                flags.setFlag(QCanvasPainter::ImageFlag::Repeat, true);
             } else if (repetition == QStringLiteral("repeat-x")) {
-                repeatX = true;
-                repeatY = false;
+                flags.setFlag(QCanvasPainter::ImageFlag::RepeatX, true);
             } else if (repetition == QStringLiteral("repeat-y")) {
-                repeatX = false;
-                repeatY = true;
-            } else if (repetition == QStringLiteral("no-repeat")) {
-                repeatX = false;
-                repeatY = false;
-            }
+                flags.setFlag(QCanvasPainter::ImageFlag::RepeatY, true);
+            } // else "no-repeat"
+
             pattern.setImageSize(patternTexture.size()); // Default to image original size
-            r->d()->context()->buffer()->addImage(patternTexture, repeatX, repeatY);
+            r->d()->context()->addImagePattern(pattern, filename, patternTexture, flags);
         }
 
         RETURN_RESULT(scope.engine->fromVariant(QVariant::fromValue(pattern)));
@@ -3276,6 +3269,11 @@ void QCanvas2DContext::flush()
 
     if (m_buffer)
         m_canvas->setCcb(m_buffer);
+}
+
+void QCanvas2DContext::addImagePattern(const QCanvasImagePattern &pattern, const QString &url, const QImage &image, QCanvasPainter::ImageFlags flags)
+{
+    m_canvas->addImagePattern(pattern, url, image, flags);
 }
 
 QCanvas2DContextEngineData::QCanvas2DContextEngineData(QV4::ExecutionEngine *v4)

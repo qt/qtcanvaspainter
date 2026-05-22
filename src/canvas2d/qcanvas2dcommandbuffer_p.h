@@ -71,20 +71,7 @@ public:
         colors << color;
     }
 
-    inline void drawImage(const QImage &image,  const QRectF &sr, const QRectF &dr)
-    {
-        commands << QCanvas2DContext::DrawImage;
-        images << image;
-        rects << sr << dr;
-    }
-
-    inline void addImage(const QImage &image, bool repeatX = false, bool repeatY = false)
-    {
-        images << image;
-        bools << repeatX << repeatY;
-    }
-
-    inline void drawPixmap(QQmlRefPointer<QCanvas2DPixmap> pixmap, const QString filename, const QRectF &sr, const QRectF &dr)
+    inline void drawPixmap(QQmlRefPointer<QCanvas2DPixmap> pixmap, const QString &filename, const QRectF &sr, const QRectF &dr)
     {
         commands << QCanvas2DContext::DrawPixmap;
         strings << filename;
@@ -377,7 +364,7 @@ public:
         fonts << font;
     }
 
-    inline void drawText(const QString& text, qreal x, qreal y)
+    inline void drawText(const QString &text, qreal x, qreal y)
     {
         commands << QCanvas2DContext::FillText;
         strings << text;

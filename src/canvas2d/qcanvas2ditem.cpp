@@ -88,6 +88,7 @@ public:
     QMap<int, QV4::PersistentValue> animationCallbacks;
     QCanvas2DCommandBuffer *ccb = nullptr;
     bool available = false;
+    QHash<uint, QCanvas2DItem::ImageData> imageData;
 };
 
 QCanvas2DItemPrivate::QCanvas2DItemPrivate()
@@ -705,5 +706,29 @@ QCanvasPainterItemRenderer* QCanvas2DItem::createItemRenderer() const
     This signal is emitted after all context painting commands are executed and
     the Canvas has been rendered.
 */
+
+void QCanvas2DItem::addImagePattern(const QCanvasImagePattern &pattern, const QString &url, const QImage &image, QCanvasPainter::ImageFlags flags)
+{
+    Q_D(QCanvas2DItem);
+    // Add a new entry into imageData cache.
+    ImageData iData;
+    iData.pattern = pattern;
+    iData.image = image;
+    iData.flags = flags;
+    iData.url = url;
+    d->imageData.insert(pattern.serialNumber(), iData);
+}
+
+QHash<uint, QCanvas2DItem::ImageData> QCanvas2DItem::imageData() const
+{
+    Q_D(const QCanvas2DItem);
+    return d->imageData;
+}
+
+void QCanvas2DItem::clearImageDataCache()
+{
+    Q_D(QCanvas2DItem);
+    d->imageData.clear();
+}
 
 QT_END_NAMESPACE

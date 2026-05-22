@@ -17,7 +17,6 @@
 //
 
 #include "qtcanvas2dglobal_p.h"
-#include "qcanvas2ditem_p.h"
 
 #include <QtCanvasPainter/qcanvaspainter.h>
 #include <QtCanvasPainter/qcanvasbrush.h>
@@ -27,6 +26,7 @@
 #include <QtQml/qqml.h>
 #include <QtQml/qqmlcomponent.h>
 #include <QtQml/private/qv4persistent_p.h>
+#include <QtQml/private/qqmlrefcount_p.h>
 
 #include <QtGui/qpainter.h>
 #include <QtGui/qpainterpath.h>
@@ -42,6 +42,8 @@ namespace QV4 {
     struct ExecutionEngine;
 }
 
+class QCanvas2DItem;
+class QCanvas2DPixmap;
 class QCanvas2DCommandBuffer;
 class QQuickPixmap;
 class QSGTexture;
@@ -109,7 +111,6 @@ public:
         Save,
         Restore,
         Reset,
-        DrawImage, // TODO: Used in putImageData, check support.
         DrawBoxShadow,
         Antialias,
     };
@@ -209,6 +210,7 @@ public:
     QPainterPath createTextGlyphs(qreal x, qreal y, const QString& text);
     QQmlRefPointer<QCanvas2DPixmap> createPixmap(const QUrl& url, QSizeF sourceSize = QSizeF());
     void setGrabbedImage(const QImage& grab);
+    void addImagePattern(const QCanvasImagePattern &pattern, const QString &url, const QImage &image, QCanvasPainter::ImageFlags flags);
 
     State state;
     QStack<QCanvas2DContext::State> m_stateStack;

@@ -33,6 +33,9 @@ void QCanvas2DItemRenderer::synchronizeData(QCanvasPainterItem *item)
 {
     Q_ASSERT(item);
     QCanvas2DItem *realItem = static_cast<QCanvas2DItem*>(item);
+
+    imageData = realItem->imageData();
+
     if (auto ccb = realItem->ccb()) {
         commands = ccb->commands;
         ints = ccb->ints;
@@ -53,11 +56,18 @@ void QCanvas2DItemRenderer::synchronizeData(QCanvasPainterItem *item)
         // At this point ccb can be cleared
         ccb->clearBuffers();
     }
+
+    // Clear per-frame image data cache
+    realItem->clearImageDataCache();
 }
 
 void QCanvas2DItemRenderer::paint(QCanvasPainter *painter)
 {
     m_painter = painter;
+
+    // Add images as needed.
+    for (const auto &iData : std::as_const(imageData))
+        qcImages[iData.url] = painter->addImage(iData.image, iData.flags);
 
     reset();
 
@@ -455,11 +465,6 @@ void QCanvas2DItemRenderer::paint(QCanvasPainter *painter)
             m_painter->reset();
             break;
         }
-        case QCanvas2DContext::DrawImage:
-        {
-            // TODO: Implement
-            break;
-        }
         case QCanvas2DContext::DrawBoxShadow:
         {
             const auto &brush = takeBrush();
@@ -526,52 +531,39 @@ void QCanvas2DItemRenderer::setPaintStyle(const QCanvasBrush &brush, bool fill)
         return;
 
     if (brush.type() == QCanvasBrush::BrushType::ImagePattern) {
-        if (images.size() <= imageIdx) {
-            qDebug() << "QCanvasBrush::BrushType::ImagePattern - No image available!";
-            return;
-        }
-        QImage image = takeImage();
-        QCanvasPainter::ImageFlags imageFlags;
-        bool repeatX = takeBool();
-        bool repeatY = takeBool();
-        // Consider enabling if scaling the image is supported
-        //imageFlags.setFlag(QCPainter::ImageFlag::GenerateMipmaps, true);
-        imageFlags.setFlag(QCanvasPainter::ImageFlag::RepeatX, repeatX);
-        imageFlags.setFlag(QCanvasPainter::ImageFlag::RepeatY, repeatY);
-        auto i = image.cacheKey();
-        QString filename = QString(QStringLiteral("pattern_%1")).arg(QString::number(i));
-        auto qcImage = getCachedImage(&image, filename, imageFlags);
+        // Image patterns require setting the matching QCanvasImage.
         auto b = brush.as<QCanvasImagePattern>();
-        b.setImage(qcImage);
+        for (const auto &iData : std::as_const(imageData)) {
+            if (b.serialNumber() == iData.pattern.serialNumber()) {
+                auto qcImage = getCachedImage(iData.image, iData.url, iData.flags);
+                b.setImage(qcImage);
+                if (fill)
+                    m_painter->setFillStyle(b);
+                else
+                    m_painter->setStrokeStyle(b);
+                break;
+            }
+        }
+    } else {
         if (fill)
-            m_painter->setFillStyle(b);
+            m_painter->setFillStyle(brush);
         else
-            m_painter->setStrokeStyle(b);
-        return;
+            m_painter->setStrokeStyle(brush);
     }
-
-    if (fill)
-        m_painter->setFillStyle(brush);
-    else
-        m_painter->setStrokeStyle(brush);
 }
 
-QCanvasImage QCanvas2DItemRenderer::getCachedImage(QImage *image, const QString &filename, QCanvasPainter::ImageFlags flags)
+QCanvasImage QCanvas2DItemRenderer::getCachedImage(const QImage &image, const QString &url, QCanvasPainter::ImageFlags flags)
 {
-    QString key = filename + QStringLiteral("_") + QString::number(flags);
-    if (!qcImages.contains(key)) {
-        // TODO: Do we need to use filename as key or just use QCImage id?
-        QCanvasImage qcImage = m_painter->addImage(*image, flags);
-        qcImages.insert(key, qcImage);
-    }
-    return qcImages.value(key);
+    if (!qcImages.contains(url))
+        qcImages[url] = m_painter->addImage(image, flags);
+
+    return qcImages.value(url);
 }
 
-void QCanvas2DItemRenderer::drawImage(const QImage &image, const QString &filename, const QRectF &sr, const QRectF &dr)
+void QCanvas2DItemRenderer::drawImage(const QImage &image, const QString &url, const QRectF &sr, const QRectF &dr)
 {
-    auto *i = const_cast<QImage*>(&image);
     QCanvasPainter::ImageFlags imageFlags;
-    auto qcImage = getCachedImage(i, filename, imageFlags);
+    auto qcImage = getCachedImage(image, url, imageFlags);
     m_painter->drawImage(qcImage, sr, dr);
 }
 

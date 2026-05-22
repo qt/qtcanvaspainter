@@ -29,9 +29,17 @@ QT_BEGIN_NAMESPACE
 class QCanvasImagePatternPrivate : public QCanvasBrushPrivate
 {
 public:
+    static uint nextSerialNumber()
+    {
+        Q_CONSTINIT static QBasicAtomicInteger<uint> serial = Q_BASIC_ATOMIC_INITIALIZER(0);
+        return serial.fetchAndAddRelaxed(1);
+    }
+
     QCanvasImagePatternPrivate(const QCanvasImagePatternPrivate &) = default;
 
-    QCanvasImagePatternPrivate() : QCanvasBrushPrivate(QCanvasBrush::BrushType::ImagePattern) {}
+    QCanvasImagePatternPrivate() : QCanvasBrushPrivate(QCanvasBrush::BrushType::ImagePattern) {
+        serialNumber = nextSerialNumber();
+    }
     QCanvasBrushPrivate *clone() override;
 
     QCPaint createPaint(QCanvasPainter *painter) const override;
@@ -51,6 +59,7 @@ public:
     float height = 100.0f;
     float angle = 0.0f;
     bool changed = true;
+    uint serialNumber = 0; // Unique id
 };
 
 QT_END_NAMESPACE

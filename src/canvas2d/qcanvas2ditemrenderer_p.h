@@ -7,6 +7,7 @@
 
 #include "qtcanvas2dglobal_p.h"
 #include "qcanvas2dcontext_p.h"
+#include "qcanvas2ditem_p.h"
 #include <QtCanvasPainter/qcanvaspainteritemrenderer.h>
 #include <QtGui/qcolor.h>
 #include <QtCore/qobject.h>
@@ -44,8 +45,8 @@ private:
     void strokePath(const QPainterPath &path);
     void fillPath(const QPainterPath &path);
     void setPaintStyle(const QCanvasBrush &brush, bool fill);
-    QCanvasImage getCachedImage(QImage *image, const QString &filename, QCanvasPainter::ImageFlags flags);
-    void drawImage(const QImage &image, const QString &filename, const QRectF &sr, const QRectF &dr);
+    QCanvasImage getCachedImage(const QImage &image, const QString &url, QCanvasPainter::ImageFlags flags);
+    void drawImage(const QImage &image, const QString &url, const QRectF &sr, const QRectF &dr);
     void copyBrushes(const QList<QCanvasBrush> &newBrushes);
 
     QCanvasPainter *m_painter = nullptr;
@@ -95,6 +96,7 @@ private:
     void reset();
 
     QHash<QString, QCanvasImage> qcImages;
+    QHash<uint, QCanvas2DItem::ImageData> imageData;
 
     QList<QCanvas2DContext::PaintCommand> commands;
     QList<int> ints;
