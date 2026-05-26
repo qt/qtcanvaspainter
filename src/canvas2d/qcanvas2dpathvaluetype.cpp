@@ -252,6 +252,22 @@ void QCanvas2DPathValueType::addPath(const QCanvasPath &path, const QTransform &
 }
 
 /*!
+    \qmlmethod void path2d::addPath(path2d path, int start, int count, transform2d transform)
+
+    Adds \a path into the current path, starting from the command at \a start
+    and including \a count amount of commands. Optionally using \a transform to
+    alter the path points.
+    The range of \a start and \a count is checked, so that commands are not
+    accessed more than the path has commands.
+    In case the path shouldn't continue from the current path position, call
+    first \l moveTo().
+*/
+void QCanvas2DPathValueType::addPath(const QCanvasPath &path, qsizetype start, qsizetype count, const QTransform &transform)
+{
+    QCanvasPath::addPath(path, start, count, transform);
+}
+
+/*!
     \qmlmethod void path2d::addPath(string svgPath, transform2d transform)
 
     Adds a \a svgPath into this path, using \a transform as a transformation matrix.

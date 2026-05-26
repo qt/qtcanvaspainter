@@ -78,6 +78,29 @@ Rectangle {
                 ctx.stroke(heartPath);
                 ctx.fill(heartPath);
             }
+
+            // Line graphs, where the 2 & 3 are subpath of the first.
+            ctx.resetTransform();
+            ctx.strokeStyle = "#ffffff";
+            ctx.lineWidth = d * 0.1;
+            const graphPath = ctx.createPath2D();
+            if (graphPath.isEmpty()) {
+                graphPath.moveTo(20, 60);
+                for (let i = 1; i < 160; i++) {
+                    graphPath.lineTo(20 + i,
+                                  60 + 20 * Math.sin(0.1 * i));
+                }
+            }
+            ctx.stroke(graphPath);
+            ctx.beginPath();
+            let transform = ctx.createTransform2D();
+            transform.translate(0, 40);
+            ctx.addPath(graphPath, 20, 100, transform);
+            ctx.stroke();
+            const graphPath3 = ctx.createPath2D();
+            transform.translate(0, 40);
+            graphPath3.addPath(graphPath, 40, 100, transform);
+            ctx.stroke(graphPath3);
         }
     }
 }

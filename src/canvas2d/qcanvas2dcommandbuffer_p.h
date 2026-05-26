@@ -301,6 +301,14 @@ public:
         matrixes << transform;
     }
 
+    inline void addPath(const QCanvasPath &path, int start, int count, const QTransform &transform)
+    {
+        commands << QCanvas2DContext::AddCanvasPathRange;
+        canvasPaths << path;
+        ints << start << count;
+        matrixes << transform;
+    }
+
     inline void clip(bool enabled, const QPainterPath &path)
     {
         commands << QCanvas2DContext::Clip;

@@ -85,6 +85,7 @@ public:
         StrokePath,
         StrokeCanvasPath,
         AddCanvasPath,
+        AddCanvasPathRange,
         Clip,
         ClipRect,
         ResetClipping,

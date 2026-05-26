@@ -296,6 +296,15 @@ void QCanvas2DItemRenderer::paint(QCanvasPainter *painter)
             m_painter->addPath(p, t);
             break;
         }
+        case QCanvas2DContext::AddCanvasPathRange:
+        {
+            const QCanvasPath &p = takeCanvasPath();
+            const QTransform t = takeMatrix();
+            int start = takeInt();
+            int count = takeInt();
+            m_painter->addPath(p, start, count, t);
+            break;
+        }
         case QCanvas2DContext::Clip:
         {
             m_state.clip = takeBool();

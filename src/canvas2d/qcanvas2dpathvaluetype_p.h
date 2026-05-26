@@ -56,6 +56,7 @@ public:
     Q_INVOKABLE void beginHoleSubPath();
 
     Q_INVOKABLE void addPath(const QCanvasPath &path, const QTransform &transform = QTransform());
+    Q_INVOKABLE void addPath(const QCanvasPath &path, qsizetype start, qsizetype count, const QTransform &transform = QTransform());
     Q_INVOKABLE void addPath(const QString &svgPath, const QTransform &transform = QTransform());
 
     Q_INVOKABLE bool isEmpty() const;

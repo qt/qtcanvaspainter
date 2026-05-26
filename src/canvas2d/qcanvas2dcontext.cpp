@@ -821,6 +821,17 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_beginHoleSubPath(const QV
     Providing \a transform parameter is optional.
 */
 
+/*!
+    \qmlmethod object Canvas2DContext::addPath(path2d path, int start, int count, transform2d transform)
+
+    Adds \a path into the current path, starting from the command at \a start and including
+    \a count amount of commands. Optionally using \a transform to alter the path points.
+    The range of start and count is checked, so that commands are not accessed more than
+    the path has commands. In case the path shouldn't continue from the current path
+    position, call first \l moveTo().
+    Providing \a transform parameter is optional.
+*/
+
 QV4::ReturnedValue QCanvasJSContext2DPrototype::method_addPath(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc)
 {
     QV4::Scope scope(b);
@@ -832,11 +843,21 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_addPath(const QV4::Functi
         if (arg1->as<Object>()) {
             QCanvasPath path = QV4::ExecutionEngine::toVariant(arg1, QMetaType::fromType<QCanvasPath>()).value<QCanvasPath>();
             QTransform transform;
-            if (argc >= 2) {
+            if (argc >= 3) {
+                int start = argv[1].toInteger();
+                int count = argv[2].toInteger();
+                if (argc >= 4) {
+                    QV4::ScopedValue arg4(scope, argv[3]);
+                    transform = QV4::ExecutionEngine::toVariant(arg4, QMetaType::fromType<QTransform>()).value<QTransform>();
+                }
+                r->d()->context()->buffer()->addPath(path, start, count, transform);
+            } else if (argc >= 2) {
                 QV4::ScopedValue arg2(scope, argv[1]);
                 transform = QV4::ExecutionEngine::toVariant(arg2, QMetaType::fromType<QTransform>()).value<QTransform>();
+                r->d()->context()->buffer()->addPath(path, transform);
+            } else {
+                r->d()->context()->buffer()->addPath(path, transform);
             }
-            r->d()->context()->buffer()->addPath(path, transform);
         }
     }
 
