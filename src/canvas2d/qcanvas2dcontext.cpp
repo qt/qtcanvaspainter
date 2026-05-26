@@ -353,6 +353,13 @@ static QString qcanvas_composite_mode_to_string(QCanvasPainter::CompositeOperati
     return QString();
 }
 
+static QCanvasPainter::FillRule qcanvas_fill_rule_from_string(const QString &fillRule)
+{
+    if (fillRule == QStringLiteral("evenodd") || fillRule == QStringLiteral("OddEvenFill"))
+        return QCanvasPainter::FillRule::EvenOdd;
+    return QCanvasPainter::FillRule::NonZero;
+}
+
 //static script functions
 
 // ******************** Start: Path methods. ********************
@@ -1483,14 +1490,42 @@ QV4::ReturnedValue QCanvasJSContext2D::method_set_fillStyle(const QV4::FunctionO
     RETURN_UNDEFINED();
 }
 
-// TODO: Document if this gets supported.
+/*!
+    \qmlproperty string Canvas2DContext::fillRule
+
+    Holds the current fill rule used for filling shapes.
+    The following fill rules are supported:
+
+    \value "nonzero" (or "WindingFill")
+        The path is filled using the non zero winding rule. With this rule,
+        we determine whether a point is inside the shape by using the following method.
+        Draw a horizontal line from the point to a location outside the shape. Determine
+        whether the direction of the line at each intersection point is up or down.
+        The winding number is determined by summing the direction of each intersection.
+        If the number is non zero, the point is inside the shape. This fill mode can also
+        in most cases be considered as the intersection of closed shapes. This mode is the default.
+
+    \value "evenodd" (or "OddEvenFill")
+        The path is filled using the odd even fill rule. With this rule, we determine
+        whether a point is inside the shape by using the following method. Draw a horizontal
+        line from the point to a location outside the shape, and count the number of
+        intersections. If the number of intersections is an odd number, the point is
+        inside the shape.
+
+    \sa fill()
+
+    The default value is "nonzero".
+*/
 QV4::ReturnedValue QCanvasJSContext2D::method_get_fillRule(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *, int)
 {
     QV4::Scope scope(b);
     QV4::Scoped<QCanvasJSContext2D> r(scope, thisObject->as<QCanvasJSContext2D>());
     CHECK_CONTEXT(r)
 
-    RETURN_RESULT(scope.engine->fromVariant(r->d()->context()->state.fillRule));
+    if (r->d()->context()->state.fillRule == QCanvasPainter::FillRule::EvenOdd)
+        RETURN_RESULT(scope.engine->newString(QStringLiteral("evenodd")));
+
+    RETURN_RESULT(scope.engine->newString(QStringLiteral("nonzero")));
 }
 
 QV4::ReturnedValue QCanvasJSContext2D::method_set_fillRule(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc)
@@ -1500,18 +1535,16 @@ QV4::ReturnedValue QCanvasJSContext2D::method_set_fillRule(const QV4::FunctionOb
     CHECK_CONTEXT(r)
 
     QV4::ScopedValue value(scope, argc ? argv[0] : QV4::Value::undefinedValue());
-
-    if ((value->isString() && value->toQString() == QStringLiteral("WindingFill"))
-        || (value->isInt32() && value->integerValue() == Qt::WindingFill)) {
-        r->d()->context()->state.fillRule = Qt::WindingFill;
-    } else if ((value->isString() && value->toQStringNoThrow() == QStringLiteral("OddEvenFill"))
-               || (value->isInt32() && value->integerValue() == Qt::OddEvenFill)) {
-        r->d()->context()->state.fillRule = Qt::OddEvenFill;
-    } else {
-        //error
+    if (value->isString()) {
+        QString mode = value->toQString();
+        if (mode == QStringLiteral("nonzero") || mode == QStringLiteral("WindingFill"))
+            r->d()->context()->state.fillRule = QCanvasPainter::FillRule::NonZero;
+        else if (mode == QStringLiteral("evenodd") || mode == QStringLiteral("OddEvenFill"))
+            r->d()->context()->state.fillRule = QCanvasPainter::FillRule::EvenOdd;
+        else
+            THROW_DOM(DOMEXCEPTION_NOT_SUPPORTED_ERR, "fillRule: Incorrect arguments")
     }
-    // TODO: Enable when there is OddEven fillrule support.
-    //r->d()->context()->m_path.setFillRule(r->d()->context()->state.fillRule);
+    r->d()->context()->buffer()->setFillRule(r->d()->context()->state.fillRule);
     RETURN_UNDEFINED();
 }
 
@@ -2469,11 +2502,25 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_resetClipping(const QV4::
    \sa fillStyle, {http://www.w3.org/TR/2dcontext/#dom-context-2d-fill}{W3C 2d context standard for fill}
   */
 /*!
-  \qmlmethod object Canvas2DContext::fill(path2d path)
+  \qmlmethod object Canvas2DContext::fill(string fillRule)
 
-   Fills the \a path with the current fill style.
+   Fills the subpaths with the current fill style and using \a fillRule.
 
-   \sa fillStyle, path2d, {http://www.w3.org/TR/2dcontext/#dom-context-2d-fill}{W3C 2d context standard for fill}
+   \sa fillStyle, fillRule
+  */
+/*!
+  \qmlmethod object Canvas2DContext::fill(path2d path, int pathGroup)
+
+   Fills the \a path with the current fill style. Cache group \a pathGroup parameter is optional.
+
+   \sa fillStyle, path2d
+  */
+/*!
+  \qmlmethod object Canvas2DContext::fill(path2d path, string fillRule, int pathGroup)
+
+   Fills the \a path with the current fill style and using \a fillRule. Cache group \a pathGroup parameter is optional.
+
+   \sa fillStyle, fillRule, path2d
   */
 QV4::ReturnedValue QCanvasJSContext2DPrototype::method_fill(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc)
 {
@@ -2483,16 +2530,33 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_fill(const QV4::FunctionO
     if (argc == 0) {
         r->d()->context()->fill();
     } else {
-        // fill a path
-        QV4::ScopedValue value(scope, argv[0]);
-        if (value->as<Object>()) {
-            QCanvasPath p = QV4::ExecutionEngine::toVariant(value, QMetaType::fromType<QCanvasPath>()).value<QCanvasPath>();
+        QV4::ScopedValue arg1(scope, argv[0]);
+        if (arg1->as<Object>()) {
+            // fill a path
+            QCanvasPath p = QV4::ExecutionEngine::toVariant(arg1, QMetaType::fromType<QCanvasPath>()).value<QCanvasPath>();
             if (argc >= 2) {
-                int pathGroup = argv[1].toInteger();
-                r->d()->context()->fillPath(p, pathGroup);
+                QV4::ScopedValue arg2(scope, argv[1]);
+                if (arg2->isInt32()) {
+                    int pathGroup = arg2->toInteger();
+                    r->d()->context()->fillPath(p, pathGroup);
+                } else if (arg2->isString()) {
+                    auto rule = qcanvas_fill_rule_from_string(arg2->toQString());
+                    int pathGroup = -1;
+                    if (argc >= 3) {
+                        QV4::ScopedValue arg3(scope, argv[2]);
+                        pathGroup = arg3->toInteger();
+                    }
+                    r->d()->context()->fillPath(p, rule, pathGroup);
+                } else {
+                    THROW_DOM(DOMEXCEPTION_NOT_SUPPORTED_ERR, "fill: Incorrect arguments")
+                }
             } else {
                 r->d()->context()->fillPath(p);
             }
+        } else if (arg1->isString()) {
+            // Fill with a fillRule
+            auto rule = qcanvas_fill_rule_from_string(arg1->toQString());
+            r->d()->context()->fill(rule);
         }
     }
     RETURN_RESULT(*thisObject);
@@ -2506,9 +2570,9 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_fill(const QV4::FunctionO
    \sa strokeStyle, {http://www.w3.org/TR/2dcontext/#dom-context-2d-stroke}{W3C 2d context standard for stroke}
  */
 /*!
-  \qmlmethod object Canvas2DContext::stroke(path2d path)
+  \qmlmethod object Canvas2DContext::stroke(path2d path, int pathGroup)
 
-   Strokes the \a path with the current stroke style.
+   Strokes the \a path with the current stroke style. Cache group \a pathGroup parameter is optional.
 
    \sa strokeStyle, path2d, {http://www.w3.org/TR/2dcontext/#dom-context-2d-stroke}{W3C 2d context standard for stroke}
  */
@@ -3140,6 +3204,11 @@ void QCanvas2DContext::fill()
     buffer()->fill();
 }
 
+void QCanvas2DContext::fill(QCanvasPainter::FillRule fillRule)
+{
+    buffer()->fill(fillRule);
+}
+
 void QCanvas2DContext::stroke()
 {
     buffer()->stroke();
@@ -3148,6 +3217,11 @@ void QCanvas2DContext::stroke()
 void QCanvas2DContext::fillPath(const QCanvasPath &path, int pathGroup)
 {
     buffer()->fillPath(path, pathGroup);
+}
+
+void QCanvas2DContext::fillPath(const QCanvasPath &path, QCanvasPainter::FillRule fillRule, int pathGroup)
+{
+    buffer()->fillPath(path, fillRule, pathGroup);
 }
 
 void QCanvas2DContext::strokePath(const QCanvasPath &path, int pathGroup)

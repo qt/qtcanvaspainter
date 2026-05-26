@@ -78,9 +78,12 @@ public:
         FillColor,
         StrokeStyle,
         FillStyle,
+        FillRule,
         Fill,
+        FillWithRule,
         FillPath,
         FillCanvasPath,
+        FillCanvasPathWithRule,
         Stroke,
         StrokePath,
         StrokeCanvasPath,
@@ -121,7 +124,7 @@ public:
             : strokeColor(QColor(Qt::black))
             , fillColor(QColor(Qt::black))
             , clip(false)
-            , fillRule(Qt::WindingFill)
+            , fillRule(QCanvasPainter::FillRule::NonZero)
             , globalAlpha(1.0)
             , globalBrightness(1.0)
             , globalContrast(1.0)
@@ -146,7 +149,7 @@ public:
         QColor strokeColor;
         QColor fillColor;
         bool clip:1;
-        Qt::FillRule fillRule;
+        QCanvasPainter::FillRule fillRule;
         qreal globalAlpha;
         qreal globalBrightness;
         qreal globalContrast;
@@ -201,8 +204,10 @@ public:
     void clipRect(qreal x, qreal y, qreal w, qreal h);
     void resetClipping();
     void fill();
+    void fill(QCanvasPainter::FillRule fillRule);
     void stroke();
     void fillPath(const QCanvasPath &path, int pathGroup = -1);
+    void fillPath(const QCanvasPath &path, QCanvasPainter::FillRule fillRule, int pathGroup = -1);
     void strokePath(const QCanvasPath &path, int pathGroup = -1);
 
     // ***** other *****

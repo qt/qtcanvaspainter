@@ -251,10 +251,17 @@ void QCanvas2DItemRenderer::paint(QCanvasPainter *painter)
             setPaintStyle(m_state.fillStyle, true);
             break;
         }
-
         case QCanvas2DContext::Fill:
         {
             m_painter->fill();
+            break;
+        }
+        case QCanvas2DContext::FillWithRule:
+        {
+            int ruleInt = takeInt();
+            auto fillRule = (ruleInt == 0) ? QCanvasPainter::FillRule::NonZero :
+                    QCanvasPainter::FillRule::EvenOdd;
+            m_painter->fill(fillRule);
             break;
         }
         case QCanvas2DContext::FillPath:
@@ -269,6 +276,16 @@ void QCanvas2DItemRenderer::paint(QCanvasPainter *painter)
             const QCanvasPath &p = takeCanvasPath();
             int pathGroup = takeInt();
             m_painter->fill(p, pathGroup);
+            break;
+        }
+        case QCanvas2DContext::FillCanvasPathWithRule:
+        {
+            const QCanvasPath &p = takeCanvasPath();
+            int ruleInt = takeInt();
+            auto fillRule = (ruleInt == 0) ? QCanvasPainter::FillRule::NonZero :
+                    QCanvasPainter::FillRule::EvenOdd;
+            int pathGroup = takeInt();
+            m_painter->fill(p, fillRule, pathGroup);
             break;
         }
         case QCanvas2DContext::Stroke:
@@ -303,6 +320,12 @@ void QCanvas2DItemRenderer::paint(QCanvasPainter *painter)
             int start = takeInt();
             int count = takeInt();
             m_painter->addPath(p, start, count, t);
+            break;
+        }
+        case QCanvas2DContext::FillRule:
+        {
+            QCanvasPainter::FillRule rule = static_cast<QCanvasPainter::FillRule>(takeInt());
+            m_painter->setFillRule(rule);
             break;
         }
         case QCanvas2DContext::Clip:

@@ -273,9 +273,21 @@ public:
         canvasPaths << path;
         ints << pathGroup;
     }
+    inline void fillPath(const QCanvasPath &path, QCanvasPainter::FillRule fillRule, int pathGroup)
+    {
+        commands << QCanvas2DContext::FillCanvasPathWithRule;
+        ints << int(fillRule);
+        canvasPaths << path;
+        ints << pathGroup;
+    }
     inline void fill()
     {
         commands << QCanvas2DContext::Fill;
+    }
+    inline void fill(QCanvasPainter::FillRule fillRule)
+    {
+        commands << QCanvas2DContext::FillWithRule;
+        ints << int(fillRule);
     }
 
     inline void strokePath(const QPainterPath &path)
@@ -334,6 +346,12 @@ public:
     {
         commands << QCanvas2DContext::FillColor;
         colors << color;
+    }
+
+    inline void setFillRule(QCanvasPainter::FillRule rule)
+    {
+        commands << QCanvas2DContext::FillRule;
+        ints << int(rule);
     }
 
     inline void setLineWidth(qreal w)
