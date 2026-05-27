@@ -353,7 +353,7 @@ QCanvasGradient::operator QVariant() const
     case QCanvasBrush::BrushType::BoxGradient:
         return QVariant::fromValue(static_cast<const QCanvasBoxGradient &>(*this));
     default:
-        return QVariant::fromValue(*this);
+        return QVariant();
     }
 }
 
@@ -574,54 +574,6 @@ QCanvasGradientBrushPrivate::QCanvasGradientBrushPrivate(QCanvasBrush::BrushType
     , imageId(0)
     , imageY(0.5f)
 {
-}
-
-QCanvasGradient QCanvasGradientBrushPrivate::reconstruct(const QCanvasGradientBrushPrivate *gd)
-{
-    QCanvasGradient g(gd->type);
-    g.m_stops = gd->gradientStops;
-    g.m_imageId = gd->imageId;
-    g.m_imageY = gd->imageY;
-    switch (gd->type) {
-    case QCanvasBrush::BrushType::LinearGradient:
-        g.m_data.linear.sx = gd->data.linear.sx;
-        g.m_data.linear.sy = gd->data.linear.sy;
-        g.m_data.linear.ex = gd->data.linear.ex;
-        g.m_data.linear.ey = gd->data.linear.ey;
-        break;
-    case QCanvasBrush::BrushType::RadialGradient:
-        g.m_data.radial.icx = gd->data.radial.icx;
-        g.m_data.radial.icy = gd->data.radial.icy;
-        g.m_data.radial.iRadius = gd->data.radial.iRadius;
-        g.m_data.radial.ocx = gd->data.radial.ocx;
-        g.m_data.radial.ocy = gd->data.radial.ocy;
-        g.m_data.radial.oRadius = gd->data.radial.oRadius;
-        break;
-    case QCanvasBrush::BrushType::ConicalGradient:
-        g.m_data.conical.cx = gd->data.conical.cx;
-        g.m_data.conical.cy = gd->data.conical.cy;
-        g.m_data.conical.angle = gd->data.conical.angle;
-        break;
-    case QCanvasBrush::BrushType::BoxGradient:
-        g.m_data.box.x = gd->data.box.x;
-        g.m_data.box.y = gd->data.box.y;
-        g.m_data.box.width = gd->data.box.width;
-        g.m_data.box.height = gd->data.box.height;
-        g.m_data.box.feather = gd->data.box.feather;
-        g.m_data.box.radius = gd->data.box.radius;
-        break;
-    default:
-        break;
-    }
-    return g;
-}
-
-template<> QCanvasGradient QCanvasBrush::as<QCanvasGradient>() const
-{
-    Q_ASSERT(type() == BrushType::LinearGradient || type() == BrushType::RadialGradient
-             || type() == BrushType::ConicalGradient || type() == BrushType::BoxGradient);
-    const auto *gd = static_cast<const QCanvasGradientBrushPrivate *>(QCanvasBrushPrivate::get(*this));
-    return QCanvasGradientBrushPrivate::reconstruct(gd);
 }
 
 // Convert quint64 into qint64

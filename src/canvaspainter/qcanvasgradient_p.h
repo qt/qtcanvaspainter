@@ -30,8 +30,6 @@ class QCanvasGradientBrushPrivate : public QCanvasBrushPrivate
 public:
     QCanvasGradientBrushPrivate(QCanvasBrush::BrushType type);
 
-    static QCanvasGradient reconstruct(const QCanvasGradientBrushPrivate *p);
-
     qint64 generateGradientKey() const;
     void updateGradientTexture(QCanvasPainter *painter);
 

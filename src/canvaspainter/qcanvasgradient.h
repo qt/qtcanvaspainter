@@ -13,7 +13,6 @@
 
 QT_BEGIN_NAMESPACE
 
-class QCanvasGradientBrushPrivate;
 class QCanvasImage;
 
 struct QCanvasGradientStop
@@ -49,7 +48,6 @@ class QCanvasGradient
 {
 public:
     QCanvasGradient() = default;
-    ~QCanvasGradient() = default;
     QCanvasGradient(const QCanvasGradient &) = default;
     QCanvasGradient &operator=(const QCanvasGradient &) = default;
     QCanvasGradient(QCanvasGradient &&) = default;
@@ -72,6 +70,7 @@ public:
 
 protected:
     Q_CANVASPAINTER_EXPORT explicit QCanvasGradient(QCanvasBrush::BrushType type);
+    ~QCanvasGradient() = default;
 
     QCanvasBrush::BrushType m_type = QCanvasBrush::BrushType::Invalid;
     QCanvasGradientStops m_stops;
@@ -87,8 +86,6 @@ protected:
 private:
     friend Q_CANVASPAINTER_EXPORT bool comparesEqual(const QCanvasGradient &lhs, const QCanvasGradient &rhs) noexcept;
     Q_DECLARE_EQUALITY_COMPARABLE(QCanvasGradient)
-    friend class QCanvasGradientBrushPrivate;
-
 #ifndef QT_NO_DEBUG_STREAM
     friend Q_CANVASPAINTER_EXPORT QDebug operator<<(QDebug dbg, const QCanvasGradientStop &stop);
     friend Q_CANVASPAINTER_EXPORT QDebug operator<<(QDebug, const QCanvasGradient &);
@@ -104,8 +101,6 @@ inline void QCanvasGradient::addColorStop(float position, const QColor &color)
 Q_CANVASPAINTER_EXPORT QDebug operator<<(QDebug dbg, const QCanvasGradientStop &stop);
 Q_CANVASPAINTER_EXPORT QDebug operator<<(QDebug, const QCanvasGradient &);
 #endif
-
-template<> Q_CANVASPAINTER_EXPORT QCanvasGradient QCanvasBrush::as<QCanvasGradient>() const;
 
 QT_END_NAMESPACE
 
