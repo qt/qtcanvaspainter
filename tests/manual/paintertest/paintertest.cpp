@@ -1384,6 +1384,37 @@ static void simpleTest_reference(QPainter *p)
     p->fillRect(100,100,100,100, Qt::red);
 }
 
+static void testSetTransform(QCanvasPainter *p)
+{
+    p->setFillStyle(Qt::red);
+    p->translate(100, 100);
+    p->strokeRect(0, 0, 100, 100);
+
+    QTransform t;
+    t.rotate(-15);
+    p->transform(t);
+    p->fillRect(0,0,100,100);
+
+    p->setFillStyle(Qt::green);
+    p->transform(t);
+    p->fillRect(0,0,100,100);
+}
+
+static void testSetTransform_reference(QPainter *p)
+{
+    p->translate(100, 100);
+    p->drawRect(0, 0, 100, 100);
+
+    QTransform t;
+    t.rotate(-15);
+    p->setTransform(t, true);
+    p->fillRect(0,0,100,100, Qt::red);
+
+    p->setTransform(t, true);
+    p->fillRect(0,0,100,100, Qt::green);
+}
+
+
 static TestDescription tests[] {
     {"Simple",                   simpleTest,                simpleTest_reference},
     {"Gradients",                testGradients,             testGradients_reference},
@@ -1393,6 +1424,7 @@ static TestDescription tests[] {
     {"Paths",                    testPath,                  testPath_reference},
     {"Antialiasing",             testAntialiasing,          testAntialiasing_reference},
     {"Transforms",               testTransform,             testTransform_reference},
+    {"setTransform",             testSetTransform,          testSetTransform_reference},
     {"Clipping",                 testClip,                  testClip_reference},
     {"Gradient Cache Bug",       testGradientBug,           testGradientBug_reference},
     {"Gradient Pad Bug",         testGradientPad,           testGradientPad_reference},

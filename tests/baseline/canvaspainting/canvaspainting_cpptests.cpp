@@ -1410,6 +1410,44 @@ void CanvasPainterLancelotCppTests::testTransforms2()
         painter->rotate(anim);
         painter->translate(-cRect.center());
         painter->clearRect(cRect);
+
+        painter->resetTransform();
+        posY += w+margin;
+        posX = margin/2;
+        painter->translate(posX, posY);
+
+        painter->setFillStyle(Qt::cyan);
+        painter->setLineWidth(3);
+        painter->beginPath();
+        painter->roundRect(0, 0, w, w, w / 4);
+        painter->stroke();
+
+        painter->setFillStyle(0xFF66AACC);
+        painter->rotate(-10 * M_PI/180);
+        painter->fillRect(0, 0, w, w);
+
+        painter->setFillStyle(0xFF77CCEE);
+        painter->rotate(-10 * M_PI/180);
+        painter->fillRect(0, 0, w, w);
+
+
+        painter->resetTransform();
+        posX += w+margin;
+        painter->translate(posX, posY);
+
+        painter->beginPath();
+        painter->roundRect(0, 0, w, w, w / 4);
+        painter->stroke();
+
+        QTransform t;
+        t.rotate(-10);
+        painter->setFillStyle(0xFF66AACC);
+        painter->transform(t);
+        painter->fillRect(0, 0, w, w);
+
+        painter->setFillStyle(0xFF77CCEE);
+        painter->transform(t);
+        painter->fillRect(0, 0, w, w);
     }
 }
 
