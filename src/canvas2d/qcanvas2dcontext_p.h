@@ -89,6 +89,7 @@ public:
         StrokeCanvasPath,
         AddCanvasPath,
         AddCanvasPathRange,
+        SetPathWinding,
         Clip,
         ClipRect,
         ResetClipping,
@@ -138,6 +139,7 @@ public:
             , font(QFont(QStringLiteral("sans-serif")))
             , textAlign(QCanvasPainter::TextAlign::Start)
             , textBaseline(QCanvasPainter::TextBaseline::Alphabetic)
+            , pathWinding(QCanvasPainter::PathWinding::CounterClockWise)
         {
             font.setPixelSize(10);
         }
@@ -163,6 +165,7 @@ public:
         QFont font;
         QCanvasPainter::TextAlign textAlign;
         QCanvasPainter::TextBaseline textBaseline;
+        QCanvasPainter::PathWinding pathWinding;
     };
 
     QCanvas2DContext(QObject *parent = nullptr);

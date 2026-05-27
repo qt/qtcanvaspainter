@@ -218,6 +218,28 @@ void QCanvas2DPathValueType::circle(float x, float y, float radius)
 }
 
 /*!
+    \qmlmethod void path2d::setPathWinding(const QString &winding)
+
+    Sets the current sub-path \a winding to either \c "counterclockwise" (default)
+    or \c "clockwise". "counterclockwise" draws solid subpaths while "clockwise" draws holes.
+
+    \note This is a command, similar to lineTo, moveTo, etc., and therefore
+    setting the winding should be done before the rest of the commands to which
+    the changed winding is meant to be applied to.
+
+    \sa beginSolidSubPath(), beginHoleSubPath()
+*/
+
+void QCanvas2DPathValueType::setPathWinding(const QString &winding)
+{
+    QCanvasPainter::PathWinding w = QCanvasPainter::PathWinding::CounterClockWise;
+    if (winding == QStringLiteral("clockwise") || winding == QStringLiteral("ClockWise"))
+        w = QCanvasPainter::PathWinding::ClockWise;
+
+    QCanvasPath::setPathWinding(w);
+}
+
+/*!
   \qmlmethod void path2d::beginSolidSubPath()
 
   Start a solid subpath.

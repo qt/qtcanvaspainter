@@ -52,6 +52,7 @@ public:
     Q_INVOKABLE void ellipseRect(float x, float y, float width, float height);
     Q_INVOKABLE void circle(float x, float y, float radius);
 
+    Q_INVOKABLE void setPathWinding(const QString &winding);
     Q_INVOKABLE void beginSolidSubPath();
     Q_INVOKABLE void beginHoleSubPath();
 

@@ -321,6 +321,12 @@ public:
         matrixes << transform;
     }
 
+    inline void setPathWinding(QCanvasPainter::PathWinding winding)
+    {
+        commands << QCanvas2DContext::SetPathWinding;
+        ints << int(winding);
+    }
+
     inline void clip(bool enabled, const QPainterPath &path)
     {
         commands << QCanvas2DContext::Clip;

@@ -328,6 +328,12 @@ void QCanvas2DItemRenderer::paint(QCanvasPainter *painter)
             m_painter->setFillRule(rule);
             break;
         }
+        case QCanvas2DContext::SetPathWinding:
+        {
+            QCanvasPainter::PathWinding winding = static_cast<QCanvasPainter::PathWinding>(takeInt());
+            m_painter->setPathWinding(winding);
+            break;
+        }
         case QCanvas2DContext::Clip:
         {
             m_state.clip = takeBool();

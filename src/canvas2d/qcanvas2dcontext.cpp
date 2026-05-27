@@ -205,7 +205,7 @@ public:
         o->defineDefaultProperty(QStringLiteral("beginSolidSubPath"), method_beginSolidSubPath, 0);
         o->defineDefaultProperty(QStringLiteral("beginHoleSubPath"), method_beginHoleSubPath, 0);
         o->defineDefaultProperty(QStringLiteral("addPath"), method_addPath, 0);
-        // TODO: Missing compared to QCanvasPath: setPathWinding(), addPath()
+        o->defineDefaultProperty(QStringLiteral("setPathWinding"), method_setPathWinding, 0);
         // End: Path Methods.
         o->defineDefaultProperty(QStringLiteral("restore"), method_restore, 0);
         o->defineDefaultProperty(QStringLiteral("caretBlinkRate"), method_caretBlinkRate, 0);
@@ -275,6 +275,7 @@ public:
     static QV4::ReturnedValue method_beginSolidSubPath(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc);
     static QV4::ReturnedValue method_beginHoleSubPath(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc);
     static QV4::ReturnedValue method_addPath(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc);
+    static QV4::ReturnedValue method_setPathWinding(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc);
     // End: Path Methods.
     static QV4::ReturnedValue method_get_canvas(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc);
     static QV4::ReturnedValue method_restore(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc);
@@ -866,6 +867,35 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_addPath(const QV4::Functi
                 r->d()->context()->buffer()->addPath(path, transform);
             }
         }
+    }
+
+    RETURN_RESULT(*thisObject);
+}
+
+/*!
+    \qmlmethod object Canvas2DContext::setPathWinding(string winding)
+
+    Sets the current sub-path \a winding to either "counterclockwise" (default) or "clockwise".
+    "counterclockwise" draws solid subpaths while "clockwise" draws holes.
+*/
+QV4::ReturnedValue QCanvasJSContext2DPrototype::method_setPathWinding(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc)
+{
+    QV4::Scope scope(b);
+    QV4::Scoped<QCanvasJSContext2D> r(scope, *thisObject);
+    CHECK_CONTEXT(r)
+
+    if (argc >= 1) {
+        QString windingString = argv[0].toQString();
+        QCanvasPainter::PathWinding winding;
+        if (windingString == QStringLiteral("clockwise") || windingString == QStringLiteral("ClockWise"))
+            winding = QCanvasPainter::PathWinding::ClockWise;
+        else if (windingString == QStringLiteral("counterclockwise") || windingString == QStringLiteral("CounterClockWise"))
+            winding = QCanvasPainter::PathWinding::CounterClockWise;
+        else
+            THROW_DOM(DOMEXCEPTION_NOT_SUPPORTED_ERR, "setPathWinding(): Incorrect arguments")
+
+        r->d()->context()->state.pathWinding = winding;
+        r->d()->context()->buffer()->setPathWinding(winding);
     }
 
     RETURN_RESULT(*thisObject);
@@ -3445,6 +3475,9 @@ void QCanvas2DContext::popState()
 
     if (newState.lineJoin != state.lineJoin)
         buffer()->setLineJoin(newState.lineJoin);
+
+    if (newState.pathWinding != state.pathWinding)
+        buffer()->setPathWinding(newState.pathWinding);
 
     if (newState.miterLimit != state.miterLimit)
         buffer()->setMiterLimit(newState.miterLimit);

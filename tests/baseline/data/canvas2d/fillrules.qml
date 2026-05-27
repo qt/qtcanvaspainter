@@ -42,6 +42,25 @@ Rectangle {
             paintStar(ctx, "nonzero");
             ctx.translate(0, 140);
             paintStar(ctx, "evenodd");
+
+            // Test winding
+            ctx.resetTransform();
+            ctx.beginPath();
+            ctx.roundRect(260, 20, 120, 100, 20);
+            ctx.setPathWinding("clockwise");
+            ctx.circle(320, 70, 40);
+            ctx.fill();
+            ctx.stroke();
+
+            // Test winding - with path
+            ctx.translate(0, 140);
+            const windingPath = ctx.createPath2D();
+            windingPath.roundRect(260, 20, 120, 100, 20);
+            windingPath.setPathWinding("clockwise");
+            windingPath.circle(320, 70, 40);
+            ctx.fill(windingPath);
+            ctx.stroke(windingPath);
+
         }
     }
 }
