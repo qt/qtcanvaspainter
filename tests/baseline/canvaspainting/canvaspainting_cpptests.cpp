@@ -10,6 +10,8 @@
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonValue>
+#include <QtGui/private/qvectorpath_p.h>
+#include <QtGui/private/qpainterpath_p.h>
 
 #include <QCanvasLinearGradient>
 #include <QCanvasRadialGradient>
@@ -2838,4 +2840,428 @@ void CanvasPainterLancelotCppTests::testTiger()
         }
     }
     painter->resetTransform();
+}
+
+// ----------------------------------------------------------------------------
+// Tests adapted from tests/manual/paintertest
+// ----------------------------------------------------------------------------
+
+void CanvasPainterLancelotCppTests::testClipRect()
+{
+    // Untransformed setClipRect(): adapted from testClipRectBug in paintertest.cpp.
+    painter->setFillStyle(Qt::red);
+    painter->fillRect(10, 10, 300, 100);
+
+    painter->setClipRect(100, 10, 100, 500);
+
+    painter->setFillStyle(Qt::green);
+    painter->fillRect(10, 150, 300, 100);
+
+    painter->resetClipping();
+    painter->setFillStyle(Qt::blue);
+    painter->fillRect(10, 290, 300, 100);
+}
+
+void CanvasPainterLancelotCppTests::testClipRectWithTransform()
+{
+    // setClipRect() under a rotated painter, then resetClipping() and a second clip.
+    // Adapted from testClip in paintertest.cpp.
+    painter->rotate(M_PI / 10);
+
+    painter->strokeRect(9, 9, 102, 102);
+    painter->setClipRect(10, 10, 100, 100);
+    painter->setFillStyle(Qt::red);
+    painter->fillRect(0, 0, 300, 300);
+
+    painter->rotate(M_PI / 20);
+    painter->translate(50, 0);
+    painter->resetClipping();
+    painter->strokeRect(9, 149, 252, 52);
+    painter->setClipRect(10, 150, 250, 50);
+    painter->setFillStyle(Qt::green);
+    painter->beginPath();
+    painter->ellipse(QRectF(10, 150, 300, 100));
+    painter->fill();
+}
+
+void CanvasPainterLancelotCppTests::testSaveRestore()
+{
+    painter->setClipRect(0, 0, 150, 500);
+    painter->beginPath();
+    painter->ellipse(QRectF(10, 10, 300, 100));
+    painter->setFillStyle(Qt::red);
+    painter->fill();
+
+    painter->save();
+    painter->setClipRect(150, 10, 300, 500);
+    painter->beginPath();
+    painter->roundRect(10, 150, 300, 100, 20);
+    painter->setFillStyle(Qt::green);
+    painter->fill();
+    painter->restore();
+
+    // Original clip (left half) should be restored here.
+    painter->setFillStyle(Qt::blue);
+    painter->fillRect(10, 300, 300, 100);
+}
+
+void CanvasPainterLancelotCppTests::testPathFillRule()
+{
+    painter->setFillStyle(QColor(255, 0, 0, 100));
+    painter->setStrokeStyle(Qt::blue);
+
+    painter->translate(0, 50);
+
+    // Winding fill (default) — interior fully filled
+    painter->beginPath();
+    painter->moveTo(100, 0);
+    painter->lineTo(60, 100);
+    painter->lineTo(160, 40);
+    painter->lineTo(40, 40);
+    painter->lineTo(140, 100);
+    painter->lineTo(100, 0);
+    painter->fill();
+    painter->stroke();
+
+    painter->translate(0, 150);
+
+    // Even-odd fill — centre of star is transparent
+    painter->beginPath();
+    painter->moveTo(100, 0);
+    painter->lineTo(60, 100);
+    painter->lineTo(160, 40);
+    painter->lineTo(40, 40);
+    painter->lineTo(140, 100);
+    painter->lineTo(100, 0);
+    painter->setFillRule(QCanvasPainter::FillRule::EvenOdd);
+    painter->fill();
+    painter->stroke();
+
+    painter->translate(0, 150);
+
+    // Reversed point order — different winding, different fill with winding rule
+    painter->beginPath();
+    painter->moveTo(100, 0);
+    painter->lineTo(160, 40);
+    painter->lineTo(140, 100);
+    painter->lineTo(60, 100);
+    painter->lineTo(40, 40);
+    painter->lineTo(100, 0);
+    painter->fill();
+    painter->stroke();
+}
+
+void CanvasPainterLancelotCppTests::testStencilClip()
+{
+    // setStencilClip(QList<QRectF>): draw shapes clipped to a union of rects,
+    // then clear the clip and verify the unclipped draw reaches everywhere.
+    // Adapted from testClipRegion in paintertest.cpp.
+    painter->setStrokeStyle(Qt::red);
+
+    const QList<QRectF> clipRects{
+        QRectF(100, 100, 200, 100),
+        QRectF(50,  10,  150,  50),
+    };
+
+    for (const auto &rect : clipRects)
+        painter->strokeRect(rect.x(), rect.y(), rect.width(), rect.height());
+
+    painter->setStencilClip(clipRects);
+
+    // Blue semi-transparent ellipse — only shows inside the clip rects
+    painter->setFillStyle(QColor(0, 0, 255, 160));
+    painter->beginPath();
+    painter->ellipse(QRectF(10, 10, 400, 150));
+    painter->fill();
+
+    // Orange non-convex star — also clipped
+    painter->save();
+    painter->setFillStyle(QColor(255, 128, 0));
+    painter->scale(2.0f, 2.0f);
+    painter->beginPath();
+    painter->moveTo(100, 0);
+    painter->lineTo(60, 100);
+    painter->lineTo(160, 40);
+    painter->lineTo(40, 40);
+    painter->lineTo(140, 100);
+    painter->lineTo(100, 0);
+    painter->fill();
+    painter->restore();
+
+    // Clear clip — magenta ellipse should be fully visible
+    painter->setStencilClip(QList<QRectF>{});
+    painter->setFillStyle(Qt::magenta);
+    painter->beginPath();
+    painter->ellipse(QRectF(100, 250, 100, 50));
+    painter->fill();
+}
+
+void CanvasPainterLancelotCppTests::testStencilClipTransform()
+{
+    // setStencilClip() applied while the painter is rotated.
+    // Adapted from testClipRegionTransform in paintertest.cpp.
+    painter->setStrokeStyle(Qt::red);
+    painter->rotate(M_PI / 180.0 * 15.0);
+
+    const QRectF rect(100, 100, 200, 100);
+    painter->strokeRect(rect.x(), rect.y(), rect.width(), rect.height());
+    painter->setStencilClip({rect});
+
+    painter->rotate(-M_PI / 180.0 * 15.0);
+    painter->setFillStyle(QColor(255, 255, 0, 192));
+    painter->fillRect(0, 0, 500, 400);
+}
+
+void CanvasPainterLancelotCppTests::testStencilClipIntersect()
+{
+    // Two successive setStencilClip() calls should intersect.
+    // Adapted from testClipRegionIntersect in paintertest.cpp.
+    painter->setStrokeStyle(Qt::red);
+
+    const QRectF rect(50, 50, 200, 100);
+    painter->strokeRect(rect.x(), rect.y(), rect.width(), rect.height());
+    painter->save();
+    painter->rotate(M_PI / 180.0 * 15.0);
+    painter->strokeRect(rect.x(), rect.y(), rect.width(), rect.height());
+    painter->restore();
+
+    // Fill yellow inside the (unrotated) first clip
+    painter->setStencilClip({rect});
+    painter->setFillStyle(QColor(255, 255, 0, 192));
+    painter->fillRect(0, 0, 500, 400);
+
+    // Intersect with the same rect rotated 15°; only the intersection turns blue
+    painter->rotate(M_PI / 180.0 * 15.0);
+    painter->setStencilClip({rect});
+    painter->rotate(-M_PI / 180.0 * 15.0);
+    painter->setFillStyle(QColor(0, 0, 255, 128));
+    painter->fillRect(0, 0, 500, 400);
+}
+
+void CanvasPainterLancelotCppTests::testStrokingImpl()
+{
+    painter->save();
+    painter->setStrokeStyle(Qt::darkGreen);
+    painter->setLineWidth(7);
+    painter->beginPath();
+    painter->ellipse(QRectF(10, 10, 400, 100));
+    painter->stroke();
+
+    painter->setStrokeStyle(QColor(192, 0, 0, 127));
+    painter->translate(0, 150);
+    painter->beginPath();
+    painter->moveTo(100, 0);
+    painter->lineTo(60, 100);
+    painter->lineTo(160, 40);
+    painter->lineTo(40, 40);
+    painter->lineTo(140, 100);
+    painter->lineTo(100, 0);
+    painter->stroke();
+    painter->restore();
+}
+
+void CanvasPainterLancelotCppTests::testStrokingWithStencilClip()
+{
+    painter->setStrokeStyle(Qt::red);
+    const QList<QRectF> clipRects{
+        QRectF(100, 100, 200, 150),
+        QRectF(50,  10,  150,  50),
+    };
+    for (const auto &rect : clipRects)
+        painter->strokeRect(rect.x(), rect.y(), rect.width(), rect.height());
+
+    painter->setStencilClip(clipRects);
+
+    testStrokingImpl();
+
+    painter->setFillStyle(QColor(255, 255, 0, 192));
+    painter->fillRect(150, 0, 50, 400);
+}
+
+void CanvasPainterLancelotCppTests::testHighQualityStrokingWithStencilClip()
+{
+    painter->setRenderHint(QCanvasPainter::RenderHint::HighQualityStroking, true);
+
+    painter->setStrokeStyle(Qt::red);
+    const QList<QRectF> clipRects{
+        QRectF(100, 100, 200, 150),
+        QRectF(50,  10,  150,  50),
+    };
+    for (const auto &rect : clipRects)
+        painter->strokeRect(rect.x(), rect.y(), rect.width(), rect.height());
+
+    painter->setStencilClip(clipRects);
+
+    testStrokingImpl();
+
+    painter->setFillStyle(QColor(255, 255, 0, 192));
+    painter->fillRect(150, 0, 50, 400);
+}
+void CanvasPainterLancelotCppTests::testGradientSpread()
+{
+    // Gradient pad/spread: start and end positions are inside the fill rect,
+    // so the transparent edge colours fill the rest of the rect.
+    // Adapted from testGradientPad in paintertest.cpp.
+    const QCanvasGradientStops stops = {
+        {0.0,   "transparent"},
+        {0.001, "red"},
+        {0.5,   "lightblue"},
+        {0.999, "red"},
+        {1.0,   "transparent"},
+    };
+
+    const QRectF rect(50, 50, 200, 100);
+    QCanvasLinearGradient lg;
+    lg.setStops(stops);
+    lg.setStartPosition(QPointF(100, 50));
+    lg.setEndPosition(QPointF(200, 50));
+
+    painter->setFillStyle(lg);
+    painter->fillRect(rect);
+    painter->strokeRect(rect);
+}
+
+void CanvasPainterLancelotCppTests::testGradientCaching()
+{
+    // Validates that the gradient cache does not confuse a linear gradient
+    // with a conical gradient that shares the same colour stops (reversed).
+    // Adapted from testGradientBug in paintertest.cpp.
+    const QCanvasGradientStops stops = {
+        {0.0, "green"},
+        {0.2, "black"},
+        {0.4, "blue"},
+        {0.6, "white"},
+        {0.8, "yellow"},
+        {1.0, "red"},
+    };
+
+    const QRectF rect1(50, 50, 100, 100);
+    QCanvasLinearGradient lg;
+    for (const auto &stop : stops)
+        lg.setColorAt(stop.position, stop.color);
+    lg.setStartPosition(rect1.topLeft());
+    lg.setEndPosition(rect1.topRight());
+
+    const QRectF rect2(200, 50, 100, 100);
+    QCanvasConicalGradient cg(rect2.center(), 0);
+    for (const auto &stop : stops)
+        cg.setColorAt(1.0 - stop.position, stop.color);
+
+    painter->setFillStyle(lg);
+    painter->fillRect(rect1);
+
+    painter->setFillStyle(cg);
+    painter->fillRect(rect2);
+}
+
+void CanvasPainterLancelotCppTests::testTextDirection()
+{
+    // setTextDirection() with all four modes applied to bidirectional strings.
+    // Adapted from the bidi section of testText in paintertest.cpp.
+    const QStringList bidiStrings{
+        QStringLiteral("ABC 123"),
+        QStringLiteral("123 مرحبًا"),
+        QStringLiteral("مرحبًا 123"),
+        QStringLiteral("ABC 123 مرحبًا"),
+    };
+
+    struct Row {
+        const char *label;
+        QCanvasPainter::TextDirection dir;
+        float y;
+    };
+    const Row rows[] = {
+        {"Inherit",     QCanvasPainter::TextDirection::Inherit,     60.0f},
+        {"Auto",        QCanvasPainter::TextDirection::Auto,       130.0f},
+        {"LeftToRight", QCanvasPainter::TextDirection::LeftToRight, 200.0f},
+        {"RightToLeft", QCanvasPainter::TextDirection::RightToLeft, 270.0f},
+    };
+
+    QFont labelFont;
+    labelFont.setPointSize(10);
+
+    QFont textFont;
+    textFont.setPointSize(14);
+
+    for (const auto &row : rows) {
+        painter->setFont(labelFont);
+        painter->setFillStyle(Qt::black);
+        painter->fillText(QLatin1String(row.label), 10.0f, row.y - 10.0f);
+
+        painter->setFont(textFont);
+        painter->setFillStyle(Qt::darkGreen);
+        painter->setTextDirection(row.dir);
+        float x = 10.0f;
+        for (const auto &s : bidiStrings) {
+            QRectF r(x, row.y, 185.0f, 25.0f);
+            painter->fillText(s, r);
+            painter->strokeRect(painter->textBoundingBox(s, r));
+            x += 195.0f;
+        }
+    }
+}
+
+void CanvasPainterLancelotCppTests::testVectorPathStencilClip()
+{
+    // setStencilClip(QVectorPath): intersect a rect-based clip with a
+    // QVectorPath-based clip.
+    // Adapted from testVectorPath in paintertest.cpp.
+    const QRectF clipRegionRect{50, 50, 400, 150};
+
+    constexpr int count = 14;
+    const qreal points[count * 2] = {
+        10,  10,
+        10,  200,
+        190, 200,
+        190, 10,
+        10,  10,
+
+        250, 10,
+        150, 160,
+        350, 50,
+        350, 10,
+        250, 10,
+
+        60,  180,
+        60,  160,
+        80,  170,
+        60,  180,
+    };
+    const QPainterPath::ElementType elements[count] = {
+        QPainterPath::MoveToElement,
+        QPainterPath::LineToElement,
+        QPainterPath::LineToElement,
+        QPainterPath::LineToElement,
+        QPainterPath::LineToElement,
+
+        QPainterPath::MoveToElement,
+        QPainterPath::LineToElement,
+        QPainterPath::LineToElement,
+        QPainterPath::LineToElement,
+        QPainterPath::LineToElement,
+
+        QPainterPath::MoveToElement,
+        QPainterPath::LineToElement,
+        QPainterPath::LineToElement,
+        QPainterPath::LineToElement,
+    };
+
+    QVectorPath path(points, count, elements, QVectorPath::WindingFill);
+
+    painter->strokeRect(clipRegionRect);
+
+    // First stencil clip: the bounding rect
+    painter->setStencilClip({clipRegionRect});
+    // Second stencil clip: the vector path (intersects with the first)
+    painter->setStencilClip(path);
+
+    painter->setFillStyle(Qt::red);
+    painter->fillRect(QRectF(0, 0, 500, 500));
+
+    // Clear clip, then stroke the path outline in blue for reference
+    painter->setStencilClip(QList<QRectF>{});
+    painter->beginPath();
+    painter->addPath(path.convertToPainterPath());
+    painter->setStrokeStyle(Qt::blue);
+    painter->stroke();
 }
