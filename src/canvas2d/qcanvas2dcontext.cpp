@@ -1097,6 +1097,11 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_translate(const QV4::Func
 }
 
 /*!
+    \qmlmethod object Canvas2DContext::transform(transform2d transform)
+
+    Multiplies the current coordinate system by specified \a transform.
+*/
+/*!
     \qmlmethod object Canvas2DContext::transform(real a, real b, real c, real d, real e, real f)
 
     This method is very similar to setTransform(), but instead of replacing
@@ -1116,13 +1121,20 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_transform(const QV4::Func
     QV4::Scoped<QCanvasJSContext2D> r(scope, thisObject->as<QCanvasJSContext2D>());
     CHECK_CONTEXT(r)
 
-    if (argc >= 6)
+    if (argc >= 6) {
         r->d()->context()->transform( argv[0].toNumber()
                                      , argv[1].toNumber()
                                      , argv[2].toNumber()
                                      , argv[3].toNumber()
                                      , argv[4].toNumber()
                                      , argv[5].toNumber());
+    } else if (argc >= 1) {
+        QV4::ScopedValue value(scope, argv[0]);
+        if (value->as<Object>()) {
+            QTransform t = QV4::ExecutionEngine::toVariant(value, QMetaType::fromType<QTransform>()).value<QTransform>();
+            r->d()->context()->transform(t.m11(), t.m12(), t.m21(), t.m22(), t.m31(), t.m32());
+        }
+    }
 
     RETURN_RESULT(*thisObject);
 }
