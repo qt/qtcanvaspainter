@@ -59,6 +59,21 @@ private slots:
     void testCanvasPathWithAddPath();
     void testTiger();
 
+    // tests adapted from tests/manual/paintertest
+    void testClipRect();
+    void testClipRectWithTransform();
+    void testSaveRestore();
+    void testPathFillRule();
+    void testStencilClip();
+    void testStencilClipTransform();
+    void testStencilClipIntersect();
+    void testStrokingWithStencilClip();
+    void testHighQualityStrokingWithStencilClip();
+    void testGradientSpread();
+    void testGradientCaching();
+    void testTextDirection();
+    void testVectorPathStencilClip();
+
 private:
     float width() const { return canvasPixelSize.width(); }
     float height() const { return canvasPixelSize.height(); }
@@ -68,6 +83,7 @@ private:
     void drawCompositeItem3(float x, float y, float w, float h, QCanvasPainter::CompositeOperation mode);
 
     void testCurveImpl(int pathGroup);
+    void testStrokingImpl();
 
     QCanvasPainter *painter;
     QSize canvasPixelSize;
