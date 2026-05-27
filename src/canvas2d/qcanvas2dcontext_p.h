@@ -118,6 +118,7 @@ public:
         Reset,
         DrawBoxShadow,
         Antialias,
+        TextAntialias,
     };
 
     struct State {
@@ -132,6 +133,7 @@ public:
             , globalSaturate(1.0)
             , lineWidth(1)
             , antialias(1)
+            , textAntialias(1)
             , lineCap(QCanvasPainter::LineCap::Butt)
             , lineJoin(QCanvasPainter::LineJoin::Miter)
             , miterLimit(10)
@@ -158,6 +160,7 @@ public:
         qreal globalSaturate;
         qreal lineWidth;
         qreal antialias;
+        qreal textAntialias;
         QCanvasPainter::LineCap lineCap;
         QCanvasPainter::LineJoin lineJoin;
         qreal miterLimit;

@@ -175,6 +175,8 @@ struct QCanvasJSContext2D : public QV4::Object
     static QV4::ReturnedValue method_set_textAlign(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc);
     static QV4::ReturnedValue method_get_textBaseline(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc);
     static QV4::ReturnedValue method_set_textBaseline(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc);
+    static QV4::ReturnedValue method_get_textAntialias(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc);
+    static QV4::ReturnedValue method_set_textAntialias(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc);
 };
 
 DEFINE_OBJECT_VTABLE(QCanvasJSContext2D);
@@ -2353,6 +2355,35 @@ QV4::ReturnedValue QCanvasJSContext2D::method_set_antialias(const QV4::FunctionO
     RETURN_UNDEFINED();
 }
 
+/*!
+    \qmlproperty real Canvas2DContext::textAntialias
+    Holds the current text antialias amount. Values that are not finite values greater than zero are ignored.
+    The default text antialias value is 1.0.
+ */
+QV4::ReturnedValue QCanvasJSContext2D::method_get_textAntialias(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *, int)
+{
+    QV4::Scope scope(b);
+    QV4::Scoped<QCanvasJSContext2D> r(scope, *thisObject);
+    CHECK_CONTEXT(r)
+
+    RETURN_RESULT(QV4::Encode(r->d()->context()->state.textAntialias));
+}
+
+QV4::ReturnedValue QCanvasJSContext2D::method_set_textAntialias(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc)
+{
+    QV4::Scope scope(b);
+    QV4::Scoped<QCanvasJSContext2D> r(scope, *thisObject);
+    CHECK_CONTEXT(r)
+
+    qreal w = argc ? argv[0].toNumber() : -1;
+
+    if (w >= 0 && qt_is_finite(w) && w != r->d()->context()->state.textAntialias) {
+        r->d()->context()->state.textAntialias = w;
+        r->d()->context()->buffer()->setTextAntialias(w);
+    }
+    RETURN_UNDEFINED();
+}
+
 QV4::ReturnedValue QCanvasJSContext2DPrototype::method_getLineDash(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *, int)
 {
     QV4::Scope scope(b);
@@ -3423,6 +3454,7 @@ QCanvas2DContextEngineData::QCanvas2DContextEngineData(QV4::ExecutionEngine *v4)
     proto->defineAccessorProperty(QStringLiteral("textAlign"), QCanvasJSContext2D::method_get_textAlign, QCanvasJSContext2D::method_set_textAlign);
     proto->defineAccessorProperty(QStringLiteral("lineDashOffset"), QCanvasJSContext2D::method_get_lineDashOffset, QCanvasJSContext2D::method_set_lineDashOffset);
     proto->defineAccessorProperty(QStringLiteral("antialias"), QCanvasJSContext2D::method_get_antialias, QCanvasJSContext2D::method_set_antialias);
+    proto->defineAccessorProperty(QStringLiteral("textAntialias"), QCanvasJSContext2D::method_get_textAntialias, QCanvasJSContext2D::method_set_textAntialias);
     contextPrototype = proto;
 }
 
@@ -3469,6 +3501,9 @@ void QCanvas2DContext::popState()
 
     if (newState.antialias != state.antialias)
         buffer()->setAntialias(newState.antialias);
+
+    if (newState.textAntialias != state.textAntialias)
+        buffer()->setTextAntialias(newState.textAntialias);
 
     if (newState.lineCap != state.lineCap)
         buffer()->setLineCap(newState.lineCap);

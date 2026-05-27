@@ -372,6 +372,12 @@ public:
         reals << w;
     }
 
+    inline void setTextAntialias(qreal w)
+    {
+        commands << QCanvas2DContext::TextAntialias;
+        reals << w;
+    }
+
     inline void setLineCap(QCanvasPainter::LineCap cap)
     {
         commands << QCanvas2DContext::LineCap;

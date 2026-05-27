@@ -30,6 +30,17 @@ Rectangle {
                 const s = "pos:(" + xPos.toFixed(0) + ", " + yPos.toFixed(0) + ")";
                 ctx.fillText(s, xPos, yPos);
             }
+
+            // Text antialias
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.font = "22px sans-serif";
+            ctx.textAntialias = 1.0;
+            ctx.fillText("Antialiasing: 1.0", 100, 100);
+            ctx.textAntialias = 2.0;
+            ctx.fillText("Antialiasing: 2.0", 100, 130);
+            ctx.textAntialias = 4.0;
+            ctx.fillText("Antialiasing: 4.0", 100, 160);
         }
     }
 }

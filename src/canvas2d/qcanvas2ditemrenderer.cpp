@@ -515,6 +515,11 @@ void QCanvas2DItemRenderer::paint(QCanvasPainter *painter)
             m_painter->setAntialias(m_state.antialias);
             break;
         }
+        case QCanvas2DContext::TextAntialias: {
+            m_state.textAntialias = takeReal();
+            m_painter->setTextAntialias(m_state.textAntialias);
+            break;
+        }
         default:
             qWarning() << "Unhandled command:" << cmd;
         }
