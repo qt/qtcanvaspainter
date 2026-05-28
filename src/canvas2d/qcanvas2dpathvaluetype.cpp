@@ -294,6 +294,24 @@ void QCanvas2DPathValueType::addPath(const QCanvasPath &path, qsizetype start, q
 
     Adds a \a svgPath into this path, using \a transform as a transformation matrix.
     Providing \a transform parameter is optional.
+
+    \table
+    \row
+    \li \inlineimage canvas2d-addpath3.webp
+    \li
+    \code
+    // myPath is path2d
+    if (myPath.isEmpty()) {
+        const path = "M 20 20 C 40 120, 80 120, 100 20 Z";
+        myPath.addPath(path);
+        const t = ctx.createTransform2D();
+        t.translate(80, 80);
+        myPath.addPath(path, t);
+    }
+    ctx.fill(myPath);
+    ctx.stroke(myPath);
+    \endcode
+    \endtable
 */
 
 void QCanvas2DPathValueType::addPath(const QString &svgPath, const QTransform &transform)

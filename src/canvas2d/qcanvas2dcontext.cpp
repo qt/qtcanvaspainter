@@ -53,7 +53,7 @@ QT_BEGIN_NAMESPACE
     \qmltype Canvas2DContext
     \inqmlmodule QtCanvas2D
     \since 6.12
-    \brief Provides 2D context for drawing on a Canvas2D item.
+    \brief Provides a 2D context for drawing on a Canvas2D item.
 
     The Canvas2DContext object can be created by \c Canvas item's \c getContext()
     method:
@@ -77,10 +77,69 @@ QT_BEGIN_NAMESPACE
     var context = mycanvas.getContext("2d")
     \endcode
 
-    The Context2D API renders the canvas as a coordinate system whose origin
-    (0,0) is at the top left corner, as shown in the figure below. Coordinates
-    increase along the \c{x} axis from left to right and along the \c{y} axis
-    from top to bottom of the canvas.
+    Here is a simple example of using Canvas2D to create a round button.
+    \table
+    \row
+    \li \inlineimage canvas2d-buttonexample.webp
+    \li
+    \code
+    let offsetX = 2;
+    let offsetY = 4;
+    let shadow = ctx.createBoxShadow(40 + offsetX, 70 + offsetY,
+                                     120, 60,
+                                     30, "#60373F26", 15);
+    ctx.drawBoxShadow(shadow);
+    // Paint rounded rect
+    ctx.beginPath();
+    ctx.roundRect(40, 70, 120, 60, 30);
+    ctx.fillStyle = "#DBEB00";
+    ctx.fill();
+    // Paint text
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.font = "24px 'Titillium Web'";
+    ctx.fillStyle = "#373F26";
+    ctx.fillText("CLICK!", 100, 100);
+    \endcode
+    \endtable
+
+    Here is another example of painting a simple graph.
+    \table
+    \row
+    \li \inlineimage canvas2d-graphexample.webp
+    \li
+    \code
+    // Paint grid
+    const grid = ctx.createGridPattern(0, 0, 10, 10,
+                                       "#404040",
+                                       "#202020");
+    const w = 200;
+    const h = 200;
+    ctx.fillStyle = grid;
+    ctx.fillRect(0, 0, w, h);
+    // Paint axis
+    ctx.fillStyle = "white";
+    ctx.fillRect(0, 0.5 * h - 1, w, 2);
+    ctx.fillRect(0.5 * w - 1, 0, 2, h);
+    // Paint shadowed graph
+    ctx.beginPath();
+    ctx.moveTo(20, h * 0.8);
+    ctx.bezierCurveTo(w * 0.2, h * 0.4,
+                      w * 0.5, h * 0.8,
+                      w - 20, h * 0.2);
+    ctx.antialias = 10;
+    ctx.lineWidth = 12;
+    ctx.strokeStyle = "#D0000000";
+    ctx.stroke();
+    ctx.antialias = 1;
+    ctx.lineWidth = 6;
+    const lg = ctx.createLinearGradient(0, 0, 0, h);
+    lg.addColorStop(0, "red");
+    lg.addColorStop(1, "green");
+    ctx.strokeStyle = lg;
+    ctx.stroke();
+    \endcode
+    \endtable
 */
 
 
@@ -409,10 +468,22 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_moveTo(const QV4::Functio
 }
 
 /*!
-  \qmlmethod object Canvas2DContext::lineTo(real x, real y)
+    \qmlmethod object Canvas2DContext::lineTo(real x, real y)
 
-   Draws a line from the current position to the point at (\a x, \a y).
- */
+    Draws a line from the current position to the point at (\a x, \a y).
+    \table
+    \row
+    \li \inlineimage canvas2d-line.webp
+    \li
+    \code
+    ctx.beginPath();
+    ctx.moveTo(20, 20);
+    ctx.lineTo(140, 180);
+    ctx.lineTo(180, 120);
+    ctx.stroke();
+    \endcode
+    \endtable
+*/
 QV4::ReturnedValue QCanvasJSContext2DPrototype::method_lineTo(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc)
 {
     QV4::Scope scope(b);
@@ -435,19 +506,19 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_lineTo(const QV4::Functio
 /*!
   \qmlmethod object Canvas2DContext::bezierCurveTo(real cp1x, real cp1y, real cp2x, real cp2y, real x, real y)
 
-  Adds a cubic bezier curve between the current position and the given endPoint using the control points specified by (\a {cp1x}, \a {cp1y}),
-  and (\a {cp2x}, \a {cp2y}).
-  After the curve is added, the current position is updated to be at the end point (\a {x}, \a {y}) of the curve.
-  The following code produces the path shown below:
-
-  \code
-  ctx.strokeStyle = Qt.rgba(0, 0, 0, 1);
-  ctx.lineWidth = 1;
-  ctx.beginPath();
-  ctx.moveTo(20, 0); //start point
-  ctx.bezierCurveTo(-10, 90, 210, 90, 180, 0);
-  ctx.stroke();
-  \endcode
+    Adds a cubic bezier segment from last point in the path via two
+    control points (\a cp1x, \a cp1y and \a cp2x, \a cp2y) to the specified point (\a x, \a y).
+    \table
+    \row
+    \li \inlineimage canvas2d-beziercurve.webp
+    \li
+    \code
+    ctx.beginPath();
+    ctx.moveTo(20, 20);
+    ctx.bezierCurveTo(150, 50, 50, 250, 180, 120);
+    ctx.stroke();
+    \endcode
+    \endtable
 
   \sa {http://www.w3.org/TR/2dcontext/#dom-context-2d-beziercurveto}{W3C 2d context standard for bezierCurveTo}
   */
@@ -476,8 +547,21 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_bezierCurveTo(const QV4::
 /*!
     \qmlmethod object Canvas2DContext::quadraticCurveTo(real cpx, real cpy, real x, real y)
 
-    Adds a quadratic bezier curve between the current point and the endpoint
-    (\a x, \a y) with the control point specified by (\a cpx, \a cpy).
+    Adds a quadratic bezier segment from last point in the path via
+    a control point (\a cpx, \a cpy) to the specified point (\a x, \a y).
+    \table
+    \row
+    \li \inlineimage canvas2d-quadraticcurve.webp
+    \li
+    \code
+    ctx.beginPath();
+    ctx.moveTo(20, 20);
+    ctx.quadraticCurveTo(150, 50, 180, 180);
+    ctx.quadraticCurveTo(20, 220, 20, 20);
+    ctx.fill();
+    ctx.stroke();
+    \endcode
+    \endtable
 
     \sa {http://www.w3.org/TR/2dcontext/#dom-context-2d-quadraticcurveto}{W3C 2d context standard for quadraticCurveTo}
  */
@@ -506,19 +590,22 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_quadraticCurveTo(const QV
     \qmlmethod object Canvas2DContext::arcTo(real x1, real y1, real x2,
         real y2, real radius)
 
-    Adds an arc with the given control points and radius to the current subpath,
-    connected to the previous point by a straight line. To draw an arc, you
-    begin with the same steps you followed to create a line:
-
-    \list
-    \li Call the beginPath() method to set a new path.
-    \li Call the moveTo(\c x, \c y) method to set your starting position on the
-        canvas at the point (\c x, \c y).
-    \li To draw an arc or circle, call the arcTo(\a x1, \a y1, \a x2, \a y2,
-        \a radius) method. This adds an arc with starting point (\a x1, \a y1),
-        ending point (\a x2, \a y2), and \a radius to the current subpath and
-        connects it to the previous subpath by a straight line.
-    \endlist
+    Adds an arc segment at the corner defined by the last path point,
+    and two specified points (\a x1, \a y1 and \a x2, \a y2) with \a radius.
+    The arc is automatically connected to the path's latest point with
+    a straight line if necessary.
+    \table
+    \row
+    \li \inlineimage canvas2d-arcto.webp
+    \li
+    \code
+    ctx.beginPath();
+    ctx.moveTo(20, 20);
+    ctx.arcTo(240, 20, 20, 220, 50);
+    ctx.arcTo(20, 220, 20, 20, 30);
+    ctx.stroke();
+    \endcode
+    \endtable
 
     \sa arc, {http://www.w3.org/TR/2dcontext/#dom-context-2d-arcto}{W3C's 2D
     Context Standard for arcTo()}
@@ -545,10 +632,10 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_arcTo(const QV4::Function
             THROW_DOM(DOMEXCEPTION_INDEX_SIZE_ERR, "Incorrect argument radius");
 
         r->d()->context()->buffer()->arcTo(c1x,
-                                        c1y,
-                                        c2x,
-                                        c2y,
-                                        radius);
+                                           c1y,
+                                           c2x,
+                                           c2y,
+                                           radius);
     }
 
     RETURN_RESULT(*thisObject);
@@ -558,14 +645,27 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_arcTo(const QV4::Function
     \qmlmethod object Canvas2DContext::arc(real x, real y, real radius,
         real startAngle, real endAngle, bool anticlockwise)
 
-    Adds an arc to the current subpath that lies on the circumference of the
-    circle whose center is at the point (\a x, \a y) and whose radius is
-    \a radius.
-
-    Both \a startAngle and \a endAngle are measured from the x-axis in radians.
-
-    The default curve direction is clockwise. To change direction to opposite,
+    Creates a new circle arc shaped sub-path. The arc center is at \a x, \a y,
+    with \a radius, and the arc is drawn from angle \a startAngle to \a endAngle.
+    The default curve direction is clockwise. To change direction to the opposite,
     set \a anticlockwise to true.
+    Angles are specified in radians.
+    \table
+    \row
+    \li \inlineimage canvas2d-arc.webp
+    \li
+    \code
+    ctx.beginPath();
+    ctx.moveTo(100, 100);
+    ctx.arc(100, 100, 80, 0, 1.5 * Math.PI);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+    \endcode
+    \endtable
+
+    \note While HTML canvas 2D context uses arc() for painting circles, with
+    Canvas2D it is recommended to use \l circle() or \l ellipse() for those.
 
     \sa arcTo, {http://www.w3.org/TR/2dcontext/#dom-context-2d-arc}{W3C's 2D
     Context Standard for arc()}
@@ -604,10 +704,21 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_arc(const QV4::FunctionOb
 }
 
 /*!
-    \qmlmethod object Canvas2DContext::rect(real x, real y, real w, real h)
+    \qmlmethod object Canvas2DContext::rect(real x, real y, real width, real height)
 
-    Adds a rectangle at position (\a x, \a y), with the given width \a w and
-    height \a h, as a closed subpath.
+    Creates a new rectangle shaped sub-path in position \a x, \a y with
+    size \a width, \a height.
+    \table
+    \row
+    \li \inlineimage canvas2d-rect.webp
+    \li
+    \code
+    ctx.beginPath();
+    ctx.rect(20, 20, 160, 160);
+    ctx.fill();
+    ctx.stroke();
+    \endcode
+    \endtable
  */
 QV4::ReturnedValue QCanvasJSContext2DPrototype::method_rect(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc)
 {
@@ -641,22 +752,44 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_roundedRect(const QV4::Fu
 }
 
 /*!
-    \qmlmethod object Canvas2DContext::roundRect(real x, real y, real w, real h, real radius)
+    \qmlmethod object Canvas2DContext::roundRect(real x, real y, real width, real height, real radius)
 
-    Adds a rounded-corner rectangle, specified by (\a x, \a y, \a w, \a h), to the path.
-    The \a radius argument specify the radius of the
-    ellipses defining the corners of the rounded rectangle.
+    Creates a new rounded rectangle shaped sub-path in position \a x, \a y with
+    size \a width, \a height. Corners rounding will be \a radius.
+    \table
+    \row
+    \li \inlineimage canvas2d-roundrect.webp
+    \li
+    \code
+    ctx.beginPath();
+    ctx.roundRect(20, 20, 160, 160, 30);
+    ctx.fill();
+    ctx.stroke();
+    \endcode
+    \endtable
  */
 
 /*!
-    \qmlmethod object Canvas2DContext::roundRect(real x, real y, real w, real h,
+    \qmlmethod object Canvas2DContext::roundRect(real x, real y, real width, real height,
                    real radiusTopLeft, real radiusTopRight,
                    real radiusBottomRight, real radiusBottomLeft)
-    Adds a rounded-corner rectangle, specified by (\a x, \a y, \a w, \a h), to the path.
-    The \a radiusTopLeft, \a radiusTopRight, \a radiusBottomRight and \a radiusBottomLeft
-    arguments specify the radius of the ellipses defining the corners of the rounded rectangle.
- */
 
+    Creates a new rounded rectangle shaped sub-path in position \a x, \a y with
+    size \a width, \a height. Corners rounding can be varying per-corner, with
+    \a radiusTopLeft, \a radiusTopRight, \a radiusBottomRight, \a radiusBottomLeft.
+    \table
+    \row
+    \li \inlineimage canvas2d-roundrect2.webp
+    \li
+    \code
+    ctx.beginPath();
+    ctx.roundRect(20, 20, 160, 160,
+                  0, 40, 20, 80);
+    ctx.fill();
+    ctx.stroke();
+    \endcode
+    \endtable
+*/
 QV4::ReturnedValue QCanvasJSContext2DPrototype::method_roundRect(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc)
 {
     QV4::Scope scope(b);
@@ -701,12 +834,19 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_roundRect(const QV4::Func
 /*!
     \qmlmethod object Canvas2DContext::ellipse(real centerX, real centerY, real radiusX, real radiusY)
 
-    Creates new ellipse shaped sub-path into ( \a centerX, \a centerY) with
-    \a radiusX and \a radiusY.
-
-    The ellipse is composed of a clockwise curve, starting and finishing at
-    zero degrees (the 3 o'clock position).
- */
+    Creates a new ellipse shaped sub-path centered at ( \a centerX, \a centerY) with \a radiusX and \a radiusY.
+    \table
+    \row
+    \li \inlineimage canvas2d-ellipse.webp
+    \li
+    \code
+    ctx.beginPath();
+    ctx.ellipse(100, 100, 80, 60);
+    ctx.fill();
+    ctx.stroke();
+    \endcode
+    \endtable
+*/
 QV4::ReturnedValue QCanvasJSContext2DPrototype::method_ellipse(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc)
 {
     QV4::Scope scope(b);
@@ -731,17 +871,24 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_ellipse(const QV4::Functi
 }
 
 /*!
-    \qmlmethod object Canvas2DContext::ellipseRect(real x, real y, real w, real h)
+    \qmlmethod object Canvas2DContext::ellipseRect(real x, real y, real width, real height)
 
-    Creates an ellipse within the bounding rectangle defined by its top-left
-    corner at (\a x, \a y), width \a w and height \a h, and adds it to the
-    path as a closed subpath.
-
-    The ellipse is composed of a clockwise curve, starting and finishing at
-    zero degrees (the 3 o'clock position).
+    Creates a new ellipse shaped sub-path into rect \a x, \a y, \a width, \a height.
+    This ellipse will cover the rect area.
+    \table
+    \row
+    \li \inlineimage canvas2d-ellipse2.webp
+    \li
+    \code
+    ctx.fillRect(40, 20, 120, 160);
+    ctx.beginPath();
+    ctx.ellipseRect(40, 20, 120, 160);
+    ctx.stroke();
+    \endcode
+    \endtable
 
     \note This method matches to \l QtQuick::Context2D::ellipse()
- */
+*/
 QV4::ReturnedValue QCanvasJSContext2DPrototype::method_ellipseRect(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc)
 {
     QV4::Scope scope(b);
@@ -766,12 +913,22 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_ellipseRect(const QV4::Fu
 /*!
     \qmlmethod object Canvas2DContext::circle(real centerX, real centerY, real radius)
 
-    Creates a circle defined by its center (\a centerX, \a centerY), and
-    radius \a radius, and adds it to the path as a closed subpath.
+    Creates a new circle shaped sub-path centered at ( \a centerX, \a centerY) with \a radius.
+    \table
+    \row
+    \li \inlineimage canvas2d-circle.webp
+    \li
+    \code
+    ctx.beginPath();
+    ctx.circle(100, 100, 80);
+    ctx.fill();
+    ctx.stroke();
+    \endcode
+    \endtable
 
-    \note Compared to arc(), this method does not add a straight line from
+    \note Compared to \l arc(), this method does not add a straight line from
     the last point in the subpath to the start point of the circle.
- */
+*/
 QV4::ReturnedValue QCanvasJSContext2DPrototype::method_circle(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc)
 {
     QV4::Scope scope(b);
@@ -793,10 +950,12 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_circle(const QV4::Functio
 }
 
 /*!
-  \qmlmethod object Canvas2DContext::beginSolidSubPath()
+    \qmlmethod object Canvas2DContext::beginSolidSubPath()
 
-  Start a solid subpath.
-  */
+    Start a solid subpath. This is equivalent to
+    \c setPathWinding("counterclockwise")
+    \sa beginHoleSubPath()
+*/
 QV4::ReturnedValue QCanvasJSContext2DPrototype::method_beginSolidSubPath(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *, int)
 {
     QV4::Scope scope(b);
@@ -809,10 +968,28 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_beginSolidSubPath(const Q
 }
 
 /*!
-  \qmlmethod object Canvas2DContext::beginHoleSubPath()
+    \qmlmethod object Canvas2DContext::beginHoleSubPath()
 
-  Start a hole subpath.
-  */
+    Start a hole subpath. This is equivalent to
+    \c setPathWinding("clockwise")
+    \table
+    \row
+    \li \inlineimage canvas2d-beginhole.webp
+    \li
+    \code
+    ctx.beginPath();
+    ctx.circle(100, 100, 80);
+    ctx.beginHoleSubPath();
+    ctx.rect(60, 60, 80, 80);
+    ctx.beginSolidSubPath();
+    ctx.circle(100, 100, 20);
+    ctx.fill();
+    ctx.stroke();
+    \endcode
+    \endtable
+
+    \sa beginSolidSubPath()
+*/
 QV4::ReturnedValue QCanvasJSContext2DPrototype::method_beginHoleSubPath(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *, int)
 {
     QV4::Scope scope(b);
@@ -827,21 +1004,60 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_beginHoleSubPath(const QV
 /*!
     \qmlmethod object Canvas2DContext::addPath(path2d path, transform2d transform)
 
-    Adds a \a path into the current path, using \a transform as a transformation matrix.
-    Providing \a transform parameter is optional.
+    Adds \a path into the current path, optionally using \a transform to
+    alter the path points. When \a transform is not provided (or it is
+    identity matrix), this operation is very fast as it reuses the path data.
+    \table
+    \row
+    \li \inlineimage canvas2d-addpath.webp
+    \li
+    \code
+    // myPath is path2d property
+    if (myPath.isEmpty())
+        myPath.circle(60, 60, 40);
+    ctx.beginPath();
+    ctx.addPath(myPath);
+    let t = ctx.createTransform2D();
+    t.translate(80, 80);
+    ctx.addPath(myPath, t);
+    ctx.fill();
+    ctx.stroke();
+    \endcode
+    \endtable
 */
 
 /*!
     \qmlmethod object Canvas2DContext::addPath(path2d path, int start, int count, transform2d transform)
 
-    Adds \a path into the current path, starting from the command at \a start and including
-    \a count amount of commands. Optionally using \a transform to alter the path points.
-    The range of start and count is checked, so that commands are not accessed more than
-    the path has commands. In case the path shouldn't continue from the current path
-    position, call first \l moveTo().
-    Providing \a transform parameter is optional.
+    Adds \a path into the current path, starting from the command at \a start
+    and including \a count amount of commands. Optionally using \a transform to
+    alter the path points.
+    The range of \a start and \a count is checked, so that commands are not
+    accessed more than the path has commands.
+    In case the path shouldn't continue from the current path position, call
+    first \l moveTo().
+    \table
+    \row
+    \li \inlineimage canvas2d-addpath2.webp
+    \li
+    \code
+    // myPath is QCanvasPath
+    if (myPath.isEmpty()) {
+        myPath.moveTo(20, 60);
+        for (let i = 1; i < 160; i++) {
+            myPath.lineTo(20 + i,
+                60 + 20 * Math.sin(0.1 * i));
+        }
+    }
+    ctx.stroke(myPath);
+    ctx.beginPath();
+    let t = ctx.createTransform2D();
+    t.translate(0, 80);
+    ctx.addPath(myPath, 20, 100, t);
+    ctx.stroke();
+    \endcode
+    \endtable
 */
-
 QV4::ReturnedValue QCanvasJSContext2DPrototype::method_addPath(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc)
 {
     QV4::Scope scope(b);
@@ -879,6 +1095,22 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_addPath(const QV4::Functi
 
     Sets the current sub-path \a winding to either "counterclockwise" (default) or "clockwise".
     "counterclockwise" draws solid subpaths while "clockwise" draws holes.
+    \table
+    \row
+    \li \inlineimage canvas2d-pathwinding.webp
+    \li
+    \code
+    ctx.beginPath();
+    ctx.roundRect(20, 20, 160, 160, 40);
+    ctx.setPathWinding("clockwise");
+    ctx.circle(140, 60, 20);
+    ctx.rect(60, 120, 80, 30);
+    ctx.fill();
+    ctx.stroke();
+    \endcode
+    \endtable
+
+    \sa beginHoleSubPath(), beginSolidSubPath()
 */
 QV4::ReturnedValue QCanvasJSContext2DPrototype::method_setPathWinding(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc)
 {
@@ -924,7 +1156,11 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_get_canvas(const QV4::Fun
 
 /*!
     \qmlmethod object Canvas2DContext::restore()
-    Pops the top state on the stack, restoring the context to that state.
+
+    Pops and restores the current render state.
+    So previously saved state will be restored.
+    If save() has not been called and the state stack
+    is empty, calling this does nothing.
 
     \sa save()
 */
@@ -940,7 +1176,35 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_restore(const QV4::Functi
 
 /*!
     \qmlmethod object Canvas2DContext::reset()
-    Resets the context state and properties to the default values.
+
+    Resets the current painter state to default values.
+
+    \note This method differs from the HTML canvas 2D context reset() method
+    so that it doesn't visually clear the canvas buffers.
+    \table
+    \row
+    \li \inlineimage canvas2d-reset.webp
+    \li
+    \code
+    // Adjust the paint state
+    ctx.strokeStyle = "#00414A";
+    ctx.fillStyle = "#2CDE85";
+    ctx.lineWidth = 10;
+    ctx.translate(100, 65);
+    ctx.rotate(-0.4);
+    ctx.translate(-100, -65);
+    ctx.beginPath();
+    ctx.roundRect(20, 40, 160, 50, 20);
+    ctx.fill();
+    ctx.stroke();
+    // Reset to default paint state
+    ctx.reset();
+    ctx.fillRect(20, 140, 60, 40);
+    ctx.strokeRect(120, 140, 60, 40);
+    \endcode
+    \endtable
+
+    \sa save(), restore()
 */
 QV4::ReturnedValue QCanvasJSContext2DPrototype::method_reset(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *, int)
 {
@@ -955,29 +1219,31 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_reset(const QV4::Function
 
 /*!
     \qmlmethod object Canvas2DContext::save()
-    Pushes the current state onto the state stack.
 
-    Before changing any state attributes, you should save the current state
-    for future reference. The context maintains a stack of drawing states.
-    Each state consists of the current transformation matrix, clipping region,
-    and values of the following attributes:
-    \list
-    \li strokeStyle
-    \li fillStyle
-    \li fillRule
-    \li globalAlpha
-    \li lineWidth
-    \li lineCap
-    \li lineJoin
-    \li miterLimit
-    \li globalCompositeOperation
-    \li \l font
-    \li textAlign
-    \li textBaseline
-    \endlist
+    Pushes and saves the current render state into a state stack.
+    A matching \l restore() must be used to restore the state.
 
-    The current path is NOT part of the drawing state. The path can be reset by
+    \note The current path is NOT part of the drawing state. The path can be reset by
     invoking the beginPath() method.
+    \table
+    \row
+    \li \inlineimage canvas2d-save.webp
+    \li
+    \code
+    ctx.strokeRect(20, 20, 160, 40);
+    // Save and adjust the paint state
+    ctx.save();
+    ctx.strokeStyle = "black";
+    ctx.lineWidth = 3;
+    ctx.rotate(0.1);
+    ctx.strokeRect(20, 80, 180, 20);
+    // Restore the saved paint state
+    ctx.restore();
+    ctx.strokeRect(20, 140, 160, 40);
+    \endcode
+    \endtable
+
+    \sa restore()
 */
 QV4::ReturnedValue QCanvasJSContext2DPrototype::method_save(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *, int)
 {
@@ -994,11 +1260,26 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_save(const QV4::FunctionO
 
 /*!
     \qmlmethod object Canvas2DContext::rotate(real angle)
-    Rotate the canvas around the current origin by \a angle radians in clockwise direction.
 
+    Rotates the current coordinate system clockwise by \a angle.
+
+    The angle is specified in radians.
+    \table
+    \row
+    \li \inlineimage canvas2d-rotate.webp
+    \li
     \code
-    ctx.rotate(Math.PI/2);
+    ctx.translate(100, 100);
+    ctx.rotate(Math.PI / 4);
+    ctx.translate(-100, -100);
+    ctx.beginPath();
+    ctx.roundRect(20, 70, 160, 60, 10);
+    ctx.fill();
+    ctx.stroke();
+    ctx.fillStyle = "black";
+    ctx.fillText("Cute!", 100, 100);
     \endcode
+    \endtable
 */
 QV4::ReturnedValue QCanvasJSContext2DPrototype::method_rotate(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc)
 {
@@ -1012,17 +1293,25 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_rotate(const QV4::Functio
 }
 
 /*!
-    \qmlmethod object Canvas2DContext::scale(real sxy)
+    \qmlmethod object Canvas2DContext::scale(real scale)
 
-    Increases or decreases the size of each unit in the canvas grid by multiplying the
-    scale factors to the current tranform matrix. Scales both the horizontal direction
-    the vertical direction with the same \a sxy amount.
-
-    The following code doubles the size of an object drawn:
-
+    Scales the current coordinate system by \a scale. Both x and y coordinates
+    are scaled evenly.
+    \table
+    \row
+    \li \inlineimage canvas2d-scale.webp
+    \li
     \code
-    ctx.scale(2.0);
+    for (let i = 0; i < 20; i++) {
+        ctx.beginPath();
+        ctx.roundRect(20, 20, 160, 160, 10);
+        ctx.stroke();
+        ctx.translate(100, 100);
+        ctx.scale(0.8);
+        ctx.translate(-100, -100);
+    }
     \endcode
+    \endtable
 */
 
 /*!
@@ -1055,11 +1344,27 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_scale(const QV4::Function
 
 
 /*!
-    \qmlmethod object Canvas2DContext::skew(real sh, real sv)
+    \qmlmethod object Canvas2DContext::skew(real angleX, real angleY)
 
-    Skews (shears) the transformation matrix by \a sh in the horizontal direction and
-    \a sv in the vertical direction. The default value of \a sv is \c 0 when
-    only a single parameter is provided.
+    Skews (shears) the current coordinate system along X axis by \a angleX
+    and along Y axis by \a angleY. The default value of \a angleY is \c 0 when
+    only a single parameter is provided. Angles are specified in radians.
+    \table
+    \row
+    \li \inlineimage canvas2d-skew.webp
+    \li
+    \code
+    ctx.translate(100, 100);
+    ctx.skew(-0.6);
+    ctx.translate(-100, -100);
+    ctx.beginPath();
+    ctx.roundRect(40, 70, 120, 60, 10);
+    ctx.fill();
+    ctx.stroke();
+    ctx.fillStyle = "black";
+    ctx.fillText("Cute!", 100, 100);
+    \endcode
+    \endtable
 */
 QV4::ReturnedValue QCanvasJSContext2DPrototype::method_shear(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc)
 {
@@ -1079,11 +1384,23 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_shear(const QV4::Function
 /*!
     \qmlmethod object Canvas2DContext::translate(real x, real y)
 
-    Translates the origin of the canvas by a horizontal distance of \a x,
-    and a vertical distance of \a y, in coordinate space units.
-
-    Translating the origin enables you to draw patterns of different objects on the canvas
-    without having to measure the coordinates manually for each shape.
+    Translates the current coordinate system by \a x and \a y.
+    \table
+    \row
+    \li \inlineimage canvas2d-translate.webp
+    \li
+    \code
+    function paintRect() {
+        ctx.beginPath();
+        ctx.roundRect(20, 20, 160, 60, 10);
+        ctx.fill();
+        ctx.stroke();
+    };
+    paintRect();
+    ctx.translate(0, 100);
+    paintRect();
+    \endcode
+    \endtable
 */
 QV4::ReturnedValue QCanvasJSContext2DPrototype::method_translate(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc)
 {
@@ -1100,18 +1417,34 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_translate(const QV4::Func
     \qmlmethod object Canvas2DContext::transform(transform2d transform)
 
     Multiplies the current coordinate system by specified \a transform.
+    \table
+    \row
+    \li \inlineimage canvas2d-transform2.webp
+    \li
+    \code
+    let t = ctx.createTransform2D();
+    t.translate(100, 100);
+    t.rotate(36);
+    t.translate(-100, -100);
+    for (let i = 0; i < 10; i++) {
+        ctx.transform(t);
+        ctx.beginPath();
+        ctx.roundRect(80, 15, 40, 20, 10);
+        ctx.fill();
+        ctx.stroke();
+    }
+    \endcode
+    \endtable
 */
 /*!
     \qmlmethod object Canvas2DContext::transform(real a, real b, real c, real d, real e, real f)
 
-    This method is very similar to setTransform(), but instead of replacing
-    the old transform matrix, this method applies the given tranform matrix
-    to the current matrix by multiplying to it.
+    Multiplies the current coordinate system by the specified transform
+    (\a a, \a b, \a c, \a d, \a e, \a f).
 
-    The setTransform(\a a, \a b, \a c, \a d, \a e, \a f) method actually
-    resets the current transform to the identity matrix, and then invokes
-    the transform(\a a, \a b, \a c, \a d, \a e, \a f) method with the same
-    arguments.
+    This method is similar to setTransform(), but instead of replacing
+    the old transform matrix, this method applies the given transform matrix
+    to the current matrix by multiplying to it.
 
     \sa setTransform()
 */
@@ -1142,7 +1475,28 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_transform(const QV4::Func
 /*!
     \qmlmethod object Canvas2DContext::setTransform(transform2d transform)
 
-    Changes the transformation matrix to the \a transform.
+    Resets the current transform and uses \a transform instead.
+    \table
+    \row
+    \li \inlineimage canvas2d-transform.webp
+    \li
+    \code
+    ctx.beginPath();
+    ctx.roundRect(80, 20, 40, 40, 10);
+    ctx.fill();
+    ctx.stroke();
+    let t = ctx.createTransform2D();
+    t.translate(100, 20);
+    t.rotate(45);
+    t.scale(2.0, 2.0);
+    ctx.setTransform(t);
+    ctx.beginPath();
+    ctx.roundRect(20, 20, 40, 40, 10);
+    ctx.fill();
+    ctx.stroke();
+    \endcode
+    \endtable
+
     \sa getTransform()
 */
 /*!
@@ -1237,9 +1591,27 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_resetTransform(const QV4:
 /*!
     \qmlproperty real Canvas2DContext::globalAlpha
 
-    Holds the current alpha value applied to rendering operations.
-    The value must be in the range from \c 0.0 (fully transparent) to \c 1.0 (fully opaque).
-    The default value is \c 1.0.
+    Holds the current alpha (transparency) value applied to rendering
+    operations. This alpha value is
+    applied to all rendered shapes. Already transparent paths will get
+    proportionally more transparent as well.
+    Alpha should be between 0.0 (fully transparent) and 1.0 (fully opaque).
+    By default alpha is \c 1.0.
+    \table
+    \row
+    \li \inlineimage canvas2d-globalalpha.webp
+    \li
+    \code
+    ctx.fillStyle = "#d9f720";
+    for (let i = 0; i < 4; i++) {
+        let x = 100 * (i % 2);
+        let y = 100 * Math.floor(i / 2);
+        ctx.globalAlpha = 1.0 - i * 0.3;
+        ctx.fillRect(x, y, 100, 100);
+        ctx.drawImage("qt_logo2.png", x, y, 100, 100);
+    }
+    \endcode
+    \endtable
 */
 QV4::ReturnedValue QCanvasJSContext2D::method_get_globalAlpha(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *, int)
 {
@@ -1272,10 +1644,27 @@ QV4::ReturnedValue QCanvasJSContext2D::method_set_globalAlpha(const QV4::Functio
 /*!
     \qmlproperty real Canvas2DContext::globalBrightness
 
-    Holds the current brightness value applied to rendering operations.
-    A value of 0 will cause painting to be completely black.
-    Value can also be bigger than 1.0, to increase the brightness.
-    The default value is \c 1.0.
+    Holds the current brightness value applied to rendering
+    operations. This brightess is
+    applied to all rendered shapes. A value of 0 will cause painting
+    to be completely black. Value can also be bigger than 1.0, to
+    increase the brightness.
+    By default, brightness is \c 1.0.
+    \table
+    \row
+    \li \inlineimage canvas2d-globalbrightness.webp
+    \li
+    \code
+    ctx.fillStyle = "#d9f720";
+    for (let i = 0; i < 4; i++) {
+        let x = 100 * (i % 2);
+        let y = 100 * Math.floor(i / 2);
+        ctx.globalBrightness = 1.5 - i * 0.45;
+        ctx.fillRect(x, y, 100, 100);
+        ctx.drawImage("qt_logo2.png", x, y, 100, 100);
+    }
+    \endcode
+    \endtable
 */
 QV4::ReturnedValue QCanvasJSContext2D::method_get_globalBrightness(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *, int)
 {
@@ -1308,10 +1697,27 @@ QV4::ReturnedValue QCanvasJSContext2D::method_set_globalBrightness(const QV4::Fu
 /*!
     \qmlproperty real Canvas2DContext::globalContrast
 
-    Holds the current contrast value applied to rendering operations.
-    A value of 0 will cause painting to be completely gray (0.5, 0.5, 0.5).
-    Value can also be bigger than 1.0, to increase the contrast.
-    The default value is \c 1.0.
+    Holds the current contrast value applied to rendering
+    operations. This contrast is
+    applied to all rendered shapes. A value of 0 will cause painting
+    to be completely gray (0.5, 0.5, 0.5). Value can also be bigger
+    than 1.0, to increase the contrast.
+    By default, contrast is \c 1.0.
+    \table
+    \row
+    \li \inlineimage canvas2d-globalcontrast.webp
+    \li
+    \code
+    ctx.fillStyle = "#d9f720";
+    for (let i = 0; i < 4; i++) {
+        let x = 100 * (i % 2);
+        let y = 100 * Math.floor(i / 2);
+        ctx.globalContrast = 1.5 - i * 0.45;
+        ctx.fillRect(x, y, 100, 100);
+        ctx.drawImage("qt_logo2.png", x, y, 100, 100);
+    }
+    \endcode
+    \endtable
 */
 QV4::ReturnedValue QCanvasJSContext2D::method_get_globalContrast(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *, int)
 {
@@ -1344,10 +1750,27 @@ QV4::ReturnedValue QCanvasJSContext2D::method_set_globalContrast(const QV4::Func
 /*!
     \qmlproperty real Canvas2DContext::globalSaturate
 
-    Holds the current saturate value applied to rendering operations.
-    A value of 0 will disable saturation and cause painting to be completely grayscale.
-    Value can also be bigger than 1.0, to increase the saturation.
-    The default value is \c 1.0.
+    Holds the current saturate value applied to rendering
+    operations. This saturations is
+    applied to all rendered shapes. A value of 0 will disable saturation
+    and cause painting to be completely grayscale. Value can also be bigger
+    than 1.0, to increase the saturation.
+    By default, saturation is \c 1.0.
+    \table
+    \row
+    \li \inlineimage canvas2d-globalsaturate.webp
+    \li
+    \code
+    ctx.fillStyle = "#d9f720";
+    for (let i = 0; i < 4; i++) {
+        let x = 100 * (i % 2);
+        let y = 100 * Math.floor(i / 2);
+        ctx.globalSaturate = 1.5 - i * 0.5;
+        ctx.fillRect(x, y, 100, 100);
+        ctx.drawImage("qt_logo2.png", x, y, 100, 100);
+    }
+    \endcode
+    \endtable
 */
 QV4::ReturnedValue QCanvasJSContext2D::method_get_globalSaturate(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *, int)
 {
@@ -1379,7 +1802,9 @@ QV4::ReturnedValue QCanvasJSContext2D::method_set_globalSaturate(const QV4::Func
 
 /*!
     \qmlproperty string Canvas2DContext::globalCompositeOperation
-    Holds the current the current composition operation. Allowed operations are:
+
+    Holds the current composition operation. This mode is
+    applied to all painting operations. Allowed operations are:
 
     \value "source-atop"
         QCanvasPainter::CompositeOperation::SourceAtop
@@ -1431,33 +1856,64 @@ QV4::ReturnedValue QCanvasJSContext2D::method_set_globalCompositeOperation(const
 
 /*!
     \qmlproperty variant Canvas2DContext::fillStyle
-     Holds the current style used for filling shapes.
-     The style can be either a string containing a CSS color, \l{colorvaluetypedocs}{QML color}, or canvas brush object.
-     Invalid values are ignored.
-     This property accepts several color syntaxes:
-     \list
-     \li 'rgb(red, green, blue)' - for example: 'rgb(255, 100, 55)' or 'rgb(100%, 70%, 30%)'
-     \li 'rgba(red, green, blue, alpha)' - for example: 'rgb(255, 100, 55, 1.0)' or 'rgb(100%, 70%, 30%, 0.5)'
-     \li 'hsl(hue, saturation, lightness)'
-     \li 'hsla(hue, saturation, lightness, alpha)'
-     \li '#RRGGBB' - for example: '#00FFCC'
-     \li '#AARRGGBB' - for example: '#8000FFCC'
-     \li SVG color name - for example: 'black', 'green' or 'lightsteelblue'
-     \li Qt.hsla(hue, saturation, lightness, alpha) - for example: Qt.hsla(0.3, 0.7, 1, 1.0)
-     \li Qt.rgba(red, green, blue, alpha) - for example: Qt.rgba(0.3, 0.7, 1, 1.0)
-     \endlist
-     If the \c fillStyle or \l strokeStyle is assigned many times in a loop, the last Qt.rgba() syntax should be chosen, as it has the
-     best performance, because it's already a valid QColor value, does not need to be parsed everytime.
 
-     The default value is black ('#000000').
-     \sa createLinearGradient()
-     \sa createRadialGradient()
-     \sa createConicalGradient()
-     \sa createBoxGradient()
-     \sa createBoxShadow()
-     \sa createPattern()
-     \sa createGridPattern()
-     \sa strokeStyle
+    Holds the current style used for filling shapes.
+    The default fill style is solid black ('#000000').
+    The style can be either a string containing a CSS color, \l{colorvaluetypedocs}{QML color}, or a canvas brush object.
+    Invalid values are ignored.
+    This property accepts several color syntaxes:
+    \list
+    \li 'rgb(red, green, blue)' - for example: 'rgb(255, 100, 55)' or 'rgb(100%, 70%, 30%)'
+    \li 'rgba(red, green, blue, alpha)' - for example: 'rgb(255, 100, 55, 1.0)' or 'rgb(100%, 70%, 30%, 0.5)'
+    \li 'hsl(hue, saturation, lightness)'
+    \li 'hsla(hue, saturation, lightness, alpha)'
+    \li '#RRGGBB' - for example: '#00FFCC'
+    \li '#AARRGGBB' - for example: '#8000FFCC'
+    \li SVG color name - for example: 'black', 'green' or 'lightsteelblue'
+    \li Qt.hsla(hue, saturation, lightness, alpha) - for example: Qt.hsla(0.3, 0.7, 1, 1.0)
+    \li Qt.rgba(red, green, blue, alpha) - for example: Qt.rgba(0.3, 0.7, 1, 1.0)
+    \endlist
+    If \c fillStyle or \l strokeStyle is assigned many times in a loop, the Qt.rgba() syntax should be chosen, as it has the
+    best performance, because it's already a valid QColor value and does not need to be parsed every time.
+
+    \table
+    \row
+    \li \inlineimage canvas2d-fillstyle.webp
+    \li
+    \code
+    ctx.fillStyle = "black";
+    ctx.fillRect(20, 20, 160, 160);
+    ctx.fillStyle = Qt.rgba(0, 0.25, 0.3, 1);
+    ctx.fillRect(40, 40, 120, 120);
+    ctx.fillStyle = "#2CDE85";
+    ctx.fillRect(60, 60, 80, 80);
+    \endcode
+    \endtable
+
+    \table
+    \row
+    \li \inlineimage canvas2d-fillstyle2.webp
+    \li
+    \code
+    const g2 = ctx.createRadialGradient(140, 40, 300);
+    g2.addColorStop(0, Qt.rgba(0.2, 0.8, 0.6));
+    g2.addColorStop(1, Qt.rgba(0, 0.25, 0.3, 1));
+    ctx.fillStyle = g2;
+    ctx.fillRect(20, 20, 160, 160);
+    g2.setCenterPosition(100, 100);
+    ctx.fillStyle = g2;
+    ctx.fillRect(40, 40, 120, 120);
+    \endcode
+    \endtable
+
+    \sa createLinearGradient()
+    \sa createRadialGradient()
+    \sa createConicalGradient()
+    \sa createBoxGradient()
+    \sa createBoxShadow()
+    \sa createPattern()
+    \sa createGridPattern()
+    \sa strokeStyle
  */
 QV4::ReturnedValue QCanvasJSContext2D::method_get_fillStyle(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *, int)
 {
@@ -1538,6 +1994,9 @@ QV4::ReturnedValue QCanvasJSContext2D::method_set_fillStyle(const QV4::FunctionO
     \qmlproperty string Canvas2DContext::fillRule
 
     Holds the current fill rule used for filling shapes.
+    This value is applied to all fill() calls
+    after the rule has been set. The default fill rule is \c "nonzero"
+
     The following fill rules are supported:
 
     \value "nonzero" (or "WindingFill")
@@ -1556,9 +2015,30 @@ QV4::ReturnedValue QCanvasJSContext2D::method_set_fillStyle(const QV4::FunctionO
         intersections. If the number of intersections is an odd number, the point is
         inside the shape.
 
-    \sa fill()
+    \table
+    \row
+    \li \inlineimage canvas2d-fillrule.webp
+    \li
+    \code
+    function paintStar() {
+        ctx.beginPath();
+        ctx.moveTo(120, 60);
+        for (let i = 1; i < 6; ++i) {
+            ctx.lineTo(60 + 60 * Math.cos(0.8 * i * Math.PI),
+                60 + 60 * Math.sin(0.8 * i * Math.PI));
+        }
+        ctx.fill();
+        ctx.stroke();
+    };
+    ctx.fillRule = "nonzero";
+    paintStar();
+    ctx.translate(75, 75);
+    ctx.fillRule = "evenodd";
+    paintStar();
+    \endcode
+    \endtable
 
-    The default value is "nonzero".
+    \sa fill()
 */
 QV4::ReturnedValue QCanvasJSContext2D::method_get_fillRule(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *, int)
 {
@@ -1594,11 +2074,41 @@ QV4::ReturnedValue QCanvasJSContext2D::method_set_fillRule(const QV4::FunctionOb
 
 /*!
     \qmlproperty variant Canvas2DContext::strokeStyle
-     Holds the current color or style to use for the lines around shapes,
-     The style can be either a string containing a CSS color, \l{colorvaluetypedocs}{QML color}, or canvas brush object.
-     Invalid values are ignored.
+    Holds the current color or style to use for the lines around shapes,
+    The style can be either a string containing a CSS color, \l{colorvaluetypedocs}{QML color}, or a canvas brush object.
+    Invalid values are ignored.
 
-     The default value is black ('#000000').
+    The default value is black ('#000000').
+
+    \table
+    \row
+    \li \inlineimage canvas2d-strokestyle.webp
+    \li
+    \code
+    ctx.strokeStyle = "black";
+    ctx.strokeRect(20, 20, 160, 160);
+    ctx.strokeStyle = Qt.rgba(0, 0.25, 0.3, 1);
+    ctx.strokeRect(40, 40, 120, 120);
+    ctx.strokeStyle = "#2CDE85";
+    ctx.strokeRect(60, 60, 80, 80);
+    \endcode
+    \endtable
+
+    \table
+    \row
+    \li \inlineimage canvas2d-strokestyle2.webp
+    \li
+    \code
+    const g1 = ctx.createLinearGradient(180, 20, 20, 180);
+    g1.addColorStop(0, Qt.rgba(0.2, 0.8, 0.6));
+    g1.addColorStop(1, "black");
+    ctx.strokeStyle = g1;
+    ctx.strokeRect(20, 20, 160, 160);
+    g1.addColorStop(1, "yellow");
+    ctx.strokeStyle = g1;
+    ctx.strokeRect(40, 40, 120, 120);
+    \endcode
+    \endtable
 
      \sa createLinearGradient()
      \sa createRadialGradient()
@@ -1662,13 +2172,26 @@ QV4::ReturnedValue QCanvasJSContext2D::method_set_strokeStyle(const QV4::Functio
 }
 
 /*!
-  \qmlmethod object Canvas2DContext::createLinearGradient(real x0, real y0, real x1, real y1)
-   Returns a \l{lineargradient2d} object that represents a linear gradient that transitions the color along a line between
-   the start point (\a x0, \a y0) and the end point (\a x1, \a y1).
+    \qmlmethod object Canvas2DContext::createLinearGradient(real x0, real y0, real x1, real y1)
+    Returns a \l{lineargradient2d} object that represents a linear gradient that transitions the color along a line between
+    the start point (\a x0, \a y0) and the end point (\a x1, \a y1).
 
-   A gradient is a smooth transition between colors. There are two types of gradients: linear and radial.
-   Gradients must have two or more color stops, representing color shifts positioned from 0 to 1 between
-   to the gradient's starting and end points or circles.
+    Gradients must have two or more color stops, representing color shifts positioned from 0 to 1 between
+    the gradient's starting and end points.
+
+    \table
+    \row
+    \li \inlineimage lineargradient-example.webp
+    \li
+    \code
+    const lg = ctx.createLinearGradient(0, 0, 200, 200);
+    lg.addColorStop(0.0, "#1a2a6c");
+    lg.addColorStop(0.5, "#b21f1f");
+    lg.addColorStop(1.0, "#fdbb2d");
+    ctx.fillStyle = lg;
+    ctx.fillRect(0, 0, 200, 200);
+    \endcode
+    \endtable
 
     \sa lineargradient2d::addColorStop()
     \sa createRadialGradient()
@@ -1709,6 +2232,20 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_createLinearGradient(cons
     paints along the cone given by the start circle with origin (\a x0, \a y0)
     and radius \a r0, and the end circle with origin (\a x1, \a y1) and radius
     \a r1.
+
+    \table
+    \row
+    \li \inlineimage radialgradient-example.webp
+    \li
+    \code
+    const rg = ctx.createRadialGradient(100, 100, 100, 0);
+    rg.addColorStop(0.0, "#fdbb2d");
+    rg.addColorStop(0.6, "#b21f1f");
+    rg.addColorStop(1.0, "#1a2a6c");
+    ctx.fillStyle = rg;
+    ctx.fillRect(0, 0, 200, 200);
+    \endcode
+    \endtable
 
     \sa radialgradient2d::addColorStop()
     \sa createLinearGradient()
@@ -1769,11 +2306,27 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_createRadialGradient(cons
 }
 
 /*!
-  \qmlmethod object Canvas2DContext::createConicalGradient(real x, real y, real angle)
+    \qmlmethod object Canvas2DContext::createConicalGradient(real x, real y, real angle)
 
-   Returns a \l{conicalgradient2d} object that represents a conical gradient that
-   interpolates colors counter-clockwise around a center point (\a x, \a y)
-   with a start angle \a angle in units of radians.
+    Returns a \l{conicalgradient2d} object that represents a conical gradient that
+    interpolates colors counter-clockwise around a center point (\a x, \a y)
+    with a start angle \a angle in units of radians.
+
+    \table
+    \row
+    \li \inlineimage conicalgradient-example.webp
+    \li
+    \code
+    const cg = ctx.createConicalGradient(100, 100, 1.75 * Math.PI);
+    cg.addColorStop(0.0, "#fdbb2d");
+    cg.addColorStop(0.5, "#1a2a6c");
+    cg.addColorStop(1.0, "#fdbb2d");
+    ctx.fillStyle = cg;
+    ctx.beginPath();
+    ctx.ellipseRect(20, 20, 160, 160);
+    ctx.fill();
+    \endcode
+    \endtable
 
     \sa conicalgradient2d::addColorStop()
     \sa createLinearGradient()
@@ -1781,8 +2334,7 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_createRadialGradient(cons
     \sa createPattern()
     \sa fillStyle
     \sa strokeStyle
-  */
-
+*/
 QV4::ReturnedValue QCanvasJSContext2DPrototype::method_createConicalGradient(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc)
 {
     QV4::Scope scope(b);
@@ -1822,8 +2374,22 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_createConicGradient(const
     \qmlmethod object Canvas2DContext::createBoxGradient(real x, real y, real width, real height, real feather, real radius)
 
     Returns a \l{boxgradient2d} object that represents a box gradient that
-    covers rectangle area (\a x, \a y, \a width, \a height) with feather
+    covers the rectangle area (\a x, \a y, \a width, \a height) with feather
     (smoothing) \a feather and corner radius \a radius.
+
+    \table
+    \row
+    \li \inlineimage boxgradient-example.webp
+    \li
+    \code
+    const bg = ctx.createBoxGradient(20, 20, 160, 160, 20, 50);
+    bg.addColorStop(0.0, "#1a2a6c");
+    bg.addColorStop(0.2, "#fdbb2d");
+    bg.addColorStop(1.0, "transparent");
+    ctx.fillStyle = bg;
+    ctx.fillRect(20, 20, 160, 160);
+    \endcode
+    \endtable
 
     \sa boxgradient2d::addColorStop()
     \sa fillStyle
@@ -1865,11 +2431,30 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_createBoxGradient(const Q
                                                        real blur, string color, real radius)
 
     Returns a \l{boxshadow2d} object with color \a color that represents
-    a box shadow that covers rectangle area (\a x, \a y, \a width, \a height)
+    a box shadow that covers the rectangle area (\a x, \a y, \a width, \a height)
     with blur \a blur and corner radius \a radius.
 
+    \table
+    \row
+    \li \inlineimage canvas2d-shadowbox.webp
+    \li
+    \code
+    let offsetX = -2;
+    let offsetY = 4;
+    let shadow = ctx.createBoxShadow(40 + offsetX,
+                                     40 + offsetY,
+                                     120, 120,
+                                     30, "black", 0);
+    ctx.drawBoxShadow(shadow);
+    ctx.beginPath();
+    ctx.roundRect(40, 40, 120, 120, 30);
+    ctx.fillStyle = "#2CDE85";
+    ctx.fill();
+    \endcode
+    \endtable
+
     \sa drawBoxShadow()
-  */
+*/
 
 /*!
     \qmlmethod object Canvas2DContext::createBoxShadow(real x, real y, real width, real height,
@@ -1878,13 +2463,12 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_createBoxGradient(const Q
                                                        real radiusBottomRight, real radiusBottomLeft)
 
     Returns a \l{boxshadow2d} object with color \a color that represents
-    a box shadow that covers rectangle area (\a x, \a y, \a width, \a height)
+    a box shadow that covers the rectangle area (\a x, \a y, \a width, \a height)
     with blur \a blur and corner radius (\a radiusTopLeft, \a radiusTopRight,
     \a radiusBottomRight, \a radiusBottomLeft).
 
     \sa drawBoxShadow()
-  */
-
+*/
 QV4::ReturnedValue QCanvasJSContext2DPrototype::method_createBoxShadow(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc)
 {
     QV4::Scope scope(b);
@@ -1956,11 +2540,22 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_createBoxShadow(const QV4
                                                        string lineColor, string backgroundColor,
                                                        real lineWidth, real feather, real angle)
 
-    Returns a \l{gridpattern2d} object that covers rectangle area (\a x, \a y, \a width, \a height).
+    Returns a \l{gridpattern2d} object that covers the rectangle area (\a x, \a y, \a width, \a height).
     The grid uses \a lineColor for lines and \a backgroundColor for the background.
-    The line width is \a lineWidth, line feather \a feather and rotation angle \a angle in radians.
-  */
+    The line width is \a lineWidth, line feather is \a feather and the rotation angle is \a angle in radians.
 
+    \table
+    \row
+    \li \inlineimage gridpattern-example.webp
+    \li
+    \code
+    const grid = ctx.createGridPattern(0, 0, 10, 10,
+                        "#404040", "#202020");
+    ctx.fillStyle = grid;
+    ctx.fillRect(0, 0, 200, 200);
+    \endcode
+    \endtable
+*/
 QV4::ReturnedValue QCanvasJSContext2DPrototype::method_createGridPattern(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc)
 {
     QV4::Scope scope(b);
@@ -2083,9 +2678,28 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_createTransform2D(const Q
 /*!
     \qmlmethod object Canvas2DContext::drawBoxShadow(boxshadow2d shadow)
 
-    Draws a given box \a shadow. The shadow will be painted with the
-    position, size, color, blur etc. set in the \a shadow.
-    Calling beginPath() before this method is not required.
+    Draws a given box \a shadow. The shadow will be painted with
+    position, size, color, blur etc. defined by \a shadow.
+    Calling \l beginPath() before this method is not required.
+
+    \table
+    \row
+    \li \inlineimage canvas2d-shadowbox.webp
+    \li
+    \code
+    let offsetX = -2;
+    let offsetY = 4;
+    let shadow = ctx.createBoxShadow(40 + offsetX,
+                                     40 + offsetY,
+                                     120, 120,
+                                     30, "black", 0);
+    ctx.drawBoxShadow(shadow);
+    ctx.beginPath();
+    ctx.roundRect(40, 40, 120, 120, 30);
+    ctx.fillStyle = "#2CDE85";
+    ctx.fill();
+    \endcode
+    \endtable
 
     \sa createBoxShadow()
 */
@@ -2104,11 +2718,11 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_drawBoxShadow(const QV4::
 
 /*!
     \qmlmethod object Canvas2DContext::createPattern(Image image, string repetition)
-    Returns a \l{imagepattern2d} object that uses the given image and repeats in the
+    Returns an \l{imagepattern2d} object that uses the given image and repeats in the
     direction(s) given by the repetition argument.
 
     The \a image parameter must be a valid Image item
-    or loaded image url. If there is no image data, this function throws an
+    or a loaded image url. If there is no image data, this function throws an
     INVALID_STATE_ERR exception.
 
     The allowed values for \a repetition are:
@@ -2173,7 +2787,24 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_createPattern(const QV4::
         width of half the line width, placed flat against the edge
         perpendicular to the direction of the line.
 
-    Other values are ignored.
+    \table
+    \row
+    \li \inlineimage canvas2d-linecap.webp
+    \li
+    \code
+    let path = ctx.createPath2D();
+    path.moveTo(40, 60);
+    path.lineTo(160, 60);
+    ctx.lineCap = "butt";
+    ctx.stroke(path);
+    ctx.lineCap = "square";
+    ctx.translate(0, 40);
+    ctx.stroke(path);
+    ctx.lineCap = "round";
+    ctx.translate(0, 40);
+    ctx.stroke(path);
+    \endcode
+    \endtable
 */
 QV4::ReturnedValue QCanvasJSContext2D::method_get_lineCap(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *, int)
 {
@@ -2234,7 +2865,28 @@ QV4::ReturnedValue QCanvasJSContext2D::method_set_lineCap(const QV4::FunctionObj
     \value "miter"  (default) QCanvasPainter::LineJoin::Miter The outer edges of the lines are extended to
                     meet at an angle, and this area is filled.
 
-    Other values are ignored.
+    \table
+    \row
+    \li \inlineimage canvas2d-linejoin.webp
+    \li
+    \code
+    let path = ctx.createPath2D();
+    path.moveTo(40, 20);
+    path.lineTo(100, 80);
+    path.lineTo(160, 40);
+    path.lineTo(160, 70);
+    ctx.lineJoin = "miter";
+    ctx.stroke(path);
+    ctx.lineJoin = "bevel";
+    ctx.translate(0, 50);
+    ctx.stroke(path);
+    ctx.lineJoin = "round";
+    ctx.translate(0, 50);
+    ctx.stroke(path);
+    \endcode
+    \endtable
+
+    \sa miterLimit
 */
 QV4::ReturnedValue QCanvasJSContext2D::method_get_lineJoin(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *, int)
 {
@@ -2283,8 +2935,30 @@ QV4::ReturnedValue QCanvasJSContext2D::method_set_lineJoin(const QV4::FunctionOb
 
 /*!
     \qmlproperty real Canvas2DContext::lineWidth
-     Holds the current line width. Values that are not finite values greater than zero are ignored.
- */
+
+    Holds the current line width. The default line width is
+    \c 1.0. When antialiasing is enabled, the line widths
+    under a single pixel automatically fade the opacity,
+    creating a smooth output.
+    \table
+    \row
+    \li \inlineimage canvas2d-linewidth.webp
+    \li
+    \code
+    for (let i = 1; i < 10 ; i++) {
+        let y = i * 20;
+        ctx.lineWidth = 0.5 * i;
+        ctx.beginPath();
+        ctx.moveTo(20, y);
+        ctx.bezierCurveTo(80, y + 20, 120,
+                          y - 20, 180, y);
+        ctx.stroke();
+    }
+    \endcode
+    \endtable
+
+    \sa stroke()
+*/
 QV4::ReturnedValue QCanvasJSContext2D::method_get_lineWidth(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *, int)
 {
     QV4::Scope scope(b);
@@ -2311,8 +2985,14 @@ QV4::ReturnedValue QCanvasJSContext2D::method_set_lineWidth(const QV4::FunctionO
 
 /*!
     \qmlproperty real Canvas2DContext::miterLimit
-     Holds the current miter limit ratio.
-     The default miter limit value is 10.0.
+
+    Holds the current miter limit length. Miter limit controls when a sharp corner
+    is beveled. When the corner length would become longer than this limit,
+    a "bevel" \l lineJoin will be applied between the lines instead.
+    This only has effect with the "miter" line join.
+    The default limit is \c 10.0.
+
+    \sa lineJoin
  */
 QV4::ReturnedValue QCanvasJSContext2D::method_get_miterLimit(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *, int)
 {
@@ -2340,9 +3020,33 @@ QV4::ReturnedValue QCanvasJSContext2D::method_set_miterLimit(const QV4::Function
 
 /*!
     \qmlproperty real Canvas2DContext::antialias
-    Holds the current antialias amount. Values that are not finite values greater than zero are ignored.
-    The default antialias value is 1.0.
- */
+
+    Holds the current antialias amount. More antialias means smoother
+    painting. This only affects fill and stroke painting, not images
+    or texts.
+    The default value is \c 1.0 and the maximum value is \c 10.0.
+
+    Antialiasing can be modified per-path so it can be set before each stroke/fill.
+    \table
+    \row
+    \li \inlineimage canvas2d-antialias.webp
+    \li
+    \code
+    ctx.lineWidth = 6;
+    for (let i = 1; i < 10 ; i++) {
+        let y = i * 20;
+        ctx.antialias = i;
+        ctx.beginPath();
+        ctx.moveTo(20, y);
+        ctx.bezierCurveTo(80, y + 20, 120,
+                          y - 20, 180, y);
+        ctx.stroke();
+    }
+    \endcode
+    \endtable
+
+    \sa textAntialias
+*/
 QV4::ReturnedValue QCanvasJSContext2D::method_get_antialias(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *, int)
 {
     QV4::Scope scope(b);
@@ -2369,9 +3073,31 @@ QV4::ReturnedValue QCanvasJSContext2D::method_set_antialias(const QV4::FunctionO
 
 /*!
     \qmlproperty real Canvas2DContext::textAntialias
-    Holds the current text antialias amount. Values that are not finite values greater than zero are ignored.
-    The default text antialias value is 1.0.
- */
+
+    Holds the current text antialias amount. The value is a
+    multiplier to normal antialiasing, meaning that \c 0.0 disables
+    antialiasing and \c 2.0 doubles it. The default value \c is 1.0.
+
+    \note Due to the text antialiasing technique used (SDF),
+    the maximum antialiasing amount is quite limited and this
+    affects less when the font size is small.
+    \table
+    \row
+    \li \inlineimage canvas2d-textantialias.webp
+    \li
+    \code
+    ctx.font = "22px 'Titillium Web'";
+    ctx.textAntialias = 1.0;
+    ctx.fillText("Antialiasing: 1.0", 100, 25);
+    ctx.textAntialias = 2.0;
+    ctx.fillText("Antialiasing: 2.0", 100, 75);
+    ctx.textAntialias = 3.0;
+    ctx.fillText("Antialiasing: 3.0", 100, 125);
+    ctx.textAntialias = 4.0;
+    ctx.fillText("Antialiasing: 4.0", 100, 175);
+    \endcode
+    \endtable
+*/
 QV4::ReturnedValue QCanvasJSContext2D::method_get_textAntialias(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *, int)
 {
     QV4::Scope scope(b);
@@ -2443,11 +3169,24 @@ QV4::ReturnedValue QCanvasJSContext2D::method_set_lineDashOffset(const QV4::Func
 // ***** direct rect methods *****
 
 /*!
-    \qmlmethod object Canvas2DContext::clearRect(real x, real y, real w, real h)
+    \qmlmethod object Canvas2DContext::clearRect(real x, real y, real width, real height)
 
-    Clears all pixels on the canvas in the rectangle specified by
-    (\a x, \a y, \a w, \a h) to transparent black.
-  */
+    Erases the pixels in a rectangular area by filling the rectangle
+    specified by \a x, \a y, \a width, \a height with transparent black.
+    As clearing does not need blending, it can be faster than fillRect().
+    \table
+    \row
+    \li \inlineimage canvas2d-clearrect.webp
+    \li
+    \code
+    ctx.beginPath();
+    ctx.circle(100, 100, 80);
+    ctx.fill();
+    ctx.stroke();
+    ctx.clearRect(60, 0, 80, 120);
+    \endcode
+    \endtable
+*/
 QV4::ReturnedValue QCanvasJSContext2DPrototype::method_clearRect(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc)
 {
     QV4::Scope scope(b);
@@ -2465,12 +3204,26 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_clearRect(const QV4::Func
 }
 
 /*!
-    \qmlmethod object Canvas2DContext::fillRect(real x, real y, real w, real h)
+    \qmlmethod object Canvas2DContext::fillRect(real x, real y, real width, real height)
 
-    Paints a rectangular area specified by (\a x, \a y, \a w, \a h) using fillStyle.
+    Draws a filled rectangle into the specified position ( \a x, \a y) with size \a width, \a height.
+    \note This is provided for convenience. When filling more than just a single rect,
+    prefer using \l rect().
+    \table
+    \row
+    \li \inlineimage canvas2d-fillrect.webp
+    \li
+    \code
+    ctx.fillRect(20, 20, 160, 160);
+    // The above code does same as:
+    // ctx.beginPath();
+    // ctx.rect(20, 20, 160, 160);
+    // ctx.fill();
+    \endcode
+    \endtable
 
-   \sa fillStyle
-  */
+    \sa fillStyle
+*/
 QV4::ReturnedValue QCanvasJSContext2DPrototype::method_fillRect(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc)
 {
     QV4::Scope scope(b);
@@ -2483,13 +3236,26 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_fillRect(const QV4::Funct
 }
 
 /*!
-    \qmlmethod object Canvas2DContext::strokeRect(real x, real y, real w, real h)
+    \qmlmethod object Canvas2DContext::strokeRect(real x, real y, real width, real height)
 
-    Strokes the path of the rectangle specified by (\a x, \a y, \a w, \a h) using
-    strokeStyle, lineWidth, lineJoin, and (if appropriate) miterLimit attributes.
+    Draws a stroked rectangle into the specified position ( \a x, \a y) with size \a width, \a height.
+    \note This is provided for convenience. When stroking more than just a single rect,
+    prefer using rect().
+    \table
+    \row
+    \li \inlineimage canvas2d-strokerect.webp
+    \li
+    \code
+    ctx.strokeRect(20, 20, 160, 160);
+    // The above code does same as:
+    // ctx.beginPath();
+    // ctx.rect(20, 20, 160, 160);
+    // ctx.stroke();
+    \endcode
+    \endtable
 
-   \sa strokeStyle, lineWidth, lineJoin, miterLimit
-  */
+    \sa strokeStyle, lineWidth, lineJoin, miterLimit
+*/
 QV4::ReturnedValue QCanvasJSContext2DPrototype::method_strokeRect(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc)
 {
     QV4::Scope scope(b);
@@ -2505,10 +3271,10 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_strokeRect(const QV4::Fun
 // ***** path handling *****
 
 /*!
-  \qmlmethod object Canvas2DContext::beginPath()
+    \qmlmethod object Canvas2DContext::beginPath()
 
-   Resets the current path to a new path.
-  */
+    Begins drawing a new path while clearing the current path.
+*/
 QV4::ReturnedValue QCanvasJSContext2DPrototype::method_beginPath(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *, int)
 {
     QV4::Scope scope(b);
@@ -2533,11 +3299,29 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_clip(const QV4::FunctionO
 }
 
 /*!
-  \qmlmethod object Canvas2DContext::clipRect(real x, real y, real width, real height)
+    \qmlmethod object Canvas2DContext::clipRect(real x, real y, real width, real height)
 
-   Creates the clipping region from the rect \a x, \a y, \a width, \a height.
-   Any parts of the shape outside the clipping path are not displayed.
- */
+    Sets the current scissor rectangle to (\a x, \a y, \a width, \a height).
+    The scissor rectangle is transformed by the current transform.
+    \note Clipping has some performance cost and it should only be used
+    when needed.
+    \table
+    \row
+    \li \inlineimage canvas2d-cliprect.webp
+    \li
+    \code
+    ctx.clipRect(20, 20, 160, 160);
+    ctx.beginPath();
+    ctx.circle(40, 40, 110);
+    ctx.fill();
+    ctx.fillStyle = "black";
+    ctx.fillText("Clip me...", 45, 100);
+    ctx.strokeRect(20, 20, 160, 160);
+    \endcode
+    \endtable
+
+    \sa resetClipping()
+*/
 QV4::ReturnedValue QCanvasJSContext2DPrototype::method_clipRect(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc)
 {
     QV4::Scope scope(b);
@@ -2551,10 +3335,10 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_clipRect(const QV4::Funct
 }
 
 /*!
-  \qmlmethod object Canvas2DContext::resetClipping()
+    \qmlmethod object Canvas2DContext::resetClipping()
 
-  Resets and disables clipping.
-  \sa clipRect
+    Resets and disables clipping.
+    \sa clipRect()
  */
 QV4::ReturnedValue QCanvasJSContext2DPrototype::method_resetClipping(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *, int)
 {
@@ -2568,33 +3352,73 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_resetClipping(const QV4::
 }
 
 /*!
-  \qmlmethod object Canvas2DContext::fill()
+    \qmlmethod object Canvas2DContext::fill()
 
-   Fills the subpaths with the current fill style.
+    Fills the current path with the current fill style, and the current fill rule.
+    \table
+    \row
+    \li \inlineimage canvas2d-fill.webp
+    \li
+    \code
+    ctx.beginPath();
+    ctx.rect(20, 20, 40, 160);
+    ctx.rect(140, 20, 40, 160);
+    ctx.circle(100, 100, 60);
+    ctx.fill();
+    \endcode
+    \endtable
 
-   \sa fillStyle, {http://www.w3.org/TR/2dcontext/#dom-context-2d-fill}{W3C 2d context standard for fill}
-  */
+    \sa fillStyle, fillRule, {http://www.w3.org/TR/2dcontext/#dom-context-2d-fill}{W3C 2d context standard for fill}
+*/
 /*!
-  \qmlmethod object Canvas2DContext::fill(string fillRule)
+    \qmlmethod object Canvas2DContext::fill(string fillRule)
 
-   Fills the subpaths with the current fill style and using \a fillRule.
+    Fills the current path with the current fill style, and fill rule \a fillRule.
 
-   \sa fillStyle, fillRule
-  */
+    \sa fillStyle, fillRule
+*/
 /*!
-  \qmlmethod object Canvas2DContext::fill(path2d path, int pathGroup)
+    \qmlmethod object Canvas2DContext::fill(path2d path, int pathGroup)
 
-   Fills the \a path with the current fill style. Cache group \a pathGroup parameter is optional.
+    Fills the \a path with the current fill style and fill rule, and belonging
+    into optional \a pathGroup. Painting through QCanvasPath is optimal
+    when the path contains more commands and is mostly static.
 
-   \sa fillStyle, path2d
-  */
+    When \a pathGroup is \c -1, the path will not be cached on the GPU side.
+    This is the default. To request caching of path data, pass a
+    value equal or greater than \c 0. More information about using path
+    cache groups can be found in the \l{QCanvasPath} documentation.
+
+    Calling beginPath() before this method is not required.
+
+    \table
+    \row
+    \li \inlineimage canvas2d-fill2.webp
+    \li
+    \code
+    // myPath is path2d
+    if (myPath.isEmpty()) {
+        for (let i = 0; i < 16; i++) {
+            let w = 100 + 60 * Math.sin(i);
+            myPath.rect(100 - w * 0.5,
+                        22 + i * 10,
+                        w, 6);
+        }
+    }
+    ctx.fill(myPath);
+    \endcode
+    \endtable
+
+    \sa fillStyle, path2d
+*/
 /*!
-  \qmlmethod object Canvas2DContext::fill(path2d path, string fillRule, int pathGroup)
+    \qmlmethod object Canvas2DContext::fill(path2d path, string fillRule, int pathGroup)
 
-   Fills the \a path with the current fill style and using \a fillRule. Cache group \a pathGroup parameter is optional.
+    Fills the \a path with the current fill style and using \a fillRule.
+    The cache group parameter \a pathGroup is optional.
 
-   \sa fillStyle, fillRule, path2d
-  */
+    \sa fillStyle, fillRule, path2d
+*/
 QV4::ReturnedValue QCanvasJSContext2DPrototype::method_fill(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc)
 {
     QV4::Scope scope(b);
@@ -2636,19 +3460,58 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_fill(const QV4::FunctionO
 }
 
 /*!
-  \qmlmethod object Canvas2DContext::stroke()
+    \qmlmethod object Canvas2DContext::stroke()
 
-   Strokes the subpaths with the current stroke style.
+    Strokes the current path with the current stroke style.
+    \table
+    \row
+    \li \inlineimage canvas2d-stroke.webp
+    \li
+    \code
+    ctx.beginPath();
+    ctx.rect(20, 20, 40, 160);
+    ctx.rect(140, 20, 40, 160);
+    ctx.circle(100, 100, 60);
+    ctx.stroke();
+    \endcode
+    \endtable
 
-   \sa strokeStyle, {http://www.w3.org/TR/2dcontext/#dom-context-2d-stroke}{W3C 2d context standard for stroke}
- */
+    \sa strokeStyle, {http://www.w3.org/TR/2dcontext/#dom-context-2d-stroke}{W3C 2d context standard for stroke}
+*/
 /*!
-  \qmlmethod object Canvas2DContext::stroke(path2d path, int pathGroup)
+    \qmlmethod object Canvas2DContext::stroke(path2d path, int pathGroup)
 
-   Strokes the \a path with the current stroke style. Cache group \a pathGroup parameter is optional.
+    Strokes the \a path with the current stroke style and belonging into
+    \a pathGroup. Painting through QCanvasPath is optimal when the path
+    contains more commands and is mostly static.
 
-   \sa strokeStyle, path2d, {http://www.w3.org/TR/2dcontext/#dom-context-2d-stroke}{W3C 2d context standard for stroke}
- */
+    When \a pathGroup is \c -1, the path's rendering-related data will not be
+    cached. This is the default. To request caching of path data, pass a
+    value equal or greater to \c 0. More information about using path cache
+    groups can be found in the \l{QCanvasPath} documentation.
+
+    Calling beginPath() before this method is not required.
+
+    \table
+    \row
+    \li \inlineimage canvas2d-stroke2.webp
+    \li
+    \code
+    // myPath is path2d
+    if (myPath.isEmpty()) {
+        for (let i = 0; i < 16; i++) {
+            let h = 100 + 60 * Math.sin(i);
+            myPath.rect(22 + i * 10,
+                        180 - h,
+                        6, h);
+        }
+    }
+    ctx.stroke(myPath);
+    \endcode
+    \endtable
+
+    \sa strokeStyle, path2d, {http://www.w3.org/TR/2dcontext/#dom-context-2d-stroke}{W3C 2d context standard for stroke}
+*/
 QV4::ReturnedValue QCanvasJSContext2DPrototype::method_stroke(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc)
 {
     QV4::Scope scope(b);
@@ -2714,11 +3577,11 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_caretBlinkRate(const QV4:
     \endlist
 
     \note The font-size and font-family properties are mandatory and must be in
-    the order they are shown in above. In addition, a font family with spaces in
+    the order they are shown above. In addition, a font family with spaces in
     its name must be quoted.
 
     The default font value is "10px sans-serif".
-  */
+*/
 QV4::ReturnedValue QCanvasJSContext2D::method_get_font(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *, int)
 {
     QV4::Scope scope(b);
@@ -2758,7 +3621,27 @@ QV4::ReturnedValue QCanvasJSContext2D::method_set_font(const QV4::FunctionObject
     \value "right"  QCanvasPainter::TextAlign::Right
     \value "center" QCanvasPainter::TextAlign::Center
 
-    Other values are ignored.
+    \table
+    \row
+    \li \inlineimage canvas2d-textalign.webp
+    \li
+    \code
+    ctx.font = "22px 'Titillium Web'";
+    ctx.fillRect(100, 0, 1, 200);
+    ctx.textAlign = "left";
+    ctx.fillText("Left", 100, 40);
+    ctx.textAlign = "center";
+    ctx.fillText("Center", 100, 70);
+    ctx.textAlign = "right";
+    ctx.fillText("Right", 100, 100);
+    ctx.textAlign = "start";
+    ctx.fillText("Start", 100, 130);
+    ctx.textAlign = "end";
+    ctx.fillText("End", 100, 160);
+    \endcode
+    \endtable
+
+    \sa textBaseline
 */
 QV4::ReturnedValue QCanvasJSContext2D::method_get_textAlign(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *, int)
 {
@@ -2826,7 +3709,28 @@ QV4::ReturnedValue QCanvasJSContext2D::method_set_textAlign(const QV4::FunctionO
     \value "alphabetic"     (default) QCanvasPainter::TextBaseline::Alphabetic The alphabetic baseline
     \value "bottom"         QCanvasPainter::TextBaseline::Bottom The bottom of the em square
 
-    Other values are ignored. The default value is "alphabetic".
+    \table
+    \row
+    \li \inlineimage canvas2d-textbaseline.webp
+    \li
+    \code
+    ctx.font = "22px 'Titillium Web'";
+    ctx.fillRect(0, 60, 200, 1);
+    ctx.fillRect(0, 140, 200, 1);
+    ctx.textBaseline = "bottom";
+    ctx.fillText("Bottom", 40, 60);
+    ctx.textBaseline = "middle";
+    ctx.fillText("Middle", 100, 60);
+    ctx.textBaseline = "top";
+    ctx.fillText("Top", 160, 60);
+    ctx.textBaseline = "alphabetic";
+    ctx.fillText("Alphabetic", 50, 140);
+    ctx.textBaseline = "hanging";
+    ctx.fillText("Hanging", 150, 140);
+    \endcode
+    \endtable
+
+    \sa textAlign
 */
 QV4::ReturnedValue QCanvasJSContext2D::method_get_textBaseline(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *, int)
 {
@@ -2883,15 +3787,12 @@ QV4::ReturnedValue QCanvasJSContext2D::method_set_textBaseline(const QV4::Functi
 }
 
 /*!
-  \qmlmethod object Canvas2DContext::fillText(text, x, y)
+    \qmlmethod object Canvas2DContext::fillText(text, x, y)
 
-  Fills the specified \a text at the given position (\a x, \a y).
+    Fills the specified \a text at the given position (\a x, \a y).
 
-  \sa font
-  \sa textAlign
-  \sa textBaseline
-  \sa strokeText
-  */
+    \sa font, textAlign, textBaseline, strokeText
+*/
 QV4::ReturnedValue QCanvasJSContext2DPrototype::method_fillText(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc)
 {
     QV4::Scope scope(b);
@@ -2921,10 +3822,7 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_fillText(const QV4::Funct
 
     Strokes the given \a text at a position specified by (\a x, \a y).
 
-    \sa font
-    \sa textAlign
-    \sa textBaseline
-    \sa fillText
+    \sa font, textAlign, textBaseline, fillText
 */
 QV4::ReturnedValue QCanvasJSContext2DPrototype::method_strokeText(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc)
 {
@@ -2942,12 +3840,12 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_strokeText(const QV4::Fun
 // so return full TextMetrics object and not just width?
 
 /*!
-  \qmlmethod object Canvas2DContext::measureText(text)
+    \qmlmethod object Canvas2DContext::measureText(text)
 
-  Returns an object with a \c width property, whose value is equivalent to
-  calling QFontMetrics::horizontalAdvance() with the given \a text in the
-  current font.
-  */
+    Returns an object with a \c width property, whose value is equivalent to
+    calling QFontMetrics::horizontalAdvance() with the given \a text in the
+    current font.
+*/
 QV4::ReturnedValue QCanvasJSContext2DPrototype::method_measureText(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc)
 {
     QV4::Scope scope(b);
@@ -2968,59 +3866,63 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_measureText(const QV4::Fu
 // ***** drawing images *****
 
 /*!
-  \qmlmethod object Canvas2DContext::drawImage(variant image, real dx, real dy)
-  Draws the given \a image on the canvas at position (\a dx, \a dy).
-  Note:
-  The \a image type can be an Image item or an image url.
-  When given as Image item, if the image isn't fully loaded, this method draws nothing.
-  When given as url string, the image should be loaded by calling Canvas item's Canvas2D::loadImage() method first.
-  This image been drawing is subject to the current context clip path.
+    \qmlmethod object Canvas2DContext::drawImage(variant image, real dx, real dy)
+    Draws the given \a image on the canvas at position (\a dx, \a dy).
+    Note:
+    The \a image type can be an Image item or an image url.
+    When given as Image item, if the image isn't fully loaded, this method draws nothing.
+    When given as url string, the image should be loaded by calling Canvas item's Canvas2D::loadImage() method first.
+    This drawing is subject to the current context clip path.
 
-  \sa Image
-  \sa Canvas2D::loadImage
-  \sa Canvas2D::isImageLoaded
-  \sa Canvas2D::imageLoaded
+    \table
+    \row
+    \li \inlineimage canvas2d-drawimage.webp
+    \li
+    \code
+    ctx.drawImage("qt_logo.png", 36, 36);
+    \endcode
+    \endtable
 
-  \sa {http://www.w3.org/TR/2dcontext/#dom-context-2d-drawimage}{W3C 2d context standard for drawImage}
-  */
-
+    \sa Image, Canvas2D::loadImage, Canvas2D::isImageLoaded, Canvas2D::imageLoaded
+    \sa {http://www.w3.org/TR/2dcontext/#dom-context-2d-drawimage}{W3C 2d context standard for drawImage}
+*/
 /*!
-  \qmlmethod object Canvas2DContext::drawImage(variant image, real dx, real dy, real dw, real dh)
-  This is an overloaded function.
-  Draws the given item as \a image onto the canvas at point (\a dx, \a dy) and with width \a dw,
-  height \a dh.
+    \qmlmethod object Canvas2DContext::drawImage(variant image, real dx, real dy, real dw, real dh)
+    This is an overloaded function.
+    Draws the given item as \a image onto the canvas at point (\a dx, \a dy) and with width \a dw,
+    height \a dh.
 
-  Note:
-  The \a image type can be an Image item or an image url.
-  When given as Image item, if the image isn't fully loaded, this method draws nothing.
-  When given as url string, the image should be loaded by calling Canvas item's Canvas2D::loadImage() method first.
-  This image been drawing is subject to the current context clip path.
+    \table
+    \row
+    \li \inlineimage canvas2d-drawimage2.webp
+    \li
+    \code
+    ctx.drawImage("qt_logo.png", 50, 0, 100, 200);
+    \endcode
+    \endtable
 
-  \sa Image
-  \sa Canvas2D::loadImage()
-  \sa Canvas2D::isImageLoaded
-  \sa Canvas2D::imageLoaded
-
-  \sa {http://www.w3.org/TR/2dcontext/#dom-context-2d-drawimage}{W3C 2d context standard for drawImage}
-  */
+    \sa Image, Canvas2D::loadImage(), Canvas2D::isImageLoaded, Canvas2D::imageLoaded
+    \sa {http://www.w3.org/TR/2dcontext/#dom-context-2d-drawimage}{W3C 2d context standard for drawImage}
+*/
 /*!
-  \qmlmethod object Canvas2DContext::drawImage(variant image, real sx, real sy, real sw, real sh, real dx, real dy, real dw, real dh)
-  This is an overloaded function.
-  Draws the given item as \a image from source point (\a sx, \a sy) and source width \a sw, source height \a sh
-  onto the canvas at point (\a dx, \a dy) and with width \a dw, height \a dh.
+    \qmlmethod object Canvas2DContext::drawImage(variant image, real sx, real sy, real sw, real sh, real dx, real dy, real dw, real dh)
+    This is an overloaded function.
+    Draws the given item as \a image from source point (\a sx, \a sy) and source width \a sw, source height \a sh
+    onto the canvas at point (\a dx, \a dy) and with width \a dw, height \a dh.
 
-  Note:
-  The \a image type can be an Image or an image url.
-  When given as Image item, if the image isn't fully loaded, this method draws nothing.
-  When given as url string, the image should be loaded by calling Canvas item's Canvas2D::loadImage() method first.
-  This image been drawing is subject to the current context clip path.
+    \table
+    \row
+    \li \inlineimage canvas2d-drawimage3.webp
+    \li
+    \code
+    ctx.drawImage("qt_logo.png",
+                   20, 30, 54, 76,
+                   0, 0, 200, 200);
+    \endcode
+    \endtable
 
-  \sa Image
-  \sa Canvas2D::loadImage()
-  \sa Canvas2D::isImageLoaded
-  \sa Canvas2D::imageLoaded
-
-  \sa {http://www.w3.org/TR/2dcontext/#dom-context-2d-drawimage}{W3C 2d context standard for drawImage}
+    \sa Image, Canvas2D::loadImage(), Canvas2D::isImageLoaded, Canvas2D::imageLoaded
+    \sa {http://www.w3.org/TR/2dcontext/#dom-context-2d-drawimage}{W3C 2d context standard for drawImage}
 */
 QV4::ReturnedValue QCanvasJSContext2DPrototype::method_drawImage(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc)
 {
