@@ -5,7 +5,6 @@
 \module QtCanvasPainter
 \title Qt Canvas Painter C++ Classes
 \cmakecomponent CanvasPainter
-\preliminary
 \brief Provides classes for Qt Canvas Painter application development.
 
 Qt Canvas Painter provides the following C++ types:

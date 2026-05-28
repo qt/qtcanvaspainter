@@ -17,9 +17,6 @@ abstractions, aiming to perform optimally on QRhi. Qt Canvas Painter is
 designed for GPU rendering and does not have a CPU backend as QPainter
 does.
 
-\note Qt Canvas Painter in \QtVer is in \e{Technology Preview}, excluding its
-API from \l[QtDoc]{Compatibility promises}{Qt's compatibility promises}.
-
 \section1 Using the Module
 
 \section2 C++ API
