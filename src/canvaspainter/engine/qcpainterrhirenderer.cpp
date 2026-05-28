@@ -2297,9 +2297,7 @@ void QCPainterRhiRenderer::endPrepare()
         QRhiShaderResourceBindings *srbForLayout = srbWithDummyTexture; // all of them are layout-compatible, could use any
 
         QCRHIPipelineState basePs;
-        // Note: Currently these are renderer scope flags, so same ones used
-        // for all calls. In case we want to enable antialiasing/stencil
-        // per-call, test them in calls loop.
+
         basePs.renderFlags = rhiCtx->flags;
         basePs.sampleCount = rhiCtx->rt->sampleCount();
         bool stencilClipActive = false;
@@ -2331,6 +2329,10 @@ void QCPainterRhiRenderer::endPrepare()
             // Set antialiasing mode.
             basePs.renderFlags.setFlag(QCPainterRhiRenderer::Antialiasing,
                                        call->renderFlags & QCPainterRhiRenderer::Antialiasing);
+
+            // Set stencil stroking mode
+            basePs.renderFlags.setFlag(QCPainterRhiRenderer::StencilStrokes,
+                                       call->renderFlags & QCPainterRhiRenderer::StencilStrokes);
 
             basePs.renderFlags.setFlag(QCPainterRhiRenderer::CustomMatrix, m_e->ctx.customMatrixValid);
 
@@ -3034,7 +3036,7 @@ void QCPainterRhiRenderer::render()
                 }
             }
         } else if (call->type == CallStroke) {
-            if (!(rhiCtx->flags & QCPainterRhiRenderer::StencilStrokes)) {
+            if (!(call->renderFlags & QCPainterRhiRenderer::StencilStrokes)) {
                 // 1. Draw Strokes
                 bindPipeline(call, 0, 0, vertDynamicOffsetForCall, dynamicOffsetForCall, false, &needsViewport);
                 for (int i = 0; i < pathsCount; i++) {
