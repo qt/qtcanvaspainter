@@ -840,6 +840,31 @@ void CanvasPainterLancelotCppTests::testCanvasPathCommandsWithAndWithoutPathGrou
     painter->stroke(path, group);
 }
 
+void CanvasPainterLancelotCppTests::testHighQualityStroking()
+{
+    painter->setRenderHint(QCanvasPainter::RenderHint::HighQualityStroking, false);
+    painter->setStrokeStyle(QColor(192, 0, 0, 127));
+    painter->setLineWidth(20);
+
+    painter->beginPath();
+    painter->moveTo(10, 10);
+    painter->lineTo(80, 80);
+    painter->moveTo(10, 80);
+    painter->lineTo(80, 10);
+    painter->stroke();
+
+    painter->setFillStyle(QColor(0, 192, 0, 127));
+    painter->fillRect(10, 110, 80, 80);
+
+    painter->setRenderHint(QCanvasPainter::RenderHint::HighQualityStroking, true);
+    painter->beginPath();
+    painter->moveTo(10, 210);
+    painter->lineTo(80, 280);
+    painter->moveTo(10, 280);
+    painter->lineTo(80, 210);
+    painter->stroke();
+}
+
 // ----------- tests adapted from Gallery example start below
 
 void CanvasPainterLancelotCppTests::testRects()

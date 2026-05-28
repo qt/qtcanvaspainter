@@ -30,6 +30,7 @@ private slots:
     void testCurveWithPathCaching();
     void testSomeText();
     void testCanvasPathCommandsWithAndWithoutPathGroup();
+    void testHighQualityStroking();
 
     // the tests below are adapted from the Gallery example
     void testRects();
@@ -72,7 +73,7 @@ private slots:
     void testGradientSpread();
     void testGradientCaching();
     void testTextDirection();
-    void testVectorPathStencilClip();
+    void testVectorPathStencilClip();    
 
 private:
     float width() const { return canvasPixelSize.width(); }
