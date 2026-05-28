@@ -1414,6 +1414,57 @@ static void testSetTransform_reference(QPainter *p)
     p->fillRect(0,0,100,100, Qt::green);
 }
 
+static void testMixedQualityStroking(QCanvasPainter *p)
+{
+    p->setRenderHint(QCanvasPainter::RenderHint::HighQualityStroking, false);
+    p->setStrokeStyle(QColor(192, 0, 0, 127));
+    p->setLineWidth(20);
+
+    p->beginPath();
+    p->moveTo(10, 10);
+    p->lineTo(80, 80);
+    p->moveTo(10, 80);
+    p->lineTo(80, 10);
+    p->stroke();
+
+    p->setFillStyle(QColor(0, 192, 0, 127));
+    p->fillRect(10, 110, 80, 80);
+
+    p->setRenderHint(QCanvasPainter::RenderHint::HighQualityStroking, true);
+    p->beginPath();
+    p->moveTo(10, 210);
+    p->lineTo(80, 280);
+    p->moveTo(10, 280);
+    p->lineTo(80, 210);
+    p->stroke();
+}
+
+static void testMixedQualityStroking_reference(QPainter *p)
+{
+    QColor penColor(192, 0, 0, 127);
+    QPen pen(penColor, 20);
+    pen.setCapStyle(Qt::FlatCap);
+    p->setPen(pen);
+
+    QPainterPath cross;
+    cross.moveTo(10, 10);
+    cross.lineTo(80, 80);
+    cross.moveTo(10, 80);
+    cross.lineTo(80, 10);
+    p->drawPath(cross);
+
+    p->fillRect(10, 110, 80, 80, QColor(0, 192, 0, 127));
+
+    cross.translate(0, 200);
+    QPainterPathStroker stroker;
+    stroker.setWidth(20);
+    stroker.setCapStyle(Qt::FlatCap);
+    QPainterPath stroke = stroker.createStroke(cross);
+    stroke.setFillRule(Qt::WindingFill);
+    p->setBrush(penColor);
+    p->setPen(Qt::NoPen);
+    p->drawPath(stroke);
+}
 
 static TestDescription tests[] {
     {"Simple",                   simpleTest,                simpleTest_reference},
@@ -1440,6 +1491,7 @@ static TestDescription tests[] {
     {"Clip Normal Quality Stroking",  testClipStroking,         testClipStroking_reference},
     {"Clip HighQualityStroking",      testClipHighQualityStroking, testClipStroking_reference}, // same reference as normal quality
     {"Clip Vector Path",              testVectorPath,           testVectorPath_reference},
+    {"High and Normal Quality Stroking", testMixedQualityStroking, testMixedQualityStroking_reference},
 };
 
 class MyWidget : public QCanvasPainterWidget
