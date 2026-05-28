@@ -308,7 +308,7 @@ QTransform QCPainterEngine::currentTransform() const
 
 void QCPainterEngine::transform(const QTransform &transform)
 {
-    state.transform *= transform;
+    state.transform = transform * state.transform;
 }
 
 void QCPainterEngine::setTransform(const QTransform &transform)
