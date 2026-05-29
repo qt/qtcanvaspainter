@@ -59,6 +59,7 @@ private:
     inline QCanvasPainter::LineJoin takeLineJoin() { return static_cast<QCanvasPainter::LineJoin>(takeInt());}
     inline QCanvasPainter::TextAlign takeAlign() { return static_cast<QCanvasPainter::TextAlign>(takeInt());}
     inline QCanvasPainter::TextBaseline takeBaseline() { return static_cast<QCanvasPainter::TextBaseline>(takeInt());}
+    inline QCanvasPainter::WrapMode takeWrapMode() { return static_cast<QCanvasPainter::WrapMode>(takeInt());}
 
     inline QTransform takeMatrix() { return matrixes.at(matrixIdx++); }
 

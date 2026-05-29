@@ -234,8 +234,12 @@ struct QCanvasJSContext2D : public QV4::Object
     static QV4::ReturnedValue method_set_textAlign(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc);
     static QV4::ReturnedValue method_get_textBaseline(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc);
     static QV4::ReturnedValue method_set_textBaseline(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc);
+    static QV4::ReturnedValue method_get_textWrapMode(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc);
+    static QV4::ReturnedValue method_set_textWrapMode(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc);
     static QV4::ReturnedValue method_get_textAntialias(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc);
     static QV4::ReturnedValue method_set_textAntialias(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc);
+    static QV4::ReturnedValue method_get_textLineHeight(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc);
+    static QV4::ReturnedValue method_set_textLineHeight(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc);
 };
 
 DEFINE_OBJECT_VTABLE(QCanvasJSContext2D);
@@ -3122,6 +3126,58 @@ QV4::ReturnedValue QCanvasJSContext2D::method_set_textAntialias(const QV4::Funct
     RETURN_UNDEFINED();
 }
 
+/*!
+    \qmlproperty real Canvas2DContext::textLineHeight
+
+    Holds the current text line height adjustment amount
+    in pixels. The default line height is \c 0.
+    \table
+    \row
+    \li \inlineimage canvas2d-textlineheight.webp
+    \li
+    \code
+    ctx.strokeRect(40, 5, 120, 60);
+    ctx.strokeRect(40, 70, 120, 60);
+    ctx.strokeRect(40, 135, 120, 60);
+    ctx.textLineHeight = -10;
+    ctx.fillText("Text with line height: -10",
+                  40, 5, 120, 60);
+    ctx.textLineHeight = 0;
+    ctx.fillText("Text with line height: 0",
+                  40, 70, 120, 60);
+    ctx.textLineHeight = 10;
+    ctx.fillText("Text with line height: 10",
+                  40, 135, 120, 60);
+    \endcode
+    \endtable
+
+*/
+QV4::ReturnedValue QCanvasJSContext2D::method_get_textLineHeight(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *, int)
+{
+    QV4::Scope scope(b);
+    QV4::Scoped<QCanvasJSContext2D> r(scope, *thisObject);
+    CHECK_CONTEXT(r)
+
+    RETURN_RESULT(QV4::Encode(r->d()->context()->state.textLineHeight));
+}
+
+QV4::ReturnedValue QCanvasJSContext2D::method_set_textLineHeight(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc)
+{
+    QV4::Scope scope(b);
+    QV4::Scoped<QCanvasJSContext2D> r(scope, *thisObject);
+    CHECK_CONTEXT(r)
+
+    if (argc >= 0) {
+        qreal h = argv[0].toNumber();
+
+        if (qt_is_finite(h) && h != r->d()->context()->state.textLineHeight) {
+            r->d()->context()->state.textLineHeight = h;
+            r->d()->context()->buffer()->setTextLineHeight(h);
+        }
+    }
+    RETURN_UNDEFINED();
+}
+
 QV4::ReturnedValue QCanvasJSContext2DPrototype::method_getLineDash(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *, int)
 {
     QV4::Scope scope(b);
@@ -3787,11 +3843,108 @@ QV4::ReturnedValue QCanvasJSContext2D::method_set_textBaseline(const QV4::Functi
 }
 
 /*!
-    \qmlmethod object Canvas2DContext::fillText(text, x, y)
+    \qmlproperty string Canvas2DContext::textWrapMode
 
-    Fills the specified \a text at the given position (\a x, \a y).
+    Holds the current text wrap mode, so how the text is wrapped
+    to multiple lines. The possible values are:
 
-    \sa font, textAlign, textBaseline, strokeText
+    \value "nowrap"        (default) No wrapping will be performed. If the text contains insufficient newlines, then contentWidth will exceed a set width.
+    \value "wrap"          If possible, wrapping occurs at a word boundary; otherwise it will occur at the appropriate point on the line, even in the middle of a word.
+    \value "wordwrap"      Wrapping is done on word boundaries only. If a word is too long, content width will exceed a set width.
+    \value "wrapanywhere"  Wrapping is done at any point on a line, even if it occurs in the middle of a word.
+
+    The default wrap mode is \c "nowrap".
+
+    \table
+    \row
+    \li \inlineimage canvas2d-textwrapmode.webp
+    \li
+    \code
+    ctx.strokeRect(50, 5, 100, 60);
+    ctx.strokeRect(50, 70, 100, 60);
+    ctx.strokeRect(50, 135, 100, 60);
+    let s = "This is a long string.";
+    ctx.textWrapMode = "nowrap";
+    ctx.fillText(s, 50, 5, 100, 60);
+    ctx.textWrapMode = "wrap";
+    ctx.fillText(s, 50, 70, 100, 60);
+    ctx.textWrapMode = "wrapanywhere";
+    ctx.fillText(s, 50, 135, 100, 60);
+    \endcode
+    \endtable
+*/
+QV4::ReturnedValue QCanvasJSContext2D::method_get_textWrapMode(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *, int)
+{
+    QV4::Scope scope(b);
+    QV4::Scoped<QCanvasJSContext2D> r(scope, *thisObject);
+    CHECK_CONTEXT(r)
+
+    switch (r->d()->context()->state.textWrapMode) {
+    case QCanvasPainter::WrapMode::WordWrap:
+        RETURN_RESULT(scope.engine->newString(QStringLiteral("wordwrap")));
+    case QCanvasPainter::WrapMode::Wrap:
+        RETURN_RESULT(scope.engine->newString(QStringLiteral("wrap")));
+    case QCanvasPainter::WrapMode::WrapAnywhere:
+        RETURN_RESULT(scope.engine->newString(QStringLiteral("wrapanywhere")));
+    case QCanvasPainter::WrapMode::NoWrap:
+    default:
+        break;
+    }
+    RETURN_RESULT(scope.engine->newString(QStringLiteral("nowrap")));
+}
+
+QV4::ReturnedValue QCanvasJSContext2D::method_set_textWrapMode(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc)
+{
+    QV4::Scope scope(b);
+    QV4::Scoped<QCanvasJSContext2D> r(scope, *thisObject);
+    CHECK_CONTEXT(r)
+    QV4::ScopedString s(scope, argc ? argv[0] : QV4::Value::undefinedValue(), QV4::ScopedString::Convert);
+    if (scope.hasException())
+        RETURN_UNDEFINED();
+    QString textWrapMode = s->toQString();
+
+    QCanvasPainter::WrapMode tw;
+    if (textWrapMode == QStringLiteral("nowrap"))
+        tw = QCanvasPainter::WrapMode::NoWrap;
+    else if (textWrapMode == QStringLiteral("wordwrap"))
+        tw = QCanvasPainter::WrapMode::WordWrap;
+    else if (textWrapMode == QStringLiteral("wrap"))
+        tw = QCanvasPainter::WrapMode::Wrap;
+    else if (textWrapMode == QStringLiteral("wrapanywhere"))
+        tw = QCanvasPainter::WrapMode::WrapAnywhere;
+    else
+        RETURN_UNDEFINED();
+
+    r->d()->context()->buffer()->setTextWrapMode(tw);
+
+    if (tw != r->d()->context()->state.textWrapMode)
+        r->d()->context()->state.textWrapMode = tw;
+
+    RETURN_UNDEFINED();
+}
+
+/*!
+    \qmlmethod object Canvas2DContext::fillText(text, x, y, maxWidth)
+
+    Draws \a text string at specified location (\a x, \a y), with current textAlign and textBaseline.
+    To make the text wrap into multiple lines, set optional \a maxWidth parameter to preferred
+    row width in pixels. White space is stripped at the beginning of the rows,
+    the text is split at word boundaries or when new-line characters are encountered.
+    Words longer than the max width are split at nearest character (i.e. no hyphenation).
+
+    \sa font, textAlign, textBaseline, textWrapMode, strokeText
+*/
+/*!
+    \qmlmethod object Canvas2DContext::fillText(text, x, y, width, height)
+
+    Draws \a text string inside rect (\a x, \a y, \a width, \a height), with
+    current textAlign and textBaseline. Width of the rect parameter is used
+    as maxWidth.
+
+    It is often useful to set the text baseline to \l TextBaseline::Top or
+    \l TextBaseline::Middle when painting text with this method.
+
+    \sa font, textAlign, textBaseline, textWrapMode, strokeText
 */
 QV4::ReturnedValue QCanvasJSContext2DPrototype::method_fillText(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc)
 {
@@ -3799,20 +3952,24 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_fillText(const QV4::Funct
     QV4::Scoped<QCanvasJSContext2D> r(scope, *thisObject);
     CHECK_CONTEXT(r)
 
-    if (argc >= 3) {
+    if (argc >= 5) {
         qreal x = argv[1].toNumber();
         qreal y = argv[2].toNumber();
-        if (!qt_is_finite(x) || !qt_is_finite(y))
+        qreal width = argv[3].toNumber();
+        qreal height = argv[4].toNumber();
+        if (!qt_is_finite(x) || !qt_is_finite(y) || !qt_is_finite(width) || !qt_is_finite(height))
             RETURN_UNDEFINED();
 
-        // Draw texts with native methods rather than
-        // using the common path filling.
-        r->d()->context()->buffer()->drawText(argv[0].toQStringNoThrow(), x, y);
+        r->d()->context()->buffer()->drawTextRect(argv[0].toQStringNoThrow(), x, y, width, height);
+    } else if (argc >= 3) {
+        qreal x = argv[1].toNumber();
+        qreal y = argv[2].toNumber();
+        qreal maxWidth = -1;
+        if (argc >= 4) maxWidth = argv[3].toNumber();
+        if (!qt_is_finite(x) || !qt_is_finite(y) || !qt_is_finite(maxWidth))
+            RETURN_UNDEFINED();
 
-        // TODO: Do we want to have alternative to use filled
-        // path for glyphs? Currently used only for stroking.
-        //QPainterPath textPath = r->d()->context()->createTextGlyphs(x, y, argv[0].toQStringNoThrow());
-        //r->d()->context()->buffer()->fill(textPath);
+        r->d()->context()->buffer()->drawText(argv[0].toQStringNoThrow(), x, y, maxWidth);
     }
 
     RETURN_RESULT(*thisObject);
@@ -4363,12 +4520,14 @@ QCanvas2DContextEngineData::QCanvas2DContextEngineData(QV4::ExecutionEngine *v4)
     proto->defineAccessorProperty(QStringLiteral("miterLimit"), QCanvasJSContext2D::method_get_miterLimit, QCanvasJSContext2D::method_set_miterLimit);
     proto->defineAccessorProperty(QStringLiteral("fillStyle"), QCanvasJSContext2D::method_get_fillStyle, QCanvasJSContext2D::method_set_fillStyle);
     proto->defineAccessorProperty(QStringLiteral("textBaseline"), QCanvasJSContext2D::method_get_textBaseline, QCanvasJSContext2D::method_set_textBaseline);
+    proto->defineAccessorProperty(QStringLiteral("textWrapMode"), QCanvasJSContext2D::method_get_textWrapMode, QCanvasJSContext2D::method_set_textWrapMode);
     proto->defineAccessorProperty(QStringLiteral("lineJoin"), QCanvasJSContext2D::method_get_lineJoin, QCanvasJSContext2D::method_set_lineJoin);
     proto->defineAccessorProperty(QStringLiteral("lineWidth"), QCanvasJSContext2D::method_get_lineWidth, QCanvasJSContext2D::method_set_lineWidth);
     proto->defineAccessorProperty(QStringLiteral("textAlign"), QCanvasJSContext2D::method_get_textAlign, QCanvasJSContext2D::method_set_textAlign);
     proto->defineAccessorProperty(QStringLiteral("lineDashOffset"), QCanvasJSContext2D::method_get_lineDashOffset, QCanvasJSContext2D::method_set_lineDashOffset);
     proto->defineAccessorProperty(QStringLiteral("antialias"), QCanvasJSContext2D::method_get_antialias, QCanvasJSContext2D::method_set_antialias);
     proto->defineAccessorProperty(QStringLiteral("textAntialias"), QCanvasJSContext2D::method_get_textAntialias, QCanvasJSContext2D::method_set_textAntialias);
+    proto->defineAccessorProperty(QStringLiteral("textLineHeight"), QCanvasJSContext2D::method_get_textLineHeight, QCanvasJSContext2D::method_set_textLineHeight);
     contextPrototype = proto;
 }
 
@@ -4418,6 +4577,15 @@ void QCanvas2DContext::popState()
 
     if (newState.textAntialias != state.textAntialias)
         buffer()->setTextAntialias(newState.textAntialias);
+
+    if (newState.textLineHeight != state.textLineHeight)
+        buffer()->setTextLineHeight(newState.textLineHeight);
+
+    if (newState.textBaseline != state.textBaseline)
+        buffer()->setTextBaseline(newState.textBaseline);
+
+    if (newState.textWrapMode != state.textWrapMode)
+        buffer()->setTextWrapMode(newState.textWrapMode);
 
     if (newState.lineCap != state.lineCap)
         buffer()->setLineCap(newState.lineCap);

@@ -420,6 +420,12 @@ void QCanvas2DItemRenderer::paint(QCanvasPainter *painter)
             m_painter->setTextBaseline(b);
             break;
         }
+        case QCanvas2DContext::TextWrapMode:
+        {
+            auto w = takeWrapMode();
+            m_painter->setTextWrapMode(w);
+            break;
+        }
         case QCanvas2DContext::Font:
         {
             if (fonts.size() <= fontIdx) {
@@ -435,7 +441,19 @@ void QCanvas2DItemRenderer::paint(QCanvasPainter *painter)
             QString text = takeString();
             auto x = takeReal();
             auto y = takeReal();
-            m_painter->fillText(text, x, y);
+            auto maxWidth = takeReal();
+            m_painter->fillText(text, x, y, maxWidth);
+            break;
+        }
+        case QCanvas2DContext::FillTextRect:
+        {
+            QString text = takeString();
+            auto x = takeReal();
+            auto y = takeReal();
+            auto width = takeReal();
+            auto height = takeReal();
+            QRectF rect(x, y, width, height);
+            m_painter->fillText(text, rect);
             break;
         }
         case QCanvas2DContext::DrawPixmap:
@@ -518,6 +536,11 @@ void QCanvas2DItemRenderer::paint(QCanvasPainter *painter)
         case QCanvas2DContext::TextAntialias: {
             m_state.textAntialias = takeReal();
             m_painter->setTextAntialias(m_state.textAntialias);
+            break;
+        }
+        case QCanvas2DContext::TextLineHeight: {
+            m_state.textLineHeight = takeReal();
+            m_painter->setTextLineHeight(m_state.textLineHeight);
             break;
         }
         default:

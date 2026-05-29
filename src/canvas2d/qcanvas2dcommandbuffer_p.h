@@ -378,6 +378,12 @@ public:
         reals << w;
     }
 
+    inline void setTextLineHeight(qreal h)
+    {
+        commands << QCanvas2DContext::TextLineHeight;
+        reals << h;
+    }
+
     inline void setLineCap(QCanvasPainter::LineCap cap)
     {
         commands << QCanvas2DContext::LineCap;
@@ -402,11 +408,18 @@ public:
         fonts << font;
     }
 
-    inline void drawText(const QString &text, qreal x, qreal y)
+    inline void drawText(const QString &text, qreal x, qreal y, qreal maxWidth)
     {
         commands << QCanvas2DContext::FillText;
         strings << text;
-        reals << x << y;
+        reals << x << y << maxWidth;
+    }
+
+    inline void drawTextRect(const QString &text, qreal x, qreal y, qreal width, qreal height)
+    {
+        commands << QCanvas2DContext::FillTextRect;
+        strings << text;
+        reals << x << y << width << height;
     }
 
     inline void drawBoxShadow(QCanvasBoxShadow *shadow)
@@ -424,6 +437,11 @@ public:
     {
         commands << QCanvas2DContext::TextBaseline;
         ints << int(tb);
+    }
+    inline void setTextWrapMode(QCanvasPainter::WrapMode tw)
+    {
+        commands << QCanvas2DContext::TextWrapMode;
+        ints << int(tw);
     }
     inline void save()
     {

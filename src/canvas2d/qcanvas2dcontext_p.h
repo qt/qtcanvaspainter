@@ -104,8 +104,10 @@ public:
         MiterLimit,
         TextAlign,
         TextBaseline,
+        TextWrapMode,
         Font,
         FillText,
+        FillTextRect,
         DrawPixmap,
         Scale,
         Rotate,
@@ -119,6 +121,7 @@ public:
         DrawBoxShadow,
         Antialias,
         TextAntialias,
+        TextLineHeight,
     };
 
     struct State {
@@ -134,6 +137,7 @@ public:
             , lineWidth(1)
             , antialias(1)
             , textAntialias(1)
+            , textLineHeight(0)
             , lineCap(QCanvasPainter::LineCap::Butt)
             , lineJoin(QCanvasPainter::LineJoin::Miter)
             , miterLimit(10)
@@ -141,6 +145,7 @@ public:
             , font(QFont(QStringLiteral("sans-serif")))
             , textAlign(QCanvasPainter::TextAlign::Start)
             , textBaseline(QCanvasPainter::TextBaseline::Alphabetic)
+            , textWrapMode(QCanvasPainter::WrapMode::NoWrap)
             , pathWinding(QCanvasPainter::PathWinding::CounterClockWise)
         {
             font.setPixelSize(10);
@@ -161,6 +166,7 @@ public:
         qreal lineWidth;
         qreal antialias;
         qreal textAntialias;
+        qreal textLineHeight;
         QCanvasPainter::LineCap lineCap;
         QCanvasPainter::LineJoin lineJoin;
         qreal miterLimit;
@@ -168,6 +174,7 @@ public:
         QFont font;
         QCanvasPainter::TextAlign textAlign;
         QCanvasPainter::TextBaseline textBaseline;
+        QCanvasPainter::WrapMode textWrapMode;
         QCanvasPainter::PathWinding pathWinding;
     };
 
