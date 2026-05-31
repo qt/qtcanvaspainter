@@ -43,6 +43,8 @@ QT_BEGIN_NAMESPACE
     \endcode
 
     \image imagepattern_example_1.png
+           {Rounded square tiled with concentric-circle pattern and a green
+           diagonal-stripe border}
 
     \note When using image patterns, images are often scaled to smaller
     and it can be useful to set \l QCanvasPainter::ImageFlag::GenerateMipmaps
