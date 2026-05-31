@@ -410,6 +410,8 @@ QCanvasPainter::~QCanvasPainter()
     \table
     \row
     \li \inlineimage qcpainter-save.webp
+        {Two rectangle outlines with a slightly rotated rectangle between
+        them}
     \li
     \code
     p->strokeRect(20, 20, 160, 40);
@@ -456,6 +458,8 @@ void QCanvasPainter::restore()
     \table
     \row
     \li \inlineimage qcpainter-reset.webp
+        {Rotated green rounded rectangle above a filled black square and an
+        outlined square drawn after reset}
     \li
     \code
     // Adjust the paint state
@@ -876,6 +880,8 @@ void QCanvasPainter::resetTransform()
     \table
     \row
     \li \inlineimage qcpainter-transform.webp
+        {Small green rounded square above a larger rotated and scaled rounded
+        square}
     \li
     \code
     p->beginPath();
@@ -906,6 +912,8 @@ void QCanvasPainter::setTransform(const QTransform &transform)
     \table
     \row
     \li \inlineimage qcpainter-transform2.webp
+        {Ten green rounded bars arranged in a ring by repeated rotation around
+        a center}
     \li
     \code
     QTransform t;
@@ -934,6 +942,8 @@ void QCanvasPainter::transform(const QTransform &transform)
     \table
     \row
     \li \inlineimage qcpainter-translate.webp
+        {Two identical green rounded rectangles, the lower one shifted down by
+        the translation}
     \li
     \code
     auto paintRect = [p]() {
@@ -970,6 +980,8 @@ void QCanvasPainter::translate(float x, float y)
     \table
     \row
     \li \inlineimage qcpainter-rotate.webp
+        {Green rounded rectangle rotated 45 degrees with the text Cute!
+        rotated along it}
     \li
     \code
     QRectF rect(20, 70, 160, 60);
@@ -998,6 +1010,7 @@ void QCanvasPainter::rotate(float angle)
     \table
     \row
     \li \inlineimage qcpainter-skew.webp
+        {Green rounded rectangle with text Cute! skewed into a parallelogram}
     \li
     \code
     QRectF rect(40, 70, 120, 60);
@@ -1026,6 +1039,8 @@ void QCanvasPainter::skew(float angleX, float angleY)
     \table
     \row
     \li \inlineimage qcpainter-scale.webp
+        {Nested square outlines shrinking toward the center by repeated
+        scaling}
     \li
     \code
     QRectF rect(20, 20, 160, 160);
