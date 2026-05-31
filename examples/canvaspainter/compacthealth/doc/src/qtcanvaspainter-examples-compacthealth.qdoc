@@ -9,6 +9,8 @@
     \brief Demonstrates the use of QCanvasPainter in a QWindow.
 
     \image compacthealth-example.webp
+           {Patient monitor with pulse, SpO2, respiration, and temperature
+           readouts beside green and yellow waveform traces}
 
     This example demonstrates using \l{Qt Canvas Painter} in a pure \l QWindow
     application. The \l{Qt Quick} and \l{Qt Widgets} stacks are not used.
