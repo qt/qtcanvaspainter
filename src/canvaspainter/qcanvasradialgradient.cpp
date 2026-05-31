@@ -22,11 +22,15 @@ QT_BEGIN_NAMESPACE
     \l outerRadius() and \l innerRadius().
 
     \image qcradialgradient-gallery.webp
+           {Four squares with radial gradients radiating from a center point,
+           varying in color and center offset}
 
     Here is a simple example:
     \table
     \row
     \li \inlineimage qcradialgradient-example.webp
+        {Square with a radial gradient from a yellow center through red to a
+        blue edge}
     \li
     \code
     QRectF rect1(0, 0, 200, 200);

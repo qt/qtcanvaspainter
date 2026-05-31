@@ -23,11 +23,14 @@ QT_BEGIN_NAMESPACE
     Outside this area, the colors are the starting and the ending color.
 
     \image qclineargradient-gallery.webp
+           {Four squares with linear gradients running vertically,
+           horizontally, diagonally, and as horizontal color bands}
 
     Here is a simple example:
     \table
     \row
     \li \inlineimage qclineargradient-example.webp
+        {Square with a diagonal linear gradient from blue to red to yellow}
     \li
     \code
     QRectF rect1(0, 0, 200, 200);

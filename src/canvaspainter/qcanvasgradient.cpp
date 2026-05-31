@@ -258,9 +258,12 @@ QCanvasGradientStops QCanvasGradient::stops() const
     \row
     \li {2, 1}
     \inlineimage gradient1.png
+        {Thin horizontal strip blending blue to red to orange}
     \row
     \li
     \inlineimage qcgradient-image.webp
+        {Square with a radial gradient from a white center to a red and
+        purple edge}
     \li
     \code
     static QImage image(":/gradient1.png");

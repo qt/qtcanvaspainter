@@ -21,11 +21,15 @@ QT_BEGIN_NAMESPACE
     going horizontally right from the center, and proceeds clockwise.
 
     \image qcconicalgradient-gallery.webp
+           {Four squares with conical gradients sweeping around a center
+           point, varying in color}
 
     Here is a simple example:
     \table
     \row
     \li \inlineimage qcconicalgradient-example.webp
+        {Circle with a conical gradient sweeping from yellow through blue
+        and back to yellow}
     \li
     \code
     QRectF rect(20, 20, 160, 160);
