@@ -2205,6 +2205,8 @@ void QCanvasPainter::setFont(const QFont &font)
     \table
     \row
     \li \inlineimage qcpainter-textalign.webp
+        {Labels Left, Center, Right, Start, and End positioned around a
+        vertical reference line}
     \li
     \code
     QFont font("Titillium Web", 22);
@@ -2238,6 +2240,8 @@ void QCanvasPainter::setTextAlign(QCanvasPainter::TextAlign align)
     \table
     \row
     \li \inlineimage qcpainter-textbaseline.webp
+        {Labels Bottom, Middle, Top, Alphabetic, and Hanging aligned to
+        horizontal baselines}
     \li
     \code
     QFont font("Titillium Web", 16);
@@ -2298,6 +2302,8 @@ void QCanvasPainter::setTextDirection(QCanvasPainter::TextDirection direction)
     \table
     \row
     \li \inlineimage qcpainter-textwrapmode.webp
+        {Same string in three boxes showing no wrap, word wrap, and wrap
+        anywhere}
     \li
     \code
     QRectF r1(50, 5, 100, 60);
@@ -2329,6 +2335,8 @@ void QCanvasPainter::setTextWrapMode(QCanvasPainter::WrapMode wrapMode)
     \table
     \row
     \li \inlineimage qcpainter-textlineheight.webp
+        {Two-line text in three boxes showing line height of -10, 0, and 10
+        pixels}
     \li
     \code
     QRectF r1(40, 5, 120, 60);
@@ -2364,6 +2372,8 @@ void QCanvasPainter::setTextLineHeight(float height)
     \table
     \row
     \li \inlineimage qcpainter-textantialias.webp
+        {Lines labeled Antialiasing 1.0 to 4.0 growing progressively softer
+        and blurrier}
     \li
     \code
     QFont font("Titillium Web", 20);
@@ -2481,6 +2491,8 @@ void QCanvasPainter::fillText(const QString &text, const QRectF &rect)
     \table
     \row
     \li \inlineimage qcpainter-textboundingbox.webp
+        {Text Built with Qt shown on one line and wrapped to two, each in its
+        measured bounding box}
     \li
     \code
     QString s("Built with Qt");
