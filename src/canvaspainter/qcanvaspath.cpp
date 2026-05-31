@@ -953,7 +953,6 @@ void QCanvasPath::addPath(const QCanvasPath &path, qsizetype start, qsizetype co
         d->commands[d->commandsCount++] = pathd->commands[start + i];
 }
 
-
 /*!
     \since 6.12
     Adds \a svgPath into this path, optionally using \a transform to
@@ -962,6 +961,8 @@ void QCanvasPath::addPath(const QCanvasPath &path, qsizetype start, qsizetype co
     \table
     \row
     \li \inlineimage qcpainter-addpath3.webp
+        {Two identical green curved shapes from an SVG path, the second a
+        translated copy}
     \li
     \code
     // m_path is QCanvasPath
