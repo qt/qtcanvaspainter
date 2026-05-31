@@ -2086,6 +2086,7 @@ void QCanvasPainter::drawBoxShadow(const QCanvasBoxShadow &shadow)
     \table
     \row
     \li \inlineimage qcpainter-drawimage.webp
+        {Green Qt logo drawn at its default size}
     \li
     \code
     static QImage logo(":/qt_logo.png");
@@ -2115,6 +2116,7 @@ void QCanvasPainter::drawImage(const QCanvasImage &image, float x, float y)
     \table
     \row
     \li \inlineimage qcpainter-drawimage2.webp
+        {Green Qt logo stretched taller to fit a custom width and height}
     \li
     \code
     static QImage logo(":/qt_logo.png");
@@ -2151,6 +2153,7 @@ void QCanvasPainter::drawImage(const QCanvasImage &image, float x, float y, floa
     \table
     \row
     \li \inlineimage qcpainter-drawimage3.webp
+        {Enlarged Q letter cropped from a source region of the Qt logo}
     \li
     \code
     static QImage logo(":/qt_logo.png");
