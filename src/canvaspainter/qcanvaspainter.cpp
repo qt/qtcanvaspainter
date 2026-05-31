@@ -39,6 +39,7 @@ Q_LOGGING_CATEGORY(QC_INFO, "qt.qcpainter.general")
     \table
     \row
     \li \inlineimage qcpainter-buttonexample.webp
+        {Yellow rounded button labeled CLICK! with a soft drop shadow}
     \li
     \code
     QRectF rect(40, 70, 120, 60);
@@ -65,6 +66,8 @@ Q_LOGGING_CATEGORY(QC_INFO, "qt.qcpainter.general")
     \table
     \row
     \li \inlineimage qcpainter-graphexample.webp
+        {Shadowed S-curve shading from green to red over a dark grid with
+        white axes}
     \li
     \code
     // Paint grid
@@ -492,6 +495,7 @@ void QCanvasPainter::reset()
     \table
     \row
     \li \inlineimage qcpainter-strokestyle.webp
+        {Three nested square outlines in black, dark teal, and green}
     \li
     \code
     p->setStrokeStyle(QColorConstants::Black);
@@ -518,6 +522,8 @@ void QCanvasPainter::setStrokeStyle(const QColor &color)
     \table
     \row
     \li \inlineimage qcpainter-strokestyle2.webp
+        {Two nested square outlines with diagonal gradients of green
+        to black and green to yellow}
     \li
     \code
     QCanvasLinearGradient g1(180, 20, 20, 180);
@@ -548,6 +554,7 @@ void QCanvasPainter::setStrokeStyle(const QCanvasBrush &brush)
     \table
     \row
     \li \inlineimage qcpainter-fillstyle.webp
+        {Concentric filled squares in black, dark teal, and green}
     \li
     \code
     p->setFillStyle(QColorConstants::Black);
@@ -574,6 +581,8 @@ void QCanvasPainter::setFillStyle(const QColor &color)
     \table
     \row
     \li \inlineimage qcpainter-fillstyle2.webp
+        {Green square filled with a radial gradient fading to dark teal at the
+        edges}
     \li
     \code
     QCanvasRadialGradient g2(140, 40, 300);
@@ -646,6 +655,8 @@ void QCanvasPainter::setMiterLimit(float limit)
     \table
     \row
     \li \inlineimage qcpainter-linewidth.webp
+        {Stack of wavy curves drawn with progressively increasing line
+        widths}
     \li
     \code
     for (int i = 1; i < 10 ; i++) {
@@ -675,6 +686,7 @@ void QCanvasPainter::setLineWidth(float width)
     \table
     \row
     \li \inlineimage qcpainter-linecap.webp
+        {Three horizontal lines showing butt, square, and round line caps}
     \li
     \code
     QCanvasPath path;
@@ -704,6 +716,7 @@ void QCanvasPainter::setLineCap(LineCap cap)
     \table
     \row
     \li \inlineimage qcpainter-linejoin.webp
+        {Three zigzag paths showing miter, bevel, and round line joins}
     \li
     \code
     QCanvasPath path;
@@ -909,6 +922,8 @@ void QCanvasPainter::setGlobalSaturate(float value)
     \table
     \row
     \li \inlineimage qcpainter-fillrule.webp
+        {Two overlapping green five-pointed stars, one filled solid and one
+        with an open center}
     \li
     \code
     auto paintStar = [p]() {
@@ -1262,6 +1277,7 @@ void QCanvasPainter::moveTo(float x, float y)
     \table
     \row
     \li \inlineimage qcpainter-line.webp
+        {Two straight line segments meeting at a point to form a corner}
     \li
     \code
     p->beginPath();
@@ -1684,7 +1700,6 @@ void QCanvasPainter::addPath(const QCanvasPath &path,
     d->m_e->addPath(path, start, count, transform);
 }
 
-
 /*!
     Sets the current sub-path \a winding to either CounterClockWise (default) or ClockWise.
     CounterClockWise draws solid subpaths while ClockWise draws holes.
@@ -1758,6 +1773,8 @@ void QCanvasPainter::beginHoleSubPath()
     \table
     \row
     \li \inlineimage qcpainter-fill.webp
+        {Two green bars and a green circle filled together into one combined
+        shape}
     \li
     \code
     p->beginPath();
@@ -1795,6 +1812,7 @@ void QCanvasPainter::fill(FillRule fillRule)
     \table
     \row
     \li \inlineimage qcpainter-stroke.webp
+        {Two vertical bar outlines with an overlapping circle outline}
     \li
     \code
     p->beginPath();
@@ -1829,6 +1847,8 @@ void QCanvasPainter::stroke()
     \table
     \row
     \li \inlineimage qcpainter-fill2.webp
+        {Stack of filled horizontal bars of varying widths forming an
+        hourglass outline}
     \li
     \code
     // m_path is QCanvasPath
@@ -1883,6 +1903,7 @@ void QCanvasPainter::fill(const QCanvasPath &path, FillRule fillRule, int pathGr
     \table
     \row
     \li \inlineimage qcpainter-stroke2.webp
+        {Row of narrow vertical bar outlines of varying heights}
     \li
     \code
     // m_path is QCanvasPath
@@ -1946,6 +1967,7 @@ void QCanvasPainter::setStencilClip(const QVectorPath &clipPath)
     \table
     \row
     \li \inlineimage qcpainter-fillrect.webp
+        {Solid green filled square}
     \li
     \code
     p->fillRect(20, 20, 160, 160);
@@ -2017,6 +2039,7 @@ void QCanvasPainter::clearRect(float x, float y, float width, float height)
     \table
     \row
     \li \inlineimage qcpainter-strokerect.webp
+        {Dark teal square outline}
     \li
     \code
     p->strokeRect(20, 20, 160, 160);
@@ -2057,6 +2080,7 @@ void QCanvasPainter::strokeRect(float x, float y, float width, float height)
     \table
     \row
     \li \inlineimage qcpainter-shadowbox.webp
+        {Green rounded square casting a soft gray box shadow on all sides}
     \li
     \code
     QRectF rect(40, 40, 120, 120);
