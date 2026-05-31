@@ -720,6 +720,8 @@ void QCanvasPainter::setLineJoin(LineJoin join)
     \table
     \row
     \li \inlineimage qcpainter-globalalpha.webp
+        {Four Qt logos on green tiles fading to fully transparent across the
+        grid}
     \li
     \code
     static QImage logo(":/qt_logo2.png");
@@ -764,6 +766,8 @@ void QCanvasPainter::setGlobalCompositeOperation(CompositeOperation operation)
     \table
     \row
     \li \inlineimage qcpainter-globalbrightness.webp
+        {Four Qt logos on green tiles darkening from bright to nearly black
+        across the grid}
     \li
     \code
     static QImage logo(":/qt_logo2.png");
@@ -796,6 +800,8 @@ void QCanvasPainter::setGlobalBrightness(float value)
     \table
     \row
     \li \inlineimage qcpainter-globalcontrast.webp
+        {Four Qt logos on green tiles ranging from high contrast to washed-out
+        gray}
     \li
     \code
     static QImage logo(":/qt_logo2.png");
@@ -828,6 +834,8 @@ void QCanvasPainter::setGlobalContrast(float value)
     \table
     \row
     \li \inlineimage qcpainter-globalsaturate.webp
+        {Four Qt logos on green tiles fading from vivid color to grayscale
+        across the grid}
     \li
     \code
     static QImage logo(":/qt_logo2.png");
@@ -2348,6 +2356,8 @@ QRectF QCanvasPainter::textBoundingBox(const QString &text, const QRectF &rect)
     \table
     \row
     \li \inlineimage qcpainter-antialias.webp
+        {Stack of wavy lines growing progressively softer and blurrier with
+        increasing antialiasing}
     \li
     \code
     p->setLineWidth(6);
