@@ -9,6 +9,8 @@
     \brief Demonstrates the use of QCanvasPainter and QCanvasPainterWidget.
 
     \image hellowidget-example.webp
+           {Main window with a child widget showing Hello Qt Canvas
+           Painter text and a patterned green heart on a radial gradient}
 
     The example implements a QCanvasPainterWidget subclass. One or more instances of
     this widget can then be added into a QMdiArea inside the QMainWindow.

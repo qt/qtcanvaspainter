@@ -9,6 +9,8 @@
     \brief Demonstrates the use of Qt Canvas2D element.
 
     \image canvas2dtester-example.webp
+           {Canvas2D Tester windows rendering animated floral spirals,
+           green wave coils, color adjustment bars, and gradient patterns}
 
     This example demonstrates using Qt \l{Canvas2D} element and painting with
     the \l{Canvas2DContext}.

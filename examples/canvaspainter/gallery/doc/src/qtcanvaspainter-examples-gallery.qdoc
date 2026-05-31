@@ -9,6 +9,8 @@
     \brief Demonstrates the QCanvasPainter features in a Qt Quick application.
 
     \image gallery-example.webp
+           {Brushes gallery titled Gradients and Image Patterns showing a
+           grid of gradient swatches and patterned tiles}
 
     Gallery example is a Qt Quick application, showcasing a wide variety of
     features offered by \l QCanvasPainter.
