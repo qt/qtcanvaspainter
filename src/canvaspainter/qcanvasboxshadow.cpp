@@ -36,11 +36,14 @@ static const float QCPAINTER_BOX_SHADOW_MULTIPLIER = 1.0f;
 
     CSS box-shadow:
     \image examples_css_box_shadow.png
+           {Rows of a black bar and a black dot with CSS box-shadow blur of 0,
+           10, 20, and 40 pixels}
 
     QCanvasBoxShadow:
     \image examples_qcpainter_box_shadow.png
+           {Rows of a black bar and a black dot with QCanvasBoxShadow blur of
+           0, 10, 20, and 40 pixels}
 */
-
 
 QT_DEFINE_QESDP_SPECIALIZATION_DTOR(QCanvasBoxShadowPrivate)
 
