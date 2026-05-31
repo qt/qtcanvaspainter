@@ -23,11 +23,14 @@ QT_BEGIN_NAMESPACE
     controlled.
 
     \image qcboxgradient-gallery.webp
+           {Four squares with rounded-rectangle box gradients of varying
+           color, corner radius, and edge softness}
 
     Here is a simple example:
     \table
     \row
     \li \inlineimage qcboxgradient-example.webp
+        {Dark blue rounded square with a soft yellow glow along its edges}
     \li
     \code
     QRectF rect(20, 20, 160, 160);
