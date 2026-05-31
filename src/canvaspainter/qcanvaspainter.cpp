@@ -168,6 +168,8 @@ Q_LOGGING_CATEGORY(QC_INFO, "qt.qcpainter.general")
     \table
     \row
     \li \inlineimage qcpainter-pathwinding2.webp
+        {Green downward triangle with a smaller unfilled triangular hole near
+        its top}
     \li
     \code
     p->setWindingEnforce(false);
@@ -194,6 +196,8 @@ Q_LOGGING_CATEGORY(QC_INFO, "qt.qcpainter.general")
     \table
     \row
     \li \inlineimage qcpainter-pathwinding3.webp
+        {Green rounded square outline enclosing a rounded hole that contains a
+        solid bar and dot}
     \li
     \code
     p->beginPath();
@@ -1211,6 +1215,7 @@ void QCanvasPainter::setBrushTransform(const QTransform &transform)
     \table
     \row
     \li \inlineimage qcpainter-cliprect.webp
+        {Green quarter-circle and the text Clip me clipped to a square region}
     \li
     \code
     QRectF viewArea(20, 20, 160, 160);
@@ -1331,6 +1336,7 @@ void QCanvasPainter::lineTo(float x, float y)
     \table
     \row
     \li \inlineimage qcpainter-beziercurve.webp
+        {Smooth S-shaped cubic Bezier curve}
     \li
     \code
     p->beginPath();
@@ -1361,6 +1367,7 @@ void QCanvasPainter::bezierCurveTo(float cp1X, float cp1Y, float cp2X, float cp2
     \table
     \row
     \li \inlineimage qcpainter-quadraticcurve.webp
+        {Pointed green leaf shape formed by two quadratic curves}
     \li
     \code
     p->beginPath();
@@ -1395,6 +1402,8 @@ void QCanvasPainter::quadraticCurveTo(float cpX, float cpY, float x, float y)
     \table
     \row
     \li \inlineimage qcpainter-arcto.webp
+        {Hooked path with a horizontal top segment, a large rounded curve,
+        and a small curl at the end}
     \li
     \code
     p->beginPath();
@@ -1432,6 +1441,8 @@ void QCanvasPainter::arcTo(float x1, float y1, float x2, float y2, float radius)
     \table
     \row
     \li \inlineimage qcpainter-arc.webp
+        {Green pie shape filling three quarters of a circle, leaving one
+        quadrant empty}
     \li
     \code
     p->beginPath();
@@ -1475,6 +1486,7 @@ void QCanvasPainter::arc(float centerX, float centerY, float radius, float a0, f
     \table
     \row
     \li \inlineimage qcpainter-rect.webp
+        {Filled green square with a dark teal outline}
     \li
     \code
     p->beginPath();
@@ -1505,6 +1517,7 @@ void QCanvasPainter::rect(float x, float y, float width, float height)
     \table
     \row
     \li \inlineimage qcpainter-roundrect.webp
+        {Green rounded square with a dark teal outline}
     \li
     \code
     p->beginPath();
@@ -1538,6 +1551,8 @@ void QCanvasPainter::roundRect(float x, float y, float width, float height, floa
     \table
     \row
     \li \inlineimage qcpainter-roundrect2.webp
+        {Green square with a sharp top-left corner and three rounded corners
+        of differing radius}
     \li
     \code
     p->beginPath();
@@ -1569,6 +1584,7 @@ void QCanvasPainter::roundRect(float x, float y, float width, float height, floa
     \table
     \row
     \li \inlineimage qcpainter-ellipse.webp
+        {Wide green ellipse with a dark teal outline}
     \li
     \code
     p->beginPath();
@@ -1601,6 +1617,7 @@ void QCanvasPainter::ellipse(float centerX, float centerY, float radiusX, float 
     \table
     \row
     \li \inlineimage qcpainter-ellipse2.webp
+        {Tall ellipse outline fitted inside a filled green rectangle}
     \li
     \code
     QRectF rect(40, 20, 120, 160);
@@ -1617,6 +1634,7 @@ void QCanvasPainter::ellipse(float centerX, float centerY, float radiusX, float 
     \table
     \row
     \li \inlineimage qcpainter-circle.webp
+        {Green circle with a dark teal outline}
     \li
     \code
     p->beginPath();
@@ -1665,6 +1683,8 @@ void QCanvasPainter::addPath(const QPainterPath &path)
     \table
     \row
     \li \inlineimage qcpainter-addpath.webp
+        {Two identical green circles, the second a translated copy of the
+        first}
     \li
     \code
     // m_path is QCanvasPath
@@ -1696,6 +1716,7 @@ void QCanvasPainter::addPath(const QCanvasPath &path, const QTransform &transfor
     \table
     \row
     \li \inlineimage qcpainter-addpath2.webp
+        {Sine wave above a shorter section of the same wave copied below it}
     \li
     \code
     // m_path is QCanvasPath
@@ -1729,6 +1750,8 @@ void QCanvasPainter::addPath(const QCanvasPath &path,
     \table
     \row
     \li \inlineimage qcpainter-pathwinding.webp
+        {Green rounded square with a small circle and a rectangle punched out
+        as holes}
     \li
     \code
     p->beginPath();
@@ -1768,6 +1791,8 @@ void QCanvasPainter::beginSolidSubPath()
     \table
     \row
     \li \inlineimage qcpainter-beginhole.webp
+        {Green circle with a square hole that contains a smaller solid green
+        circle}
     \li
     \code
     p->beginPath();
@@ -2027,6 +2052,7 @@ void QCanvasPainter::fillRect(float x, float y, float width, float height)
     \table
     \row
     \li \inlineimage qcpainter-clearrect.webp
+        {Green circle with a vertical rectangular notch erased from its top}
     \li
     \code
     p->beginPath();
