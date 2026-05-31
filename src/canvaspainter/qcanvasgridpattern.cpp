@@ -49,6 +49,8 @@ QT_BEGIN_NAMESPACE
     \endcode
 
     \image gridpattern_example_1.png
+           {Rounded square filled with a yellow diagonal grid and bordered by
+           a dashed white stroke}
 
 */
 
