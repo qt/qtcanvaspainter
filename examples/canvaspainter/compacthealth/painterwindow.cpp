@@ -3,9 +3,11 @@
 
 #include "painterwindow.h"
 #include "qcanvasrhipaintdriver.h"
+
 #include <QPlatformSurfaceEvent>
-#include <QtCanvasPainter/QCanvasPainter>
-#include <QtCanvasPainter/QCanvasPainterFactory>
+
+#include <QCanvasPainter>
+#include <QCanvasPainterFactory>
 
 #if QT_CONFIG(vulkan)
 static QVulkanInstance g_vulkanInstance;

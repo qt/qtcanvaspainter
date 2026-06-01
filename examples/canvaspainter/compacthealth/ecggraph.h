@@ -4,8 +4,9 @@
 #ifndef ECGGRAPH_H
 #define ECGGRAPH_H
 
-#include <QList>
 #include "theme.h"
+
+#include <QList>
 
 QT_FORWARD_DECLARE_CLASS(QCanvasPainter)
 class MainWindow;
