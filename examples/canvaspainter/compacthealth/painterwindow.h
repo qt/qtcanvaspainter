@@ -4,8 +4,8 @@
 #ifndef PAINTERWINDOW_H
 #define PAINTERWINDOW_H
 
-#include <QWindow>
 #include <QColor>
+#include <QWindow>
 #if QT_CONFIG(opengl)
 #include <QOffscreenSurface>
 #endif

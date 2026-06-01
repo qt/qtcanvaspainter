@@ -3,10 +3,12 @@
 
 #include "ecggraph.h"
 #include "mainwindow.h"
-#include <QColor>
+
 #include <QRandomGenerator>
-#include <QTimer>
-#include <QtCanvasPainter/QCanvasPath>
+
+#include <QColor>
+
+#include <cmath>
 
 ECGGraph::ECGGraph()
 {

@@ -2,8 +2,14 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR BSD-3-Clause
 
 #include "mainwindow.h"
+
 #include <QRandomGenerator>
+#include <QVarLengthArray>
+
+#include <QImage>
 #include <QTouchEvent>
+
+#include <cmath>
 
 MainWindow::MainWindow(QRhi::Implementation api)
     : PainterWindow(api)

@@ -5,7 +5,8 @@
 #define THEME_H
 
 #include <QColor>
-#include "qcanvaslineargradient.h"
+
+#include <QCanvasLinearGradient>
 
 class Theme
 {
