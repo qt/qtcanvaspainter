@@ -196,7 +196,6 @@ void QCPainterEngine::reset()
     ctx.commandsDataCount = 0;
     ctx.currentPath = nullptr;
     ctx.preparedPathSerial = 0;
-    ctx.renderHints = QCanvasPainter::RenderHint::Antialiasing;
 }
 
 
@@ -1255,23 +1254,19 @@ void QCPainterEngine::removePathGroup(int pathGroup)
     m_renderer->removePathGroup(pathGroup);
 }
 
-void QCPainterEngine::setRenderHints(QCanvasPainter::RenderHints hints, bool on)
+void QCPainterEngine::setWindingEnforceEnabled(bool enabled)
 {
-    if (on)
-        ctx.renderHints |= hints;
-    else
-        ctx.renderHints &= ~hints;
-
-    // Set the changed hints into renderer.
-    if (hints & QCanvasPainter::RenderHint::Antialiasing)
-        m_renderer->setFlag(QCPainterRhiRenderer::Antialiasing, on);
-    if (hints & QCanvasPainter::RenderHint::HighQualityStroking)
-        m_renderer->setFlag(QCPainterRhiRenderer::StencilStrokes, on);
+    m_renderer->setFlag(QCPainterRhiRenderer::WindingEnforce, enabled);
 }
 
-QCanvasPainter::RenderHints QCPainterEngine::renderHints() const
+void QCPainterEngine::setHighQualityStrokingEnabled(bool enabled)
 {
-    return ctx.renderHints;
+    m_renderer->setFlag(QCPainterRhiRenderer::StencilStrokes, enabled);
+}
+
+void QCPainterEngine::setAntialiasingEnabled(bool enabled)
+{
+    m_renderer->setFlag(QCPainterRhiRenderer::Antialiasing, enabled);
 }
 
 // ********** private **********
@@ -1521,6 +1516,7 @@ void QCPainterEngine::commandsToPaths()
     float boundW = -FLT_MAX;
     float boundH = -FLT_MAX;
     const int pCount = ctx.pathsCount;
+    const bool windingEnforce = m_renderer->testFlag(QCPainterRhiRenderer::WindingEnforce);
     // Calculate the direction and length of line segments.
     for (int j = 0; j < pCount; j++) {
         QCPath &path = ctx.paths[j];
@@ -1535,7 +1531,7 @@ void QCPainterEngine::commandsToPaths()
             path.isClosed = true;
         }
 
-        if (!ctx.renderHints.testFlag(QCanvasPainter::RenderHint::DisableWindingEnforce))
+        if (windingEnforce)
             enforceWinding(path.pointsOffset, path.pointsCount, path.winding);
 
         int p0Index = path.pointsOffset + path.pointsCount - 1;
@@ -1604,7 +1600,7 @@ void QCPainterEngine::tesselateBezier(float x1, float y1, float x2, float y2,
 
 void QCPainterEngine::expandFill()
 {
-    const float aa = ctx.antialiasingEnabled ? state.antialias : 0.0f;
+    const float aa = m_renderer->testFlag(QCPainterRhiRenderer::Antialiasing) ? state.antialias : 0.0f;
     // Hardcoded miterLimit for fill.
     const float miterLimit = 2.4f;
     calculateJoins(aa, QCanvasPainter::LineJoin::Miter, miterLimit);
@@ -1719,7 +1715,7 @@ void QCPainterEngine::expandFill()
 void QCPainterEngine::expandStroke(float w, QCanvasPainter::LineCap cap, QCanvasPainter::LineJoin join, float miterLimit)
 {
     // w is half of stroke width + aa
-    const float aa = ctx.antialiasingEnabled ? state.antialias : 0.0f;
+    const float aa = m_renderer->testFlag(QCPainterRhiRenderer::Antialiasing) ? state.antialias : 0.0f;
     w += aa * 0.5f;
     calculateJoins(w, join, miterLimit);
     const int pCount = ctx.pathsCount;
@@ -2245,12 +2241,11 @@ bool QCPainterEngine::fillCachedPathUpdateRequired(QCanvasPath *path, int pathGr
     Q_ASSERT(pathGroup != -1);
     QCanvasPathPrivate *pathd = QCanvasPathPrivate::get(path);
     QCCachedPath &cp = ctx.cachedFillPaths[pathd->serialNumber];
-    QCCachedPathFillProperties fillProps { state.antialias, int(ctx.renderHints) };
     bool updateRequired = false;
     if (pathGroup != cp.pathGroup
         || pathd->pathIterations != cp.pathIterations
         || pathd->commandsCount != cp.commandsCount
-        || !m_renderer->isPathCachedForFill(path, pathGroup, fillProps))
+        || !m_renderer->isPathCachedForFill(path, pathGroup, state))
     {
         updateRequired = true;
         cp.pathGroup = pathGroup;
@@ -2269,12 +2264,11 @@ bool QCPainterEngine::strokeCachedPathUpdateRequired(QCanvasPath *path, int path
     Q_ASSERT(pathGroup != -1);
     QCanvasPathPrivate *pathd = QCanvasPathPrivate::get(path);
     QCCachedPath &cp = ctx.cachedStrokePaths[pathd->serialNumber];
-    QCCachedPathStrokeProperties strokeProps { state.antialias, state.strokeWidth, state.lineCap, state.lineJoin, int(ctx.renderHints) };
     bool updateRequired = false;
     if (pathGroup != cp.pathGroup
         || pathd->pathIterations != cp.pathIterations
         || pathd->commandsCount != cp.commandsCount
-        || !m_renderer->isPathCachedForStroke(path, pathGroup, strokeProps))
+        || !m_renderer->isPathCachedForStroke(path, pathGroup, state))
     {
         updateRequired = true;
         cp.pathGroup = pathGroup;

@@ -159,15 +159,15 @@ Q_LOGGING_CATEGORY(QC_INFO, "qt.qcpainter.general")
 
     \section1 Winding rules
     QCanvasPainter uses NonZero ({Qt::WindingFill}) fillrule by default. To select the filling
-    based on the path points direction, disable the winding forcing by setting
-    \c DisableWindingEnforce rendering hint with \l setRenderHint().
+    based on the path points direction, disable the winding forcing by calling
+    \l setWindingEnforce(false).
 
     \table
     \row
     \li \inlineimage qcpainter-pathwinding2.webp
     \li
     \code
-    p->setRenderHint(QCanvasPainter::RenderHint::DisableWindingEnforce);
+    p->setWindingEnforce(false);
     p->beginPath();
     // Outer shape, counterclockwise
     p->moveTo(20, 20);
@@ -373,27 +373,6 @@ Q_LOGGING_CATEGORY(QC_INFO, "qt.qcpainter.general")
     \value FlipY Flips (inverses) image in Y direction when rendered.
     \value Premultiplied Image data has premultiplied alpha.
     \value Nearest Image interpolation is Nearest instead Linear
-*/
-
-/*!
-    \enum QCanvasPainter::RenderHint
-
-    This enum specifies flags to QCanvasPainter related to rendering. Use
-    \l setRenderHint() to set the flags.
-
-    \value Antialiasing Setting this to false disables antialiasing.
-    Enabling it results in higher rendering cost.
-    The default value is true.
-
-    \value HighQualityStroking Setting this to true gives a more correct
-    rendering in some less common cases where stroking overlaps and
-    doesn't have full opacity. Enabling it results into higher rendering cost.
-    The default value is false.
-
-    \value DisableWindingEnforce Setting this to true disables enforcing
-    of path winding to match what has been set into setPathWinding().
-    Disabling allows e.g. creating holes into paths by adding the points
-    in clock wise order. Disabling can also increase the performance.
 */
 
 /*!
@@ -2431,8 +2410,7 @@ QRectF QCanvasPainter::textBoundingBox(const QString &text, const QRectF &rect)
     The default value is \c 1.0 and the maximum value is \c 10.0.
 
     Antialiasing can be modified per-path so it can be set before each stroke/fill.
-    To disable antialiasing from the whole canvas painter, use
-    QCanvasPainter::RenderHint::Antialiasing render hint.
+    To disable antialiasing and reduce the rendering cost, set the antialias to \c 0.
     \table
     \row
     \li \inlineimage qcpainter-antialias.webp
@@ -2451,13 +2429,83 @@ QRectF QCanvasPainter::textBoundingBox(const QString &text, const QRectF &rect)
     \endcode
     \endtable
 
-    \sa setRenderHints(), setTextAntialias()
+    \sa setTextAntialias()
 */
 
 void QCanvasPainter::setAntialias(float antialias)
 {
     Q_D(QCanvasPainter);
     d->m_e->setAntialias(antialias);
+}
+
+/*!
+    Sets the winding enforcing to \a enabled.
+    Setting this to \c false disables enforcing
+    of path winding to match what has been set into setPathWinding().
+    Disabling allows e.g. creating holes into paths by adding the points
+    in clock wise order. Disabling can also increase the performance.
+    The default value is \c true.
+    \table
+    \row
+    \li \inlineimage qcpainter-pathwinding2.webp
+    \li
+    \code
+    p->setWindingEnforce(false);
+    p->beginPath();
+    // Outer shape, counterclockwise
+    p->moveTo(20, 20);
+    p->lineTo(100, 180);
+    p->lineTo(180, 20);
+    p->closePath();
+    // Inner shape, clockwise
+    p->moveTo(100, 40);
+    p->lineTo(125, 90);
+    p->lineTo(75, 90);
+    p->closePath();
+    p->fill();
+    p->stroke();
+    \endcode
+    \endtable
+*/
+void QCanvasPainter::setWindingEnforce(bool enabled)
+{
+    Q_D(QCanvasPainter);
+    d->m_e->setWindingEnforceEnabled(enabled);
+}
+
+/*!
+    Sets the high quality stroking to \a enabled.
+    Setting this to \c true gives a more correct rendering in some less common
+    cases where stroking overlaps and doesn't have full opacity. Enabling it
+    results into higher rendering cost. The default value is \c false.
+    \table
+    \row
+    \li \inlineimage qcpainter-highqualitystroking.webp
+    \li
+    \code
+    // Increase the line width and reduce opacity to get
+    // the stroking flaws visible.
+    p->setLineWidth(20);
+    p->setGlobalAlpha(0.5);
+    if (m_path.isEmpty()) {
+        m_path.moveTo(30, 30);
+        m_path.lineTo(40, 30);
+        m_path.lineTo(80, 170);
+        m_path.lineTo(80, 30);
+        m_path.lineTo(70, 30);
+    }
+    p->setHighQualityStroking(true);
+    p->stroke(m_path);
+    p->setHighQualityStroking(false);
+    p->translate(90, 0);
+    p->stroke(m_path);
+    \endcode
+    \endtable
+*/
+void QCanvasPainter::setHighQualityStroking(bool enabled)
+{
+    Q_D(QCanvasPainter);
+    d->m_e->setHighQualityStrokingEnabled(enabled);
 }
 
 /*!
@@ -2469,44 +2517,6 @@ float QCanvasPainter::devicePixelRatio() const
 {
     Q_D(const QCanvasPainter);
     return d->m_devicePixelRatio;
-}
-
-/*!
-    Sets the given render \a hint on the painter if \a on is true;
-    otherwise clears the render hint.
-
-    \sa setRenderHints(), renderHints()
-*/
-
-void QCanvasPainter::setRenderHint(RenderHint hint, bool on)
-{
-    setRenderHints(hint, on);
-}
-
-/*!
-    Sets the given render \a hints on the painter if \a on is true;
-    otherwise clears the render hints.
-
-    \sa setRenderHint(), renderHints()
-*/
-
-void QCanvasPainter::setRenderHints(RenderHints hints, bool on)
-{
-    Q_D(QCanvasPainter);
-    d->m_e->setRenderHints(hints, on);
-}
-
-/*!
-    Returns a flag that specifies the rendering hints that are set for
-    this painter.
-
-    \sa setRenderHint()
-*/
-
-QCanvasPainter::RenderHints QCanvasPainter::renderHints() const
-{
-    Q_D(const QCanvasPainter);
-    return d->m_e->renderHints();
 }
 
 // ***** Static methods *****
@@ -3005,6 +3015,11 @@ void QCanvasPainterPrivate::drawBoxShadow(QCanvasPainter *painter, const QCanvas
         painter->strokeRect(r);
         m_e->restore();
     }
+}
+
+void QCanvasPainterPrivate::setAntialiasingEnabled(bool enabled)
+{
+    m_e->setAntialiasingEnabled(enabled);
 }
 
 /*!

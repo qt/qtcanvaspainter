@@ -152,8 +152,9 @@ public:
     void setAntialias(float antialias);
     void setMiterLimit(float limit);
     void removePathGroup(int pathGroup);
-    void setRenderHints(QCanvasPainter::RenderHints hints, bool on = true);
-    QCanvasPainter::RenderHints renderHints() const;
+    void setWindingEnforceEnabled(bool enabled);
+    void setHighQualityStrokingEnabled(bool enabled);
+    void setAntialiasingEnabled(bool enabled);
 
     // Internal
     QCContext* initialize(QCPainterRhiRenderer *renderer);

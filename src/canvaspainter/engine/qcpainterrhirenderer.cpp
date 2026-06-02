@@ -449,7 +449,8 @@ struct QCRHIContext
     int oneCommonUniformBufferSize = 0;
     int oneVertUniformBufferSize = 0;
     int vertUniformBufferCommonRegionAlignedSize = 0;
-    QCPainterRhiRenderer::RenderFlags flags = QCPainterRhiRenderer::Antialiasing;
+    QCPainterRhiRenderer::RenderFlags flags = QCPainterRhiRenderer::Antialiasing |
+            QCPainterRhiRenderer::WindingEnforce;
 
     // Per frame buffers
     QVector<QCRHICall> calls;
@@ -1576,11 +1577,13 @@ void QCPainterRhiRenderer::renderFill(const QCPaint &paint, const QCState &state
 {
     QCRHICall *call = allocCall();
     auto &ctx = m_e->ctx;
-    const float aa = state.antialias;
+    const bool aaEnabled = testFlag(QCPainterRhiRenderer::Antialiasing) && state.antialias > 0;
+    const float aa = aaEnabled ? state.antialias : 0.0f;
 
     call->type = CallFill;
     call->fillRule = fillRule;
     call->renderFlags = rhiCtx->flags;
+    call->renderFlags.setFlag(QCPainterRhiRenderer::Antialiasing, aaEnabled);
 
     if (state.customFill.type() == QCanvasBrush::BrushType::Custom) {
         auto *customBrushPriv = QCanvasCustomBrushPrivate::get(state.customFill.as<QCanvasCustomBrush>());
@@ -1626,7 +1629,7 @@ void QCPainterRhiRenderer::renderFill(const QCPaint &paint, const QCState &state
 
         QCRhiCachedPathGroup *cpg = &rhiCtx->cachedPathGroups[pti.pathGroup];
         QCRhiCachedPath *cp = &cpg->cachedPaths[QCanvasPathPrivate::get(pti.canvasPath)->serialNumber];
-        QCCachedPathFillProperties fillProps { state.antialias, int(ctx.renderHints) };
+        QCCachedPathFillProperties fillProps { state.antialias, flagsCacheProps() };
         QCRhiCachedPathFillData *cpf = &cp->fill[fillProps];
 
         if (pti.updateData.has_value()) {
@@ -1776,9 +1779,11 @@ void QCPainterRhiRenderer::renderStroke(const QCPaint &paint, const QCState &sta
 {
     QCRHICall *call = allocCall();
     auto &ctx = m_e->ctx;
-    const float aa = state.antialias;
+    const bool aaEnabled = testFlag(QCPainterRhiRenderer::Antialiasing) && state.antialias > 0;
+    const float aa = aaEnabled ? state.antialias : 0.0f;
     call->type = CallStroke;
     call->renderFlags = rhiCtx->flags;
+    call->renderFlags.setFlag(QCPainterRhiRenderer::Antialiasing, aaEnabled);
 
     QCanvasCustomBrushPrivate *customStrokePriv = nullptr;
     if (state.customStroke.type() == QCanvasBrush::BrushType::Custom)
@@ -1816,7 +1821,7 @@ void QCPainterRhiRenderer::renderStroke(const QCPaint &paint, const QCState &sta
 
         QCRhiCachedPathGroup *cpg = &rhiCtx->cachedPathGroups[pti.pathGroup];
         QCRhiCachedPath *cp = &cpg->cachedPaths[QCanvasPathPrivate::get(pti.canvasPath)->serialNumber];
-        QCCachedPathStrokeProperties strokeProps { state.antialias, state.strokeWidth, state.lineCap, state.lineJoin, int(ctx.renderHints) };
+        QCCachedPathStrokeProperties strokeProps { state.antialias, state.strokeWidth, state.lineCap, state.lineJoin, flagsCacheProps() };
         QCRhiCachedPathStrokeData *cps = &cp->stroke[strokeProps];
 
         if (pti.updateData.has_value()) {
@@ -2045,7 +2050,7 @@ void QCPainterRhiRenderer::beginPrepare(QRhiCommandBuffer *cb,
         and write masks to 0x7F, since any stencil pixel where (value & 0x7F) is non-zero will
         always have the 0x80 bit set.
 
-    CallStroke with StencilStrokes (i.e. RenderHint::HighQualityStroking) set also uses the
+    CallStroke with StencilStrokes (i.e. setHighQualityStroking) set also uses the
     stencil buffer:
     (Step 1 is used for non-high-quality stroking.)
     Step 2: Fill the interior of the stroke, and increment the stencil value
@@ -3142,6 +3147,7 @@ void QCPainterRhiRenderer::resetForPass()
     rhiCtx->vertUniformsCount = 1;
 
     rhiCtx->flags &= ~(QCPainterRhiRenderer::SimpleClipping | QCPainterRhiRenderer::TransformedClipping);
+    rhiCtx->flags |= QCPainterRhiRenderer::WindingEnforce;
 }
 
 void QCPainterRhiRenderer::resetForNewFrame()
@@ -3226,10 +3232,6 @@ void QCPainterRhiRenderer::setFlag(RenderFlags flag, bool enable)
         else
             rhiCtx->flags &= ~flag;
 
-        // Antialiasing requires also adjusting the antialiasingEnabled
-        if (flag == QCPainterRhiRenderer::Antialiasing)
-            ctx->antialiasingEnabled = enable;
-
         // Note: renderCreate doesn't seem to be required
         //renderCreate();
     }
@@ -3240,24 +3242,39 @@ QCPainterRhiRenderer::RenderFlags QCPainterRhiRenderer::flags() const
     return rhiCtx ? rhiCtx->flags : QCPainterRhiRenderer::RenderFlags();
 }
 
-bool QCPainterRhiRenderer::isPathCachedForFill(QCanvasPath *path, int pathGroup, const QCCachedPathFillProperties &fillProperties)
+// Returns hash int of those render flag properties
+// that affect fill/stroke path caching.
+int QCPainterRhiRenderer::flagsCacheProps() const
+{
+    int flags = 0;
+    flags += (rhiCtx->flags & RenderFlag::Antialiasing) * RenderFlag::Antialiasing;
+    flags += (rhiCtx->flags & RenderFlag::StencilStrokes) * RenderFlag::StencilStrokes;
+    flags += (rhiCtx->flags & RenderFlag::WindingEnforce) * RenderFlag::WindingEnforce;
+    return flags;
+}
+
+bool QCPainterRhiRenderer::isPathCachedForFill(QCanvasPath *path, int pathGroup, const QCState &state)
 {
     auto it = rhiCtx->cachedPathGroups.constFind(pathGroup);
     if (it != rhiCtx->cachedPathGroups.cend()) {
         auto pit = it->cachedPaths.constFind(QCanvasPathPrivate::get(path)->serialNumber);
-        if (pit != it->cachedPaths.cend())
+        if (pit != it->cachedPaths.cend()) {
+            QCCachedPathFillProperties fillProperties { state.antialias, flagsCacheProps() };
             return pit->fill.contains(fillProperties);
+        }
     }
     return false;
 }
 
-bool QCPainterRhiRenderer::isPathCachedForStroke(QCanvasPath *path, int pathGroup, const QCCachedPathStrokeProperties &strokeProperties)
+bool QCPainterRhiRenderer::isPathCachedForStroke(QCanvasPath *path, int pathGroup, const QCState &state)
 {
     auto it = rhiCtx->cachedPathGroups.constFind(pathGroup);
     if (it != rhiCtx->cachedPathGroups.cend()) {
         auto pit = it->cachedPaths.constFind(QCanvasPathPrivate::get(path)->serialNumber);
-        if (pit != it->cachedPaths.cend())
+        if (pit != it->cachedPaths.cend()) {
+            QCCachedPathStrokeProperties strokeProperties { state.antialias, state.strokeWidth, state.lineCap, state.lineJoin, flagsCacheProps() };
             return pit->stroke.contains(strokeProperties);
+        }
     }
     return false;
 }

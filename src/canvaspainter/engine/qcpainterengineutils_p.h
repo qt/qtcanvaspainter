@@ -251,7 +251,6 @@ struct QCContext {
     QList<QCState> states;
     QRectF view;
     QRectF bounds;
-    QCanvasPainter::RenderHints renderHints = QCanvasPainter::RenderHint::Antialiasing;
     QMatrix4x4 customMatrix;
     QCDebugCounters debugCounters;
     float dpr;
@@ -276,7 +275,6 @@ struct QCContext {
     int preparedPathIterations = -1;
     int preparedPathCommandsCount = 0;
     bool customMatrixValid;
-    bool antialiasingEnabled = true;
 };
 
 #ifdef QCPAINTER_PERF_DEBUG

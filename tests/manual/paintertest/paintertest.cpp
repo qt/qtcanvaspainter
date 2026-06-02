@@ -400,25 +400,25 @@ static void testAntialiasing(QCanvasPainter *p)
 
     p->setFillStyle(Qt::red);
 
-    p->setRenderHint(QCanvasPainter::RenderHint::Antialiasing, false);
+    p->setAntialias(0);
     p->beginPath();
     p->addPath(path);
     p->fill();
 
     p->translate(100, 0);
-    p->setRenderHint(QCanvasPainter::RenderHint::Antialiasing, true);
+    p->setAntialias(1.0f);
     p->beginPath();
     p->addPath(path);
     p->fill();
 
     p->translate(100, 0);
-    p->setRenderHint(QCanvasPainter::RenderHint::Antialiasing, false);
+    p->setAntialias(0);
     p->beginPath();
     p->addPath(path);
     p->fill();
 
     p->translate(100, 0);
-    p->setRenderHint(QCanvasPainter::RenderHint::Antialiasing, true);
+    p->setAntialias(1.0f);
     p->beginPath();
     p->addPath(path);
     p->fill();
@@ -435,19 +435,19 @@ static void testAntialiasing_reference(QPainter *p)
     p->setPen(Qt::NoPen);
     p->setBrush(Qt::red);
 
-    p->setRenderHint(QPainter::Antialiasing, false);
+    p->setAntialias(0);
     p->drawPath(path);
 
     p->translate(100, 0);
-    p->setRenderHint(QPainter::Antialiasing, true);
+    p->setAntialias(1.0f);
     p->drawPath(path);
 
     p->translate(100, 0);
-    p->setRenderHint(QPainter::Antialiasing, false);
+    p->setAntialias(0);
     p->drawPath(path);
 
     p->translate(100, 0);
-    p->setRenderHint(QPainter::Antialiasing, true);
+    p->setAntialias(1.0f);
     p->drawPath(path);
 }
 
@@ -1225,7 +1225,7 @@ static void testClipStroking(QCanvasPainter *p)
 
 static void testClipHighQualityStroking(QCanvasPainter *p)
 {
-    p->setRenderHint(QCanvasPainter::RenderHint::HighQualityStroking, true);
+    p->setHighQualityStroking(true);
     testClipStroking(p);
 }
 
@@ -1369,7 +1369,7 @@ static void testVectorPath_reference(QPainter *p)
 
 static void testHighQualityStroking(QCanvasPainter *p)
 {
-    p->setRenderHint(QCanvasPainter::RenderHint::HighQualityStroking, true);
+    p->setHighQualityStroking(true);
     testStroking(p);
 }
 

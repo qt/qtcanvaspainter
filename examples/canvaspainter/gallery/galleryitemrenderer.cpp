@@ -700,7 +700,7 @@ void GalleryItemRenderer::drawPainterPaths()
     posY += h + margin;
     painter()->resetTransform();
     painter()->save();
-    painter()->setRenderHint(QCanvasPainter::RenderHint::HighQualityStroking, true);
+    painter()->setHighQualityStroking(true);
     if (m_pathGraphLine.isEmpty()) {
         // Create linegraph path.
         m_pathGraphLine.moveTo(posX, posY);
