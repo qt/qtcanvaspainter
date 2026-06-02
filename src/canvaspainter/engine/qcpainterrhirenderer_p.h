@@ -86,6 +86,7 @@ public:
         SimpleClipping = 1 << 4,
         DepthTest = 1 << 5,
         CustomMatrix = 1 << 6,
+        WindingEnforce = 1 << 7,
     };
     Q_DECLARE_FLAGS(RenderFlags, RenderFlag)
 
@@ -132,6 +133,7 @@ public:
     bool testFlag(RenderFlag flag) const;
     void setFlag(RenderFlags flag, bool enable);
     RenderFlags flags() const;
+    int flagsCacheProps() const;
 
     bool renderCreate();
 
@@ -179,8 +181,8 @@ public:
 #endif
     void renderDelete();
 
-    bool isPathCachedForFill(QCanvasPath *path, int pathGroup, const QCCachedPathFillProperties &fillProperties);
-    bool isPathCachedForStroke(QCanvasPath *path, int pathGroup, const QCCachedPathStrokeProperties &strokeProperties);
+    bool isPathCachedForFill(QCanvasPath *path, int pathGroup, const QCState &state);
+    bool isPathCachedForStroke(QCanvasPath *path, int pathGroup, const QCState &state);
     void removePathGroup(int pathGroup);
 
     static void textureFormatInfo(QRhiTexture::Format format, QSize size,
@@ -261,6 +263,8 @@ private:
     int logStrokeTriCount = 0;
     int logTextTriCount = 0;
 };
+
+Q_DECLARE_OPERATORS_FOR_FLAGS(QCPainterRhiRenderer::RenderFlags)
 
 QT_END_NAMESPACE
 

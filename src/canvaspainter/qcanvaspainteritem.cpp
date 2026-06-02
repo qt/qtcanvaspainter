@@ -28,6 +28,12 @@ QT_BEGIN_NAMESPACE
 
     \snippet item-ex-1.cpp 0
 
+    Using the \l QtQuick::Item::antialiasing property, it is possible to disable
+    antialiasing. The default value is \c true. When this is set to \c false,
+    it disables antialiasing even if the painting code calls
+    \l QCanvasPainter::setAntialias() with a value bigger than \c 0.
+    Disabling antialiasing potentially increases the performance.
+
     \sa QCanvasPainterItemRenderer
 */
 

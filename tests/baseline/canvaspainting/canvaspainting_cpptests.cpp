@@ -136,12 +136,12 @@ void CanvasPainterLancelotCppTests::testPathWindingUncachedPath()
     painter->fill(p, -1);
     painter->stroke(p, -1);
 
-    painter->setRenderHint(QCanvasPainter::RenderHint::DisableWindingEnforce, true);
+    painter->setWindingEnforce(false);
     painter->translate(200, 0);
     painter->fill(p, -1);
     painter->stroke(p, -1);
 
-    painter->setRenderHint(QCanvasPainter::RenderHint::DisableWindingEnforce, false);
+    painter->setWindingEnforce(true);
     painter->translate(200, 0);
     painter->fill(p, -1);
     painter->stroke(p, -1);
@@ -185,12 +185,12 @@ void CanvasPainterLancelotCppTests::testPathWinding()
     painter->fill(p, 234);
     painter->stroke(p, 234);
 
-    painter->setRenderHint(QCanvasPainter::RenderHint::DisableWindingEnforce, true);
+    painter->setWindingEnforce(false);
     painter->translate(200, 0);
     painter->fill(p, 234);
     painter->stroke(p, 234);
 
-    painter->setRenderHint(QCanvasPainter::RenderHint::DisableWindingEnforce, false);
+    painter->setWindingEnforce(true);
     painter->translate(200, 0);
     painter->fill(p, 234);
     painter->stroke(p, 234);
@@ -231,30 +231,27 @@ void CanvasPainterLancelotCppTests::testStraightLinesInPathUncachedPath()
     painter->translate(0, 40);
     painter->stroke(p, -1);
 
-    painter->setRenderHint(QCanvasPainter::RenderHint::Antialiasing, false);
+    painter->setAntialias(0);
     painter->translate(0, 40);
     painter->stroke(p, -1);
 
     painter->setAntialias(2.5f);
-    painter->setRenderHint(QCanvasPainter::RenderHint::Antialiasing, true);
     painter->translate(0, 40);
     painter->stroke(p, -1);
 
-    painter->setRenderHint(QCanvasPainter::RenderHint::Antialiasing, false);
+    painter->setAntialias(0);
     painter->translate(0, 40);
     painter->stroke(p, -1);
 
     painter->setAntialias(5.0f);
-    painter->setRenderHint(QCanvasPainter::RenderHint::Antialiasing, true);
     painter->translate(0, 40);
     painter->stroke(p, -1);
 
-    painter->setRenderHint(QCanvasPainter::RenderHint::Antialiasing, false);
+    painter->setAntialias(0);
     painter->translate(0, 40);
     painter->stroke(p, -1);
 
     painter->setAntialias(8.0f);
-    painter->setRenderHint(QCanvasPainter::RenderHint::Antialiasing, true);
     painter->translate(0, 40);
     painter->stroke(p, -1);
 }
@@ -280,30 +277,27 @@ void CanvasPainterLancelotCppTests::testStraightLinesInPath()
     painter->translate(0, 40);
     painter->stroke(p, 123);
 
-    painter->setRenderHint(QCanvasPainter::RenderHint::Antialiasing, false);
+    painter->setAntialias(0);
     painter->translate(0, 40);
     painter->stroke(p, 123);
 
     painter->setAntialias(2.5f);
-    painter->setRenderHint(QCanvasPainter::RenderHint::Antialiasing, true);
     painter->translate(0, 40);
     painter->stroke(p, 123);
 
-    painter->setRenderHint(QCanvasPainter::RenderHint::Antialiasing, false);
+    painter->setAntialias(0);
     painter->translate(0, 40);
     painter->stroke(p, 123);
 
     painter->setAntialias(5.0f);
-    painter->setRenderHint(QCanvasPainter::RenderHint::Antialiasing, true);
     painter->translate(0, 40);
     painter->stroke(p, 123);
 
-    painter->setRenderHint(QCanvasPainter::RenderHint::Antialiasing, false);
+    painter->setAntialias(0);
     painter->translate(0, 40);
     painter->stroke(p, 123);
 
     painter->setAntialias(8.0f);
-    painter->setRenderHint(QCanvasPainter::RenderHint::Antialiasing, true);
     painter->translate(0, 40);
     painter->stroke(p, 123);
 }
@@ -842,7 +836,7 @@ void CanvasPainterLancelotCppTests::testCanvasPathCommandsWithAndWithoutPathGrou
 
 void CanvasPainterLancelotCppTests::testHighQualityStroking()
 {
-    painter->setRenderHint(QCanvasPainter::RenderHint::HighQualityStroking, false);
+    painter->setHighQualityStroking(false);
     painter->setStrokeStyle(QColor(192, 0, 0, 127));
     painter->setLineWidth(20);
 
@@ -856,7 +850,7 @@ void CanvasPainterLancelotCppTests::testHighQualityStroking()
     painter->setFillStyle(QColor(0, 192, 0, 127));
     painter->fillRect(10, 110, 80, 80);
 
-    painter->setRenderHint(QCanvasPainter::RenderHint::HighQualityStroking, true);
+    painter->setHighQualityStroking(true);
     painter->beginPath();
     painter->moveTo(10, 210);
     painter->lineTo(80, 280);
@@ -3143,7 +3137,7 @@ void CanvasPainterLancelotCppTests::testStrokingWithStencilClip()
 
 void CanvasPainterLancelotCppTests::testHighQualityStrokingWithStencilClip()
 {
-    painter->setRenderHint(QCanvasPainter::RenderHint::HighQualityStroking, true);
+    painter->setHighQualityStroking(true);
 
     painter->setStrokeStyle(Qt::red);
     const QList<QRectF> clipRects{

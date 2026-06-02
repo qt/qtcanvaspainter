@@ -260,8 +260,8 @@ void QCanvasPainterItemRenderer::synchronize(QQuickRhiItem * item)
     bool antialiasing = realItem->antialiasing();
     if (antialiasing != d->m_antialiasing) {
         d->m_antialiasing = antialiasing;
-        auto *painter = d->m_factory->painter();
-        painter->setRenderHint(QCanvasPainter::RenderHint::Antialiasing, antialiasing);
+        auto *painterPriv = QCanvasPainterPrivate::get(d->m_factory->painter());
+        painterPriv->setAntialiasingEnabled(antialiasing);
     }
 
     static bool collectDebug = qEnvironmentVariableIsSet("QCPAINTER_DEBUG_COLLECT");

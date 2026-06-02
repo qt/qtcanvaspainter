@@ -834,7 +834,7 @@ void tst_CanvasRhiRendering::canvasRenderHqStroking()
     canvas.setFillColor(Qt::black);
 
     // this triggers using the stencil buffer
-    painter->setRenderHint(QCanvasPainter::RenderHint::HighQualityStroking);
+    painter->setHighQualityStroking(true);
 
     QRhiCommandBuffer *cb;
     rhi->beginOffscreenFrame(&cb);
@@ -1182,9 +1182,7 @@ void tst_CanvasRhiRendering::canvasRenderPathGroups()
     pd->resetForNewFrame();
     pd->beginPaint(canvas, cb);
     cb->debugMarkMsg("Fifth frame: drawing like in fourth, but with AA disabled");
-    painter->setRenderHint(QCanvasPainter::RenderHint::Antialiasing, false);
-    draw(8, 4, 1, 1);
-    painter->setRenderHint(QCanvasPainter::RenderHint::Antialiasing, true);
+    draw(8, 4, 0, 0);
     pd->endPaint();
     rhi->endOffscreenFrame();
 

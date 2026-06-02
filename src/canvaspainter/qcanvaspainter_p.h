@@ -92,6 +92,7 @@ public:
     QRectF textBoundingBox(const QString &text, float x, float y, float maxWidth = -1);
     QRectF textBoundingBox(const QString &text, const QRectF &rect);
     void drawBoxShadow(QCanvasPainter *painter, const QCanvasBoxShadow &shadow);
+    void setAntialiasingEnabled(bool enabled);
 
     QCanvasImageTracker m_imageTracker;
     QHash<quint64, QCanvasImage> m_nativeTextureCache; // QRhiTexture::globalResourceId -> QCanvasImage

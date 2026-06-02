@@ -65,13 +65,6 @@ public:
     };
     Q_DECLARE_FLAGS(ImageFlags, ImageFlag)
 
-    enum class RenderHint {
-        Antialiasing = 1 << 0,
-        HighQualityStroking = 1 << 1,
-        DisableWindingEnforce = 1 << 2,
-    };
-    Q_DECLARE_FLAGS(RenderHints, RenderHint)
-
     // *** State Handling ***
 
     Q_CANVASPAINTER_EXPORT void save();
@@ -236,9 +229,8 @@ public:
 
     Q_CANVASPAINTER_EXPORT void setAntialias(float antialias);
     Q_CANVASPAINTER_EXPORT float devicePixelRatio() const;
-    Q_CANVASPAINTER_EXPORT void setRenderHint(RenderHint hint, bool on = true);
-    Q_CANVASPAINTER_EXPORT void setRenderHints(RenderHints hints, bool on = true);
-    Q_CANVASPAINTER_EXPORT RenderHints renderHints() const;
+    Q_CANVASPAINTER_EXPORT void setWindingEnforce(bool enabled);
+    Q_CANVASPAINTER_EXPORT void setHighQualityStroking(bool enabled);
 
     // *** Static methods ***
 
@@ -267,7 +259,6 @@ private:
 };
 
 Q_DECLARE_OPERATORS_FOR_FLAGS(QCanvasPainter::ImageFlags)
-Q_DECLARE_OPERATORS_FOR_FLAGS(QCanvasPainter::RenderHints)
 
 inline void QCanvasPainter::translate(QPointF point)
 {

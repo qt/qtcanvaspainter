@@ -92,7 +92,8 @@ QT_BEGIN_NAMESPACE
     \li Changing the stroke line width (\l{QCanvasPainter::setLineWidth()}, relevant for strokes).
     \li Adjusting antialiasing amount (\l{QCanvasPainter::setAntialias()}, relevant both for fills and strokes).
     \li Changing line cap or line join type (\l{QCanvasPainter::setLineCap()}, \l{QCanvasPainter::setLineJoin()}, relevant for strokes).
-    \li Adjusting \l{QCanvasPainter::setRenderHint()}{render hints} (relevant both for fills and strokes).
+    \li Changing \l{QCanvasPainter::setWindingEnforce()}{winding enforce} (relevant both for fills and strokes).
+    \li Changing \l{QCanvasPainter::setHighQualityStroking()}{high quality stroking} (relevant both for fills and strokes).
     \endlist
 
     Note that changing the state transform (\l{QCanvasPainter::transform()}, \l{QCanvasPainter::rotate()} etc.)

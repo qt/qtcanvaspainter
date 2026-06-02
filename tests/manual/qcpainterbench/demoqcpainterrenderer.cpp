@@ -57,10 +57,8 @@ void DemoQCPainterRenderer::synchronizeData(QCanvasPainterItem *item)
         }
 #endif
         m_testCount = newTestCount;
-        if (auto *p = painter()) {
-            p->setRenderHint(QCanvasPainter::RenderHint::HighQualityStroking,
-                             realItem->highQualityRendering());
-        }
+        if (auto *p = painter())
+            p->setHighQualityStroking(realItem->highQualityRendering());
 
         if (!qFuzzyCompare(m_width, realItem->width()) ||
             !qFuzzyCompare(m_height, realItem->height())) {
