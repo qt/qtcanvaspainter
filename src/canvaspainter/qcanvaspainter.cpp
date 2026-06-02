@@ -31,7 +31,7 @@ Q_LOGGING_CATEGORY(QC_INFO, "qt.qcpainter.general")
     \inmodule QtCanvasPainter
 
     Qt Canvas Painter (QCanvasPainter) provides painting API optimized for
-    harware-accelerated (GPU) painting. The API follows closely HTML Canvas 2D
+    hardware-accelerated (GPU) painting. The API closely follows the HTML Canvas 2D
     Context specification, ported to Qt C++. It is also influenced by QPainter,
     but with a more compact API.
 
@@ -97,32 +97,32 @@ Q_LOGGING_CATEGORY(QC_INFO, "qt.qcpainter.general")
 
     \section1 Features
 
-    For the most parts and from the naming perspective, QCanvasPainter follow closely the
+    For the most part, and from the naming perspective, QCanvasPainter follows
     HTML Canvas 2D Context (https://html.spec.whatwg.org/multipage/canvas.html#2dcontext).
     This makes the API familiar to use for many developers, and with the ability
     to easily reuse existing canvas code. But the aim is NOT to be 100% compatible with
-    the HTML canvas. QCanvasPainter misses some of the features to make it simpler,
+    the HTML canvas. QCanvasPainter omits some of the features to make it simpler,
     more performant on QRhi hardware accelerated graphics API, and to better target
     modern UI needs. Due to these reasons, QCanvasPainter also has additional features
     compared to HTML Canvas 2D Context.
 
-    These are some of the functionality we are at least currently missing compared
-    to HTML canvas:
+    These are some of the functionality that are at least currently missing compared
+    to HTML Canvas:
     \list
     \li Clipping: All clipping is (transformed) rectangle and clipping to path shapes
-    are not supported.
+    is not supported.
     \li Dashes: Strokes are always solid lines, dashed/dotted stroke patterns are
     not supported.
     \li Path testing: There are no isPointInPath() or isPointInStroke() methods.
     \li Text stroking: No support for outline stroking of text.
     \li Filter: Canvas SVG filter effects are not supported.
-    \li CompositeModes: The amount of composite modes is limited to 3, which can
+    \li CompositeModes: The number of composite modes is limited to 3, which can
     be supported without rendering into extra buffers.
     \li Shadows: Built-in shadow methods are not supported.
     \endlist
 
     On the other hand, some of the additional features QCanvasPainter offers compared
-    to HTML canvas include:
+    to HTML Canvas include:
     \list
     \li Path groups: QCanvasPainter allows painting to static paths and caching these
     paths as groups for optimal GPU usage.
@@ -130,9 +130,9 @@ Q_LOGGING_CATEGORY(QC_INFO, "qt.qcpainter.general")
     rendering, the pixel amount of antialiasing can be freely adjusted for
     smoother painting.
     \li Box Gradient: In addition to linear, radial and conical gradients,
-    QCanvasPainter supports also rounded rectangle box gradient.
-    \li Box Shadow: QCanvasPainter supports also CSS box-shadow type of brush. The
-    rendering uses SDF approach similar to Qt Quick RectangularShadow, making
+    QCanvasPainter also supports rounded rectangle box gradient.
+    \li Box Shadow: QCanvasPainter also supports CSS box-shadow type of brush. The
+    rendering uses a SDF approach similar to Qt Quick RectangularShadow, making
     it very performant.
     \li Grid patterns: QCanvasPainter supports QCanvasGridPattern for dynamic grid and bar
     pattern styles.
@@ -141,7 +141,7 @@ Q_LOGGING_CATEGORY(QC_INFO, "qt.qcpainter.general")
     be used for text.
     \li Text wrapping: QCanvasPainter supports automatic wrapping of text into
     multiple lines, with different wrapping modes.
-    \li Color effects: With addition to globalAlpha, QCanvasPainter supports also
+    \li Color effects: In addition to globalAlpha, QCanvasPainter also supports
     global brightness, contrast and saturation.
     \li Tinted images: QCanvasPainter adds tint color support for painted images
     and image patterns.
@@ -150,7 +150,7 @@ Q_LOGGING_CATEGORY(QC_INFO, "qt.qcpainter.general")
     QCanvasPainter is architecture agnostic, and usable for both Qt Quick and
     Qt Widgets applications. Actually, it is usable even without either of
     those, with just QWindow and QRhi. To utilize QCanvasPainter, use it from
-    one of these classes, dending on the architecture of your application:
+    one of these classes, depending on the architecture of your application:
     \list
     \li Qt Quick: Use \l QCanvasPainterItem and \l QCanvasPainterItemRenderer.
     \li Qt Widgets: Use \l QCanvasPainterWidget.
@@ -312,7 +312,7 @@ Q_LOGGING_CATEGORY(QC_INFO, "qt.qcpainter.general")
     \value Inherit (default) The text direction is inherited from QGuiApplication layoutDirection. See https://doc.qt.io/qt-6/qguiapplication.html#layoutDirection-prop.
 
     \value Auto The text direction is detected automatically based from the text string. See \l QString::isRightToLeft().
-    \note As this requires analyzing the text, it is potentially slower that other options.
+    \note As this requires analyzing the text, it is potentially slower than other options.
 
     \sa setTextDirection(), setTextAlign(), fillText()
 */
@@ -367,9 +367,9 @@ Q_LOGGING_CATEGORY(QC_INFO, "qt.qcpainter.general")
     \value GenerateMipmaps Set this to generate mipmaps for the image.
     Mipmaps should be used when smoother output is preferred for images
     which are scaled to smaller than the original size.
-    \value RepeatX Use with image pattern to repeate image in X-coordinate.
-    \value RepeatY Use with image pattern to repeate image in Y-coordinate.
-    \value Repeat Use with image pattern to repeate image in both coordinates.
+    \value RepeatX Use with image pattern to repeat image in X-coordinate.
+    \value RepeatY Use with image pattern to repeat image in Y-coordinate.
+    \value Repeat Use with image pattern to repeat image in both coordinates.
     \value FlipY Flips (inverses) image in Y direction when rendered.
     \value Premultiplied Image data has premultiplied alpha.
     \value Nearest Image interpolation is Nearest instead Linear
@@ -383,7 +383,7 @@ Q_LOGGING_CATEGORY(QC_INFO, "qt.qcpainter.general")
     \l setRenderHint() to set the flags.
 
     \value Antialiasing Setting this to false disables antialiasing.
-    Enabling it results into higher rendering cost.
+    Enabling it results in higher rendering cost.
     The default value is true.
 
     \value HighQualityStroking Setting this to true gives a more correct
@@ -446,7 +446,7 @@ void QCanvasPainter::save()
 }
 
 /*!
-    Pops and restores current render state.
+    Pops and restores the current render state.
     So previously saved state will be restored.
     If save() has not been called and the state stack
     is empty, calling this does nothing.
@@ -462,8 +462,8 @@ void QCanvasPainter::restore()
 
 /*!
     Resets the current painter state to default values.
-    \note This method differs from the HTML canvas 2D context reset() method
-    so that it doesn't visually clear the canvas buffers.
+    \note This method differs from the HTML Canvas 2D Context reset() method
+    in that it doesn't visually clear the canvas buffers.
     \table
     \row
     \li \inlineimage qcpainter-reset.webp
@@ -527,7 +527,7 @@ void QCanvasPainter::setStrokeStyle(const QColor &color)
     \overload
 
     Sets the stroke style to \a brush.
-    The default stroke style is solid black color (0, 0, 0, 1).
+    The default stroke style is solid black (0, 0, 0, 1).
     \table
     \row
     \li \inlineimage qcpainter-strokestyle2.webp
@@ -557,7 +557,7 @@ void QCanvasPainter::setStrokeStyle(const QCanvasBrush &brush)
 
 /*!
     Sets the fill style to a solid \a color.
-    The default fill style is solid black color (0, 0, 0, 1).
+    The default fill style is solid black (0, 0, 0, 1).
     \table
     \row
     \li \inlineimage qcpainter-fillstyle.webp
@@ -583,7 +583,7 @@ void QCanvasPainter::setFillStyle(const QColor &color)
     \overload
 
     Sets the fill style to \a brush.
-    The default fill style is solid black color (0, 0, 0, 1).
+    The default fill style is solid black (0, 0, 0, 1).
     \table
     \row
     \li \inlineimage qcpainter-fillstyle2.webp
@@ -615,7 +615,7 @@ void QCanvasPainter::setFillStyle(const QCanvasBrush &brush)
     Sets the miter limit to \a limit. Miter limit controls when a sharp corner
     is beveled. When the corner length would become longer than this limit,
     QCanvasPainter::LineJoin::Bevel will be applied between the lines instead.
-    This has only effect with the QCanvasPainter::LineJoin::Miter line join.
+    This only has effect with the QCanvasPainter::LineJoin::Miter line join.
     The default limit is \c 10.0.
 
     \sa setLineJoin()
@@ -628,9 +628,9 @@ void QCanvasPainter::setMiterLimit(float limit)
 }
 
 /*!
-    Sets the line width of stroke to \a width in pixels.
-    The default line width is \c 1.0. When the antialiasing is enabled,
-    the line widths under a single pixel automatically fade the
+    Sets the line width of strokes to \a width in pixels.
+    The default line width is \c 1.0. When antialiasing is enabled,
+    widths thinner than a single pixel will automatically fade the
     opacity, creating a smooth output.
     \table
     \row
@@ -659,7 +659,7 @@ void QCanvasPainter::setLineWidth(float width)
 }
 
 /*!
-    Sets the end of the line of stoke to \a cap.
+    Sets the end of the line for strokes to \a cap.
     The default line cap is \c QCanvasPainter::LineCap::Butt.
     \table
     \row
@@ -688,7 +688,7 @@ void QCanvasPainter::setLineCap(LineCap cap)
 }
 
 /*!
-    Sets the line join of stroke to \a join.
+    Sets the line join of strokes to \a join.
     The default line join is \c QCanvasPainter::LineJoin::Miter.
     \table
     \row
@@ -765,7 +765,7 @@ void QCanvasPainter::setGlobalCompositeOperation(CompositeOperation operation)
 }
 
 /*!
-    Sets the global brightness to \a value. This brightess is
+    Sets the global brightness to \a value. This brightness is
     applied to all rendered shapes. A value of 0 will cause painting
     to be completely black. Value can also be bigger than 1.0, to
     increase the brightness.
@@ -829,7 +829,7 @@ void QCanvasPainter::setGlobalContrast(float value)
 }
 
 /*!
-    Sets the global saturations to \a value. This saturations is
+    Sets the global saturation to \a value. This saturation is
     applied to all rendered shapes. A value of 0 will disable saturation
     and cause painting to be completely grayscale. Value can also be bigger
     than 1.0, to increase the saturation.
@@ -898,7 +898,7 @@ void QCanvasPainter::setFillRule(FillRule fillRule)
 // *** Transforms ***
 
 /*!
-    Resets current transform to a identity matrix.
+    Resets the current transform to an identity matrix.
 */
 
 void QCanvasPainter::resetTransform()
@@ -938,7 +938,7 @@ void QCanvasPainter::setTransform(const QTransform &transform)
 }
 
 /*!
-    Multiplies the current coordinate system by specified \a transform.
+    Multiplies the current coordinate system by the specified \a transform.
     \table
     \row
     \li \inlineimage qcpainter-transform2.webp
@@ -966,7 +966,7 @@ void QCanvasPainter::transform(const QTransform &transform)
 }
 
 /*!
-    Translates current coordinate system by \a x and \a y.
+    Translates the current coordinate system by \a x and \a y.
     \table
     \row
     \li \inlineimage qcpainter-translate.webp
@@ -995,11 +995,11 @@ void QCanvasPainter::translate(float x, float y)
     \fn void QCanvasPainter::translate(QPointF point)
     \overload
 
-    Translates current coordinate system by \a point.
+    Translates the current coordinate system by \a point.
 */
 
 /*!
-    Rotates current coordinate system clockwise by \a angle.
+    Rotates the current coordinate system clockwise by \a angle.
 
     The angle is specified in radians. Use qDegreesToRadians() to convert from
     degrees to radians.
@@ -1030,7 +1030,7 @@ void QCanvasPainter::rotate(float angle)
 
 /*!
     Skews (shears) the current coordinate system along X axis by \a angleX
-    and along Y axis by \a angleY. Angles are specifid in radians.
+    and along Y axis by \a angleY. Angles are specified in radians.
     \table
     \row
     \li \inlineimage qcpainter-skew.webp
@@ -1057,7 +1057,7 @@ void QCanvasPainter::skew(float angleX, float angleY)
 }
 
 /*!
-    Scales the current coordinat system by \a scale. Both x and y coordinates
+    Scales the current coordinate system by \a scale. Both x and y coordinates
     are scaled evenly.
     \table
     \row
@@ -1086,7 +1086,7 @@ void QCanvasPainter::scale(float scale)
 /*!
     \overload
 
-    Scales the current coordinat system by \a scaleX and \a scaleY.
+    Scales the current coordinate system by \a scaleX and \a scaleY.
 */
 
 void QCanvasPainter::scale(float scaleX, float scaleY)
@@ -1199,7 +1199,7 @@ void QCanvasPainter::closePath()
 }
 
 /*!
-    Starts new sub-path with ( \a x, \a y) as first point.
+    Starts a new sub-path with ( \a x, \a y) as the first point.
 */
 
 void QCanvasPainter::moveTo(float x, float y)
@@ -1212,7 +1212,7 @@ void QCanvasPainter::moveTo(float x, float y)
     \fn void QCanvasPainter::moveTo(QPointF point)
     \overload
 
-    Starts new sub-path with \a point as first point.
+    Starts a new sub-path with \a point as the first point.
 */
 
 /*!
@@ -1245,7 +1245,7 @@ void QCanvasPainter::lineTo(float x, float y)
 */
 
 /*!
-    Adds cubic bezier segment from last point in the path via two
+    Adds a cubic bezier segment from the last point in the path via two
     control points (\a cp1X, \a cp1Y and \a cp2X, \a cp2Y) to the specified point (\a x, \a y).
     \table
     \row
@@ -1270,12 +1270,12 @@ void QCanvasPainter::bezierCurveTo(float cp1X, float cp1Y, float cp2X, float cp2
     \fn void QCanvasPainter::bezierCurveTo(QPointF controlPoint1, QPointF controlPoint2, QPointF endPoint)
     \overload
 
-    Adds cubic bezier segment from last point in the path via two
+    Adds a cubic bezier segment from the last point in the path via two
     control points (\a controlPoint1 and \a controlPoint2) to the specified point \a endPoint.
 */
 
 /*!
-    Adds quadratic bezier segment from last point in the path via
+    Adds a quadratic bezier segment from the last point in the path via
     a control point (\a cpX, \a cpY) to the specified point (\a x, \a y).
     \table
     \row
@@ -1302,7 +1302,7 @@ void QCanvasPainter::quadraticCurveTo(float cpX, float cpY, float x, float y)
     \fn void QCanvasPainter::quadraticCurveTo(QPointF controlPoint, QPointF endPoint)
     \overload
 
-    Adds quadratic bezier segment from last point in the path via
+    Adds a quadratic bezier segment from the last point in the path via
     a \a controlPoint to the specified \a endPoint.
 */
 
@@ -1342,7 +1342,7 @@ void QCanvasPainter::arcTo(float x1, float y1, float x2, float y2, float radius)
 */
 
 /*!
-    Creates new circle arc shaped sub-path. The arc center is at \a centerX, \a centerY,
+    Creates a new circle arc shaped sub-path. The arc center is at \a centerX, \a centerY,
     with \a radius, and the arc is drawn from angle \a a0 to \a a1,
     and swept in \a direction (ClockWise or CounterClockWise).
     When \a connection is \l{PathConnection::}{NotConnected}, arc does not add a line from the previous
@@ -1377,7 +1377,7 @@ void QCanvasPainter::arc(float centerX, float centerY, float radius, float a0, f
     \fn void QCanvasPainter::arc(QPointF centerPoint, float radius, float a0, float a1, PathWinding direction, PathConnection connection)
     \overload
 
-    Creates new circle arc shaped sub-path. The arc center is at \a centerPoint,
+    Creates a new circle arc shaped sub-path. The arc center is at \a centerPoint,
     with \a radius, and the arc is drawn from angle \a a0 to \a a1,
     and swept in \a direction (ClockWise or CounterClockWise).
     When \a connection is \l{PathConnection::}{NotConnected}, arc does not add a line from the previous
@@ -1389,7 +1389,7 @@ void QCanvasPainter::arc(float centerX, float centerY, float radius, float a0, f
 */
 
 /*!
-    Creates new rectangle shaped sub-path in position \a x, \a y with
+    Creates a new rectangle shaped sub-path in position \a x, \a y with
     size \a width, \a height.
     \table
     \row
@@ -1414,12 +1414,12 @@ void QCanvasPainter::rect(float x, float y, float width, float height)
     \fn void QCanvasPainter::rect(const QRectF &rect)
     \overload
 
-    Creates new rectangle shaped sub-path at \a rect.
+    Creates a new rectangle shaped sub-path at \a rect.
     This is an overloaded method using QRectF.
 */
 
 /*!
-    Creates new rounded rectangle shaped sub-path in position \a x, \a y with
+    Creates a new rounded rectangle shaped sub-path in position \a x, \a y with
     size \a width, \a height. Corners rounding will be \a radius.
     \table
     \row
@@ -1444,14 +1444,14 @@ void QCanvasPainter::roundRect(float x, float y, float width, float height, floa
     \fn void QCanvasPainter::roundRect(const QRectF &rect, float radius)
     \overload
 
-    Creates new rounded rectangle shaped sub-path at \a rect with \a radius corners.
+    Creates a new rounded rectangle shaped sub-path at \a rect with \a radius corners.
     This is an overloaded method using QRectF.
 */
 
 /*!
     \overload
 
-    Creates new rounded rectangle shaped sub-path in position \a x, \a y with
+    Creates a new rounded rectangle shaped sub-path in position \a x, \a y with
     size \a width, \a height. Corners rounding can be varying per-corner, with
     \a radiusTopLeft, \a radiusTopRight, \a radiusBottomRight, \a radiusBottomLeft.
     \table
@@ -1478,13 +1478,13 @@ void QCanvasPainter::roundRect(float x, float y, float width, float height, floa
     \fn void QCanvasPainter::roundRect(const QRectF &rect, float radiusTopLeft, float radiusTopRight, float radiusBottomRight, float radiusBottomLeft)
     \overload
 
-    Creates new rounded rectangle shaped sub-path at \a rect. Corners rounding can be
+    Creates a new rounded rectangle shaped sub-path at \a rect. Corners rounding can be
     varying per-corner, with \a radiusTopLeft, \a radiusTopRight, \a radiusBottomRight,
     \a radiusBottomLeft.
 */
 
 /*!
-    Creates new ellipse shaped sub-path into ( \a centerX, \a centerY) with \a radiusX and \a radiusY.
+    Creates a new ellipse shaped sub-path centered at ( \a centerX, \a centerY) with \a radiusX and \a radiusY.
     \table
     \row
     \li \inlineimage qcpainter-ellipse.webp
@@ -1508,14 +1508,14 @@ void QCanvasPainter::ellipse(float centerX, float centerY, float radiusX, float 
     \fn void QCanvasPainter::ellipse(QPointF centerPoint, float radiusX, float radiusY)
     \overload
 
-    Creates new ellipse shaped sub-path into \a centerPoint with \a radiusX and \a radiusY.
+    Creates a new ellipse shaped sub-path centered at \a centerPoint with \a radiusX and \a radiusY.
 */
 
 /*!
     \fn void QCanvasPainter::ellipse(const QRectF &rect)
     \overload
 
-    Creates new ellipse shaped sub-path into \a rect.
+    Creates a new ellipse shaped sub-path into \a rect.
     This ellipse will cover the \a rect area.
     \table
     \row
@@ -1532,7 +1532,7 @@ void QCanvasPainter::ellipse(float centerX, float centerY, float radiusX, float 
 */
 
 /*!
-    Creates new circle shaped sub-path into ( \a centerX, \a centerY) with \a radius.
+    Creates a new circle shaped sub-path centered at ( \a centerX, \a centerY) with \a radius.
     \table
     \row
     \li \inlineimage qcpainter-circle.webp
@@ -1556,7 +1556,7 @@ void QCanvasPainter::circle(float centerX, float centerY, float radius)
     \fn void QCanvasPainter::circle(QPointF centerPoint, float radius)
     \overload
 
-    Creates new circle shaped sub-path into \a centerPoint with \a radius.
+    Creates a new circle shaped sub-path centered at \a centerPoint with \a radius.
 */
 
 /*!
@@ -1748,7 +1748,7 @@ void QCanvasPainter::fill(FillRule fillRule)
 }
 
 /*!
-    Strokes the current path with current stroke style.
+    Strokes the current path with the current stroke style.
     \sa setStrokeStyle()
     \table
     \row
@@ -1773,14 +1773,14 @@ void QCanvasPainter::stroke()
 /*!
     \overload
 
-    Fills the \a path with current fill style and fill rule, and belonging
+    Fills the \a path with the current fill style and fill rule, and belonging
     into \a pathGroup. Painting through QCanvasPath is optimal when the path
-    contains more commands is mostly static.
+    contains more commands and is mostly static.
 
-    When \a pathGroup is \c -1, the path will not be cached on GPU side.
-    This is the default. To request the caching of path data, pass a
-    value equal or greater to \c 0. More information about using path
-    cache groups in \l{QCanvasPath} documentation.
+    When \a pathGroup is \c -1, the path will not be cached on the GPU side.
+    This is the default. To request caching of path data, pass a
+    value equal to or greater than \c 0. More information about using path
+    cache groups can be found in the \l{QCanvasPath} documentation.
 
     Calling beginPath() before this method is not required.
 
@@ -1815,7 +1815,7 @@ void QCanvasPainter::fill(const QCanvasPath &path, int pathGroup)
     \overload
     \since 6.12
 
-    Fills the \a path with current fill style and fill rule \a fillRule
+    Fills the \a path with the current fill style and fill rule \a fillRule
 */
 
 void QCanvasPainter::fill(const QCanvasPath &path, FillRule fillRule, int pathGroup)
@@ -1827,13 +1827,13 @@ void QCanvasPainter::fill(const QCanvasPath &path, FillRule fillRule, int pathGr
 /*!
     \overload
 
-    Strokes the \a path with current stroke style and belonging into \a
+    Strokes the \a path with the current stroke style and belonging into \a
     pathGroup. Painting through QCanvasPath is optimal when the path
-    contains more commands is mostly static.
+    contains more commands and is mostly static.
 
     When \a pathGroup is \c -1, the path's rendering-related data will not be
-    cached. This is the default. To request the caching of path data, pass a
-    value equal or greater to \c 0. More information about using path cache
+    cached. This is the default. To request caching of path data, pass a
+    value equal to or greater than \c 0. More information about using path cache
     groups can be found in the \l{QCanvasPath} documentation.
 
     Calling beginPath() before this method is not required.
@@ -1898,7 +1898,7 @@ void QCanvasPainter::setStencilClip(const QVectorPath &clipPath)
 // *** Direct drawing ***
 
 /*!
-    Draws a filled rectangle into specified position ( \a x, \a y) at size \a width, \a height.
+    Draws a filled rectangle into the specified position ( \a x, \a y) with size \a width, \a height.
     \note This is provided for convenience. When filling more than just a single rect,
     prefer using rect().
     \table
@@ -1969,7 +1969,7 @@ void QCanvasPainter::clearRect(float x, float y, float width, float height)
 */
 
 /*!
-    Draws a stoked rectangle into specified position ( \a x, \a y) at size \a width, \a height.
+    Draws a stroked rectangle into the specified position ( \a x, \a y) with size \a width, \a height.
     \note This is provided for convenience. When stroking more than just a single rect,
     prefer using rect().
     \table
@@ -1998,7 +1998,7 @@ void QCanvasPainter::strokeRect(float x, float y, float width, float height)
     \fn void QCanvasPainter::strokeRect(const QRectF &rect)
     \overload
 
-    Draws a stoked rectangle into \a rect.
+    Draws a stroked rectangle into \a rect.
     This is an overloaded method using QRectF.
     \note This is provided for convenience. When stroking more than just a single rect,
     prefer using rect().
@@ -2007,8 +2007,8 @@ void QCanvasPainter::strokeRect(float x, float y, float width, float height)
 // *** Shadows ***
 
 /*!
-    Draws a box \a shadow. The shadow will be painted with the
-    position, size, color, blur etc. set in the \a shadow.
+    Draws a box \a shadow. The shadow will be painted with
+    position, size, color, blur etc. defined by \a shadow.
     Calling beginPath() before this method is not required.
     \note To visually see the area covered by drawBoxShadow(), set
     \c QCPAINTER_DEBUG_SHADOW_RECT environment variable.
@@ -2296,11 +2296,11 @@ void QCanvasPainter::setTextLineHeight(float height)
 }
 
 /*!
-    Set the current text antialiasing amount. The value \a antialias
-    is multiplier to normal antialiasing, meaning that \c 0.0 disables
+    Sets the current text antialiasing amount. The value \a antialias
+    is a multiplier to normal antialiasing, meaning that \c 0.0 disables
     antialiasing and 2.0 doubles it. The default value is 1.0.
 
-    \note Due to the used text antialiasing technique (SDF),
+    \note Due to the text antialiasing technique used (SDF),
     the maximum antialiasing amount is quite limited and this
     affects less when the font size is small.
     \table
@@ -2329,7 +2329,7 @@ void QCanvasPainter::setTextAntialias(float antialias)
 }
 
 /*!
-    Draws \a text string at specified location ( \a x, \a y), with current textAlign and textBaseline.
+    Draws \a text string at the specified location ( \a x, \a y), with current textAlign and textBaseline.
     To make the text wrap into multiple lines, set optional \a maxWidth parameter to preferred
     row width in pixels. White space is stripped at the beginning of the rows,
     the text is split at word boundaries or when new-line characters are encountered.
@@ -2345,7 +2345,7 @@ void QCanvasPainter::fillText(const QString &text, float x, float y, float maxWi
     \fn void QCanvasPainter::fillText(const QString &text, QPointF point, float maxWidth)
     \overload
 
-    Draws \a text string at specified \a point, with current textAlign and textBaseline.
+    Draws \a text string at the specified \a point, with current textAlign and textBaseline.
     To make the text wrap into multiple lines, set optional \a maxWidth parameter to preferred
     row width in pixels. White space is stripped at the beginning of the rows,
     the text is split at word boundaries or when new-line characters are encountered.
@@ -2426,7 +2426,7 @@ QRectF QCanvasPainter::textBoundingBox(const QString &text, const QRectF &rect)
 }
 
 /*!
-    Set the current antialiasing amount to \a antialias in pixels.
+    Sets the current antialiasing amount to \a antialias in pixels.
     More antialias means smoother painting. This only affects fill and stroke painting,
     not images or texts.
     The default value is \c 1.0 and the maximum value is \c 10.0.
@@ -2552,7 +2552,7 @@ float QCanvasPainter::ptToPx(float pt)
     Adds \a image with \a flags available for the painter as a texture.
     Returns QCanvasImage with the texture id and other information about the image.
     Returned QCanvasImage can then be used with \l drawImage and \l QCanvasImagePattern.
-    After calling this method, \a image QImage does not need be kept in memory.
+    After calling this method, the \a image QImage does not need to be kept in memory.
 
     Calling with the same \a image is a cheap operation, since a cache hit is
     expected.
@@ -2621,7 +2621,7 @@ QCanvasImage QCanvasPainter::addImage(const QCanvasOffscreenCanvas &canvas, QCan
     \note Removed images can not be used in paint operations anymore.
 
     \note Resources such as the textures created with the underlying 3D API may
-    not get released immediately. Such operations may get defered to subsequent
+    not get released immediately. Such operations may get deferred to subsequent
     frames, typically when this QCanvasPainter begins painting again after the active
     set of draw calls has been submitted.
 
