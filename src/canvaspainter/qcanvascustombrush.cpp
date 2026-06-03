@@ -8,6 +8,7 @@
 #include "qcanvascustombrush_p.h"
 #include <QFile>
 #include <QDebug>
+#include <QDataStream>
 
 QT_BEGIN_NAMESPACE
 
@@ -204,6 +205,74 @@ bool comparesEqual(const QCanvasCustomBrush &lhs, const QCanvasCustomBrush &rhs)
 
     return true;
 }
+
+#ifndef QT_NO_DATASTREAM
+/*!
+    \fn QDataStream &operator<<(QDataStream &stream, const QCanvasCustomBrush &brush)
+    \relates QCanvasCustomBrush
+
+    Writes the given \a brush to the given \a stream and returns a
+    reference to the \a stream.
+
+    \note This function serializes the shaders loaded from the .qsb files, not
+    the filenames.
+
+    \sa {Serializing Qt Data Types}
+*/
+
+QDataStream &operator<<(QDataStream &s, const QCanvasCustomBrush &b)
+{
+    // Avoid serializing null QShaders to preserve equality after writing and
+    // reading back a custom brush to/from a stream. This is because a QShader
+    // returned by fromSerialized() is never "null".
+    s << b.d->fragmentShader.isValid();
+    if (b.d->fragmentShader.isValid())
+        s << b.d->fragmentShader.serialized();
+    s << b.d->vertexShader.isValid();
+    if (b.d->vertexShader.isValid())
+        s << b.d->vertexShader.serialized();
+    s << b.d->timeRunning;
+    s << b.d->time;
+    for (size_t i = 0; i < std::size(b.d->data); ++i)
+        s << b.d->data[i];
+    return s;
+}
+
+/*!
+    \fn QDataStream &operator>>(QDataStream &stream, QCanvasCustomBrush &brush)
+    \relates QCanvasCustomBrush
+
+    Reads the given \a brush from the given \a stream and returns a
+    reference to the \a stream.
+
+    \sa {Serializing Qt Data Types}
+*/
+
+QDataStream &operator>>(QDataStream &s, QCanvasCustomBrush &b)
+{
+    b.detach();
+    b.d->fragmentShader = {};
+    b.d->vertexShader = {};
+    bool hasFragmentShader, hasVertexShader;
+    s >> hasFragmentShader;
+    if (hasFragmentShader) {
+        QByteArray fragmentShaderData;
+        s >> fragmentShaderData;
+        b.d->fragmentShader = QShader::fromSerialized(fragmentShaderData);
+    }
+    s >> hasVertexShader;
+    if (hasVertexShader) {
+        QByteArray vertexShaderData;
+        s >> vertexShaderData;
+        b.d->vertexShader = QShader::fromSerialized(vertexShaderData);
+    }
+    s >> b.d->timeRunning;
+    s >> b.d->time;
+    for (size_t i = 0; i < std::size(b.d->data); ++i)
+        s >> b.d->data[i];
+    return s;
+}
+#endif // QT_NO_DATASTREAM
 
 #ifndef QT_NO_DEBUG_STREAM
 /*!

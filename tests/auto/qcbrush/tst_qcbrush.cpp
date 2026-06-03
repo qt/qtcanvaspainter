@@ -264,6 +264,26 @@ void tst_QCanvasBrush::testDataStreams()
         sr >> gpStreamed;
     }
     QCOMPARE(gp1, gpStreamed);
+
+    // QCanvasCustomBrush
+    QCanvasCustomBrush cb1;
+    cb1.setTimeRunning(true);
+    cb1.setData1(QVector4D(1.0f, 2.0f, 3.0f, 4.0f));
+    cb1.setData2(QVector4D(5.0f, 6.0f, 7.0f, 8.0f));
+    cb1.setData3(QVector4D(9.0f, 10.0f, 11.0f, 12.0f));
+    cb1.setData4(QVector4D(13.0f, 14.0f, 15.0f, 16.0f));
+    QCanvasCustomBrush cb2 = cb1;
+    QCOMPARE(cb1, cb2);
+    {
+        QDataStream sw(&data, QIODevice::WriteOnly);
+        sw << cb1;
+    }
+    QCanvasCustomBrush cbStreamed;
+    {
+        QDataStream sr(&data, QIODevice::ReadOnly);
+        sr >> cbStreamed;
+    }
+    QCOMPARE(cb1, cbStreamed);
 }
 
 void tst_QCanvasBrush::testDebugs()
