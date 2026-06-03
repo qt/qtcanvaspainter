@@ -806,7 +806,8 @@ QCRHITexture *QCPainterRhiRenderer::renderCreateNativeTexture(QRhiTexture *textu
 
     tex->width = texture->pixelSize().width();
     tex->height = texture->pixelSize().height();
-    tex->flags = flags | QCanvasPainter::ImageFlag::NativeTexture; // so 'texture' is not owned by tex
+    tex->flags = flags;
+    tex->own = false; // we do not take ownership of texture
     tex->tex = texture;
 
     if (flags & QCanvasPainter::ImageFlag::GenerateMipmaps) {
@@ -885,6 +886,7 @@ int QCPainterRhiRenderer::renderCreateTexture(QCTextureFormat format, int w, int
     tex->width = w;
     tex->height = h;
     tex->flags = imageFlags;
+    tex->own = true;
     tex->tex = t;
 
     QRhiResourceUpdateBatch *u = resourceUpdateBatch();
@@ -907,7 +909,7 @@ bool QCPainterRhiRenderer::renderDeleteTexture(int image)
         if (tex->id == image) {
             // Delete QRhiTexture (unless not owned), but leave QCRHITexture
             // to be reused.
-            if (!tex->flags.testFlag(QCanvasPainter::ImageFlag::NativeTexture))
+            if (tex->own)
                 delete tex->tex;
             tex->tex = nullptr;
             tex->id = 0;
@@ -2771,8 +2773,7 @@ void QCPainterRhiRenderer::renderDelete()
         return;
 
     for (int i = 0; i < rhiCtx->texturesCount; i++) {
-        if (rhiCtx->textures[i].tex
-            && !(rhiCtx->textures[i].flags.testFlag(QCanvasPainter::ImageFlag::NativeTexture)))
+        if (rhiCtx->textures[i].own)
             delete rhiCtx->textures[i].tex;
     }
     rhiCtx->textures.clear();

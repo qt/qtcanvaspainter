@@ -54,7 +54,6 @@ public:
         WrapAnywhere,
     };
 
-    // TODO: NativeTexture is used internally, so remove from this public API?
     enum class ImageFlag {
         GenerateMipmaps = 1 << 0,
         RepeatX = 1 << 1,
@@ -63,7 +62,6 @@ public:
         FlipY = 1 << 3,
         Premultiplied = 1 << 4,
         Nearest = 1 << 5,
-        NativeTexture = 1 << 6,
     };
     Q_DECLARE_FLAGS(ImageFlags, ImageFlag)
 

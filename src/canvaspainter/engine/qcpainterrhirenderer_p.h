@@ -44,6 +44,7 @@ struct QCRHITexture
     int width = 0;
     int height = 0;
     QCanvasPainter::ImageFlags flags = {};
+    bool own = true;
 };
 
 struct QCRhiCanvas
