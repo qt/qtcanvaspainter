@@ -373,7 +373,6 @@ Q_LOGGING_CATEGORY(QC_INFO, "qt.qcpainter.general")
     \value FlipY Flips (inverses) image in Y direction when rendered.
     \value Premultiplied Image data has premultiplied alpha.
     \value Nearest Image interpolation is Nearest instead Linear
-    \value NativeTexture Signifies this is a texture outside of QCanvasPainter.
 */
 
 /*!
@@ -2576,9 +2575,8 @@ QCanvasImage QCanvasPainter::addImage(const QImage &image, QCanvasPainter::Image
 /*!
     \overload
 
-    Adds \a texture with \a flags available for the painter as a texture. The
-    flag NativeTexture is set implicitly. The returned QCanvasImage can be used with
-    \l drawImage and \l QCanvasImagePattern.
+    Adds \a texture with \a flags available for the painter as a texture.
+    The returned QCanvasImage can be used with \l drawImage and \l QCanvasImagePattern.
 
     \note The ownership of \a texture is \b not taken.
 
