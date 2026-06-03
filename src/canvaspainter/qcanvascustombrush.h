@@ -20,8 +20,6 @@ class QShader;
 
 QT_DECLARE_QESDP_SPECIALIZATION_DTOR(QCanvasCustomBrushPrivate)
 
-// TODO: Should this have QDataStream support?
-
 class QCanvasCustomBrush
 {
 public:
@@ -59,10 +57,19 @@ private:
     explicit QCanvasCustomBrush(QCanvasCustomBrushPrivate *p);
     friend class QCanvasCustomBrushPrivate;
     QExplicitlySharedDataPointer<QCanvasCustomBrushPrivate> d;
+#ifndef QT_NO_DATASTREAM
+    friend Q_CANVASPAINTER_EXPORT QDataStream &operator<<(QDataStream &, const QCanvasCustomBrush &);
+    friend Q_CANVASPAINTER_EXPORT QDataStream &operator>>(QDataStream &, QCanvasCustomBrush &);
+#endif
 #ifndef QT_NO_DEBUG_STREAM
     friend Q_CANVASPAINTER_EXPORT QDebug operator<<(QDebug, const QCanvasCustomBrush &);
 #endif
 };
+
+#ifndef QT_NO_DATASTREAM
+Q_CANVASPAINTER_EXPORT QDataStream &operator<<(QDataStream &, const QCanvasCustomBrush &);
+Q_CANVASPAINTER_EXPORT QDataStream &operator>>(QDataStream &, QCanvasCustomBrush &);
+#endif
 
 #ifndef QT_NO_DEBUG_STREAM
 Q_CANVASPAINTER_EXPORT QDebug operator<<(QDebug, const QCanvasCustomBrush &);
