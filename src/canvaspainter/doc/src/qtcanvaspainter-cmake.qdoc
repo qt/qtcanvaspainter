@@ -1,0 +1,161 @@
+// Copyright (C) 2025 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \page qtcanvaspainter-qc-add-shaders.html
+    \ingroup cmake-commands-qtcanvaspainter
+    \title qc_add_shaders
+    \keyword qc_add_shaders
+    \summary {Prepares custom brush shaders and adds them to the Qt resource system}
+    \brief Prepares QCanvasCustomBrush shaders and adds them to the Qt resource system.
+
+    \section1 Synopsis
+
+    \badcode
+    qc_add_shaders(target resource_name
+        FILES file1 [file2 ...]
+        [PREFIX resource_path]
+        [BASE base_path]
+        [OUTPUTS output1 [output2 ...]]
+        [DEFINES "name1=value1;name2=value2"]
+        [OUTPUT_TARGETS out_targets_var]
+    )
+    \endcode
+
+    \section1 Description
+
+    The \l{Qt Canvas Painter} module provides a CMake macro file with the \c
+    qc_add_shaders function, which applications can use in their \c
+    {CMakeLists.txt} to compile the shaders used by \l QCanvasCustomBrush.
+
+    \note To make the function available, the \c find_package call must request
+    the \c CanvasPainter component:
+
+    \badcode
+    find_package(Qt6 REQUIRED COMPONENTS CanvasPainter)
+    \endcode
+
+    When using \c qc_add_shaders, the build system invokes a Qt Canvas Painter
+    preprocessing step followed by the \l{QSB Manual}{qsb} tool automatically,
+    and the resulting \c{.qsb} files get added to the resource system
+    implicitly. At run time, the application accesses the generated \c{.qsb}
+    file via the Qt resource system and passes its path to a \l
+    QCanvasCustomBrush.
+
+    \section1 Example
+
+    Assume that we have an application that wants to render with a custom brush
+    whose fragment shader is implemented in \c{brush1.frag}. The
+    QCanvasCustomBrush refers to \c{brush1.frag.qsb}. To ensure this \c{.qsb}
+    file gets generated at build time:
+
+    \badcode
+    find_package(Qt6 REQUIRED COMPONENTS CanvasPainter)
+
+    qt_add_executable(exampleapp
+        main.cpp
+    )
+
+    qc_add_shaders(exampleapp "exampleapp_custombrush_shaders"
+        PREFIX
+            "/shaders"
+        FILES
+            brush1.frag
+    )
+    \endcode
+
+    The above is sufficient to enable the application to access
+    \c{:/shaders/brush1.frag.qsb} at run time:
+
+    \code
+        QCanvasCustomBrush customBrush(":/shaders/brush1.frag.qsb");
+    \endcode
+
+    The original Vulkan-style GLSL source code (\c{brush1.frag}) is not included
+    in the application's executable and does not need to be shipped. If there
+    are errors in the shader code, the compiler messages are printed at build
+    time and the build fails. When changing the shader source file, the changes
+    are picked up automatically in the next build, like they would for C++ and
+    other source files.
+
+    \section1 Relationship to qt_add_shaders
+
+    \c qc_add_shaders is dedicated to shaders that are used with \l
+    QCanvasCustomBrush. It performs additional preprocessing at build time
+    before internally invoking the standard \l{qt_add_shaders}{qt_add_shaders}
+    from the \l{Qt Shader Tools} module.
+
+    \note Shaders for custom brushes must always contain a \c QC_INCLUDE
+    statement, either with \c{"customfrag.glsl"} or \c{"customvert.glsl"}, and
+    must be added to the project via \c qc_add_shaders. The standard \c
+    qt_add_shaders function is not suitable for custom brush shaders, because it
+    does not perform the Qt Canvas Painter specific preprocessing.
+
+    See \l{Qt Shader Tools Build System Integration} for the general concepts of
+    working with cross-platform shader code in Qt, and \l QCanvasCustomBrush for
+    details on authoring custom brush shaders.
+
+    \section1 Target Languages
+
+    \c qc_add_shaders translates the shader code to a fixed set of targets,
+    suitable for the graphics APIs Qt Canvas Painter supports:
+
+    \list
+    \li SPIR-V (for Vulkan)
+    \li GLSL \c{300 es} (for OpenGL ES 3.0 and newer)
+    \li GLSL \c 150 (for OpenGL 3.2 and newer)
+    \li GLSL \c 130 (for OpenGL 3.0, mainly to support older software OpenGL rasterizers)
+    \li HLSL \c{5.0} (for Direct 3D)
+    \li MSL \c{1.2} (for Metal)
+    \endlist
+
+    Unlike \l{qt_add_shaders}, there is currently no further
+    configurability offered for the set of target languages and versions.
+
+    \section1 Arguments
+
+    The type of shader is deduced from the file extension, which must be \c
+    .frag for fragment shaders or \c .vert for vertex shaders.
+
+    The first two arguments are positional: \c target is the target the
+    generated resources are added to, and \c resource_name is a name for the
+    generated resource. The name must be unique for each \c qc_add_shaders call
+    within the project.
+
+    \note The \c target passed as the first argument must exist before \c
+    qc_add_shaders is called.
+
+    \note Multiple \c qc_add_shaders calls are supported and each must use a
+    unique \c resource_name.
+
+    The remaining arguments are keyword based:
+
+    \list
+
+    \li \c FILES - The list of shader source files (\c{.frag} or \c{.vert}) to
+    compile. This keyword is mandatory.
+
+    \li \c PREFIX - The resource path prefix under which the generated \c{.qsb}
+    files are made available in the resource system.
+
+    \li \c BASE - A base path that is stripped from the generated resource
+    aliases, analogous to the \c BASE argument of \c qt_add_resources.
+
+    \li \c OUTPUTS - When the name of a generated \c{.qsb} file needs to be
+    different from the source, this list can contain an entry for each item in
+    \c FILES, specifying the output file name. This is typically used when one
+    shader source serves as the input for multiple \c{.qsb} files that differ
+    via \c DEFINES.
+
+    \li \c DEFINES - Defines macros that are active during shader compilation.
+    The list has the form \c{"name1=value1;name2=value2"}.
+
+    \li \c OUTPUT_TARGETS - When using \c qc_add_shaders with static libraries,
+    one or more special targets are generated. Pass a variable name here to
+    retrieve these targets, for example to perform additional processing on
+    them.
+
+    \endlist
+
+    \sa QCanvasCustomBrush, {Qt Shader Tools Build System Integration}
+*/

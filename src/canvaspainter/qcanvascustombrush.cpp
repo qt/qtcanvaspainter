@@ -63,7 +63,7 @@ static QShader getCustomShader(const QString &name)
     automatically every frame, and can be used to drive animated content.
 
     Shaders that are used with QCanvasCustomBrush must always be added to the
-    application project via the \c qc_add_shaders() CMake function, provided by
+    application project via the \l qc_add_shaders CMake function, provided by
     the Qt Canvas Painter package. This function performs additional
     preprocessing at build time before internally invoking the standard \c
     qt_add_shaders().
@@ -91,7 +91,19 @@ static QShader getCustomShader(const QString &name)
         painter->setFillStyle(customBrush);
     \endcode
 
-    \sa {Qt Canvas Painter - Gallery Example}
+    See \l qc_add_shaders for the details of the CMake function, and \l{Qt
+    Shader Tools}{the Qt Shader Tools module documentation} for working with
+    cross-platform shader code in Qt.
+
+    \note Shaders for custom brushes must always contain the \c QC_INCLUDE
+    statement and must be added to the project via the \l qc_add_shaders CMake
+    function. qt_add_shaders() is not suitable for custom brush shaders.
+
+    \note qc_add_shaders translates the shader code to the following targets:
+    GLSL \c{300 es}, \c 150, \c 130, HLSL \c{5.0}, and MSL \c{1.2}. There is
+    currently no further configurability offered for this.
+
+    \sa qc_add_shaders, {Qt Canvas Painter - Gallery Example}
 */
 
 QT_DEFINE_QESDP_SPECIALIZATION_DTOR(QCanvasCustomBrushPrivate)
