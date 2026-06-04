@@ -173,8 +173,6 @@ public:
     Q_CANVASPAINTER_EXPORT void circle(float centerX, float centerY, float radius);
     inline void circle(QPointF centerPoint, float radius);
 
-    // TODO: Consider if we want to have this as functionality
-    // doesn't fully cover QPainterPath (like fillRule).
     Q_CANVASPAINTER_EXPORT void addPath(const QPainterPath &path);
     Q_CANVASPAINTER_EXPORT void addPath(const QCanvasPath &path,
                                         const QTransform &transform = QTransform());
