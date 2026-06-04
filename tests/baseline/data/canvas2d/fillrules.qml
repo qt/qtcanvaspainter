@@ -61,6 +61,50 @@ Rectangle {
             ctx.fill(windingPath);
             ctx.stroke(windingPath);
 
+            // Test highQualityStroking
+            ctx.resetTransform();
+            // Increase the line width and reduce opacity to get
+            // the stroking flaws visible.
+            ctx.lineWidth = 20;
+            ctx.globalAlpha = 0.5;
+            ctx.lineCap = "round";
+            ctx.lineJoin = "round";
+            let myPath = ctx.createPath2D();
+            myPath.moveTo(30, 300);
+            myPath.lineTo(40, 300);
+            myPath.lineTo(30, 320);
+            myPath.lineTo(80, 300);
+            myPath.lineTo(80, 310);
+            ctx.highQualityStroking = true;
+            ctx.stroke(myPath);
+            ctx.highQualityStroking = false;
+            ctx.translate(0, 50);
+            ctx.stroke(myPath);
+
+            // Test windingEnforce
+            ctx.reset();
+            ctx.fillStyle = "red";
+            ctx.strokeStyle = "white";
+            function paintTriangles(ctx) {
+                ctx.beginPath();
+                // Outer shape, counterclockwise
+                ctx.moveTo(120, 300);
+                ctx.lineTo(180, 380);
+                ctx.lineTo(240, 300);
+                ctx.closePath();
+                // Inner shape, clockwise
+                ctx.moveTo(180, 305);
+                ctx.lineTo(210, 335);
+                ctx.lineTo(150, 335);
+                ctx.closePath();
+                ctx.fill();
+                ctx.stroke();
+            }
+            ctx.windingEnforce = false;
+            paintTriangles(ctx)
+            ctx.translate(140, 0);
+            ctx.windingEnforce = true;
+            paintTriangles(ctx)
         }
     }
 }

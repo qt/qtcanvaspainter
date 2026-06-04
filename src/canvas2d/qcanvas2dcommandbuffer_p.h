@@ -327,6 +327,18 @@ public:
         ints << int(winding);
     }
 
+    inline void setHighQualityStroking(bool enabled)
+    {
+        commands << QCanvas2DContext::SetHighQualityStroking;
+        bools << enabled;
+    }
+
+    inline void setWindingEnforce(bool enabled)
+    {
+        commands << QCanvas2DContext::SetWindingEnforce;
+        bools << enabled;
+    }
+
     inline void clip(bool enabled, const QPainterPath &path)
     {
         commands << QCanvas2DContext::Clip;
