@@ -37,7 +37,7 @@ qhp.QtCanvasPainter.subprojects.classes.sortPages  = true
 
 tagfile                 = ../../../doc/qtcanvaspainter/qtcanvaspainter.tags
 
-depends += qtdoc qtcmake qmake qtcore qtgui qtwidgets qtqml qtquick
+depends += qtdoc qtcmake qmake qtcore qtgui qtwidgets qtqml qtquick qtshadertools
 
 headerdirs  += ..
 

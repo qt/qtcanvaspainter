@@ -31,6 +31,9 @@ does.
 
 \include {module-use.qdocinc} {building with cmake} {CanvasPainter}
 
+Shaders used with \l QCanvasCustomBrush are added to the project with the
+\l qc_add_shaders CMake function.
+
 \section1 Class Reference
 \list
 \li \l{Qt Canvas Painter C++ Classes}
