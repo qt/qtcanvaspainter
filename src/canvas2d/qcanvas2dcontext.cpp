@@ -240,6 +240,10 @@ struct QCanvasJSContext2D : public QV4::Object
     static QV4::ReturnedValue method_set_textAntialias(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc);
     static QV4::ReturnedValue method_get_textLineHeight(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc);
     static QV4::ReturnedValue method_set_textLineHeight(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc);
+    static QV4::ReturnedValue method_get_highQualityStroking(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc);
+    static QV4::ReturnedValue method_set_highQualityStroking(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc);
+    static QV4::ReturnedValue method_get_windingEnforce(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc);
+    static QV4::ReturnedValue method_set_windingEnforce(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc);
 };
 
 DEFINE_OBJECT_VTABLE(QCanvasJSContext2D);
@@ -3178,6 +3182,120 @@ QV4::ReturnedValue QCanvasJSContext2D::method_set_textLineHeight(const QV4::Func
     RETURN_UNDEFINED();
 }
 
+/*!
+    \qmlproperty bool Canvas2DContext::highQualityStroking
+
+    Holds the current high quality stroking enabling status.
+    Setting this to \c true gives a more correct rendering in some less common
+    cases where stroking overlaps and doesn't have full opacity. Enabling it
+    results into higher rendering cost. The default value is \c false.
+    \table
+    \row
+    \li \inlineimage canvas2d-highqualitystroking.webp
+    \li
+    \code
+    // Increase the line width and reduce opacity to get
+    // the stroking flaws visible.
+    ctx.lineWidth = 20;
+    ctx.globalAlpha = 0.5;
+    if (myPath.isEmpty()) {
+        myPath.moveTo(30, 30);
+        myPath.lineTo(40, 30);
+        myPath.lineTo(80, 170);
+        myPath.lineTo(80, 30);
+        myPath.lineTo(70, 30);
+    }
+    ctx.highQualityStroking = true;
+    ctx.stroke(myPath);
+    ctx.highQualityStroking = false;
+    ctx.translate(90, 0);
+    ctx.stroke(myPath);
+    \endcode
+    \endtable
+*/
+QV4::ReturnedValue QCanvasJSContext2D::method_get_highQualityStroking(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *, int)
+{
+    QV4::Scope scope(b);
+    QV4::Scoped<QCanvasJSContext2D> r(scope, *thisObject);
+    CHECK_CONTEXT(r)
+
+    RETURN_RESULT(QV4::Encode(r->d()->context()->state.highQualityStroking));
+}
+
+QV4::ReturnedValue QCanvasJSContext2D::method_set_highQualityStroking(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc)
+{
+    QV4::Scope scope(b);
+    QV4::Scoped<QCanvasJSContext2D> r(scope, *thisObject);
+    CHECK_CONTEXT(r)
+
+    if (argc >= 1) {
+        bool value = argv[0].toBoolean();
+
+        if (value != r->d()->context()->state.highQualityStroking) {
+            r->d()->context()->state.highQualityStroking = value;
+            r->d()->context()->buffer()->setHighQualityStroking(value);
+        }
+    }
+    RETURN_UNDEFINED();
+}
+
+/*!
+    \qmlproperty bool Canvas2DContext::windingEnforce
+
+    Holds the current winding enforcing enabling status.
+    Setting this to \c false disables enforcing
+    of path winding to match what has been set into setPathWinding().
+    Disabling allows e.g. creating holes into paths by adding the points
+    in clock wise order. Disabling can also increase the performance.
+    The default value is \c true.
+    \table
+    \row
+    \li \inlineimage canvas2d-pathwinding2.webp
+    \li
+    \code
+    ctx.windingEnforce = false;
+    ctx.beginPath();
+    // Outer shape, counterclockwise
+    ctx.moveTo(20, 20);
+    ctx.lineTo(100, 180);
+    ctx.lineTo(180, 20);
+    ctx.closePath();
+    // Inner shape, clockwise
+    ctx.moveTo(100, 40);
+    ctx.lineTo(125, 90);
+    ctx.lineTo(75, 90);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+    \endcode
+    \endtable
+*/
+QV4::ReturnedValue QCanvasJSContext2D::method_get_windingEnforce(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *, int)
+{
+    QV4::Scope scope(b);
+    QV4::Scoped<QCanvasJSContext2D> r(scope, *thisObject);
+    CHECK_CONTEXT(r)
+
+    RETURN_RESULT(QV4::Encode(r->d()->context()->state.windingEnforce));
+}
+
+QV4::ReturnedValue QCanvasJSContext2D::method_set_windingEnforce(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc)
+{
+    QV4::Scope scope(b);
+    QV4::Scoped<QCanvasJSContext2D> r(scope, *thisObject);
+    CHECK_CONTEXT(r)
+
+    if (argc >= 1) {
+        bool value = argv[0].toBoolean();
+
+        if (value != r->d()->context()->state.windingEnforce) {
+            r->d()->context()->state.windingEnforce = value;
+            r->d()->context()->buffer()->setWindingEnforce(value);
+        }
+    }
+    RETURN_UNDEFINED();
+}
+
 QV4::ReturnedValue QCanvasJSContext2DPrototype::method_getLineDash(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *, int)
 {
     QV4::Scope scope(b);
@@ -4528,6 +4646,8 @@ QCanvas2DContextEngineData::QCanvas2DContextEngineData(QV4::ExecutionEngine *v4)
     proto->defineAccessorProperty(QStringLiteral("antialias"), QCanvasJSContext2D::method_get_antialias, QCanvasJSContext2D::method_set_antialias);
     proto->defineAccessorProperty(QStringLiteral("textAntialias"), QCanvasJSContext2D::method_get_textAntialias, QCanvasJSContext2D::method_set_textAntialias);
     proto->defineAccessorProperty(QStringLiteral("textLineHeight"), QCanvasJSContext2D::method_get_textLineHeight, QCanvasJSContext2D::method_set_textLineHeight);
+    proto->defineAccessorProperty(QStringLiteral("highQualityStroking"), QCanvasJSContext2D::method_get_highQualityStroking, QCanvasJSContext2D::method_set_highQualityStroking);
+    proto->defineAccessorProperty(QStringLiteral("windingEnforce"), QCanvasJSContext2D::method_get_windingEnforce, QCanvasJSContext2D::method_set_windingEnforce);
     contextPrototype = proto;
 }
 
@@ -4595,6 +4715,12 @@ void QCanvas2DContext::popState()
 
     if (newState.pathWinding != state.pathWinding)
         buffer()->setPathWinding(newState.pathWinding);
+
+    if (newState.highQualityStroking != state.highQualityStroking)
+        buffer()->setHighQualityStroking(newState.highQualityStroking);
+
+    if (newState.windingEnforce != state.windingEnforce)
+        buffer()->setWindingEnforce(newState.windingEnforce);
 
     if (newState.miterLimit != state.miterLimit)
         buffer()->setMiterLimit(newState.miterLimit);

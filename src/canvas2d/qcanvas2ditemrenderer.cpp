@@ -334,6 +334,18 @@ void QCanvas2DItemRenderer::paint(QCanvasPainter *painter)
             m_painter->setPathWinding(winding);
             break;
         }
+        case QCanvas2DContext::SetHighQualityStroking:
+        {
+            m_state.highQualityStroking = takeBool();
+            m_painter->setHighQualityStroking(m_state.highQualityStroking);
+            break;
+        }
+        case QCanvas2DContext::SetWindingEnforce:
+        {
+            m_state.windingEnforce = takeBool();
+            m_painter->setWindingEnforce(m_state.windingEnforce);
+            break;
+        }
         case QCanvas2DContext::Clip:
         {
             m_state.clip = takeBool();

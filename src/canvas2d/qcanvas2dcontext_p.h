@@ -90,6 +90,8 @@ public:
         AddCanvasPath,
         AddCanvasPathRange,
         SetPathWinding,
+        SetHighQualityStroking,
+        SetWindingEnforce,
         Clip,
         ClipRect,
         ResetClipping,
@@ -129,6 +131,8 @@ public:
             : strokeColor(QColor(Qt::black))
             , fillColor(QColor(Qt::black))
             , clip(false)
+            , highQualityStroking(false)
+            , windingEnforce(true)
             , fillRule(QCanvasPainter::FillRule::NonZero)
             , globalAlpha(1.0)
             , globalBrightness(1.0)
@@ -158,6 +162,8 @@ public:
         QColor strokeColor;
         QColor fillColor;
         bool clip:1;
+        bool highQualityStroking:1;
+        bool windingEnforce:1;
         QCanvasPainter::FillRule fillRule;
         qreal globalAlpha;
         qreal globalBrightness;
