@@ -54,7 +54,7 @@ qt_internal_add_resource(tst_baseline_canvaspainting "resources"
         "images/tiger.json"
 )
 
-qc_add_shaders(tst_baseline_canvaspainting "custombrushes"
+qt_add_custom_brush_shaders(tst_baseline_canvaspainting "custombrushes"
     PREFIX
         "/"
     BASE
