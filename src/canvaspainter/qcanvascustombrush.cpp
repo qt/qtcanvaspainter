@@ -42,7 +42,156 @@ static QShader getCustomShader(const QString &name)
     makes available a uniform block, the image and font textures, and a few
     helper functions.
 
-    Below is a simple example of a custom fragment shader:
+    \c iTime is an example of a commonly used member in the built-in uniform
+    block. Calling setTimeRunning() with \c true will make this value update
+    automatically every frame, and can be used to drive animated content.
+
+    \section1 Built-in Shader Inputs, Uniforms, and Helper Functions
+
+    The \c QC_INCLUDE statement is not a standard preprocessor directive. It is
+    handled by qt_add_custom_brush_shaders() at build time, before the shader is
+    passed to the regular shader compilation pipeline. The statement is replaced
+    by a block of GLSL source code that declares the shader inputs and outputs,
+    the texture samplers, a shared uniform block, and, for fragment shaders, a
+    set of helper functions. Use \c{"customvert.glsl"} in vertex shaders and
+    \c{"customfrag.glsl"} in fragment shaders.
+
+    This means that a custom brush shader does not declare these inputs,
+    outputs, samplers, or uniforms itself; they are all made available by the
+    \c QC_INCLUDE statement.
+
+    \section2 Vertex Shader Interface
+
+    A vertex shader that includes \c{"customvert.glsl"} has the following inputs
+    and outputs declared:
+
+    \list
+    \li \c{in vec2 vertex} - The vertex position in the canvas coordinate
+        system.
+    \li \c{in vec2 tcoord} - The texture coordinate associated with the vertex.
+    \li \c{out vec2 texCoord} - Forwarded to the fragment shader. Typically set
+        to \c tcoord.
+    \li \c{out vec2 fragCoord} - Forwarded to the fragment shader. Typically set
+        to \c vertex.
+    \endlist
+
+    \note These variables are available implicitly via the \c QC_INCLUDE
+    directive. The vertex shader snippet itself must not declare them.
+
+    In addition, the following transformation-related uniforms are available:
+
+    \list
+    \li \c{vec4 viewRect} - The viewport rectangle, as (x, y, width, height).
+    \li \c{int ndcIsYDown} - Non-zero when the normalized device coordinate
+        system has its Y axis pointing downwards, as is the case with some
+        graphics APIs. Take this into account when computing \c gl_Position.
+    \li \c{mat3 vertMatrix} - The current transformation matrix.
+    \endlist
+
+    A vertex shader must write \c gl_Position, and is expected to forward
+    \c texCoord and \c fragCoord to the fragment stage.
+
+    \note Custom vertex shaders are less common. Most custom brushes are
+    expected to use the default, built-in vertex shader in combination with a
+    custom, application-provided fragment shader.
+
+    A typical vertex shader looks like this:
+
+    \code
+        #version 440
+
+        QC_INCLUDE "customvert.glsl"
+
+        void main()
+        {
+            texCoord = tcoord;
+            fragCoord = vertex;
+            vec2 v = (vertMatrix * vec3(vertex, 1.0)).xy;
+            if (ndcIsYDown != 0)
+                gl_Position = vec4(2.0 * (v.x + viewRect.x) / viewRect.z - 1.0,
+                                   -1.0 + 2.0 * (v.y + viewRect.y) / viewRect.w, 0.0, 1.0);
+            else
+                gl_Position = vec4(2.0 * (v.x + viewRect.x) / viewRect.z - 1.0,
+                                   1.0 - 2.0 * (v.y + viewRect.y) / viewRect.w, 0.0, 1.0);
+        }
+    \endcode
+
+    \section2 Fragment Shader Interface
+
+    A fragment shader that includes \c{"customfrag.glsl"} has the following
+    inputs and output declared:
+
+    \list
+    \li \c{in vec2 texCoord} - The interpolated texture coordinate.
+    \li \c{in vec2 fragCoord} - The interpolated fragment position, in the same
+        coordinate system as the geometry. Commonly used to drive procedural
+        effects.
+    \li \c{out vec4 fragColor} - The resulting fragment color, which the shader
+        must write. The expected output uses premultiplied alpha.
+    \endlist
+
+    \note These variables are available implicitly via the \c QC_INCLUDE
+    directive. The fragment shader snippet itself must not declare them.
+
+    Two texture samplers are available:
+
+    \list
+    \li \c{sampler2D tex} - The image texture.
+    \li \c{sampler2D fontTex} - The font texture, holding a signed distance
+        field of the glyphs. Relevant when the brush is used to fill text.
+    \endlist
+
+    The convenience constants \c TAU (equal to 2 * pi) and \c SQRT2 are also
+    defined.
+
+    \section2 Common Uniforms
+
+    Both vertex and fragment shaders that use \c QC_INCLUDE have access to a
+    shared uniform block. The most commonly used members are:
+
+    \list
+    \li \c{float iTime} - A time value, in seconds, that is updated every frame
+        while timeRunning() is \c true. Use it to drive animations. See
+        setTimeRunning().
+    \li \c{vec4 data1}, \c{vec4 data2}, \c{vec4 data3}, \c{vec4 data4} - Custom
+        data exposed to the shader. Set these from C++ via setData1(),
+        setData2(), setData3(), and setData4().
+    \li \c{float globalAlpha} - The painter's current global opacity. Fragment
+        shaders should normally multiply \c fragColor by this value.
+    \li \c{vec4 colorEffects} - The active color effect parameters. Normally
+        applied through applyColorEffects() rather than accessed directly.
+    \li \c{float fontAlphaMin}, \c{float fontAlphaMax} - The signed distance
+        field thresholds used when antialiasing glyphs.
+    \endlist
+
+    \section2 Fragment Shader Helper Functions
+
+    The fragment shader include provides the following helper functions:
+
+    \list
+    \li \c{float clipMask()} - Returns the clip (scissor) coverage, in the
+        [0, 1] range, for the current fragment. Multiply \c fragColor by this
+        value to honor the painter's clipping.
+    \li \c{float antialiasingAlpha()} - Returns the antialiasing coverage, in
+        the [0, 1] range, derived from \c texCoord. Multiply \c fragColor by
+        this value to get antialiased edges.
+    \li \c{float sdfFontAlphaRaw()} - Returns the raw signed distance field
+        value sampled from \c fontTex at \c texCoord, without antialiasing.
+        Apply \c smoothstep() manually as needed.
+    \li \c{float sdfFontAlpha()} - Returns the glyph alpha sampled from
+        \c fontTex at \c texCoord, with the default antialiasing applied based
+        on \c fontAlphaMin and \c fontAlphaMax.
+    \li \c{void applyColorEffects(inout vec4 color)} - Applies the active
+        contrast, brightness, and saturation effects to \c color in place.
+    \endlist
+
+    A typical fragment shader computes \c fragColor, multiplies it by
+    \c globalAlpha, optionally multiplies by \c clipMask() and
+    \c antialiasingAlpha() to support clipping and antialiasing, and finally
+    calls applyColorEffects().
+
+    When text is involved, \c sdfFontAlpha() should be taken into account too. For
+    example:
 
     \code
         #version 440
@@ -58,9 +207,7 @@ static QShader getCustomShader(const QString &name)
         }
     \endcode
 
-    \c iTime is an example of a commonly used member in the built-in uniform
-    block. Calling setTimeRunning() with \c true will make this value update
-    automatically every frame, and can be used to drive animated content.
+    \section1 Adding the Shaders to the Project
 
     Shaders that are used with QCanvasCustomBrush must always be added to the
     application project via the \l qt_add_custom_brush_shaders CMake function, provided by
@@ -77,6 +224,8 @@ static QShader getCustomShader(const QString &name)
                 brush1.frag
         )
     \endcode
+
+    \section1 Using the Brush
 
     At run time, the generated \c{.qsb} file can be used for example like this:
     \code
