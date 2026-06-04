@@ -79,7 +79,7 @@ qt_internal_add_docs(CanvasPainter
     doc/qtcanvaspainter.qdocconf
 )
 
-qc_internal_add_shaders(CanvasPainter "qcshaders"
+qt_internal_add_custom_brush_shaders(CanvasPainter "qcshaders"
     PREFIX
         "/qcshaders"
     BASE
@@ -92,7 +92,7 @@ qc_internal_add_shaders(CanvasPainter "qcshaders"
         engine/qcpainter.frag
 )
 
-qc_internal_add_shaders(CanvasPainter "qcshaders_v_custommatrix"
+qt_internal_add_custom_brush_shaders(CanvasPainter "qcshaders_v_custommatrix"
     PREFIX
         "/qcshaders"
     BASE
@@ -105,7 +105,7 @@ qc_internal_add_shaders(CanvasPainter "qcshaders_v_custommatrix"
         CUSTOM_MATRIX
 )
 
-qc_internal_add_shaders(CanvasPainter "qcshaders_t"
+qt_internal_add_custom_brush_shaders(CanvasPainter "qcshaders_t"
     PREFIX
         "/qcshaders"
     FILES
@@ -116,7 +116,7 @@ qc_internal_add_shaders(CanvasPainter "qcshaders_t"
         TEXT_A
 )
 
-qc_internal_add_shaders(CanvasPainter "qcshaders_aa"
+qt_internal_add_custom_brush_shaders(CanvasPainter "qcshaders_aa"
     PREFIX
         "/qcshaders"
     FILES
@@ -127,7 +127,7 @@ qc_internal_add_shaders(CanvasPainter "qcshaders_aa"
         EDGE_AA
 )
 
-qc_internal_add_shaders(CanvasPainter "qcshaders_aat"
+qt_internal_add_custom_brush_shaders(CanvasPainter "qcshaders_aat"
     PREFIX
         "/qcshaders"
     FILES
@@ -139,7 +139,7 @@ qc_internal_add_shaders(CanvasPainter "qcshaders_aat"
         TEXT_A
 )
 
-qc_internal_add_shaders(CanvasPainter "qcshaders_sc"
+qt_internal_add_custom_brush_shaders(CanvasPainter "qcshaders_sc"
     PREFIX
         "/qcshaders"
     FILES
@@ -150,7 +150,7 @@ qc_internal_add_shaders(CanvasPainter "qcshaders_sc"
         SCISSORING
 )
 
-qc_internal_add_shaders(CanvasPainter "qcshaders_sct"
+qt_internal_add_custom_brush_shaders(CanvasPainter "qcshaders_sct"
     PREFIX
         "/qcshaders"
     FILES
@@ -162,7 +162,7 @@ qc_internal_add_shaders(CanvasPainter "qcshaders_sct"
         TEXT_A
 )
 
-qc_internal_add_shaders(CanvasPainter "qcshaders_aass"
+qt_internal_add_custom_brush_shaders(CanvasPainter "qcshaders_aass"
     PREFIX
         "/qcshaders"
     FILES
@@ -174,7 +174,7 @@ qc_internal_add_shaders(CanvasPainter "qcshaders_aass"
         STENCIL_STROKES
 )
 
-qc_internal_add_shaders(CanvasPainter "qcshaders_aasst"
+qt_internal_add_custom_brush_shaders(CanvasPainter "qcshaders_aasst"
     PREFIX
         "/qcshaders"
     FILES
@@ -187,7 +187,7 @@ qc_internal_add_shaders(CanvasPainter "qcshaders_aasst"
         TEXT_A
 )
 
-qc_internal_add_shaders(CanvasPainter "qcshaders_aasc"
+qt_internal_add_custom_brush_shaders(CanvasPainter "qcshaders_aasc"
     PREFIX
         "/qcshaders"
     FILES
@@ -199,7 +199,7 @@ qc_internal_add_shaders(CanvasPainter "qcshaders_aasc"
         SCISSORING
 )
 
-qc_internal_add_shaders(CanvasPainter "qcshaders_aasct"
+qt_internal_add_custom_brush_shaders(CanvasPainter "qcshaders_aasct"
     PREFIX
         "/qcshaders"
     FILES
@@ -212,7 +212,7 @@ qc_internal_add_shaders(CanvasPainter "qcshaders_aasct"
         TEXT_A
 )
 
-qc_internal_add_shaders(CanvasPainter "qcshaders_aasssc"
+qt_internal_add_custom_brush_shaders(CanvasPainter "qcshaders_aasssc"
     PREFIX
         "/qcshaders"
     FILES
@@ -225,7 +225,7 @@ qc_internal_add_shaders(CanvasPainter "qcshaders_aasssc"
         STENCIL_STROKES
 )
 
-qc_internal_add_shaders(CanvasPainter "qcshaders_aasssct"
+qt_internal_add_custom_brush_shaders(CanvasPainter "qcshaders_aasssct"
     PREFIX
         "/qcshaders"
     FILES

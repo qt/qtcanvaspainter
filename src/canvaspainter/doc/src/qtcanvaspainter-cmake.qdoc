@@ -2,17 +2,17 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
 
 /*!
-    \page qtcanvaspainter-qc-add-shaders.html
+    \page qtcanvaspainter-qt-add-custom-brush-shaders.html
     \ingroup cmake-commands-qtcanvaspainter
-    \title qc_add_shaders
-    \keyword qc_add_shaders
+    \title qt_add_custom_brush_shaders
+    \keyword qt_add_custom_brush_shaders
     \summary {Prepares custom brush shaders and adds them to the Qt resource system}
     \brief Prepares QCanvasCustomBrush shaders and adds them to the Qt resource system.
 
     \section1 Synopsis
 
     \badcode
-    qc_add_shaders(target resource_name
+    qt_add_custom_brush_shaders(target resource_name
         FILES file1 [file2 ...]
         [PREFIX resource_path]
         [BASE base_path]
@@ -25,7 +25,7 @@
     \section1 Description
 
     The \l{Qt Canvas Painter} module provides a CMake macro file with the \c
-    qc_add_shaders function, which applications can use in their \c
+    qt_add_custom_brush_shaders function, which applications can use in their \c
     {CMakeLists.txt} to compile the shaders used by \l QCanvasCustomBrush.
 
     \note To make the function available, the \c find_package call must request
@@ -35,7 +35,7 @@
     find_package(Qt6 REQUIRED COMPONENTS CanvasPainter)
     \endcode
 
-    When using \c qc_add_shaders, the build system invokes a Qt Canvas Painter
+    When using \c qt_add_custom_brush_shaders, the build system invokes a Qt Canvas Painter
     preprocessing step followed by the \l{QSB Manual}{qsb} tool automatically,
     and the resulting \c{.qsb} files get added to the resource system
     implicitly. At run time, the application accesses the generated \c{.qsb}
@@ -56,7 +56,7 @@
         main.cpp
     )
 
-    qc_add_shaders(exampleapp "exampleapp_custombrush_shaders"
+    qt_add_custom_brush_shaders(exampleapp "exampleapp_custombrush_shaders"
         PREFIX
             "/shaders"
         FILES
@@ -80,14 +80,14 @@
 
     \section1 Relationship to qt_add_shaders
 
-    \c qc_add_shaders is dedicated to shaders that are used with \l
+    \c qt_add_custom_brush_shaders is dedicated to shaders that are used with \l
     QCanvasCustomBrush. It performs additional preprocessing at build time
     before internally invoking the standard \l{qt_add_shaders}{qt_add_shaders}
     from the \l{Qt Shader Tools} module.
 
     \note Shaders for custom brushes must always contain a \c QC_INCLUDE
     statement, either with \c{"customfrag.glsl"} or \c{"customvert.glsl"}, and
-    must be added to the project via \c qc_add_shaders. The standard \c
+    must be added to the project via \c qt_add_custom_brush_shaders. The standard \c
     qt_add_shaders function is not suitable for custom brush shaders, because it
     does not perform the Qt Canvas Painter specific preprocessing.
 
@@ -97,7 +97,7 @@
 
     \section1 Target Languages
 
-    \c qc_add_shaders translates the shader code to a fixed set of targets,
+    \c qt_add_custom_brush_shaders translates the shader code to a fixed set of targets,
     suitable for the graphics APIs Qt Canvas Painter supports:
 
     \list
@@ -119,13 +119,13 @@
 
     The first two arguments are positional: \c target is the target the
     generated resources are added to, and \c resource_name is a name for the
-    generated resource. The name must be unique for each \c qc_add_shaders call
+    generated resource. The name must be unique for each \c qt_add_custom_brush_shaders call
     within the project.
 
     \note The \c target passed as the first argument must exist before \c
-    qc_add_shaders is called.
+    qt_add_custom_brush_shaders is called.
 
-    \note Multiple \c qc_add_shaders calls are supported and each must use a
+    \note Multiple \c qt_add_custom_brush_shaders calls are supported and each must use a
     unique \c resource_name.
 
     The remaining arguments are keyword based:
@@ -150,7 +150,7 @@
     \li \c DEFINES - Defines macros that are active during shader compilation.
     The list has the form \c{"name1=value1;name2=value2"}.
 
-    \li \c OUTPUT_TARGETS - When using \c qc_add_shaders with static libraries,
+    \li \c OUTPUT_TARGETS - When using \c qt_add_custom_brush_shaders with static libraries,
     one or more special targets are generated. Pass a variable name here to
     retrieve these targets, for example to perform additional processing on
     them.

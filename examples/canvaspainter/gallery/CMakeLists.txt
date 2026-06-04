@@ -47,7 +47,7 @@ target_link_libraries(qcgalleryexample PRIVATE
     Qt6::CanvasPainter
 )
 
-qc_add_shaders(qcgalleryexample "qcgallery_custombrush_shaders"
+qt_add_custom_brush_shaders(qcgalleryexample "qcgallery_custombrush_shaders"
     PREFIX
         "/qcgalleryexample"
     FILES

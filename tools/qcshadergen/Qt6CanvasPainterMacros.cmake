@@ -1,7 +1,7 @@
 # Copyright (C) 2025 The Qt Company Ltd.
 # SPDX-License-Identifier: BSD-3-Clause
 
-function(_qc_internal_add_shaders_impl target resourcename)
+function(_qt_internal_add_custom_brush_shaders_impl target resourcename)
     cmake_parse_arguments(
         arg
         "_QT_INTERNAL"
@@ -22,7 +22,7 @@ function(_qc_internal_add_shaders_impl target resourcename)
         # directory. OUTPUTS, if present, matters in particular for the temporary
         # filename, since just generating a filename based on the input (in FILES)
         # would lead to clashes if the same source file was used to generate
-        # multiple variants (like with different DEFINES) in qc_add_shaders.
+        # multiple variants (like with different DEFINES) in qt_add_custom_brush_shaders.
 
         set(output_file "${file}.qsb")
         if(arg_OUTPUTS)
@@ -120,8 +120,8 @@ function(_qc_internal_add_shaders_impl target resourcename)
     endif()
 endfunction()
 
-function(qc_add_shaders)
-    _qc_internal_add_shaders_impl(${ARGV})
+function(qt_add_custom_brush_shaders)
+    _qt_internal_add_custom_brush_shaders_impl(${ARGV})
     cmake_parse_arguments(PARSE_ARGV 1 arg "" "OUTPUT_TARGETS" "")
     if (arg_OUTPUT_TARGETS)
         set(${arg_OUTPUT_TARGETS} ${${arg_OUTPUT_TARGETS}} PARENT_SCOPE)
@@ -129,8 +129,8 @@ function(qc_add_shaders)
 endfunction()
 
 # for use by Qt modules that need qt_internal_add_resource
-function(qc_internal_add_shaders)
-    _qc_internal_add_shaders_impl(${ARGV} _QT_INTERNAL)
+function(qt_internal_add_custom_brush_shaders)
+    _qt_internal_add_custom_brush_shaders_impl(${ARGV} _QT_INTERNAL)
     cmake_parse_arguments(PARSE_ARGV 1 arg "" "OUTPUT_TARGETS" "")
     if (arg_OUTPUT_TARGETS)
         set(${arg_OUTPUT_TARGETS} ${${arg_OUTPUT_TARGETS}} PARENT_SCOPE)
