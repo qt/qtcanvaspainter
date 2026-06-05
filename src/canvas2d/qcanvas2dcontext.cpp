@@ -3173,7 +3173,7 @@ QV4::ReturnedValue QCanvasJSContext2D::method_set_textLineHeight(const QV4::Func
     QV4::Scoped<QCanvasJSContext2D> r(scope, *thisObject);
     CHECK_CONTEXT(r)
 
-    if (argc >= 0) {
+    if (argc >= 1) {
         qreal h = argv[0].toNumber();
 
         if (qt_is_finite(h) && h != r->d()->context()->state.textLineHeight) {
