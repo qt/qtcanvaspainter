@@ -47,6 +47,16 @@ Rectangle {
             ctx.fillText("Text with line height: 0", 240, 70, 120, 60);
             ctx.textLineHeight = 10;
             ctx.fillText("Text with line height: 10", 240, 135, 120, 60);
+            ctx.textWrapMode = "nowrap";
+
+            // canvas2d-textdirection
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.direction = "ltr";
+            ctx.fillText("Hi ltr!", 100, 250);
+            ctx.direction = "rtl";
+            ctx.fillText("Hi rtl!", 300, 250);
+            ctx.direction = "inherit";
         }
     }
 }

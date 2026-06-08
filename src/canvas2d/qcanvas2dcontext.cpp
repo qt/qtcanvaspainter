@@ -240,6 +240,8 @@ struct QCanvasJSContext2D : public QV4::Object
     static QV4::ReturnedValue method_set_textAntialias(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc);
     static QV4::ReturnedValue method_get_textLineHeight(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc);
     static QV4::ReturnedValue method_set_textLineHeight(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc);
+    static QV4::ReturnedValue method_get_textDirection(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc);
+    static QV4::ReturnedValue method_set_textDirection(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc);
     static QV4::ReturnedValue method_get_highQualityStroking(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc);
     static QV4::ReturnedValue method_set_highQualityStroking(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc);
     static QV4::ReturnedValue method_get_windingEnforce(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc);
@@ -4042,6 +4044,85 @@ QV4::ReturnedValue QCanvasJSContext2D::method_set_textWrapMode(const QV4::Functi
 }
 
 /*!
+    \qmlproperty string Canvas2DContext::direction
+
+    Holds the current direction used to draw text.
+    The possible values are:
+
+    \value "inherit"  (default) The text direction is inherited from QGuiApplication layoutDirection. See https://doc.qt.io/qt-6/qguiapplication.html#layoutDirection-prop.
+    \value "ltr"      The text direction is left-to-right.
+    \value "rtl"      The text direction is right-to-left.
+    \value "auto"     The text direction is detected automatically based from the text string. See \l QString::isRightToLeft().
+
+    The default direction is \c "inherit".
+
+    \table
+    \row
+    \li \inlineimage canvas2d-textdirection.webp
+    \li
+    \code
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.font = "42px 'Titillium Web'";
+    ctx.fillStyle = "black";
+    ctx.fillText("Hi!", 100, 50);
+    ctx.direction = "rtl";
+    ctx.fillText("Hi!", 100, 150);
+    \endcode
+    \endtable
+*/
+QV4::ReturnedValue QCanvasJSContext2D::method_get_textDirection(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *, int)
+{
+    QV4::Scope scope(b);
+    QV4::Scoped<QCanvasJSContext2D> r(scope, *thisObject);
+    CHECK_CONTEXT(r)
+
+    switch (r->d()->context()->state.textDirection) {
+    case QCanvasPainter::TextDirection::LeftToRight:
+        RETURN_RESULT(scope.engine->newString(QStringLiteral("ltr")));
+    case QCanvasPainter::TextDirection::RightToLeft:
+        RETURN_RESULT(scope.engine->newString(QStringLiteral("rtl")));
+    case QCanvasPainter::TextDirection::Auto:
+        RETURN_RESULT(scope.engine->newString(QStringLiteral("auto")));
+    case QCanvasPainter::TextDirection::Inherit:
+    default:
+        break;
+    }
+    RETURN_RESULT(scope.engine->newString(QStringLiteral("inherit")));
+}
+
+QV4::ReturnedValue QCanvasJSContext2D::method_set_textDirection(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc)
+{
+    QV4::Scope scope(b);
+    QV4::Scoped<QCanvasJSContext2D> r(scope, *thisObject);
+    CHECK_CONTEXT(r)
+
+    QV4::ScopedString s(scope, argc ? argv[0] : QV4::Value::undefinedValue(), QV4::ScopedString::Convert);
+    if (scope.hasException())
+        RETURN_UNDEFINED();
+    QString textDirection = s->toQString();
+
+    QCanvasPainter::TextDirection td;
+    if (textDirection == QStringLiteral("inherit"))
+        td = QCanvasPainter::TextDirection::Inherit;
+    else if (textDirection == QStringLiteral("ltr"))
+        td = QCanvasPainter::TextDirection::LeftToRight;
+    else if (textDirection == QStringLiteral("rtl"))
+        td = QCanvasPainter::TextDirection::RightToLeft;
+    else if (textDirection == QStringLiteral("auto"))
+        td = QCanvasPainter::TextDirection::Auto;
+    else
+        RETURN_UNDEFINED();
+
+    if (td != r->d()->context()->state.textDirection) {
+        r->d()->context()->state.textDirection = td;
+        r->d()->context()->buffer()->setTextDirection(td);
+    }
+
+    RETURN_UNDEFINED();
+}
+
+/*!
     \qmlmethod object Canvas2DContext::fillText(text, x, y, maxWidth)
 
     Draws \a text string at specified location (\a x, \a y), with current textAlign and textBaseline.
@@ -4642,6 +4723,7 @@ QCanvas2DContextEngineData::QCanvas2DContextEngineData(QV4::ExecutionEngine *v4)
     proto->defineAccessorProperty(QStringLiteral("lineJoin"), QCanvasJSContext2D::method_get_lineJoin, QCanvasJSContext2D::method_set_lineJoin);
     proto->defineAccessorProperty(QStringLiteral("lineWidth"), QCanvasJSContext2D::method_get_lineWidth, QCanvasJSContext2D::method_set_lineWidth);
     proto->defineAccessorProperty(QStringLiteral("textAlign"), QCanvasJSContext2D::method_get_textAlign, QCanvasJSContext2D::method_set_textAlign);
+    proto->defineAccessorProperty(QStringLiteral("direction"), QCanvasJSContext2D::method_get_textDirection, QCanvasJSContext2D::method_set_textDirection);
     proto->defineAccessorProperty(QStringLiteral("lineDashOffset"), QCanvasJSContext2D::method_get_lineDashOffset, QCanvasJSContext2D::method_set_lineDashOffset);
     proto->defineAccessorProperty(QStringLiteral("antialias"), QCanvasJSContext2D::method_get_antialias, QCanvasJSContext2D::method_set_antialias);
     proto->defineAccessorProperty(QStringLiteral("textAntialias"), QCanvasJSContext2D::method_get_textAntialias, QCanvasJSContext2D::method_set_textAntialias);
@@ -4706,6 +4788,9 @@ void QCanvas2DContext::popState()
 
     if (newState.textWrapMode != state.textWrapMode)
         buffer()->setTextWrapMode(newState.textWrapMode);
+
+    if (newState.textDirection != state.textDirection)
+        buffer()->setTextDirection(newState.textDirection);
 
     if (newState.lineCap != state.lineCap)
         buffer()->setLineCap(newState.lineCap);

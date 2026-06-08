@@ -2204,6 +2204,21 @@ void QCanvasPainter::setTextBaseline(QCanvasPainter::TextBaseline baseline)
 /*!
     Sets the direction of text to \a direction.
     The default direction is \c QCanvasPainter::TextDirection::Inherit.
+    \table
+    \row
+    \li \inlineimage qcpainter-textdirection.webp
+    \li
+    \code
+    p->setTextAlign(QCanvasPainter::TextAlign::Center);
+    p->setTextBaseline(QCanvasPainter::TextBaseline::Middle);
+    QFont font("Titillium Web", 32);
+    p->setFont(font);
+    p->setFillStyle(QColorConstants::Black);
+    p->fillText("Hi!", 100, 50);
+    p->setTextDirection(QCanvasPainter::TextDirection::RightToLeft);
+    p->fillText("Hi!", 100, 150);
+    \endcode
+    \endtable
 */
 
 void QCanvasPainter::setTextDirection(QCanvasPainter::TextDirection direction)

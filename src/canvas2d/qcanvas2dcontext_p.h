@@ -107,6 +107,7 @@ public:
         TextAlign,
         TextBaseline,
         TextWrapMode,
+        TextDirection,
         Font,
         FillText,
         FillTextRect,
@@ -150,6 +151,7 @@ public:
             , textAlign(QCanvasPainter::TextAlign::Start)
             , textBaseline(QCanvasPainter::TextBaseline::Alphabetic)
             , textWrapMode(QCanvasPainter::WrapMode::NoWrap)
+            , textDirection(QCanvasPainter::TextDirection::Inherit)
             , pathWinding(QCanvasPainter::PathWinding::CounterClockWise)
         {
             font.setPixelSize(10);
@@ -181,6 +183,7 @@ public:
         QCanvasPainter::TextAlign textAlign;
         QCanvasPainter::TextBaseline textBaseline;
         QCanvasPainter::WrapMode textWrapMode;
+        QCanvasPainter::TextDirection textDirection;
         QCanvasPainter::PathWinding pathWinding;
     };
 
