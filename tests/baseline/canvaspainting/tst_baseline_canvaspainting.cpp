@@ -39,6 +39,8 @@ constexpr int HEIGHT = 800;
 #include <QtGui/private/qgraphicsframecapture_p.h>
 #endif
 
+static QString offscreenCanvasSuffix = "_OffscreenCanvas";
+
 static quint16 checksumFileOrDir(const QString &path)
 {
     QFileInfo fi(path);
@@ -150,6 +152,8 @@ private:
     QCanvasOffscreenCanvas m_checkerPatternCanvas;
     QCanvasImage m_checkerPatternImage;
     QCanvasImagePattern m_checkerPattern;
+
+    QCanvasOffscreenCanvas m_offscreenCanvas;
 
     CanvasPainterLancelotCppTests cppTests;
 
@@ -339,20 +343,28 @@ bool tst_CanvasPainterLancelot::createRhi(RI *ri, QRhi::Implementation api)
 
 void tst_CanvasPainterLancelot::setupTestSuite(const QStringList& blacklist)
 {
-    QTest::addColumn<QString>("methodName");
+    QTest::addColumn<QString>("methodNameWithSuffix");
     for (const QString &cppTestKey : cppTests.keys()) {
         if (blacklist.contains(cppTestKey))
             continue;
 #ifdef ONLY_THIS_TEST
         if (cppTestKey == QLatin1String(ONLY_THIS_TEST))
 #endif
+        const QString offscreenCanvasTestKey = cppTestKey + offscreenCanvasSuffix;
         QBaselineTest::newRow(cppTestKey.toLatin1()) << cppTestKey;
+        QBaselineTest::newRow(offscreenCanvasTestKey.toLatin1()) << offscreenCanvasTestKey;
     }
 }
 
 void tst_CanvasPainterLancelot::runTestSuite(QRhi::Implementation api, QImage::Format format)
 {
-    QFETCH(QString, methodName);
+    QFETCH(QString, methodNameWithSuffix);
+    QString methodName = methodNameWithSuffix;
+    bool isOffscreen = false;
+    if (methodName.endsWith(offscreenCanvasSuffix)) {
+        isOffscreen = true;
+        methodName = methodName.left(methodName.size() - offscreenCanvasSuffix.size());
+    }
 
     RI ri;
     if (!createRhi(&ri, api))
@@ -383,11 +395,41 @@ void tst_CanvasPainterLancelot::runTestSuite(QRhi::Implementation api, QImage::F
     m_checkerPatternImage = painter->addImage(m_checkerPatternCanvas, QCanvasPainter::ImageFlag::Repeat);
     m_checkerPattern = QCanvasImagePattern(m_checkerPatternImage);
 
-    pd->beginPaint(cb, ri.rt.get(), Qt::white);
+    if (!isOffscreen) {
+        pd->beginPaint(cb, ri.rt.get(), Qt::white);
+    } else {
+        m_offscreenCanvas = painter->createCanvas(QSize(WIDTH, HEIGHT));
+        m_offscreenCanvas.setFillColor(Qt::transparent);
+        pd->beginPaint(m_offscreenCanvas, cb);
+    }
 
     paint(methodName, painter, format);
 
+    if (isOffscreen) {
+        painter->reset();
+        painter->setStencilClip({}); // internal feature so not included in reset(), but some tests set it
+
+        painter->setStrokeStyle(Qt::red);
+        painter->setLineWidth(4);
+        painter->strokeRect(0, 0, WIDTH, HEIGHT);
+        painter->setFillStyle(Qt::red);
+        QFont f;
+        f.setPointSize(12);
+        f.setBold(true);
+        painter->setFont(f);
+        painter->setTextAlign(QCanvasPainter::TextAlign::Right);
+        painter->setTextBaseline(QCanvasPainter::TextBaseline::Bottom);
+        painter->fillText("This was drawn onto an offscreen canvas", QRectF(0, 0, WIDTH, HEIGHT));
+    }
+
     pd->endPaint();
+
+    if (isOffscreen) {
+        pd->beginPaint(cb, ri.rt.get(), Qt::white);
+        painter->drawImage(painter->addImage(m_offscreenCanvas), 0, 0);
+        pd->endPaint();
+    }
+
     QRhiResourceUpdateBatch *u = ri.rhi->nextResourceUpdateBatch();
     u->readBackTexture({ ri.tex.get() }, &readbackResult);
     cb->resourceUpdate(u);
@@ -409,7 +451,7 @@ void tst_CanvasPainterLancelot::runTestSuite(QRhi::Implementation api, QImage::F
     QBASELINE_TEST(image);
 #else
     const char *backendName = ri.rhi->backendName();
-    image.save(QString::asprintf("result_%s_%s.png", backendName, qPrintable(methodName)));
+    image.save(QString::asprintf("result_%s_%s.png", backendName, qPrintable(methodNameWithSuffix)));
 #endif
 }
 
