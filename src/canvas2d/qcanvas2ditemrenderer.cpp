@@ -438,6 +438,12 @@ void QCanvas2DItemRenderer::paint(QCanvasPainter *painter)
             m_painter->setTextWrapMode(w);
             break;
         }
+        case QCanvas2DContext::TextDirection:
+        {
+            auto td = takeDirection();
+            m_painter->setTextDirection(td);
+            break;
+        }
         case QCanvas2DContext::Font:
         {
             if (fonts.size() <= fontIdx) {

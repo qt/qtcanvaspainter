@@ -455,6 +455,11 @@ public:
         commands << QCanvas2DContext::TextWrapMode;
         ints << int(tw);
     }
+    inline void setTextDirection(QCanvasPainter::TextDirection td)
+    {
+        commands << QCanvas2DContext::TextDirection;
+        ints << int(td);
+    }
     inline void save()
     {
         commands << QCanvas2DContext::Save;

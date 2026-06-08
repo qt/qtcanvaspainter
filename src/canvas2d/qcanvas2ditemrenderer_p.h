@@ -60,6 +60,7 @@ private:
     inline QCanvasPainter::TextAlign takeAlign() { return static_cast<QCanvasPainter::TextAlign>(takeInt());}
     inline QCanvasPainter::TextBaseline takeBaseline() { return static_cast<QCanvasPainter::TextBaseline>(takeInt());}
     inline QCanvasPainter::WrapMode takeWrapMode() { return static_cast<QCanvasPainter::WrapMode>(takeInt());}
+    inline QCanvasPainter::TextDirection takeDirection() { return static_cast<QCanvasPainter::TextDirection>(takeInt());}
 
     inline QTransform takeMatrix() { return matrixes.at(matrixIdx++); }
 
