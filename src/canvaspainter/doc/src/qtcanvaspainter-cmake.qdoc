@@ -5,9 +5,18 @@
     \page qt-add-custom-brush-shaders.html
     \ingroup cmake-commands-qtcanvaspainter
     \title qt_add_custom_brush_shaders
-    \keyword qt_add_custom_brush_shaders
+    \keyword qt6_add_custom_brush_shaders
     \summary {Prepares custom brush shaders and adds them to the Qt resource system}
     \brief Prepares QCanvasCustomBrush shaders and adds them to the Qt resource system.
+
+    The command is defined in the \c CanvasPainter component of the \c Qt6 package,
+    which can be loaded like so:
+
+    \badcode
+    find_package(Qt6 REQUIRED COMPONENTS CanvasPainter)
+    \endcode
+
+    \cmakecommandsince 6.12
 
     \section1 Synopsis
 
@@ -22,18 +31,9 @@
     )
     \endcode
 
+    \versionlessCMakeCommandsNote qt6_add_custom_brush_shaders()
+
     \section1 Description
-
-    The \l{Qt Canvas Painter} module provides a CMake macro file with the \c
-    qt_add_custom_brush_shaders function, which applications can use in their \c
-    {CMakeLists.txt} to compile the shaders used by \l QCanvasCustomBrush.
-
-    \note To make the function available, the \c find_package call must request
-    the \c CanvasPainter component:
-
-    \badcode
-    find_package(Qt6 REQUIRED COMPONENTS CanvasPainter)
-    \endcode
 
     When using \c qt_add_custom_brush_shaders, the build system invokes a Qt Canvas Painter
     preprocessing step followed by the \l{QSB Manual}{qsb} tool automatically,
