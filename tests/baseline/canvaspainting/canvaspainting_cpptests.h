@@ -51,6 +51,7 @@ private slots:
     void testAntialiasing2();
     void testTextAlignment();
     void testTextWrapping();
+    void testTextWrapping2();
     void testTextBrushes();
     void testTextCustomBrushes();
     void testTextFonts();

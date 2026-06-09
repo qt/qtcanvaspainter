@@ -2364,6 +2364,46 @@ void CanvasPainterLancelotCppTests::testTextWrapping()
     }
 }
 
+void CanvasPainterLancelotCppTests::testTextWrapping2()
+{
+    QFont font1;
+    painter->setFillStyle(QColorConstants::Black);
+    painter->setLineWidth(2);
+
+    QList<QCanvasPainter::TextAlign> aligns {
+        QCanvasPainter::TextAlign::Left,
+        QCanvasPainter::TextAlign::Center,
+        QCanvasPainter::TextAlign::Right,
+    };
+
+    for (int i = 0; i < 3; i++) {
+        float posX = 50;
+        float posY = i * 250;
+        font1.setPixelSize(12 + i * 5);
+        font1.setWordSpacing(10 - i * 5);
+        font1.setItalic(i == 1);
+        font1.setWeight(i == 2 ? QFont::Weight::ExtraBold : QFont::Weight::Normal);
+        painter->setFont(font1);
+        for (auto a : aligns) {
+            painter->setTextAlign(a);
+            painter->setTextBaseline(QCanvasPainter::TextBaseline::Middle);
+            painter->setTextWrapMode(QCanvasPainter::WrapMode::NoWrap);
+            QString text("Qt Canvas Painter");
+            QPointF p1(posX, posY + 20);
+            painter->fillText(text, p1);
+            painter->strokeRect(painter->textBoundingBox(text, p1));
+            painter->setTextWrapMode(QCanvasPainter::WrapMode::WordWrap);
+            QPointF p2(posX, posY + 90);
+            painter->fillText(text, p2);
+            painter->strokeRect(painter->textBoundingBox(text, p2));
+            QPointF p3(posX, posY + 190);
+            painter->fillText(text, p3, 100);
+            painter->strokeRect(painter->textBoundingBox(text, p3, 100));
+            posX += 350;
+        }
+    }
+}
+
 void CanvasPainterLancelotCppTests::testTextBrushes()
 {
     float topMargin = height() * 0.02f;

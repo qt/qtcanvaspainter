@@ -69,6 +69,35 @@ float QCTextLayout::calculateVerticalAlignment(QCanvasPainter::TextBaseline base
     return offset;
 }
 
+std::pair<float, float> QCTextLayout::calculateHorizontalAlignment(QCanvasPainter::TextAlign align,
+                                                                   const QRectF &rect,
+                                                                   float layoutWidth,
+                                                                   const QRectF &layoutRect)
+{
+    float offset1 = 0;
+    float offset2 = 0;
+    float paddingOffset = (layoutRect.width() - layoutWidth);
+    float alignOffset = (rect.width() - layoutRect.width());
+    switch (align) {
+    case QCanvasPainter::TextAlign::Left:
+        offset2 = -paddingOffset;
+        break;
+    case QCanvasPainter::TextAlign::Right:
+        offset1 = paddingOffset + alignOffset;
+        offset2 = alignOffset;
+        break;
+    case QCanvasPainter::TextAlign::Center:
+        offset1 = (alignOffset + paddingOffset) * 0.5f;
+        offset2 = (alignOffset - paddingOffset) * 0.5f;
+        break;
+    case QCanvasPainter::TextAlign::Start:
+    case QCanvasPainter::TextAlign::End:
+    default:
+        break;
+    }
+    return { offset1, offset2 };
+}
+
 Qt::LayoutDirection QCTextLayout::convertToQtDirection(QCanvasPainter::TextDirection direction)
 {
     switch (direction) {
