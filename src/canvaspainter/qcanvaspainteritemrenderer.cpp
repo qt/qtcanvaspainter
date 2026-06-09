@@ -364,8 +364,6 @@ void QCanvasPainterItemRenderer::render(QRhiCommandBuffer *cb)
     QCanvasRhiPaintDriver *pd = d->m_factory->paintDriver();
     QCanvasPainter *painter = d->m_factory->painter();
 
-    QCanvasPainterPrivate::get(painter)->m_devicePixelRatio = d->m_itemData.devicePixelRatio;
-
     static bool collectDebug = qEnvironmentVariableIsSet("QCPAINTER_DEBUG_COLLECT");
     static bool renderDebug = qEnvironmentVariableIsSet("QCPAINTER_DEBUG_RENDER");
     QCPainterEngine *engine = QCanvasPainterFactoryPrivate::get(d->m_factory)->renderer.engine();

@@ -228,7 +228,6 @@ public:
     // *** Other ***
 
     Q_CANVASPAINTER_EXPORT void setAntialias(float antialias);
-    Q_CANVASPAINTER_EXPORT float devicePixelRatio() const;
     Q_CANVASPAINTER_EXPORT void setWindingEnforce(bool enabled);
     Q_CANVASPAINTER_EXPORT void setHighQualityStroking(bool enabled);
 

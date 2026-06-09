@@ -97,7 +97,6 @@ public:
     QCanvasImageTracker m_imageTracker;
     QHash<quint64, QCanvasImage> m_nativeTextureCache; // QRhiTexture::globalResourceId -> QCanvasImage
     QSet<int> m_pendingNativeTextureDelete;
-    float m_devicePixelRatio = 1.0f;
     QCPainterRhiRenderer *m_renderer = nullptr;
     QCPainterEngine *m_e = nullptr;
     int m_maxTextures = 0;
