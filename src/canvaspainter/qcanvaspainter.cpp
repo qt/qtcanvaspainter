@@ -3057,6 +3057,13 @@ void QCanvasPainterPrivate::setAntialiasingEnabled(bool enabled)
     canvas contents between render passes is not supported however when
     multisampling is enabled, and the \l{QCanvasOffscreenCanvas::Flag::}{PreserveContents} flag will not
     work in this case.
+
+    \note An offscreen canvas is backed by a texture independent from the main
+    render target, and rendering to it always happens with a scale factor
+    (device pixel ratio) of 1. For example, to create a canvas matching the true
+    rendering dimensions of a QCanvasPainterWidget, pass \c{size() *
+    devicePixelRatio()} as \a pixelSize, because the \c size() of the widget is
+    just the logical size without the scale factor included.
  */
 QCanvasOffscreenCanvas QCanvasPainter::createCanvas(QSize pixelSize, int sampleCount, QCanvasOffscreenCanvas::Flags flags)
 {
