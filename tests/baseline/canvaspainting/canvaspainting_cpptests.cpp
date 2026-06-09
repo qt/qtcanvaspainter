@@ -1442,11 +1442,11 @@ void CanvasPainterLancelotCppTests::testTransforms2()
         painter->stroke();
 
         painter->setFillStyle(0xFF66AACC);
-        painter->rotate(-10 * M_PI/180);
+        painter->rotate(-10 * float(M_PI)/180);
         painter->fillRect(0, 0, w, w);
 
         painter->setFillStyle(0xFF77CCEE);
-        painter->rotate(-10 * M_PI/180);
+        painter->rotate(-10 * float(M_PI)/180);
         painter->fillRect(0, 0, w, w);
 
 
@@ -2923,14 +2923,14 @@ void CanvasPainterLancelotCppTests::testClipRectWithTransform()
 {
     // setClipRect() under a rotated painter, then resetClipping() and a second clip.
     // Adapted from testClip in paintertest.cpp.
-    painter->rotate(M_PI / 10);
+    painter->rotate(float(M_PI) / 10);
 
     painter->strokeRect(9, 9, 102, 102);
     painter->setClipRect(10, 10, 100, 100);
     painter->setFillStyle(Qt::red);
     painter->fillRect(0, 0, 300, 300);
 
-    painter->rotate(M_PI / 20);
+    painter->rotate(float(M_PI) / 20);
     painter->translate(50, 0);
     painter->resetClipping();
     painter->strokeRect(9, 149, 252, 52);
@@ -3058,13 +3058,13 @@ void CanvasPainterLancelotCppTests::testStencilClipTransform()
     // setStencilClip() applied while the painter is rotated.
     // Adapted from testClipRegionTransform in paintertest.cpp.
     painter->setStrokeStyle(Qt::red);
-    painter->rotate(M_PI / 180.0 * 15.0);
+    painter->rotate(float(M_PI) / 180.0 * 15.0);
 
     const QRectF rect(100, 100, 200, 100);
     painter->strokeRect(rect.x(), rect.y(), rect.width(), rect.height());
     painter->setStencilClip({rect});
 
-    painter->rotate(-M_PI / 180.0 * 15.0);
+    painter->rotate(-float(M_PI) / 180.0 * 15.0);
     painter->setFillStyle(QColor(255, 255, 0, 192));
     painter->fillRect(0, 0, 500, 400);
 }
@@ -3078,7 +3078,7 @@ void CanvasPainterLancelotCppTests::testStencilClipIntersect()
     const QRectF rect(50, 50, 200, 100);
     painter->strokeRect(rect.x(), rect.y(), rect.width(), rect.height());
     painter->save();
-    painter->rotate(M_PI / 180.0 * 15.0);
+    painter->rotate(float(M_PI) / 180.0 * 15.0);
     painter->strokeRect(rect.x(), rect.y(), rect.width(), rect.height());
     painter->restore();
 
@@ -3088,9 +3088,9 @@ void CanvasPainterLancelotCppTests::testStencilClipIntersect()
     painter->fillRect(0, 0, 500, 400);
 
     // Intersect with the same rect rotated 15°; only the intersection turns blue
-    painter->rotate(M_PI / 180.0 * 15.0);
+    painter->rotate(float(M_PI) / 180.0 * 15.0);
     painter->setStencilClip({rect});
-    painter->rotate(-M_PI / 180.0 * 15.0);
+    painter->rotate(-float(M_PI) / 180.0 * 15.0);
     painter->setFillStyle(QColor(0, 0, 255, 128));
     painter->fillRect(0, 0, 500, 400);
 }
@@ -3160,11 +3160,11 @@ void CanvasPainterLancelotCppTests::testGradientSpread()
     // so the transparent edge colours fill the rest of the rect.
     // Adapted from testGradientPad in paintertest.cpp.
     const QCanvasGradientStops stops = {
-        {0.0,   "transparent"},
-        {0.001, "red"},
-        {0.5,   "lightblue"},
-        {0.999, "red"},
-        {1.0,   "transparent"},
+        {0.0f,   "transparent"},
+        {0.001f, "red"},
+        {0.5f,   "lightblue"},
+        {0.999f, "red"},
+        {1.0f,   "transparent"},
     };
 
     const QRectF rect(50, 50, 200, 100);
@@ -3184,12 +3184,12 @@ void CanvasPainterLancelotCppTests::testGradientCaching()
     // with a conical gradient that shares the same colour stops (reversed).
     // Adapted from testGradientBug in paintertest.cpp.
     const QCanvasGradientStops stops = {
-        {0.0, "green"},
-        {0.2, "black"},
-        {0.4, "blue"},
-        {0.6, "white"},
-        {0.8, "yellow"},
-        {1.0, "red"},
+        {0.0f, "green"},
+        {0.2f, "black"},
+        {0.4f, "blue"},
+        {0.6f, "white"},
+        {0.8f, "yellow"},
+        {1.0f, "red"},
     };
 
     const QRectF rect1(50, 50, 100, 100);
