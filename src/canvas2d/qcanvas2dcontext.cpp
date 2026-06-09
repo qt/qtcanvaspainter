@@ -4125,11 +4125,28 @@ QV4::ReturnedValue QCanvasJSContext2D::method_set_textDirection(const QV4::Funct
 /*!
     \qmlmethod object Canvas2DContext::fillText(text, x, y, maxWidth)
 
-    Draws \a text string at specified location (\a x, \a y), with current textAlign and textBaseline.
-    To make the text wrap into multiple lines, set optional \a maxWidth parameter to preferred
-    row width in pixels. White space is stripped at the beginning of the rows,
-    the text is split at word boundaries or when new-line characters are encountered.
-    Words longer than the max width are split at nearest character (i.e. no hyphenation).
+    Draws \a text string at the specified location ( \a x, \a y), with
+    current textAlign and textBaseline. To make the text wrap into multiple
+    lines, set the text wrap mode using \l textWrapMode to something
+    else than the default \c "nowrap". Optional \a maxWidth parameter
+    defaults to \c 0. Meaning that when e.g. \c "wordwrap" has been set,
+    text is wrapped on every word. Set the \a maxWidth parameter to
+    preferred row width in pixels.
+
+    \table
+    \row
+    \li \inlineimage canvas2d-filltext.webp
+    \li
+    \code
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    const text = "Qt Canvas Painter";
+    ctx.fillText(text, 100, 30);
+    ctx.textWrapMode = "wordwrap";
+    ctx.fillText(text, 100, 90);
+    ctx.fillText(text, 100, 160, 120);
+    \endcode
+    \endtable
 
     \sa font, textAlign, textBaseline, textWrapMode, strokeText
 */
@@ -4142,6 +4159,22 @@ QV4::ReturnedValue QCanvasJSContext2D::method_set_textDirection(const QV4::Funct
 
     It is often useful to set the text baseline to \l TextBaseline::Top or
     \l TextBaseline::Middle when painting text with this method.
+
+    \table
+    \row
+    \li \inlineimage canvas2d-filltext2.webp
+    \li
+    \code
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    const text = "Qt Canvas Painter";
+    ctx.strokeRect(10, 20, 180, 50);
+    ctx.fillText(text, 10, 20, 180, 50);
+    ctx.textWrapMode = "wordwrap";
+    ctx.strokeRect(60, 90, 80, 90);
+    ctx.fillText(text, 60, 90, 80, 90);
+    \endcode
+    \endtable
 
     \sa font, textAlign, textBaseline, textWrapMode, strokeText
 */
@@ -4163,7 +4196,7 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_fillText(const QV4::Funct
     } else if (argc >= 3) {
         qreal x = argv[1].toNumber();
         qreal y = argv[2].toNumber();
-        qreal maxWidth = -1;
+        qreal maxWidth = 0;
         if (argc >= 4) maxWidth = argv[3].toNumber();
         if (!qt_is_finite(x) || !qt_is_finite(y) || !qt_is_finite(maxWidth))
             RETURN_UNDEFINED();

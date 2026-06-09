@@ -217,12 +217,12 @@ public:
     Q_CANVASPAINTER_EXPORT void setTextLineHeight(float height);
     Q_CANVASPAINTER_EXPORT void setTextAntialias(float antialias);
 
-    Q_CANVASPAINTER_EXPORT void fillText(const QString &text, float x, float y, float maxWidth = -1);
-    inline void fillText(const QString &text, QPointF point, float maxWidth = -1);
+    Q_CANVASPAINTER_EXPORT void fillText(const QString &text, float x, float y, float maxWidth = 0);
+    inline void fillText(const QString &text, QPointF point, float maxWidth = 0);
     Q_CANVASPAINTER_EXPORT void fillText(const QString &text, const QRectF &rect);
 
-    Q_CANVASPAINTER_EXPORT QRectF textBoundingBox(const QString &text, float x, float y, float maxWidth = -1);
-    inline QRectF textBoundingBox(const QString &text, QPointF point, float maxWidth = -1);
+    Q_CANVASPAINTER_EXPORT QRectF textBoundingBox(const QString &text, float x, float y, float maxWidth = 0);
+    inline QRectF textBoundingBox(const QString &text, QPointF point, float maxWidth = 0);
     Q_CANVASPAINTER_EXPORT QRectF textBoundingBox(const QString &text, const QRectF &rect);
 
     // *** Other ***

@@ -1163,8 +1163,6 @@ QRectF QCPainterEngine::textBoundingBox(const QString &text, const QRectF &rect)
 {
 #ifndef QCPAINTER_DISABLE_TEXT_SUPPORT
     auto &font = state.font;
-    // TODO: Do we need here to set correct fontWeight and fontItalic to qfont?
-    // Do it also in shared method.
     auto metrics = QFontMetrics{font};
 
     // TODO: Duplicate code from QCDistanceFieldGlyphCache::generate()
@@ -1196,19 +1194,16 @@ QRectF QCPainterEngine::textBoundingBox(const QString &text, const QRectF &rect)
     }
     layout.endLayout();
 
+    // Adjust rect
+    float textOffsetY = QCTextLayout::calculateVerticalAlignment(state.textBaseline,
+                                                                 rect, metrics,
+                                                                 layout.boundingRect());
+    std::pair<float, float> textOffsetX =
+            QCTextLayout::calculateHorizontalAlignment(effectiveTextAlign(text),
+                                                       rect,layoutWidth,
+                                                       layout.boundingRect());
     QRectF textRect = layout.boundingRect();
-    // Adjust rect height
-    float textOffsetY = QCTextLayout::calculateVerticalAlignment(state.textBaseline, rect, metrics, layout.boundingRect());
-    textRect.adjust(0, textOffsetY, 0, textOffsetY);
-    // Adjust rect width
-    float textOffsetX = (textRect.width() - layoutWidth);
-    auto textAlign = effectiveTextAlign(text);
-    if (textAlign == QCanvasPainter::TextAlign::Center)
-        textRect.adjust(0.5f * textOffsetX, 0, -0.5f * textOffsetX, 0);
-    else if (textAlign == QCanvasPainter::TextAlign::Left)
-        textRect.adjust(0, 0, -textOffsetX, 0);
-    else
-        textRect.adjust(textOffsetX, 0, 0, 0);
+    textRect.adjust(textOffsetX.first, textOffsetY, textOffsetX.second, textOffsetY);
     return textRect;
 #else
     return QRectF();

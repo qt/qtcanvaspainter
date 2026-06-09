@@ -1725,7 +1725,7 @@ void QCanvasPainter::fill()
     \since 6.12
 
     Fills the current path with the current fill style, and fill rule \a fillRule.
-    \sa setFillStyle()
+    \sa setFillStyle(), setFillRule()
 */
 
 void QCanvasPainter::fill(FillRule fillRule)
@@ -2332,11 +2332,29 @@ void QCanvasPainter::setTextAntialias(float antialias)
 }
 
 /*!
-    Draws \a text string at the specified location ( \a x, \a y), with current textAlign and textBaseline.
-    To make the text wrap into multiple lines, set optional \a maxWidth parameter to preferred
-    row width in pixels. White space is stripped at the beginning of the rows,
-    the text is split at word boundaries or when new-line characters are encountered.
-    Words longer than the max width are split at nearest character (i.e. no hyphenation).
+    Draws \a text string at the specified location ( \a x, \a y), with
+    current textAlign and textBaseline. To make the text wrap into multiple
+    lines, set the text wrap mode using \l setTextWrapMode() to something
+    else than the default \c NoWrap. Optional \a maxWidth parameter
+    defaults to \c 0. Meaning that when e.g. \c WordWrap has been set,
+    text is wrapped on every word. Set the \a maxWidth parameter to
+    preferred row width in pixels.
+    \table
+    \row
+    \li \inlineimage qcpainter-filltext.webp
+    \li
+    \code
+    p->setTextAlign(QCanvasPainter::TextAlign::Center);
+    p->setTextBaseline(QCanvasPainter::TextBaseline::Middle);
+    QString text("Qt Canvas Painter");
+    p->fillText(text, 100, 30);
+    p->setTextWrapMode(QCanvasPainter::WrapMode::WordWrap);
+    p->fillText(text, 100, 90);
+    p->fillText(text, 100, 160, 120);
+    \endcode
+    \endtable
+
+    \sa setTextAlign(), setTextBaseline(), setTextWrapMode()
 */
 void QCanvasPainter::fillText(const QString &text, float x, float y, float maxWidth)
 {
@@ -2348,13 +2366,17 @@ void QCanvasPainter::fillText(const QString &text, float x, float y, float maxWi
     \fn void QCanvasPainter::fillText(const QString &text, QPointF point, float maxWidth)
     \overload
 
-    Draws \a text string at the specified \a point, with current textAlign and textBaseline.
-    To make the text wrap into multiple lines, set optional \a maxWidth parameter to preferred
-    row width in pixels. White space is stripped at the beginning of the rows,
-    the text is split at word boundaries or when new-line characters are encountered.
-    Words longer than the max width are split at nearest character (i.e. no hyphenation).
+    Draws \a text string at the specified \a point, with
+    current textAlign and textBaseline. To make the text wrap into multiple
+    lines, set the text wrap mode using \l setTextWrapMode() to something
+    else than the default \c NoWrap. Optional \a maxWidth parameter
+    defaults to \c 0. Meaning that when e.g. \c WordWrap has been set,
+    text is wrapped on every word. Set the \a maxWidth parameter to
+    preferred row width in pixels.
 
     This is an overloaded method using QPointF.
+
+    \sa setTextAlign(), setTextBaseline(), setTextWrapMode()
 */
 
 /*!
@@ -2366,6 +2388,25 @@ void QCanvasPainter::fillText(const QString &text, float x, float y, float maxWi
     This is an overloaded method using QRectF. It is often useful to set the
     text baseline to \l TextBaseline::Top or \l TextBaseline::Middle when painting
     text with this method.
+    \table
+    \row
+    \li \inlineimage qcpainter-filltext2.webp
+    \li
+    \code
+    p->setTextAlign(QCanvasPainter::TextAlign::Center);
+    p->setTextBaseline(QCanvasPainter::TextBaseline::Middle);
+    QString text("Qt Canvas Painter");
+    QRectF rect1(10, 20, 180, 50);
+    p->strokeRect(rect1);
+    p->fillText(text, rect1);
+    p->setTextWrapMode(QCanvasPainter::WrapMode::WordWrap);
+    QRectF rect2(60, 90, 80, 90);
+    p->strokeRect(rect2);
+    p->fillText(text, rect2);
+    \endcode
+    \endtable
+
+    \sa setTextAlign(), setTextBaseline(), setTextWrapMode()
 */
 void QCanvasPainter::fillText(const QString &text, const QRectF &rect)
 {
@@ -2375,7 +2416,11 @@ void QCanvasPainter::fillText(const QString &text, const QRectF &rect)
 
 /*!
     Measures bounding box of a \a text string at (\a x, \a y).
-    To measure multi-line text, set optional \a maxWidth parameter to preferred row width in pixels.
+
+    To measure multi-line text, set the text wrap mode using \l setTextWrapMode()
+    to something else than the default \c NoWrap. Also set the optional \a maxWidth
+    parameter to preferred row width in pixels.
+
     Returns QRectF with values [xmin, ymin, width, height].
     Measured values are returned in local coordinate space.
     \table
@@ -2409,7 +2454,11 @@ QRectF QCanvasPainter::textBoundingBox(const QString &text, float x, float y, fl
     \overload
 
     Measures bounding box of a \a text string at \a point.
-    To measure multi-line text, set optional \a maxWidth parameter to preferred row width in pixels.
+
+    To measure multi-line text, set the text wrap mode using \l setTextWrapMode()
+    to something else than the default \c NoWrap. Also set the optional \a maxWidth
+    parameter to preferred row width in pixels.
+
     Returns QRectF with values [xmin, ymin, width, height].
     Measured values are returned in local coordinate space.
 */
