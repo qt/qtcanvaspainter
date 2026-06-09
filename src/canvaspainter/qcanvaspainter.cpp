@@ -440,8 +440,17 @@ void QCanvasPainter::restore()
 
 /*!
     Resets the current painter state to default values.
+
+    This includes the stroke and fill styles and the related properties, the
+    transformation matrix, the clipping region, the text-related settings, the
+    compositing properties, the drawing state stack, the antialiasing settings.
+
     \note This method differs from the HTML Canvas 2D Context reset() method
     in that it doesn't visually clear the canvas buffers.
+
+    \note The values of setWindingEnforce() and setHighQualityStroking() are not
+    changed.
+
     \table
     \row
     \li \inlineimage qcpainter-reset.webp

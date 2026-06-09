@@ -196,6 +196,10 @@ void QCPainterEngine::reset()
     ctx.commandsDataCount = 0;
     ctx.currentPath = nullptr;
     ctx.preparedPathSerial = 0;
+
+    ctx.states.clear();
+
+    resetClipRect();
 }
 
 
