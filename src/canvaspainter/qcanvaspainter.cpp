@@ -2532,17 +2532,6 @@ void QCanvasPainter::setHighQualityStroking(bool enabled)
     d->m_e->setHighQualityStrokingEnabled(enabled);
 }
 
-/*!
-    Returns the ratio between physical pixels and device-independent pixels.
-    The default value is \c 1.0.
-*/
-
-float QCanvasPainter::devicePixelRatio() const
-{
-    Q_D(const QCanvasPainter);
-    return d->m_devicePixelRatio;
-}
-
 // ***** Static methods *****
 
 /*!
