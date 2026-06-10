@@ -348,11 +348,14 @@ void tst_CanvasPainterLancelot::setupTestSuite(const QStringList& blacklist)
         if (blacklist.contains(cppTestKey))
             continue;
 #ifdef ONLY_THIS_TEST
-        if (cppTestKey == QLatin1String(ONLY_THIS_TEST))
+        if (cppTestKey == QLatin1String(ONLY_THIS_TEST)) {
 #endif
-        const QString offscreenCanvasTestKey = cppTestKey + offscreenCanvasSuffix;
-        QBaselineTest::newRow(cppTestKey.toLatin1()) << cppTestKey;
-        QBaselineTest::newRow(offscreenCanvasTestKey.toLatin1()) << offscreenCanvasTestKey;
+            const QString offscreenCanvasTestKey = cppTestKey + offscreenCanvasSuffix;
+            QBaselineTest::newRow(cppTestKey.toLatin1()) << cppTestKey;
+            QBaselineTest::newRow(offscreenCanvasTestKey.toLatin1()) << offscreenCanvasTestKey;
+#ifdef ONLY_THIS_TEST
+        }
+#endif
     }
 }
 
