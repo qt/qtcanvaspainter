@@ -743,6 +743,37 @@ void QCanvasPainter::setGlobalAlpha(float alpha)
     Sets the global composite operation mode to \a operation. This mode is
     applied to all painting operations. The default mode is
     \c QCanvasPainter::CompositeOperation::SourceOver.
+
+    \note To work properly, composite modes require enabling \c alphaBlending
+    and using a transparent background for the canvas.
+
+    \table
+    \row
+    \li \inlineimage qcpainter-globalcomposite.webp
+    \li
+    \code
+    QList<QCanvasPainter::CompositeOperation> modes = {
+        QCanvasPainter::CompositeOperation::SourceOver,
+        QCanvasPainter::CompositeOperation::SourceAtop,
+        QCanvasPainter::CompositeOperation::DestinationOut
+    };
+    for (int i = 0; i < modes.size(); i++) {
+        // First item - SourceOver mode
+        p->setGlobalCompositeOperation(QCanvasPainter::CompositeOperation::SourceOver);
+        float y = 5 + i * 65;
+        p->setFillStyle("#D9F720");
+        p->fillRect(20, y, 140, 40);
+        // Second item - Different modes
+        p->setGlobalCompositeOperation(modes[i]);
+        p->beginPath();
+        p->ellipse(130, y + 30, 60, 25);
+        p->setStrokeStyle("#00414A");
+        p->setFillStyle("#2CDE85");
+        p->fill();
+        p->stroke();
+    }
+    \endcode
+    \endtable
 */
 
 void QCanvasPainter::setGlobalCompositeOperation(CompositeOperation operation)
