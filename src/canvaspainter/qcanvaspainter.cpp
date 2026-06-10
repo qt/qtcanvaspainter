@@ -2048,7 +2048,8 @@ void QCanvasPainter::drawImage(const QCanvasImage &image, float x, float y)
     if (image.isNull())
         return;
 
-    d->m_e->drawImageId(image.id(), x, y, image.width(), image.height(), image.tintColor());
+    const float dpr = image.devicePixelRatio();
+    d->m_e->drawImageId(image.id(), x, y, image.width() / dpr, image.height() / dpr, image.tintColor());
     d->markTextureIdUsed(image.id());
 }
 
@@ -2933,6 +2934,7 @@ QCanvasImage QCanvasPainterPrivate::getQCanvasImage(const QImage &image, QCanvas
             ip->id = m_e->createImage(image.width(), image.height(), flags, convertedImage.constBits());
             ip->width = convertedImage.width();
             ip->height = convertedImage.height();
+            ip->devicePixelRatio = float(convertedImage.devicePixelRatio());
             ip->sizeInBytes = convertedImage.sizeInBytes();
             ip->type = type;
             m_imageTracker.insert(key, qcimage);
@@ -2963,6 +2965,7 @@ QCanvasImage QCanvasPainterPrivate::getQCanvasImage(QRhiTexture *texture, QCanva
         ip->id = m_renderer->renderCreateNativeTexture(texture, flags)->id;
         ip->width = texture->pixelSize().width();
         ip->height = texture->pixelSize().height();
+        ip->devicePixelRatio = 1.0f;
         quint32 byteSize = 0;
         QCPainterRhiRenderer::textureFormatInfo(texture->format(), texture->pixelSize(), nullptr, &byteSize, nullptr);
         ip->sizeInBytes = byteSize;

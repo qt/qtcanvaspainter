@@ -40,6 +40,7 @@ public:
     int id;
     int width;
     int height;
+    float devicePixelRatio;
     DataType type;
     qsizetype sizeInBytes;
     QColor tintColor;

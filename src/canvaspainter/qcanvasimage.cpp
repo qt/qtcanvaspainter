@@ -185,7 +185,7 @@ int QCanvasImage::id() const
 }
 
 /*!
-    Returns the width of this image.
+    Returns the width of this image in pixels.
 */
 
 int QCanvasImage::width() const
@@ -194,7 +194,7 @@ int QCanvasImage::width() const
 }
 
 /*!
-    Returns the height of this image.
+    Returns the height of this image in pixels;
 */
 
 int QCanvasImage::height() const
@@ -205,7 +205,7 @@ int QCanvasImage::height() const
 /*!
     \fn QSize QCanvasImage::size() const
 
-    \return the size (width and height) of this image.
+    \return the size (width and height) of this image in pixels.
  */
 
 /*!
@@ -228,6 +228,29 @@ int QCanvasImage::height() const
 qsizetype QCanvasImage::sizeInBytes() const
 {
     return d->sizeInBytes;
+}
+
+/*!
+    Returns the device pixel ratio for the image. This is the
+    ratio between \e{device pixels} and \e{device independent pixels}.
+
+    A QCanvasImage with a greater than 1 device pixel ratio applies that scale
+    factor when using the image. For example, \c{drawImage(image, 0, 0)} is then
+    equivalent to \c{drawImage(image, 0, 0, image.width() /
+    image.devicePixelRatio(), image.height() / image.devicePixelRatio())}.
+
+    The default value is 1.0.
+
+    The value is carried over from the QImage the QCanvasImage is created from.
+    A QCanvasImage created from a texture or
+    \l{QCanvasOffscreenCanvas}{offscreen canvas} always has a device pixel ratio
+    of 1.
+
+    \sa QImage
+*/
+float QCanvasImage::devicePixelRatio() const
+{
+    return d->devicePixelRatio;
 }
 
 /*!
@@ -281,6 +304,7 @@ QCanvasImagePrivate::QCanvasImagePrivate()
     : id(0)
     , width(0)
     , height(0)
+    , devicePixelRatio(1.0f)
     , type(DataType::Unknown)
     , sizeInBytes(0)
     , tintColor(QColorConstants::White)

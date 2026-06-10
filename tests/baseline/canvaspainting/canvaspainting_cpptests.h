@@ -46,6 +46,7 @@ private slots:
     void testImages();
     void testImages2();
     void testImages3();
+    void testHighDpiImages();
     void testAntialiasing();
     void testAntialiasing2();
     void testTextAlignment();

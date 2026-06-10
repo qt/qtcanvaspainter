@@ -86,8 +86,9 @@ QCanvasImagePattern::QCanvasImagePattern(const QCanvasImage &image)
     : d(new QCanvasImagePatternPrivate)
 {
     d->image = image;
-    d->width = d->image.width();
-    d->height = d->image.height();
+    const float dpr = d->image.devicePixelRatio();
+    d->width = d->image.width() / dpr;
+    d->height = d->image.height() / dpr;
 }
 
 /*!
