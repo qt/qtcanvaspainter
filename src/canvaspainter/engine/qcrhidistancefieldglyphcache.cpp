@@ -327,12 +327,7 @@ void QCRhiDistanceFieldGlyphCache::markGlyphsToRender(const QList<glyph_t> &glyp
 
 bool QCRhiDistanceFieldGlyphCache::useTextureResizeWorkaround() const
 {
-    static bool set = false;
-    static bool useWorkaround = false;
-    if (!set) {
-        useWorkaround = m_rhi->backend() == QRhi::OpenGLES2;
-        set = true;
-    }
+    static bool useWorkaround = m_rhi->backend() == QRhi::OpenGLES2;
     return useWorkaround;
 }
 
