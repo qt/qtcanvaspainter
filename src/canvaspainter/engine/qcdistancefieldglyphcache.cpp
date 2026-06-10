@@ -23,6 +23,7 @@ QCDistanceFieldGlyphCache::~QCDistanceFieldGlyphCache()
         delete cache.nativeGlyphCache;
         /*delete cache.layout;*/
     }
+    delete m_colorCache;
 }
 
 QList<QGlyphRun> QCDistanceFieldGlyphCache::generateGlyphRuns(
@@ -30,7 +31,10 @@ QList<QGlyphRun> QCDistanceFieldGlyphCache::generateGlyphRuns(
     const QFontMetricsF &metrics, QCState *state, QCanvasPainter::TextAlign alignment)
 {
     QTextOption option;
-    option.setFlags(QTextOption::DisableEmojiParsing);
+    // Emoji parsing is left enabled so that color-emoji sequences are grouped
+    // into their own QGlyphRun(s) backed by a color (Format_ARGB) font engine.
+    // generate() detects those runs and routes them to the color glyph atlas
+    // instead of the SDF cache, so they render with their native colors.
     option.setWrapMode(QCTextLayout::convertToQtWrapMode(state->textWrapMode));
     option.setAlignment(QCTextLayout::convertToQtAlignment(alignment));
     option.setTextDirection(QCTextLayout::convertToQtDirection(state->textDirection));
@@ -56,6 +60,7 @@ QList<QGlyphRun> QCDistanceFieldGlyphCache::generateGlyphRuns(
 }
 
 void QCDistanceFieldGlyphCache::generate(const QString &text, const QRectF &rect, const QFont &font, QCState *state, QCanvasPainter::TextAlign alignment,
+                                         float devicePixelRatio,
                                          QCRhiDistanceFieldGlyphCache::VertexList *verts, QCRhiDistanceFieldGlyphCache::IndexList *indices)
 {
     // Remove raw fonts
@@ -118,9 +123,24 @@ void QCDistanceFieldGlyphCache::generate(const QString &text, const QRectF &rect
     // use clear(), so that the containers' allocations are potentially kept
     verts->clear();
     indices->clear();
+    m_colorVertices.clear();
+    m_colorIndices.clear();
 
     const QPointF glyphPos(rect.x(), rect.y() + textY);
     for (const auto &run : std::as_const(glyphRuns)) {
+        // Color (emoji) runs cannot be represented in the single-channel SDF
+        // atlas; rasterize their RGBA bitmaps into a separate color atlas and
+        // collect their quads for a dedicated draw pass.
+        QFontEngine *fe = QRawFontPrivate::get(run.rawFont())->fontEngine;
+        if (fe && fe->isColorFont()) {
+            if (!m_colorCache)
+                m_colorCache = new QCRhiColorGlyphCache(m_rhi);
+            // Emoji glyphs carry their own colors, so the fill color is unused.
+            m_colorCache->addGlyphRun(glyphPos, run, Qt::black, state->transform,
+                                      devicePixelRatio, &m_colorVertices, &m_colorIndices);
+            continue;
+        }
+
         cache->setRawFont(run.rawFont());
         cache->addGlyphs(glyphPos, run);
         cache->update();
@@ -136,6 +156,10 @@ void QCDistanceFieldGlyphCache::generate(const QString &text, const QRectF &rect
     if (!(fontUnderline || fontOverline || fontStrikeOut))
         return;
 
+    // Decorations are drawn through the SDF solid tile. For text made up solely
+    // of color (emoji) glyphs, no monochrome glyph reserved/created it, so force
+    // it to exist now.
+    cache->ensureSolidTileTexture();
     const QCRhiDistanceFieldGlyphCache::TexCoord solidTC = cache->solidTileTexCoord();
     if (solidTC.isNull())
         return;
@@ -244,6 +268,8 @@ void QCDistanceFieldGlyphCache::commitResourceUpdates(QRhiResourceUpdateBatch *b
 {
     for (auto it = m_glyphCaches.begin(); it != m_glyphCaches.end(); ++it)
         it.value().nativeGlyphCache->commitResourceUpdate(batch);
+    if (m_colorCache && !m_colorCache->isEmpty())
+        m_colorCache->commitResourceUpdate(batch);
 }
 
 QRhiTexture *QCDistanceFieldGlyphCache::getCurrentTextures(const FontKey &key) const

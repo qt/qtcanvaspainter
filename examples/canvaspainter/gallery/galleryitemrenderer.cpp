@@ -1518,6 +1518,12 @@ void GalleryItemRenderer::drawTextsFonts() {
     posY += margin;
     painter()->fillText("Style: SmallCaps", posX, posY);
 
+    f.setWeight(QFont::Weight::Normal);
+    f.setCapitalization(QFont::MixedCase);
+    painter()->setFont(f);
+    posY += 2*margin;
+    painter()->fillText("Color e😃m😇o😍j😜i😸s✈️", posX, posY);
+
     posY += 2*margin;
     QFont f2("Pacifico", margin);
     painter()->setFont(f2);

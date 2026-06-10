@@ -59,6 +59,7 @@ private slots:
     void testTextDecorationsWrapping();
     void testTextDecorationsBrushes();
     void testTextDecorationsCustomBrushes();
+    void testManyEmojis();
     void testCanvasPathWithAddPath();
     void testTiger();
 

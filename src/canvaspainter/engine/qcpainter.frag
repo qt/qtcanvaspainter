@@ -111,6 +111,10 @@ void main()
         color *= globalAlpha * aaAlpha * clip;
     } else if (type == 11) { // Stencil fill
         color = vec4(1.0);
+    } else if (type == 15) { // Color glyph (emoji): sample the RGBA atlas directly
+        vec2 texSize = vec2(textureSize(fontTex, 0));
+        color = texture(fontTex, texCoord / texSize);
+        color *= globalAlpha * aaAlpha * clip;
     } else {
         vec2 pt = (paintMat * vec3(fragCoord, 1.0)).xy;
         if (type == 1 || type == 2) { // Linear Gradient
