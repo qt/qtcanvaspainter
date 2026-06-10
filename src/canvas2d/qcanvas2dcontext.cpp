@@ -1830,6 +1830,33 @@ QV4::ReturnedValue QCanvasJSContext2D::method_set_globalSaturate(const QV4::Func
         B out A. Display the destination image wherever the destination image
         is opaque and the source image is transparent. Display transparency
         elsewhere.
+
+    \note To work properly, composite modes require enabling \c alphaBlending
+    and using a transparent background for the canvas.
+
+    \table
+    \row
+    \li \inlineimage canvas2d-globalcomposite.webp
+    \li
+    \code
+    const modes = ["source-over", "source-atop", "destination-out"];
+    for (let i = 0; i < modes.length; i++) {
+        // First item - source-over mode
+        ctx.globalCompositeOperation = "source-over";
+        let y = 5 + i * 65;
+        ctx.fillStyle = "#D9F720";
+        ctx.fillRect(20, y, 140, 40);
+        // Second item - Different modes
+        ctx.globalCompositeOperation = modes[i];
+        ctx.beginPath();
+        ctx.ellipse(130, y + 30, 60, 25);
+        ctx.strokeStyle = "#00414A";
+        ctx.fillStyle = "#2CDE85";
+        ctx.fill();
+        ctx.stroke();
+    }
+    \endcode
+    \endtable
 */
 QV4::ReturnedValue QCanvasJSContext2D::method_get_globalCompositeOperation(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *, int)
 {
