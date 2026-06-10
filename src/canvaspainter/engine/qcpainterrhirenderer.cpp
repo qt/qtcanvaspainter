@@ -74,6 +74,7 @@ enum QCRHIShaderType {
     ShaderGridPattern = 12,
     ShaderRadialGradientExtended = 13,
     ShaderTexturedRadialGradientExtended = 14,
+    ShaderColorGlyph = 15,
 };
 
 enum QCRHICallType {
@@ -150,7 +151,7 @@ struct QCRHICommonUniforms {
     int texType;
     int type;
     float globalAlpha;
-    // Take these into use when needed
+    // Take this into use when needed
     int unusedInt;
     // Custom input size is 112 bytes.
     float paintMat[12];
@@ -1895,12 +1896,14 @@ void QCPainterRhiRenderer::renderStroke(const QCPaint &paint, const QCState &sta
 
 #ifndef QCPAINTER_DISABLE_TEXT_SUPPORT
 
-// Fill direct text with normal brush
+// Fill direct text with a normal brush, or color (emoji) glyphs when
+// colorGlyphs is true.
 void QCPainterRhiRenderer::renderTextFill(
     const QCPaint &paint,
     const QCState &state,
     const QCRhiDistanceFieldGlyphCache::VertexList &verts,
-    const QCRhiDistanceFieldGlyphCache::IndexList &indices)
+    const QCRhiDistanceFieldGlyphCache::IndexList &indices,
+    bool colorGlyphs)
 {
     QCRHICall *call = allocCall();
     auto &ctx = m_e->ctx;
@@ -1909,8 +1912,10 @@ void QCPainterRhiRenderer::renderTextFill(
     // Text uses own AA, so disable stroke antialiasing.
     call->renderFlags = rhiCtx->flags;
     call->renderFlags &= ~RenderFlag::Antialiasing;
-    call->image = paint.imageId;
-    call->font = ctx.fontId;
+    // Color glyphs sample their own RGBA atlas (bound as the font texture) and
+    // ignore the paint's brush image; monochrome glyphs are tinted by paint.
+    call->image = colorGlyphs ? 0 : paint.imageId;
+    call->font = colorGlyphs ? ctx.colorFontId : ctx.fontId;
     call->blendFunc = blendCompositeOperation(state.compositeOperation, state.blendEnable);
     const QRectF clipRect = state.clip.rect;
     call->scissor.setScissor(clipRect.x(), clipRect.y(), clipRect.width(), clipRect.height());
@@ -1945,7 +1950,16 @@ void QCPainterRhiRenderer::renderTextFill(
     call->commonUniformBufferOffset = allocCommonUniforms(1);
     auto frag = uniformPtr(call->commonUniformBufferOffset);
     const float aa = 1.0f;
-    preparePaint(frag, paint, state, 1.0f, aa, -1.0f, ctx.fontAlphaMin, ctx.fontAlphaMax);
+    if (colorGlyphs) {
+        // Color glyphs carry their own colors, so the paint is ignored: use a
+        // neutral paint and flag the shader to sample the atlas directly.
+        QCPaint p = {};
+        p.alpha = state.alpha;
+        preparePaint(frag, p, state, 1.0f, aa, -1.0f, -1.0f, -1.0f);
+        frag->type = ShaderColorGlyph;
+    } else {
+        preparePaint(frag, paint, state, 1.0f, aa, -1.0f, ctx.fontAlphaMin, ctx.fontAlphaMax);
+    }
 }
 
 // Fill direct text with a custom brush
@@ -2836,7 +2850,8 @@ int QCPainterRhiRenderer::populateFont(
     QCRHITexture *tex = nullptr;
 
     auto effectiveAlign = m_e->effectiveTextAlign(text);
-    rc->fontCache->generate(text, rect, font, &(m_e->state), effectiveAlign, &vertices, &indices);
+    rc->fontCache->generate(text, rect, font, &(m_e->state), effectiveAlign,
+                            m_e->ctx.devicePxRatio, &vertices, &indices);
 
     QRhiResourceUpdateBatch *u = resourceUpdateBatch();
 
@@ -2879,6 +2894,35 @@ int QCPainterRhiRenderer::populateFont(
     tex->width = *textureWidth;
     tex->height = *textureHeight;
 
+    return tex->id;
+}
+
+// Returns the color (emoji) glyph geometry and atlas produced by the most recent
+// populateFont()/generate() call. Must be called after populateFont() for the
+// same text, since generate() produces both mono and color geometry in one pass.
+int QCPainterRhiRenderer::populateColorFont(
+    QCRhiDistanceFieldGlyphCache::VertexList &vertices,
+    QCRhiDistanceFieldGlyphCache::IndexList &indices)
+{
+    QCDistanceFieldGlyphCache *cache = rhiCtx->fontCache;
+    QRhiTexture *atlas = cache->colorGlyphTexture();
+    if (!atlas || cache->colorIndices().isEmpty())
+        return 0;
+
+    // The atlas uploads were already merged into the frame's resource update
+    // batch by populateFont() -> commitResourceUpdates().
+    vertices = cache->colorVertices();
+    indices = cache->colorIndices();
+
+    QRhiTexture *prevAtlas = cache->prevColorGlyphTexture();
+    QCRHITexture *tex = nullptr;
+    if (prevAtlas && prevAtlas != atlas)
+        tex = renderUpdateNativeTexture(prevAtlas, atlas);
+    if (!tex)
+        tex = renderCreateNativeTexture(atlas);
+    if (!tex)
+        return 0;
+    cache->setPrevColorGlyphTexture(atlas);
     return tex->id;
 }
 #endif

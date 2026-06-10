@@ -187,6 +187,7 @@ void QCPainterEngine::reset()
     state.blendEnable = true;
 
     ctx.fontId = 0;
+    ctx.colorFontId = 0;
     ctx.fontAlphaMin = -1.0f;
     ctx.fontAlphaMax = -1.0f;
     ctx.pathsCount = 0;
@@ -1130,25 +1131,33 @@ void QCPainterEngine::fillText(const QString &text, const QRectF &rect)
     auto tex = m_renderer->populateFont(state.font, rect, text, textVertices, textIndices,
                                         &width, &height);
 
-    if (textVertices.empty())
-        return;
+    // Monochrome (SDF) glyphs and text decorations.
+    if (!textVertices.empty()) {
+        const QCPaint p = getFillPaint();
+        ctx.fontId = tex;
+        updateStateFontVars();
 
-    const QCPaint p = getFillPaint();
-    ctx.fontId = tex;
-    updateStateFontVars();
+        // Decoration rects (underline/overline/strikeout) are appended to
+        // textVertices/textIndices by the glyph cache with a texCoord pointing
+        // into a reserved 0xFF region of the SDF atlas, so they participate in
+        // this same draw call and pick up the same shader as the glyphs.
+        QCanvasCustomBrushPrivate *customPriv = nullptr;
+        if (state.customFill.type() == QCanvasBrush::BrushType::Custom)
+            customPriv = static_cast<QCanvasCustomBrushPrivate *>(QCanvasBrushPrivate::get(state.customFill));
+        if (!customPriv) {
+            m_renderer->renderTextFill(p, state, textVertices, textIndices);
+        } else {
+            m_renderer->renderTextFillCustom(
+                    p, state, customPriv, textVertices, textIndices);
+        }
+    }
 
-    // Decoration rects (underline/overline/strikeout) are appended to
-    // textVertices/textIndices by the glyph cache with a texCoord pointing
-    // into a reserved 0xFF region of the SDF atlas, so they participate in
-    // this same draw call and pick up the same shader as the glyphs.
-    QCanvasCustomBrushPrivate *customPriv = nullptr;
-    if (state.customFill.type() == QCanvasBrush::BrushType::Custom)
-        customPriv = static_cast<QCanvasCustomBrushPrivate *>(QCanvasBrushPrivate::get(state.customFill));
-    if (!customPriv) {
-        m_renderer->renderTextFill(p, state, textVertices, textIndices);
-    } else {
-        m_renderer->renderTextFillCustom(
-                p, state, customPriv, textVertices, textIndices);
+    // Color (emoji) glyphs are drawn by samppling the color atlas directly, so
+    // they keep their native colors instead of being tinted by the fill.
+    auto colorTex = m_renderer->populateColorFont(colorTextVertices, colorTextIndices);
+    if (colorTex != 0 && !colorTextVertices.empty()) {
+        ctx.colorFontId = colorTex;
+        m_renderer->renderTextFill({}, state, colorTextVertices, colorTextIndices, true);
     }
 
     // simple memory usage cap; drawing huge texts will not reuse the containers (and their allocations)
@@ -1156,6 +1165,10 @@ void QCPainterEngine::fillText(const QString &text, const QRectF &rect)
         textVertices = {};
     if (textIndices.capacity() > QCPAINTER_TEXT_VERTEX_INDEX_LIST_REUSE_CAPACITY)
         textIndices = {};
+    if (colorTextVertices.capacity() > QCPAINTER_TEXT_VERTEX_INDEX_LIST_REUSE_CAPACITY)
+        colorTextVertices = {};
+    if (colorTextIndices.capacity() > QCPAINTER_TEXT_VERTEX_INDEX_LIST_REUSE_CAPACITY)
+        colorTextIndices = {};
 #endif
 }
 

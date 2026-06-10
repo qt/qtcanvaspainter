@@ -267,6 +267,7 @@ struct QCContext {
     int pointsCount = 0;
     int pathsCount = 0;
     int fontId;
+    int colorFontId;
     float fontAlphaMin;
     float fontAlphaMax;
     // Currently prepared painter path.

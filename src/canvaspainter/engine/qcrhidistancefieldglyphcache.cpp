@@ -105,6 +105,22 @@ void QCRhiDistanceFieldGlyphCache::uploadSolidTileIfNeeded()
     m_solidTileUploadPending = false;
 }
 
+void QCRhiDistanceFieldGlyphCache::ensureSolidTileTexture()
+{
+    ensureSolidTile();
+    if (!m_solidTileTexture)
+        return;
+
+    // When real glyphs were stored, storeGlyphs() already created the atlas
+    // texture; otherwise it does not exist yet, so create it sized to the
+    // reserved tile area. The 0xFF texels are flushed by uploadSolidTileIfNeeded().
+    if (!m_solidTileTexture->texture) {
+        const QRect area = m_solidTileTexture->allocatedArea;
+        createTexture(m_solidTileTexture, area.width(), area.height());
+    }
+    uploadSolidTileIfNeeded();
+}
+
 void QCRhiDistanceFieldGlyphCache::createTexture(TextureInfo *texInfo, int width, int height)
 {
     QByteArray zeroBuf(width * height, 0);

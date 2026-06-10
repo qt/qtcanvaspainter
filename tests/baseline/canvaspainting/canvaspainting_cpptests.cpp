@@ -760,6 +760,90 @@ void CanvasPainterLancelotCppTests::testSomeText()
     painter->setFont(font);
     painter->fillText("Under+Over+Strike text drawing", 0, 20);
     painter->restore();
+
+    // Text decorations combined with color emoji. The mixed string exercises a
+    // decoration line spanning both monochrome (SDF) glyphs and color (emoji)
+    // glyphs, while the pure-emoji string verifies that decorations are still
+    // drawn when no monochrome glyph is present (the decoration relies on the
+    // SDF solid tile, which must be created even for emoji-only runs).
+    const QString mixedEmoji = "e😃m😇o😍j😜i😸!✈️";
+    const QString pureEmoji = "😃😇😍😜😸✈️";
+
+    painter->translate(0, 35);
+    painter->save();
+    font = QFont();
+    font.setPointSize(12);
+    font.setUnderline(true);
+    painter->setFont(font);
+    painter->fillText(mixedEmoji, 0, 20);
+    painter->restore();
+
+    painter->translate(0, 35);
+    painter->save();
+    font = QFont();
+    font.setPointSize(12);
+    font.setStrikeOut(true);
+    painter->setFont(font);
+    painter->fillText(mixedEmoji, 0, 20);
+    painter->restore();
+
+    painter->translate(0, 35);
+    painter->save();
+    font = QFont();
+    font.setPointSize(12);
+    font.setUnderline(true);
+    font.setOverline(true);
+    font.setStrikeOut(true);
+    painter->setFont(font);
+    painter->fillText(mixedEmoji, 0, 20);
+    painter->restore();
+
+    painter->translate(0, 35);
+    painter->save();
+    font = QFont();
+    font.setPointSize(12);
+    font.setUnderline(true);
+    font.setOverline(true);
+    font.setStrikeOut(true);
+    painter->setFont(font);
+    painter->fillText(pureEmoji, 0, 20);
+    painter->restore();
+}
+
+void CanvasPainterLancelotCppTests::testManyEmojis()
+{
+    // Exercises growth of the color glyph atlas (QCRhiColorGlyphCache): each
+    // distinct glyph claims a new atlas slot, so drawing many of them forces the
+    // atlas texture to grow past its initial size several times within a single frame.
+    painter->setFillStyle(Qt::black);
+
+    const int sizes[] = { 16, 20, 24, 28, 32 };
+
+    float y = 24.0f;
+    bool full = false;
+    for (int pt : sizes) {
+        if (full)
+            break;
+        QFont font;
+        font.setPointSize(pt);
+        painter->setFont(font);
+
+        const float cell = pt * 1.6f;
+        float x = 8.0f;
+        for (char32_t cp = 0x1F600; cp <= 0x1F64F; ++cp) {
+            painter->fillText(QString::fromUcs4(&cp, 1), x, y);
+            x += cell;
+            if (x > width() - cell) {
+                x = 8.0f;
+                y += cell;
+                if (y > height() - cell) {
+                    full = true;
+                    break;
+                }
+            }
+        }
+        y += cell * 1.5f; // gap before the next (larger) size block
+    }
 }
 
 void CanvasPainterLancelotCppTests::testCanvasPathCommandsWithAndWithoutPathGroup()

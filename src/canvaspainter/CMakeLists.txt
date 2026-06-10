@@ -26,6 +26,7 @@ qt_internal_add_module(CanvasPainter
         engine/qcpainterrhirenderer.cpp engine/qcpainterrhirenderer_p.h
         engine/qcdistancefieldglyphcache.cpp engine/qcdistancefieldglyphcache_p.h
         engine/qcrhidistancefieldglyphcache.cpp engine/qcrhidistancefieldglyphcache_p.h
+        engine/qcrhicolorglyphcache.cpp engine/qcrhicolorglyphcache_p.h
         engine/qcareaallocator.cpp engine/qcareaallocator_p.h
         engine/qctextlayout.cpp engine/qctextlayout_p.h
 

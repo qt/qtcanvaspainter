@@ -163,7 +163,8 @@ public:
         const QCPaint &paint,
         const QCState &state,
         const QCRhiDistanceFieldGlyphCache::VertexList &verts,
-        const QCRhiDistanceFieldGlyphCache::IndexList &indices);
+        const QCRhiDistanceFieldGlyphCache::IndexList &indices,
+        bool colorGlyphs = false);
     void renderTextFillCustom(
         const QCPaint &paint,
         const QCState &state,
@@ -178,6 +179,9 @@ public:
         QCRhiDistanceFieldGlyphCache::IndexList &indices,
         int *textureWidth,
         int *textureHeight);
+    int populateColorFont(
+        QCRhiDistanceFieldGlyphCache::VertexList &vertices,
+        QCRhiDistanceFieldGlyphCache::IndexList &indices);
 #endif
     void renderDelete();
 

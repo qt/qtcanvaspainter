@@ -142,6 +142,13 @@ public:
     // appear. Returns an invalid TexCoord if the tile could not be allocated.
     TexCoord solidTileTexCoord() const { return m_solidTileTexCoord; }
 
+    // Guarantees the solid tile exists AND that its atlas texture is created and
+    // uploaded, even when no glyph was ever added to this cache. Needed when a
+    // run consists solely of color (emoji) glyphs but still requires text
+    // decorations (underline/overline/strikeout), which are drawn through the
+    // solid tile.
+    void ensureSolidTileTexture();
+
 private:
 
     struct ReferenceFont {

@@ -19,6 +19,7 @@
 
 #include "engine/qcpainterengineutils_p.h"
 #include "engine/qcrhidistancefieldglyphcache_p.h"
+#include "engine/qcrhicolorglyphcache_p.h"
 #include <QFont>
 #include <QRawFont>
 
@@ -72,6 +73,7 @@ public:
     ~QCDistanceFieldGlyphCache();
 
     void generate(const QString &text, const QRectF &rect, const QFont &font, QCState *state, QCanvasPainter::TextAlign alignment,
+                  float devicePixelRatio,
                   QCRhiDistanceFieldGlyphCache::VertexList *verts, QCRhiDistanceFieldGlyphCache::IndexList *indices);
 
     void commitResourceUpdates(QRhiResourceUpdateBatch *batch);
@@ -82,6 +84,12 @@ public:
     void setOldTexture(FontKey key, QRhiTexture *tex);
     void optimizeCache();
 
+    const QCRhiDistanceFieldGlyphCache::VertexList &colorVertices() const { return m_colorVertices; }
+    const QCRhiDistanceFieldGlyphCache::IndexList &colorIndices() const { return m_colorIndices; }
+    QRhiTexture *colorGlyphTexture() const { return m_colorCache ? m_colorCache->texture() : nullptr; }
+    QRhiTexture *prevColorGlyphTexture() const { return m_prevColorGlyphTexture; }
+    void setPrevColorGlyphTexture(QRhiTexture *tex) { m_prevColorGlyphTexture = tex; }
+
 private:
     QList<QGlyphRun> generateGlyphRuns(const QString &text, const QRectF &rect,
                                        const QFont &font, const QFontMetricsF &metrics,
@@ -89,6 +97,10 @@ private:
     QHash<QCDistanceFieldGlyphCache::FontKey, FontKeyData> m_glyphCaches;
     QRhi *m_rhi;
     QTextLayout m_layout;
+    QCRhiColorGlyphCache *m_colorCache = nullptr;
+    QRhiTexture *m_prevColorGlyphTexture = nullptr;
+    QCRhiDistanceFieldGlyphCache::VertexList m_colorVertices;
+    QCRhiDistanceFieldGlyphCache::IndexList m_colorIndices;
 #ifdef QCPAINTER_CACHE_GLYPH_RUNS
     QHash<GlyphCacheKey, GlyphCacheValue> m_glyphRunCache;
 #endif

@@ -231,6 +231,8 @@ private:
 #ifndef QCPAINTER_DISABLE_TEXT_SUPPORT
     QCRhiDistanceFieldGlyphCache::VertexList textVertices;
     QCRhiDistanceFieldGlyphCache::IndexList textIndices;
+    QCRhiDistanceFieldGlyphCache::VertexList colorTextVertices;
+    QCRhiDistanceFieldGlyphCache::IndexList colorTextIndices;
 #endif
 };
 
