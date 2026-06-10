@@ -40,6 +40,7 @@ public:
     Q_CANVASPAINTER_EXPORT int height() const;
     inline QSize size() const;
     Q_CANVASPAINTER_EXPORT qsizetype sizeInBytes() const;
+    Q_CANVASPAINTER_EXPORT float devicePixelRatio() const;
     Q_CANVASPAINTER_EXPORT bool isNull() const;
 
     Q_CANVASPAINTER_EXPORT QColor tintColor() const;

@@ -1967,6 +1967,61 @@ void CanvasPainterLancelotCppTests::testImages3()
     }
 }
 
+void CanvasPainterLancelotCppTests::testHighDpiImages()
+{
+    // QImageReader sets a device pixel ratio of N on images whose file name
+    // ends with an "@Nx" suffix, unless disabled by an env.var.. QCanvasImage
+    // carries that ratio over and uses it e.g. for drawImage() without an
+    // explicit size. (by using pixel_width / dpr as width etc.)
+
+    QCanvasImage logo1x = painter->addImage(QImage(":/images/qt_development_white.png"));
+    QCanvasImage logo2x = painter->addImage(QImage(":/images/qt_development_white@2x.png"));
+
+    const auto repeatFlags = QCanvasPainter::ImageFlag::Repeat;
+    QCanvasImage pattern1x = painter->addImage(QImage(":/images/pattern2.png"), repeatFlags);
+    QCanvasImage pattern2x = painter->addImage(QImage(":/images/pattern2@2x.png"), repeatFlags);
+
+    if (logo2x.size() != logo1x.size() || !qFuzzyCompare(logo2x.devicePixelRatio(), 2.0f)) {
+        qWarning("Something is wrong with @2 image loading");
+        painter->setFillStyle(Qt::red);
+        painter->fillRect(0, 0, width(), height());
+        return;
+    }
+
+    painter->setFillStyle(Qt::darkGray);
+    painter->fillRect(0, 0, width(), height());
+
+    QFont font;
+    font.setPixelSize(15);
+    painter->setFont(font);
+    painter->setTextAlign(QCanvasPainter::TextAlign::Left);
+    painter->setTextBaseline(QCanvasPainter::TextBaseline::Bottom);
+
+    auto label = [&](const QString &text, float x, float y) {
+        painter->setFillStyle(Qt::white);
+        painter->fillText(text, x, y);
+    };
+
+    label("drawImage(img, x, y): @1x (top) then @2x renders at half size", 20, 30);
+    painter->drawImage(logo1x, 20, 40);
+    painter->drawImage(logo2x, 20, 130);
+
+    label("drawImage(img, x, y, w, h): explicit size, @1x and @2x identical", 20, 220);
+    painter->drawImage(pattern1x, 20, 235, 110, 110);
+    painter->drawImage(pattern2x, 150, 235, 110, 110);
+
+    label("image pattern default tile size: @1x (left) then @2x (denser)", 20, 380);
+    painter->setFillStyle(QCanvasImagePattern(pattern1x));
+    painter->fillRect(20, 395, 360, 180);
+    painter->setFillStyle(QCanvasImagePattern(pattern2x));
+    painter->fillRect(400, 395, 360, 180);
+
+    label("drawImage(img, srcRect, dstRect): @1x and @2x identical", 20, 620);
+    const QRectF src(110, 0, 232, 72); // the "Development" part, in device pixels
+    painter->drawImage(logo1x, src, QRectF(20, 635, 360, 110));
+    painter->drawImage(logo2x, src, QRectF(400, 635, 360, 110));
+}
+
 void CanvasPainterLancelotCppTests::testAntialiasing()
 {
     float topMargin = height() * 0.02f;
