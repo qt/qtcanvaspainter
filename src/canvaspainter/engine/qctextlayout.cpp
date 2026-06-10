@@ -46,7 +46,7 @@ Qt::Alignment QCTextLayout::convertToQtAlignment(QCanvasPainter::TextAlign align
 }
 
 float QCTextLayout::calculateVerticalAlignment(QCanvasPainter::TextBaseline baseline, const QRectF &rect,
-                                               const QFontMetrics &metrics, const QRectF &layoutRect)
+                                               const QFontMetricsF &metrics, const QRectF &layoutRect)
 {
     float offset = 0;
     switch (baseline) {

@@ -18,7 +18,7 @@
 //
 
 #include "engine/qcpainterengineutils_p.h"
-#include <QFontMetrics>
+#include <QFontMetricsF>
 
 QT_BEGIN_NAMESPACE
 
@@ -28,7 +28,7 @@ public:
     static QTextOption::WrapMode convertToQtWrapMode(QCanvasPainter::WrapMode mode);
     static Qt::Alignment convertToQtAlignment(QCanvasPainter::TextAlign alignment);
     static float calculateVerticalAlignment(QCanvasPainter::TextBaseline baseline, const QRectF &rect,
-                                            const QFontMetrics &metrics, const QRectF &layoutRect);
+                                            const QFontMetricsF &metrics, const QRectF &layoutRect);
     static std::pair<float, float> calculateHorizontalAlignment(QCanvasPainter::TextAlign align,
                                                                 const QRectF &rect,
                                                                 float layoutWidth,
