@@ -27,7 +27,7 @@ QCDistanceFieldGlyphCache::~QCDistanceFieldGlyphCache()
 
 QList<QGlyphRun> QCDistanceFieldGlyphCache::generateGlyphRuns(
     const QString &text, const QRectF &rect, const QFont &font,
-    const QFontMetrics &metrics, QCState *state, QCanvasPainter::TextAlign alignment)
+    const QFontMetricsF &metrics, QCState *state, QCanvasPainter::TextAlign alignment)
 {
     QTextOption option;
     option.setFlags(QTextOption::DisableEmojiParsing);
@@ -61,7 +61,7 @@ void QCDistanceFieldGlyphCache::generate(const QString &text, const QRectF &rect
     // Remove raw fonts
     auto rFont = QRawFont::fromFont(font);
     FontKeyData *data;
-    const auto metrics = QFontMetrics(font);
+    const auto metrics = QFontMetricsF(font);
 
     // Get glyph cache
     QCRhiDistanceFieldGlyphCache *cache;

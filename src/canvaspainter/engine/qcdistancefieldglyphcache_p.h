@@ -84,7 +84,7 @@ public:
 
 private:
     QList<QGlyphRun> generateGlyphRuns(const QString &text, const QRectF &rect,
-                                       const QFont &font, const QFontMetrics &metrics,
+                                       const QFont &font, const QFontMetricsF &metrics,
                                        QCState *state, QCanvasPainter::TextAlign alignment);
     QHash<QCDistanceFieldGlyphCache::FontKey, FontKeyData> m_glyphCaches;
     QRhi *m_rhi;

@@ -1163,7 +1163,7 @@ QRectF QCPainterEngine::textBoundingBox(const QString &text, const QRectF &rect)
 {
 #ifndef QCPAINTER_DISABLE_TEXT_SUPPORT
     auto &font = state.font;
-    auto metrics = QFontMetrics{font};
+    auto metrics = QFontMetricsF{font};
 
     // TODO: Duplicate code from QCDistanceFieldGlyphCache::generate()
     // We should move this layouting into a shared method.
@@ -1177,7 +1177,7 @@ QRectF QCPainterEngine::textBoundingBox(const QString &text, const QRectF &rect)
     layout.setTextOption(option);
     layout.setText(text);
     layout.setFont(font);
-    int leading = metrics.leading();
+    float leading = metrics.leading();
     float layoutHeight = 0;
     float layoutWidth = 0;
     layout.beginLayout();

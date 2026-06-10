@@ -4283,7 +4283,7 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_strokeText(const QV4::Fun
     \qmlmethod object Canvas2DContext::measureText(text)
 
     Returns an object with a \c width property, whose value is equivalent to
-    calling QFontMetrics::horizontalAdvance() with the given \a text in the
+    calling QFontMetricsF::horizontalAdvance() with the given \a text in the
     current font.
 */
 QV4::ReturnedValue QCanvasJSContext2DPrototype::method_measureText(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc)
@@ -4293,8 +4293,8 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_measureText(const QV4::Fu
     CHECK_CONTEXT(r)
 
     if (argc >= 1) {
-        QFontMetrics fm(r->d()->context()->state.font);
-        uint width = fm.horizontalAdvance(argv[0].toQStringNoThrow());
+        QFontMetricsF fm(r->d()->context()->state.font);
+        qreal width = fm.horizontalAdvance(argv[0].toQStringNoThrow());
         QV4::ScopedObject tm(scope, scope.engine->newObject());
         tm->put(QV4::ScopedString(scope, scope.engine->newIdentifier(QStringLiteral("width"))).getPointer(),
                 QV4::ScopedValue(scope, QV4::Value::fromDouble(width)));
@@ -4668,9 +4668,9 @@ void QCanvas2DContext::drawBoxShadow(QCanvasBoxShadow *shadow)
     buffer()->drawBoxShadow(shadow);
 }
 
-int baseLineOffset(QCanvasPainter::TextBaseline value, const QFontMetrics &metrics)
+float baseLineOffset(QCanvasPainter::TextBaseline value, const QFontMetricsF &metrics)
 {
-    int offset = 0;
+    float offset = 0;
     switch (value) {
     case QCanvasPainter::TextBaseline::Top:
         break;
@@ -4695,9 +4695,9 @@ int baseLineOffset(QCanvasPainter::TextBaseline value, const QFontMetrics &metri
     return offset;
 }
 
-static int textAlignOffset(QCanvasPainter::TextAlign value, const QFontMetrics &metrics, const QString &text)
+static float textAlignOffset(QCanvasPainter::TextAlign value, const QFontMetricsF &metrics, const QString &text)
 {
-    int offset = 0;
+    float offset = 0;
     if (value == QCanvasPainter::TextAlign::Start)
         value = QGuiApplication::layoutDirection() == Qt::LeftToRight ? QCanvasPainter::TextAlign::Left : QCanvasPainter::TextAlign::Right;
     else if (value == QCanvasPainter::TextAlign::End)
@@ -4729,9 +4729,9 @@ QQmlRefPointer<QCanvas2DPixmap> QCanvas2DContext::createPixmap(const QUrl& url, 
 
 QPainterPath QCanvas2DContext::createTextGlyphs(qreal x, qreal y, const QString& text)
 {
-    const QFontMetrics metrics(state.font);
-    int yoffset = baseLineOffset(static_cast<QCanvasPainter::TextBaseline>(state.textBaseline), metrics);
-    int xoffset = textAlignOffset(static_cast<QCanvasPainter::TextAlign>(state.textAlign), metrics, text);
+    const QFontMetricsF metrics(state.font);
+    float yoffset = baseLineOffset(static_cast<QCanvasPainter::TextBaseline>(state.textBaseline), metrics);
+    float xoffset = textAlignOffset(static_cast<QCanvasPainter::TextAlign>(state.textAlign), metrics, text);
 
     QPainterPath textPath;
 
