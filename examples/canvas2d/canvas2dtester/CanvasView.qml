@@ -210,7 +210,7 @@ Item {
         ctx.rect(m, m, w - 2 * m, h - 2 * m);
         ctx.stroke();
         if (isCanvas2D) {
-            ctx.clipRect(m, m, w - 2 * m, h - 2 * m);
+            ctx.setClipRect(m, m, w - 2 * m, h - 2 * m);
         } else {
             ctx.clip();
         }

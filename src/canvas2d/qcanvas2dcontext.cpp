@@ -281,7 +281,7 @@ public:
         o->defineDefaultProperty(QStringLiteral("restore"), method_restore, 0);
         o->defineDefaultProperty(QStringLiteral("caretBlinkRate"), method_caretBlinkRate, 0);
         o->defineDefaultProperty(QStringLiteral("clip"), method_clip, 0);
-        o->defineDefaultProperty(QStringLiteral("clipRect"), method_clipRect, 0);
+        o->defineDefaultProperty(QStringLiteral("setClipRect"), method_setClipRect, 0);
         o->defineDefaultProperty(QStringLiteral("resetClipping"), method_resetClipping, 0);
         o->defineDefaultProperty(QStringLiteral("setTransform"), method_setTransform, 0);
         o->defineDefaultProperty(QStringLiteral("getTransform"), method_getTransform, 0);
@@ -376,7 +376,7 @@ public:
     static QV4::ReturnedValue method_strokeRect(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc);
     static QV4::ReturnedValue method_beginPath(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc);
     static QV4::ReturnedValue method_clip(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc);
-    static QV4::ReturnedValue method_clipRect(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc);
+    static QV4::ReturnedValue method_setClipRect(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc);
     static QV4::ReturnedValue method_resetClipping(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc);
     static QV4::ReturnedValue method_fill(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc);
     static QV4::ReturnedValue method_stroke(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc);
@@ -3526,7 +3526,7 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_clip(const QV4::FunctionO
 }
 
 /*!
-    \qmlmethod object Canvas2DContext::clipRect(real x, real y, real width, real height)
+    \qmlmethod object Canvas2DContext::setClipRect(real x, real y, real width, real height)
 
     Sets the current scissor rectangle to (\a x, \a y, \a width, \a height).
     The scissor rectangle is transformed by the current transform.
@@ -3537,7 +3537,7 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_clip(const QV4::FunctionO
     \li \inlineimage canvas2d-cliprect.webp
     \li
     \code
-    ctx.clipRect(20, 20, 160, 160);
+    ctx.setClipRect(20, 20, 160, 160);
     ctx.beginPath();
     ctx.circle(40, 40, 110);
     ctx.fill();
@@ -3549,14 +3549,14 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_clip(const QV4::FunctionO
 
     \sa resetClipping()
 */
-QV4::ReturnedValue QCanvasJSContext2DPrototype::method_clipRect(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc)
+QV4::ReturnedValue QCanvasJSContext2DPrototype::method_setClipRect(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc)
 {
     QV4::Scope scope(b);
     QV4::Scoped<QCanvasJSContext2D> r(scope, *thisObject);
     CHECK_CONTEXT(r)
 
     if (argc >= 4)
-        r->d()->context()->clipRect(argv[0].toNumber(), argv[1].toNumber(), argv[2].toNumber(), argv[3].toNumber());
+        r->d()->context()->setClipRect(argv[0].toNumber(), argv[1].toNumber(), argv[2].toNumber(), argv[3].toNumber());
 
     RETURN_RESULT(*thisObject);
 }
@@ -3565,7 +3565,7 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_clipRect(const QV4::Funct
     \qmlmethod object Canvas2DContext::resetClipping()
 
     Resets and disables clipping.
-    \sa clipRect()
+    \sa setClipRect()
  */
 QV4::ReturnedValue QCanvasJSContext2DPrototype::method_resetClipping(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *, int)
 {
@@ -4601,7 +4601,7 @@ void QCanvas2DContext::clip()
     // TODO: Clipping to current shape not implemented
 }
 
-void QCanvas2DContext::clipRect(qreal x, qreal y, qreal w, qreal h)
+void QCanvas2DContext::setClipRect(qreal x, qreal y, qreal w, qreal h)
 {
     if (!qt_is_finite(x) || !qt_is_finite(y) || !qt_is_finite(w) || !qt_is_finite(h))
         return;
