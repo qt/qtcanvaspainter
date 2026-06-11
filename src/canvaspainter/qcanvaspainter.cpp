@@ -604,6 +604,30 @@ void QCanvasPainter::setFillStyle(const QCanvasBrush &brush)
     QCanvasPainter::LineJoin::Bevel will be applied between the lines instead.
     This only has effect with the QCanvasPainter::LineJoin::Miter line join.
     The default limit is \c 10.0.
+    \table
+    \row
+    \li \inlineimage qcpainter-miterlimit.webp
+    \li
+    \code
+    QCanvasPath path;
+    path.moveTo(20, 40);
+    path.lineTo(30, 130);
+    path.lineTo(40, 40);
+    path.lineTo(55, 80);
+
+    p->setLineJoin(QCanvasPainter::LineJoin::Miter);
+    p->setMiterLimit(20);
+    p->stroke(path);
+
+    p->setMiterLimit(8);
+    p->translate(65, 0);
+    p->stroke(path);
+
+    p->setMiterLimit(2);
+    p->translate(65, 0);
+    p->stroke(path);
+    \endcode
+    \endtable
 
     \sa setLineJoin()
 */
