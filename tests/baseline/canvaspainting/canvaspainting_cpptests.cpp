@@ -455,6 +455,7 @@ void CanvasPainterLancelotCppTests::testPathFill()
     painter->fillText("No offset  RGB/ARGB", 150, 450);
     painter->fillText("-30 offset RGB/ARGB", 550, 450);
     painter->fillText("10 offset, 45 degrees rotation", 200, 550);
+    painter->fillText("Open curve fill", 550, 550);
 
     rgbpatternOffs.setRotation(qDegreesToRadians(45));
     painter->setFillStyle(rgbpatternOffs);
@@ -470,6 +471,15 @@ void CanvasPainterLancelotCppTests::testPathFill()
     painter->translate(210, 550);
     painter->fill(p);
     painter->stroke(p);
+    painter->restore();
+
+    QCanvasPath curvePath;
+    curvePath.moveTo(10, 10);
+    curvePath.quadraticCurveTo(200, 100, 10, 200);
+    painter->save();
+    painter->translate(630, 550);
+    painter->fill(curvePath);
+    painter->stroke(curvePath);
     painter->restore();
 }
 
