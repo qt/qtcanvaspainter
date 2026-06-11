@@ -3028,6 +3028,30 @@ QV4::ReturnedValue QCanvasJSContext2D::method_set_lineWidth(const QV4::FunctionO
     a "bevel" \l lineJoin will be applied between the lines instead.
     This only has effect with the "miter" line join.
     The default limit is \c 10.0.
+    \table
+    \row
+    \li \inlineimage canvas2d-miterlimit.webp
+    \li
+    \code
+    let path = ctx.createPath2D();
+    path.moveTo(20, 40);
+    path.lineTo(30, 130);
+    path.lineTo(40, 40);
+    path.lineTo(55, 80);
+
+    ctx.lineJoin = "miter";
+    ctx.miterLimit = 20;
+    ctx.stroke(path);
+
+    ctx.miterLimit = 8;
+    ctx.translate(65, 0);
+    ctx.stroke(path);
+
+    ctx.miterLimit = 2;
+    ctx.translate(65, 0);
+    ctx.stroke(path);
+    \endcode
+    \endtable
 
     \sa lineJoin
  */
