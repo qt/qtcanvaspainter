@@ -504,6 +504,10 @@ static void testPath(QCanvasPainter *p)
     path3.quadraticCurveTo(50, 150, 10, 100);
     path3.closePath();
 
+    QCanvasPath path4;
+    path4.moveTo(10, 10);
+    path4.quadraticCurveTo(150, 150, 10, 100);
+
     p->setFillStyle(Qt::red);
 
     p->fill(path);
@@ -515,6 +519,12 @@ static void testPath(QCanvasPainter *p)
     p->setFillStyle(Qt::blue);
     p->translate(0, 150);
     p->fill(path3);
+
+    p->setFillStyle(Qt::yellow);
+    p->setLineWidth(3);
+    p->translate(150, 0);
+    p->fill(path4);
+    p->stroke(path4);
 }
 
 static void testPath_reference(QPainter *p)
@@ -540,6 +550,10 @@ static void testPath_reference(QPainter *p)
     path3.quadTo(50, 150, 10, 100);
     path3.closeSubpath();
 
+    QPainterPath path4;
+    path4.moveTo(10, 10);
+    path4.quadTo(150, 150, 10, 100);
+
     p->setPen(Qt::NoPen);
 
     p->setBrush(Qt::red);
@@ -552,6 +566,68 @@ static void testPath_reference(QPainter *p)
     p->setBrush(Qt::blue);
     p->translate(0, 150);
     p->drawPath(path3);
+
+    p->setBrush(Qt::yellow);
+    p->setPen(QPen(Qt::black, 3));
+    p->translate(150, 0);
+    p->drawPath(path4);
+}
+
+static QList<QPainterPath> createPainterPaths()
+{
+    int x = 0;
+    QPainterPath path;
+    path.moveTo(x + 10, 10);
+    path.lineTo(x + 100, 40);
+    path.lineTo(x + 100, 100);
+    path.quadTo(x + 50, 50, x +10, 100);
+    path.closeSubpath();
+
+    x += 150;
+    QPainterPath path2;
+    path2.moveTo(x + 10, 10);
+    path2.lineTo(x + 100, 40);
+    path2.lineTo(x + 100, 100);
+    path2.lineTo(x + 10, 100);
+
+    x += 150;
+    QPainterPath path3;
+    path3.moveTo(x + 10, 10);
+    path3.lineTo(x + 100, 40);
+    path3.lineTo(x + 100, 100);
+    path3.quadTo(x + 50, 150, x + 10, 100);
+
+    x += 150;
+
+    QPainterPath path4;
+    path4.moveTo(x + 10, 10);
+    path4.quadTo(x + 150, 150, x + 10, 100);
+
+    return {path, path2, path3, path4};
+}
+
+static void testPainterPath(QCanvasPainter *p)
+{
+    p->setFillStyle(Qt::red);
+    p->setLineWidth(3);
+    p->setStrokeStyle(Qt::blue);
+    const auto paths = createPainterPaths();
+    for (auto &path : paths) {
+        p->beginPath();
+        p->addPath(path);
+        p->fill();
+        p->stroke();
+    }
+}
+
+static void testPainterPath_reference(QPainter *p)
+{
+    p->setBrush(Qt::red);
+    p->setPen(QPen(Qt::blue, 3));
+    const auto paths = createPainterPaths();
+    for (auto &path : paths) {
+        p->drawPath(path);
+    }
 }
 
 static void testClip(QCanvasPainter *p)
@@ -1473,6 +1549,7 @@ static TestDescription tests[] {
     {"Image",                    testImage,                 testImage_reference},
     {"Text",                     testText,                  testText_reference},
     {"Paths",                    testPath,                  testPath_reference},
+    {"QPainterPath",             testPainterPath,           testPainterPath_reference},
     {"Antialiasing",             testAntialiasing,          testAntialiasing_reference},
     {"Transforms",               testTransform,             testTransform_reference},
     {"setTransform",             testSetTransform,          testSetTransform_reference},

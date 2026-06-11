@@ -814,7 +814,7 @@ void QCPainterEngine::setPathWinding(QCanvasPainter::PathWinding winding)
 void QCPainterEngine::fill(QCanvasPainter::FillRule fillRule, QCanvasPath *maybePath, int pathGroup, bool cachedPathUpdateRequired)
 {
     const bool usingPathCaching = maybePath && pathGroup != -1;
-    if (!usingPathCaching && ctx.commandsCount < 3)
+    if (!usingPathCaching && ctx.commandsCount < 2)
         return;
 
 #ifdef QCPAINTER_PERF_DEBUG
@@ -856,7 +856,7 @@ void QCPainterEngine::fill(QCanvasPainter::FillRule fillRule, QCanvasPath *maybe
 
 void QCPainterEngine::fillForClear()
 {
-    if (ctx.commandsCount < 3)
+    if (ctx.commandsCount < 2)
         return;
 
 #ifdef QCPAINTER_PERF_DEBUG
