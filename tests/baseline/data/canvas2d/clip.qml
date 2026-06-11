@@ -24,7 +24,7 @@ Rectangle {
             ctx.lineJoin = "miter";
             ctx.rect(m, m, w - 2 * m, h - 2 * m);
             ctx.stroke();
-            ctx.clipRect(m, m, w - 2 * m, h - 2 * m);
+            ctx.setClipRect(m, m, w - 2 * m, h - 2 * m);
             // circles inside the clip region
             const cm = w * 0.1;
             const cw = w - 2 * cm;

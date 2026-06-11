@@ -223,7 +223,7 @@ public:
     // ***** path handling *****
     void beginPath();
     void clip();
-    void clipRect(qreal x, qreal y, qreal w, qreal h);
+    void setClipRect(qreal x, qreal y, qreal w, qreal h);
     void resetClipping();
     void fill();
     void fill(QCanvasPainter::FillRule fillRule);
