@@ -435,19 +435,19 @@ static void testAntialiasing_reference(QPainter *p)
     p->setPen(Qt::NoPen);
     p->setBrush(Qt::red);
 
-    p->setAntialias(0);
+    p->setRenderHint(QPainter::Antialiasing, false);
     p->drawPath(path);
 
     p->translate(100, 0);
-    p->setAntialias(1.0f);
+    p->setRenderHint(QPainter::Antialiasing, true);
     p->drawPath(path);
 
     p->translate(100, 0);
-    p->setAntialias(0);
+    p->setRenderHint(QPainter::Antialiasing, false);
     p->drawPath(path);
 
     p->translate(100, 0);
-    p->setAntialias(1.0f);
+    p->setRenderHint(QPainter::Antialiasing, true);
     p->drawPath(path);
 }
 
@@ -1416,7 +1416,7 @@ static void testSetTransform_reference(QPainter *p)
 
 static void testMixedQualityStroking(QCanvasPainter *p)
 {
-    p->setRenderHint(QCanvasPainter::RenderHint::HighQualityStroking, false);
+    p->setHighQualityStroking(false);
     p->setStrokeStyle(QColor(192, 0, 0, 127));
     p->setLineWidth(20);
 
@@ -1430,7 +1430,7 @@ static void testMixedQualityStroking(QCanvasPainter *p)
     p->setFillStyle(QColor(0, 192, 0, 127));
     p->fillRect(10, 110, 80, 80);
 
-    p->setRenderHint(QCanvasPainter::RenderHint::HighQualityStroking, true);
+    p->setHighQualityStroking(true);
     p->beginPath();
     p->moveTo(10, 210);
     p->lineTo(80, 280);
