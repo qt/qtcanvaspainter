@@ -437,7 +437,7 @@ static QCanvasPainter::FillRule qcanvas_fill_rule_from_string(const QString &fil
 // ******************** Start: Path methods. ********************
 
 /*!
-  \qmlmethod object Canvas2DContext::closePath()
+  \qmlmethod void Canvas2DContext::closePath()
    Closes the current subpath by drawing a line to the beginning of the subpath, automatically starting a new path.
    The current point of the new path is the previous subpath's first point.
 
@@ -450,12 +450,11 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_closePath(const QV4::Func
     CHECK_CONTEXT(r)
 
     r->d()->context()->buffer()->closePath();
-
-    RETURN_RESULT(*thisObject);
+    RETURN_UNDEFINED();
 }
 
 /*!
-  \qmlmethod object Canvas2DContext::moveTo(real x, real y)
+  \qmlmethod void Canvas2DContext::moveTo(real x, real y)
 
    Creates a new subpath with a point at (\a x, \a y).
  */
@@ -474,11 +473,11 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_moveTo(const QV4::Functio
         r->d()->context()->buffer()->moveTo(x, y);
     }
 
-    RETURN_RESULT(*thisObject);
+    RETURN_UNDEFINED();
 }
 
 /*!
-    \qmlmethod object Canvas2DContext::lineTo(real x, real y)
+    \qmlmethod void Canvas2DContext::lineTo(real x, real y)
 
     Draws a line from the current position to the point at (\a x, \a y).
     \table
@@ -510,11 +509,11 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_lineTo(const QV4::Functio
         r->d()->context()->buffer()->lineTo(x, y);
     }
 
-    RETURN_RESULT(*thisObject);
+    RETURN_UNDEFINED();
 }
 
 /*!
-  \qmlmethod object Canvas2DContext::bezierCurveTo(real cp1x, real cp1y, real cp2x, real cp2y, real x, real y)
+  \qmlmethod void Canvas2DContext::bezierCurveTo(real cp1x, real cp1y, real cp2x, real cp2y, real x, real y)
 
     Adds a cubic bezier segment from last point in the path via two
     control points (\a cp1x, \a cp1y and \a cp2x, \a cp2y) to the specified point (\a x, \a y).
@@ -551,11 +550,11 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_bezierCurveTo(const QV4::
 
         r->d()->context()->buffer()->bezierCurveTo(cp1x, cp1y, cp2x, cp2y, x, y);
     }
-    RETURN_RESULT(*thisObject);
+    RETURN_UNDEFINED();
 }
 
 /*!
-    \qmlmethod object Canvas2DContext::quadraticCurveTo(real cpx, real cpy, real x, real y)
+    \qmlmethod void Canvas2DContext::quadraticCurveTo(real cpx, real cpy, real x, real y)
 
     Adds a quadratic bezier segment from last point in the path via
     a control point (\a cpx, \a cpy) to the specified point (\a x, \a y).
@@ -593,11 +592,11 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_quadraticCurveTo(const QV
         r->d()->context()->buffer()->quadraticCurveTo(cpx, cpy, x, y);
     }
 
-    RETURN_RESULT(*thisObject);
+    RETURN_UNDEFINED();
 }
 
 /*!
-    \qmlmethod object Canvas2DContext::arcTo(real x1, real y1, real x2,
+    \qmlmethod void Canvas2DContext::arcTo(real x1, real y1, real x2,
         real y2, real radius)
 
     Adds an arc segment at the corner defined by the last path point,
@@ -648,11 +647,11 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_arcTo(const QV4::Function
                                            radius);
     }
 
-    RETURN_RESULT(*thisObject);
+    RETURN_UNDEFINED();
 }
 
 /*!
-    \qmlmethod object Canvas2DContext::arc(real x, real y, real radius,
+    \qmlmethod void Canvas2DContext::arc(real x, real y, real radius,
         real startAngle, real endAngle, bool anticlockwise)
 
     Creates a new circle arc shaped sub-path. The arc center is at \a x, \a y,
@@ -710,11 +709,11 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_arc(const QV4::FunctionOb
                                       antiClockwise);
     }
 
-    RETURN_RESULT(*thisObject);
+    RETURN_UNDEFINED();
 }
 
 /*!
-    \qmlmethod object Canvas2DContext::rect(real x, real y, real width, real height)
+    \qmlmethod void Canvas2DContext::rect(real x, real y, real width, real height)
 
     Creates a new rectangle shaped sub-path in position \a x, \a y with
     size \a width, \a height.
@@ -748,7 +747,7 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_rect(const QV4::FunctionO
         r->d()->context()->buffer()->rect(x, y, w, h);
     }
 
-    RETURN_RESULT(*thisObject);
+    RETURN_UNDEFINED();
 }
 
 QV4::ReturnedValue QCanvasJSContext2DPrototype::method_roundedRect(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *, int)
@@ -758,11 +757,11 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_roundedRect(const QV4::Fu
 
     THROW_DOM(DOMEXCEPTION_NOT_SUPPORTED_ERR, "roundedRect(): Please use roundRect() instead.");
 
-    RETURN_RESULT(QV4::Encode::null());
+    RETURN_UNDEFINED();
 }
 
 /*!
-    \qmlmethod object Canvas2DContext::roundRect(real x, real y, real width, real height, real radius)
+    \qmlmethod void Canvas2DContext::roundRect(real x, real y, real width, real height, real radius)
 
     Creates a new rounded rectangle shaped sub-path in position \a x, \a y with
     size \a width, \a height. Corners rounding will be \a radius.
@@ -780,7 +779,7 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_roundedRect(const QV4::Fu
  */
 
 /*!
-    \qmlmethod object Canvas2DContext::roundRect(real x, real y, real width, real height,
+    \qmlmethod void Canvas2DContext::roundRect(real x, real y, real width, real height,
                    real radiusTopLeft, real radiusTopRight,
                    real radiusBottomRight, real radiusBottomLeft)
 
@@ -838,11 +837,11 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_roundRect(const QV4::Func
         r->d()->context()->buffer()->roundRect(x, y, w, h, rad, rad, rad, rad);
     }
 
-    RETURN_RESULT(*thisObject);
+    RETURN_UNDEFINED();
 }
 
 /*!
-    \qmlmethod object Canvas2DContext::ellipse(real centerX, real centerY, real radiusX, real radiusY)
+    \qmlmethod void Canvas2DContext::ellipse(real centerX, real centerY, real radiusX, real radiusY)
 
     Creates a new ellipse shaped sub-path centered at ( \a centerX, \a centerY) with \a radiusX and \a radiusY.
     \table
@@ -877,11 +876,11 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_ellipse(const QV4::Functi
         r->d()->context()->buffer()->ellipse(cx, cy, rx, ry);
     }
 
-    RETURN_RESULT(*thisObject);
+    RETURN_UNDEFINED();
 }
 
 /*!
-    \qmlmethod object Canvas2DContext::ellipseRect(real x, real y, real width, real height)
+    \qmlmethod void Canvas2DContext::ellipseRect(real x, real y, real width, real height)
 
     Creates a new ellipse shaped sub-path into rect \a x, \a y, \a width, \a height.
     This ellipse will cover the rect area.
@@ -917,11 +916,11 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_ellipseRect(const QV4::Fu
         r->d()->context()->buffer()->ellipseRect(x, y, w, h);
     }
 
-    RETURN_RESULT(*thisObject);
+    RETURN_UNDEFINED();
 }
 
 /*!
-    \qmlmethod object Canvas2DContext::circle(real centerX, real centerY, real radius)
+    \qmlmethod void Canvas2DContext::circle(real centerX, real centerY, real radius)
 
     Creates a new circle shaped sub-path centered at ( \a centerX, \a centerY) with \a radius.
     \table
@@ -956,11 +955,11 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_circle(const QV4::Functio
         r->d()->context()->buffer()->circle(cx, cy, rad);
     }
 
-    RETURN_RESULT(*thisObject);
+    RETURN_UNDEFINED();
 }
 
 /*!
-    \qmlmethod object Canvas2DContext::beginSolidSubPath()
+    \qmlmethod void Canvas2DContext::beginSolidSubPath()
 
     Start a solid subpath. This is equivalent to
     \c setPathWinding("counterclockwise")
@@ -974,11 +973,11 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_beginSolidSubPath(const Q
 
     r->d()->context()->buffer()->beginSolidSubPath();
 
-    RETURN_RESULT(*thisObject);
+    RETURN_UNDEFINED();
 }
 
 /*!
-    \qmlmethod object Canvas2DContext::beginHoleSubPath()
+    \qmlmethod void Canvas2DContext::beginHoleSubPath()
 
     Start a hole subpath. This is equivalent to
     \c setPathWinding("clockwise")
@@ -1008,11 +1007,11 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_beginHoleSubPath(const QV
 
     r->d()->context()->buffer()->beginHoleSubPath();
 
-    RETURN_RESULT(*thisObject);
+    RETURN_UNDEFINED();
 }
 
 /*!
-    \qmlmethod object Canvas2DContext::addPath(path2d path, transform2d transform)
+    \qmlmethod void Canvas2DContext::addPath(path2d path, transform2d transform)
 
     Adds \a path into the current path, optionally using \a transform to
     alter the path points. When \a transform is not provided (or it is
@@ -1037,7 +1036,7 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_beginHoleSubPath(const QV
 */
 
 /*!
-    \qmlmethod object Canvas2DContext::addPath(path2d path, int start, int count, transform2d transform)
+    \qmlmethod void Canvas2DContext::addPath(path2d path, int start, int count, transform2d transform)
 
     Adds \a path into the current path, starting from the command at \a start
     and including \a count amount of commands. Optionally using \a transform to
@@ -1097,11 +1096,11 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_addPath(const QV4::Functi
         }
     }
 
-    RETURN_RESULT(*thisObject);
+    RETURN_UNDEFINED();
 }
 
 /*!
-    \qmlmethod object Canvas2DContext::setPathWinding(string winding)
+    \qmlmethod void Canvas2DContext::setPathWinding(string winding)
 
     Sets the current sub-path \a winding to either "counterclockwise" (default) or "clockwise".
     "counterclockwise" draws solid subpaths while "clockwise" draws holes.
@@ -1142,7 +1141,7 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_setPathWinding(const QV4:
         r->d()->context()->buffer()->setPathWinding(winding);
     }
 
-    RETURN_RESULT(*thisObject);
+    RETURN_UNDEFINED();
 }
 
 // ******************** End: Path methods. ********************
@@ -1156,7 +1155,7 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_setPathWinding(const QV4:
 QV4::ReturnedValue QCanvasJSContext2DPrototype::method_get_canvas(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *, int)
 {
     QV4::Scope scope(b);
-    QV4::Scoped<QCanvasJSContext2D> r(scope, thisObject->as<QCanvasJSContext2D>());
+    QV4::Scoped<QCanvasJSContext2D> r(scope, *thisObject);
     CHECK_CONTEXT(r)
 
     RETURN_RESULT(QV4::QObjectWrapper::wrap(scope.engine, r->d()->context()->canvas()));
@@ -1165,7 +1164,7 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_get_canvas(const QV4::Fun
 // ***** state handling *****
 
 /*!
-    \qmlmethod object Canvas2DContext::restore()
+    \qmlmethod void Canvas2DContext::restore()
 
     Pops and restores the current render state.
     So previously saved state will be restored.
@@ -1177,15 +1176,15 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_get_canvas(const QV4::Fun
 QV4::ReturnedValue QCanvasJSContext2DPrototype::method_restore(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *, int)
 {
     QV4::Scope scope(b);
-    QV4::Scoped<QCanvasJSContext2D> r(scope, thisObject->as<QCanvasJSContext2D>());
+    QV4::Scoped<QCanvasJSContext2D> r(scope, *thisObject);
     CHECK_CONTEXT(r)
 
     r->d()->context()->popState();
-    RETURN_RESULT(thisObject->asReturnedValue());
+    RETURN_UNDEFINED();
 }
 
 /*!
-    \qmlmethod object Canvas2DContext::reset()
+    \qmlmethod void Canvas2DContext::reset()
 
     Resets the current painter state to default values.
 
@@ -1219,16 +1218,16 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_restore(const QV4::Functi
 QV4::ReturnedValue QCanvasJSContext2DPrototype::method_reset(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *, int)
 {
     QV4::Scope scope(b);
-    QV4::Scoped<QCanvasJSContext2D> r(scope, thisObject->as<QCanvasJSContext2D>());
+    QV4::Scoped<QCanvasJSContext2D> r(scope, *thisObject);
     CHECK_CONTEXT(r)
 
     r->d()->context()->reset();
 
-    RETURN_RESULT(thisObject->asReturnedValue());
+    RETURN_UNDEFINED();
 }
 
 /*!
-    \qmlmethod object Canvas2DContext::save()
+    \qmlmethod void Canvas2DContext::save()
 
     Pushes and saves the current render state into a state stack.
     A matching \l restore() must be used to restore the state.
@@ -1258,18 +1257,18 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_reset(const QV4::Function
 QV4::ReturnedValue QCanvasJSContext2DPrototype::method_save(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *, int)
 {
     QV4::Scope scope(b);
-    QV4::Scoped<QCanvasJSContext2D> r(scope, thisObject->as<QCanvasJSContext2D>());
+    QV4::Scoped<QCanvasJSContext2D> r(scope, *thisObject);
     CHECK_CONTEXT(r)
 
     r->d()->context()->pushState();
 
-    RETURN_RESULT(*thisObject);
+    RETURN_UNDEFINED();
 }
 
 // ***** transformations *****
 
 /*!
-    \qmlmethod object Canvas2DContext::rotate(real angle)
+    \qmlmethod void Canvas2DContext::rotate(real angle)
 
     Rotates the current coordinate system clockwise by \a angle.
 
@@ -1294,16 +1293,16 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_save(const QV4::FunctionO
 QV4::ReturnedValue QCanvasJSContext2DPrototype::method_rotate(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc)
 {
     QV4::Scope scope(b);
-    QV4::Scoped<QCanvasJSContext2D> r(scope, thisObject->as<QCanvasJSContext2D>());
+    QV4::Scoped<QCanvasJSContext2D> r(scope, *thisObject);
     CHECK_CONTEXT(r)
 
     if (argc >= 1)
         r->d()->context()->rotate(argv[0].toNumber());
-    RETURN_RESULT(*thisObject);
+    RETURN_UNDEFINED();
 }
 
 /*!
-    \qmlmethod object Canvas2DContext::scale(real scale)
+    \qmlmethod void Canvas2DContext::scale(real scale)
 
     Scales the current coordinate system by \a scale. Both x and y coordinates
     are scaled evenly.
@@ -1325,7 +1324,7 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_rotate(const QV4::Functio
 */
 
 /*!
-    \qmlmethod object Canvas2DContext::scale(real sx, real sy)
+    \qmlmethod void Canvas2DContext::scale(real sx, real sy)
 
     Increases or decreases the size of each unit in the canvas grid by multiplying the
     scale factors to the current tranform matrix. \a sx is the scale factor in the
@@ -1341,7 +1340,7 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_rotate(const QV4::Functio
 QV4::ReturnedValue QCanvasJSContext2DPrototype::method_scale(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc)
 {
     QV4::Scope scope(b);
-    QV4::Scoped<QCanvasJSContext2D> r(scope, thisObject->as<QCanvasJSContext2D>());
+    QV4::Scoped<QCanvasJSContext2D> r(scope, *thisObject);
     CHECK_CONTEXT(r)
 
     if (argc >= 2)
@@ -1349,12 +1348,12 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_scale(const QV4::Function
     else if (argc == 1)
         r->d()->context()->scale(argv[0].toNumber(), argv[0].toNumber());
 
-    RETURN_RESULT(*thisObject);
+    RETURN_UNDEFINED();
 }
 
 
 /*!
-    \qmlmethod object Canvas2DContext::skew(real angleX, real angleY)
+    \qmlmethod void Canvas2DContext::skew(real angleX, real angleY)
 
     Skews (shears) the current coordinate system along X axis by \a angleX
     and along Y axis by \a angleY. The default value of \a angleY is \c 0 when
@@ -1379,7 +1378,7 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_scale(const QV4::Function
 QV4::ReturnedValue QCanvasJSContext2DPrototype::method_shear(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc)
 {
     QV4::Scope scope(b);
-    QV4::Scoped<QCanvasJSContext2D> r(scope, thisObject->as<QCanvasJSContext2D>());
+    QV4::Scoped<QCanvasJSContext2D> r(scope, *thisObject);
     CHECK_CONTEXT(r)
 
     if (argc >= 1) {
@@ -1387,12 +1386,12 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_shear(const QV4::Function
         qreal v = argc >= 2 ? argv[1].toNumber() : 0;
         r->d()->context()->shear(h, v);
     }
-    RETURN_RESULT(*thisObject);
+    RETURN_UNDEFINED();
 }
 
 
 /*!
-    \qmlmethod object Canvas2DContext::translate(real x, real y)
+    \qmlmethod void Canvas2DContext::translate(real x, real y)
 
     Translates the current coordinate system by \a x and \a y.
     \table
@@ -1415,16 +1414,16 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_shear(const QV4::Function
 QV4::ReturnedValue QCanvasJSContext2DPrototype::method_translate(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc)
 {
     QV4::Scope scope(b);
-    QV4::Scoped<QCanvasJSContext2D> r(scope, thisObject->as<QCanvasJSContext2D>());
+    QV4::Scoped<QCanvasJSContext2D> r(scope, *thisObject);
     CHECK_CONTEXT(r)
 
     if (argc >= 2)
         r->d()->context()->translate(argv[0].toNumber(), argv[1].toNumber());
-    RETURN_RESULT(*thisObject);
+    RETURN_UNDEFINED();
 }
 
 /*!
-    \qmlmethod object Canvas2DContext::transform(transform2d transform)
+    \qmlmethod void Canvas2DContext::transform(transform2d transform)
 
     Multiplies the current coordinate system by specified \a transform.
     \table
@@ -1447,7 +1446,7 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_translate(const QV4::Func
     \endtable
 */
 /*!
-    \qmlmethod object Canvas2DContext::transform(real a, real b, real c, real d, real e, real f)
+    \qmlmethod void Canvas2DContext::transform(real a, real b, real c, real d, real e, real f)
 
     Multiplies the current coordinate system by the specified transform
     (\a a, \a b, \a c, \a d, \a e, \a f).
@@ -1461,7 +1460,7 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_translate(const QV4::Func
 QV4::ReturnedValue QCanvasJSContext2DPrototype::method_transform(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc)
 {
     QV4::Scope scope(b);
-    QV4::Scoped<QCanvasJSContext2D> r(scope, thisObject->as<QCanvasJSContext2D>());
+    QV4::Scoped<QCanvasJSContext2D> r(scope, *thisObject);
     CHECK_CONTEXT(r)
 
     if (argc >= 6) {
@@ -1479,11 +1478,11 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_transform(const QV4::Func
         }
     }
 
-    RETURN_RESULT(*thisObject);
+    RETURN_UNDEFINED();
 }
 
 /*!
-    \qmlmethod object Canvas2DContext::setTransform(transform2d transform)
+    \qmlmethod void Canvas2DContext::setTransform(transform2d transform)
 
     Resets the current transform and uses \a transform instead.
     \table
@@ -1510,7 +1509,7 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_transform(const QV4::Func
     \sa getTransform()
 */
 /*!
-    \qmlmethod object Canvas2DContext::setTransform(real a, real b, real c, real d, real e, real f)
+    \qmlmethod void Canvas2DContext::setTransform(real a, real b, real c, real d, real e, real f)
 
     Changes the transformation matrix to the matrix given by the arguments as described below.
 
@@ -1539,7 +1538,7 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_transform(const QV4::Func
 QV4::ReturnedValue QCanvasJSContext2DPrototype::method_setTransform(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc)
 {
     QV4::Scope scope(b);
-    QV4::Scoped<QCanvasJSContext2D> r(scope, thisObject->as<QCanvasJSContext2D>());
+    QV4::Scoped<QCanvasJSContext2D> r(scope, *thisObject);
     CHECK_CONTEXT(r)
 
 
@@ -1558,7 +1557,7 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_setTransform(const QV4::F
         }
     }
 
-    RETURN_RESULT(*thisObject);
+    RETURN_UNDEFINED();
 }
 
 /*!
@@ -1571,14 +1570,14 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_setTransform(const QV4::F
 QV4::ReturnedValue QCanvasJSContext2DPrototype::method_getTransform(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *, int)
 {
     QV4::Scope scope(b);
-    QV4::Scoped<QCanvasJSContext2D> r(scope, thisObject->as<QCanvasJSContext2D>());
+    QV4::Scoped<QCanvasJSContext2D> r(scope, *thisObject);
     CHECK_CONTEXT(r)
 
     RETURN_RESULT(scope.engine->fromVariant(r->d()->context()->state.transform));
 }
 
 /*!
-    \qmlmethod object Canvas2DContext::resetTransform()
+    \qmlmethod void Canvas2DContext::resetTransform()
 
     Reset the transformation matrix to the default value (equivalent to calling
     setTransform(\c 1, \c 0, \c 0, \c 1, \c 0, \c 0)).
@@ -1588,12 +1587,12 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_getTransform(const QV4::F
 QV4::ReturnedValue QCanvasJSContext2DPrototype::method_resetTransform(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *, int)
 {
     QV4::Scope scope(b);
-    QV4::Scoped<QCanvasJSContext2D> r(scope, thisObject->as<QCanvasJSContext2D>());
+    QV4::Scoped<QCanvasJSContext2D> r(scope, *thisObject);
     CHECK_CONTEXT(r)
 
     r->d()->context()->setTransform(1, 0, 0, 1, 0, 0);
 
-    RETURN_RESULT(*thisObject);
+    RETURN_UNDEFINED();
 }
 
 // ***** compositing and color effects *****
@@ -1626,7 +1625,7 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_resetTransform(const QV4:
 QV4::ReturnedValue QCanvasJSContext2D::method_get_globalAlpha(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *, int)
 {
     QV4::Scope scope(b);
-    QV4::Scoped<QCanvasJSContext2D> r(scope, thisObject->as<QCanvasJSContext2D>());
+    QV4::Scoped<QCanvasJSContext2D> r(scope, *thisObject);
     CHECK_CONTEXT(r)
 
     RETURN_RESULT(QV4::Encode(r->d()->context()->state.globalAlpha));
@@ -1635,7 +1634,7 @@ QV4::ReturnedValue QCanvasJSContext2D::method_get_globalAlpha(const QV4::Functio
 QV4::ReturnedValue QCanvasJSContext2D::method_set_globalAlpha(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc)
 {
     QV4::Scope scope(b);
-    QV4::Scoped<QCanvasJSContext2D> r(scope, thisObject->as<QCanvasJSContext2D>());
+    QV4::Scoped<QCanvasJSContext2D> r(scope, *thisObject);
     CHECK_CONTEXT(r)
 
     double globalAlpha = argc ? argv[0].toNumber() : qt_qnan();
@@ -1679,7 +1678,7 @@ QV4::ReturnedValue QCanvasJSContext2D::method_set_globalAlpha(const QV4::Functio
 QV4::ReturnedValue QCanvasJSContext2D::method_get_globalBrightness(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *, int)
 {
     QV4::Scope scope(b);
-    QV4::Scoped<QCanvasJSContext2D> r(scope, thisObject->as<QCanvasJSContext2D>());
+    QV4::Scoped<QCanvasJSContext2D> r(scope, *thisObject);
     CHECK_CONTEXT(r)
 
     RETURN_RESULT(QV4::Encode(r->d()->context()->state.globalBrightness));
@@ -1688,7 +1687,7 @@ QV4::ReturnedValue QCanvasJSContext2D::method_get_globalBrightness(const QV4::Fu
 QV4::ReturnedValue QCanvasJSContext2D::method_set_globalBrightness(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc)
 {
     QV4::Scope scope(b);
-    QV4::Scoped<QCanvasJSContext2D> r(scope, thisObject->as<QCanvasJSContext2D>());
+    QV4::Scoped<QCanvasJSContext2D> r(scope, *thisObject);
     CHECK_CONTEXT(r)
 
     double globalBrightness = argc ? argv[0].toNumber() : qt_qnan();
@@ -1732,7 +1731,7 @@ QV4::ReturnedValue QCanvasJSContext2D::method_set_globalBrightness(const QV4::Fu
 QV4::ReturnedValue QCanvasJSContext2D::method_get_globalContrast(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *, int)
 {
     QV4::Scope scope(b);
-    QV4::Scoped<QCanvasJSContext2D> r(scope, thisObject->as<QCanvasJSContext2D>());
+    QV4::Scoped<QCanvasJSContext2D> r(scope, *thisObject);
     CHECK_CONTEXT(r)
 
     RETURN_RESULT(QV4::Encode(r->d()->context()->state.globalContrast));
@@ -1741,7 +1740,7 @@ QV4::ReturnedValue QCanvasJSContext2D::method_get_globalContrast(const QV4::Func
 QV4::ReturnedValue QCanvasJSContext2D::method_set_globalContrast(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc)
 {
     QV4::Scope scope(b);
-    QV4::Scoped<QCanvasJSContext2D> r(scope, thisObject->as<QCanvasJSContext2D>());
+    QV4::Scoped<QCanvasJSContext2D> r(scope, *thisObject);
     CHECK_CONTEXT(r)
 
     double globalContrast = argc ? argv[0].toNumber() : qt_qnan();
@@ -1785,7 +1784,7 @@ QV4::ReturnedValue QCanvasJSContext2D::method_set_globalContrast(const QV4::Func
 QV4::ReturnedValue QCanvasJSContext2D::method_get_globalSaturate(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *, int)
 {
     QV4::Scope scope(b);
-    QV4::Scoped<QCanvasJSContext2D> r(scope, thisObject->as<QCanvasJSContext2D>());
+    QV4::Scoped<QCanvasJSContext2D> r(scope, *thisObject);
     CHECK_CONTEXT(r)
 
     RETURN_RESULT(QV4::Encode(r->d()->context()->state.globalSaturate));
@@ -1794,7 +1793,7 @@ QV4::ReturnedValue QCanvasJSContext2D::method_get_globalSaturate(const QV4::Func
 QV4::ReturnedValue QCanvasJSContext2D::method_set_globalSaturate(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc)
 {
     QV4::Scope scope(b);
-    QV4::Scoped<QCanvasJSContext2D> r(scope, thisObject->as<QCanvasJSContext2D>());
+    QV4::Scoped<QCanvasJSContext2D> r(scope, *thisObject);
     CHECK_CONTEXT(r)
 
     double globalSaturate = argc ? argv[0].toNumber() : qt_qnan();
@@ -1861,7 +1860,7 @@ QV4::ReturnedValue QCanvasJSContext2D::method_set_globalSaturate(const QV4::Func
 QV4::ReturnedValue QCanvasJSContext2D::method_get_globalCompositeOperation(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *, int)
 {
     QV4::Scope scope(b);
-    QV4::Scoped<QCanvasJSContext2D> r(scope, thisObject->as<QCanvasJSContext2D>());
+    QV4::Scoped<QCanvasJSContext2D> r(scope, *thisObject);
     CHECK_CONTEXT(r)
 
     RETURN_RESULT(scope.engine->newString(qcanvas_composite_mode_to_string(r->d()->context()->state.globalCompositeOperation)));
@@ -1870,7 +1869,7 @@ QV4::ReturnedValue QCanvasJSContext2D::method_get_globalCompositeOperation(const
 QV4::ReturnedValue QCanvasJSContext2D::method_set_globalCompositeOperation(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc)
 {
     QV4::Scope scope(b);
-    QV4::Scoped<QCanvasJSContext2D> r(scope, thisObject->as<QCanvasJSContext2D>());
+    QV4::Scoped<QCanvasJSContext2D> r(scope, *thisObject);
     CHECK_CONTEXT(r)
 
     if (!argc)
@@ -1955,7 +1954,7 @@ QV4::ReturnedValue QCanvasJSContext2D::method_set_globalCompositeOperation(const
 QV4::ReturnedValue QCanvasJSContext2D::method_get_fillStyle(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *, int)
 {
     QV4::Scope scope(b);
-    QV4::Scoped<QCanvasJSContext2D> r(scope, thisObject->as<QCanvasJSContext2D>());
+    QV4::Scoped<QCanvasJSContext2D> r(scope, *thisObject);
     CHECK_CONTEXT(r)
 
     const QColor color = r->d()->context()->state.fillColor.toRgb();
@@ -1998,7 +1997,7 @@ static QCanvasBrush toBrush(const QV4::ScopedValue &value)
 QV4::ReturnedValue QCanvasJSContext2D::method_set_fillStyle(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc)
 {
     QV4::Scope scope(b);
-    QV4::Scoped<QCanvasJSContext2D> r(scope, thisObject->as<QCanvasJSContext2D>());
+    QV4::Scoped<QCanvasJSContext2D> r(scope, *thisObject);
     CHECK_CONTEXT(r)
 
     QV4::ScopedValue value(scope, argc ? argv[0] : QV4::Value::undefinedValue());
@@ -2080,7 +2079,7 @@ QV4::ReturnedValue QCanvasJSContext2D::method_set_fillStyle(const QV4::FunctionO
 QV4::ReturnedValue QCanvasJSContext2D::method_get_fillRule(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *, int)
 {
     QV4::Scope scope(b);
-    QV4::Scoped<QCanvasJSContext2D> r(scope, thisObject->as<QCanvasJSContext2D>());
+    QV4::Scoped<QCanvasJSContext2D> r(scope, *thisObject);
     CHECK_CONTEXT(r)
 
     if (r->d()->context()->state.fillRule == QCanvasPainter::FillRule::EvenOdd)
@@ -2092,7 +2091,7 @@ QV4::ReturnedValue QCanvasJSContext2D::method_get_fillRule(const QV4::FunctionOb
 QV4::ReturnedValue QCanvasJSContext2D::method_set_fillRule(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc)
 {
     QV4::Scope scope(b);
-    QV4::Scoped<QCanvasJSContext2D> r(scope, thisObject->as<QCanvasJSContext2D>());
+    QV4::Scoped<QCanvasJSContext2D> r(scope, *thisObject);
     CHECK_CONTEXT(r)
 
     QV4::ScopedValue value(scope, argc ? argv[0] : QV4::Value::undefinedValue());
@@ -2159,7 +2158,7 @@ QV4::ReturnedValue QCanvasJSContext2D::method_set_fillRule(const QV4::FunctionOb
 QV4::ReturnedValue QCanvasJSContext2D::method_get_strokeStyle(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *, int)
 {
     QV4::Scope scope(b);
-    QV4::Scoped<QCanvasJSContext2D> r(scope, thisObject->as<QCanvasJSContext2D>());
+    QV4::Scoped<QCanvasJSContext2D> r(scope, *thisObject);
     CHECK_CONTEXT(r)
 
     const QColor color = r->d()->context()->state.strokeColor.toRgb();
@@ -2180,7 +2179,7 @@ QV4::ReturnedValue QCanvasJSContext2D::method_get_strokeStyle(const QV4::Functio
 QV4::ReturnedValue QCanvasJSContext2D::method_set_strokeStyle(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc)
 {
     QV4::Scope scope(b);
-    QV4::Scoped<QCanvasJSContext2D> r(scope, thisObject->as<QCanvasJSContext2D>());
+    QV4::Scoped<QCanvasJSContext2D> r(scope, *thisObject);
     CHECK_CONTEXT(r)
 
     QV4::ScopedValue value(scope, argc ? argv[0] : QV4::Value::undefinedValue());
@@ -2209,7 +2208,7 @@ QV4::ReturnedValue QCanvasJSContext2D::method_set_strokeStyle(const QV4::Functio
 }
 
 /*!
-    \qmlmethod object Canvas2DContext::createLinearGradient(real x0, real y0, real x1, real y1)
+    \qmlmethod lineargradient2d Canvas2DContext::createLinearGradient(real x0, real y0, real x1, real y1)
     Returns a \l{lineargradient2d} object that represents a linear gradient that transitions the color along a line between
     the start point (\a x0, \a y0) and the end point (\a x1, \a y1).
 
@@ -2241,6 +2240,7 @@ QV4::ReturnedValue QCanvasJSContext2D::method_set_strokeStyle(const QV4::Functio
 QV4::ReturnedValue QCanvasJSContext2DPrototype::method_createLinearGradient(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc)
 {
     QV4::Scope scope(b);
+    Q_UNUSED(thisObject);
 
     if (argc >= 4) {
         qreal x0 = argv[0].toNumber();
@@ -2259,11 +2259,11 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_createLinearGradient(cons
         RETURN_RESULT(scope.engine->fromVariant(QVariant::fromValue(lg)));
     }
 
-    RETURN_RESULT(*thisObject);
+    RETURN_UNDEFINED();
 }
 
 /*!
-    \qmlmethod object Canvas2DContext::createRadialGradient(real x0, real y0, real r0, real x1, real y1, real r1)
+    \qmlmethod radialgradient2d Canvas2DContext::createRadialGradient(real x0, real y0, real r0, real x1, real y1, real r1)
 
     Returns a \l{radialgradient2d} object that represents a radial gradient that
     paints along the cone given by the start circle with origin (\a x0, \a y0)
@@ -2295,6 +2295,7 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_createLinearGradient(cons
 QV4::ReturnedValue QCanvasJSContext2DPrototype::method_createRadialGradient(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc)
 {
     QV4::Scope scope(b);
+    Q_UNUSED(thisObject);
 
     if (argc >= 3) {
         qreal icx, icy, iRad, ocx, ocy, oRad;
@@ -2339,11 +2340,11 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_createRadialGradient(cons
         RETURN_RESULT(scope.engine->fromVariant(QVariant::fromValue(rg)));
     }
 
-    RETURN_RESULT(*thisObject);
+    RETURN_UNDEFINED();
 }
 
 /*!
-    \qmlmethod object Canvas2DContext::createConicalGradient(real x, real y, real angle)
+    \qmlmethod conicalgradient2d Canvas2DContext::createConicalGradient(real x, real y, real angle)
 
     Returns a \l{conicalgradient2d} object that represents a conical gradient that
     interpolates colors counter-clockwise around a center point (\a x, \a y)
@@ -2375,6 +2376,7 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_createRadialGradient(cons
 QV4::ReturnedValue QCanvasJSContext2DPrototype::method_createConicalGradient(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc)
 {
     QV4::Scope scope(b);
+    Q_UNUSED(thisObject);
 
     if (argc >= 3) {
         qreal x = argv[0].toNumber();
@@ -2392,7 +2394,7 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_createConicalGradient(con
         RETURN_RESULT(scope.engine->fromVariant(QVariant::fromValue(cg)));
     }
 
-    RETURN_RESULT(*thisObject);
+    RETURN_UNDEFINED();
 }
 
 QV4::ReturnedValue QCanvasJSContext2DPrototype::method_createConicGradient(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc)
@@ -2404,11 +2406,11 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_createConicGradient(const
 
     THROW_DOM(DOMEXCEPTION_NOT_SUPPORTED_ERR, "createConicGradient(): Please use createConicalGradient(x, y, angle) instead.");
 
-    RETURN_RESULT(QV4::Encode::null());
+    RETURN_UNDEFINED();
 }
 
 /*!
-    \qmlmethod object Canvas2DContext::createBoxGradient(real x, real y, real width, real height, real feather, real radius)
+    \qmlmethod boxgradient2d Canvas2DContext::createBoxGradient(real x, real y, real width, real height, real feather, real radius)
 
     Returns a \l{boxgradient2d} object that represents a box gradient that
     covers the rectangle area (\a x, \a y, \a width, \a height) with feather
@@ -2436,6 +2438,7 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_createConicGradient(const
 QV4::ReturnedValue QCanvasJSContext2DPrototype::method_createBoxGradient(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc)
 {
     QV4::Scope scope(b);
+    Q_UNUSED(thisObject);
 
     if (argc >= 5) {
         qreal x = argv[0].toNumber();
@@ -2460,11 +2463,11 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_createBoxGradient(const Q
         RETURN_RESULT(scope.engine->fromVariant(QVariant::fromValue(bg)));
     }
 
-    RETURN_RESULT(*thisObject);
+    RETURN_UNDEFINED();
 }
 
 /*!
-    \qmlmethod object Canvas2DContext::createBoxShadow(real x, real y, real width, real height,
+    \qmlmethod boxshadow2d Canvas2DContext::createBoxShadow(real x, real y, real width, real height,
                                                        real blur, string color, real radius)
 
     Returns a \l{boxshadow2d} object with color \a color that represents
@@ -2494,7 +2497,7 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_createBoxGradient(const Q
 */
 
 /*!
-    \qmlmethod object Canvas2DContext::createBoxShadow(real x, real y, real width, real height,
+    \qmlmethod boxshadow2d Canvas2DContext::createBoxShadow(real x, real y, real width, real height,
                                                        real blur, string color,
                                                        real radiusTopLeft, real radiusTopRight,
                                                        real radiusBottomRight, real radiusBottomLeft)
@@ -2509,6 +2512,7 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_createBoxGradient(const Q
 QV4::ReturnedValue QCanvasJSContext2DPrototype::method_createBoxShadow(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc)
 {
     QV4::Scope scope(b);
+    Q_UNUSED(thisObject);
 
     if (argc >= 4) {
         qreal x = argv[0].toNumber();
@@ -2569,11 +2573,11 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_createBoxShadow(const QV4
         RETURN_RESULT(scope.engine->fromVariant(QVariant::fromValue(b)));
     }
 
-    RETURN_RESULT(*thisObject);
+    RETURN_UNDEFINED();
 }
 
 /*!
-    \qmlmethod object Canvas2DContext::createGridPattern(real x, real y, real width, real height,
+    \qmlmethod gridpattern2d Canvas2DContext::createGridPattern(real x, real y, real width, real height,
                                                        string lineColor, string backgroundColor,
                                                        real lineWidth, real feather, real angle)
 
@@ -2596,6 +2600,7 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_createBoxShadow(const QV4
 QV4::ReturnedValue QCanvasJSContext2DPrototype::method_createGridPattern(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc)
 {
     QV4::Scope scope(b);
+    Q_UNUSED(thisObject);
 
     if (argc >= 4) {
         qreal x = argv[0].toNumber();
@@ -2640,24 +2645,24 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_createGridPattern(const Q
         RETURN_RESULT(scope.engine->fromVariant(QVariant::fromValue(gp)));
     }
 
-    RETURN_RESULT(*thisObject);
+    RETURN_UNDEFINED();
 }
 
 /*!
-    \qmlmethod object Canvas2DContext::createPath2D()
+    \qmlmethod path2d Canvas2DContext::createPath2D()
 
     Returns a new path2d object. Calling this is equal to HTML canvas "new Path2D()" command.
     \sa fill(), stroke()
   */
 /*!
-    \qmlmethod object Canvas2DContext::createPath2D(path2d path)
+    \qmlmethod path2d Canvas2DContext::createPath2D(path2d path)
 
     Returns a new path2d object, with the copy of \a path.
     Calling this is equal to HTML canvas "new Path2D(path)" command.
     \sa fill(), stroke()
   */
 /*!
-    \qmlmethod object Canvas2DContext::createPath2D(string svgPath)
+    \qmlmethod path2d Canvas2DContext::createPath2D(string svgPath)
 
     Returns a new path2d object, with the content of \a svgPath.
     Calling this is equal to HTML canvas "new Path2D(d)" command.
@@ -2667,8 +2672,7 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_createGridPattern(const Q
 QV4::ReturnedValue QCanvasJSContext2DPrototype::method_createPath2D(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc)
 {
     QV4::Scope scope(b);
-    QV4::Scoped<QCanvasJSContext2D> r(scope, thisObject->as<QCanvasJSContext2D>());
-    CHECK_CONTEXT(r)
+    Q_UNUSED(thisObject);
 
     QCanvasPath path;
     if (argc > 0) {
@@ -2695,7 +2699,7 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_createPath2D(const QV4::F
 }
 
 /*!
-    \qmlmethod object Canvas2DContext::createTransform2D()
+    \qmlmethod transform2d Canvas2DContext::createTransform2D()
 
     Returns a new transform2d object, initialized to identity matrix.
 
@@ -2705,15 +2709,14 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_createPath2D(const QV4::F
 QV4::ReturnedValue QCanvasJSContext2DPrototype::method_createTransform2D(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *, int)
 {
     QV4::Scope scope(b);
-    QV4::Scoped<QCanvasJSContext2D> r(scope, thisObject->as<QCanvasJSContext2D>());
-    CHECK_CONTEXT(r)
+    Q_UNUSED(thisObject);
 
     QTransform t;
     RETURN_RESULT(scope.engine->fromVariant(t));
 }
 
 /*!
-    \qmlmethod object Canvas2DContext::drawBoxShadow(boxshadow2d shadow)
+    \qmlmethod void Canvas2DContext::drawBoxShadow(boxshadow2d shadow)
 
     Draws a given box \a shadow. The shadow will be painted with
     position, size, color, blur etc. defined by \a shadow.
@@ -2750,11 +2753,11 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_drawBoxShadow(const QV4::
     QV4::ScopedValue value(scope, argc ? argv[0] : QV4::Value::undefinedValue());
     QCanvasBoxShadow s = QV4::ExecutionEngine::toVariant(value, QMetaType::fromType<QCanvasBoxShadow>()).value<QCanvasBoxShadow>();
     r->d()->context()->drawBoxShadow(&s);
-    RETURN_RESULT(*thisObject);
+    RETURN_UNDEFINED();
 }
 
 /*!
-    \qmlmethod object Canvas2DContext::createPattern(Image image, string repetition)
+    \qmlmethod imagepattern2d Canvas2DContext::createPattern(Image image, string repetition)
     Returns an \l{imagepattern2d} object that uses the given image and repeats in the
     direction(s) given by the repetition argument.
 
@@ -3396,7 +3399,7 @@ QV4::ReturnedValue QCanvasJSContext2D::method_set_lineDashOffset(const QV4::Func
 // ***** direct rect methods *****
 
 /*!
-    \qmlmethod object Canvas2DContext::clearRect(real x, real y, real width, real height)
+    \qmlmethod void Canvas2DContext::clearRect(real x, real y, real width, real height)
 
     Erases the pixels in a rectangular area by filling the rectangle
     specified by \a x, \a y, \a width, \a height with transparent black.
@@ -3427,11 +3430,11 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_clearRect(const QV4::Func
                                      argv[2].toNumber(),
                                      argv[3].toNumber());
 
-    RETURN_RESULT(*thisObject);
+    RETURN_UNDEFINED();
 }
 
 /*!
-    \qmlmethod object Canvas2DContext::fillRect(real x, real y, real width, real height)
+    \qmlmethod void Canvas2DContext::fillRect(real x, real y, real width, real height)
 
     Draws a filled rectangle into the specified position ( \a x, \a y) with size \a width, \a height.
     \note This is provided for convenience. When filling more than just a single rect,
@@ -3459,11 +3462,11 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_fillRect(const QV4::Funct
 
     if (argc >= 4)
         r->d()->context()->fillRect(argv[0].toNumber(), argv[1].toNumber(), argv[2].toNumber(), argv[3].toNumber());
-    RETURN_RESULT(*thisObject);
+    RETURN_UNDEFINED();
 }
 
 /*!
-    \qmlmethod object Canvas2DContext::strokeRect(real x, real y, real width, real height)
+    \qmlmethod void Canvas2DContext::strokeRect(real x, real y, real width, real height)
 
     Draws a stroked rectangle into the specified position ( \a x, \a y) with size \a width, \a height.
     \note This is provided for convenience. When stroking more than just a single rect,
@@ -3492,13 +3495,13 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_strokeRect(const QV4::Fun
     if (argc >= 4)
         r->d()->context()->strokeRect(argv[0].toNumber(), argv[1].toNumber(), argv[2].toNumber(), argv[3].toNumber());
 
-    RETURN_RESULT(*thisObject);
+    RETURN_UNDEFINED();
 }
 
 // ***** path handling *****
 
 /*!
-    \qmlmethod object Canvas2DContext::beginPath()
+    \qmlmethod void Canvas2DContext::beginPath()
 
     Begins drawing a new path while clearing the current path.
 */
@@ -3510,7 +3513,7 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_beginPath(const QV4::Func
 
     r->d()->context()->beginPath();
 
-    RETURN_RESULT(*thisObject);
+    RETURN_UNDEFINED();
 }
 
 // TODO: Document if supported
@@ -3522,11 +3525,11 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_clip(const QV4::FunctionO
 
     THROW_DOM(DOMEXCEPTION_NOT_SUPPORTED_ERR, "clip(): Method not supported");
     r->d()->context()->clip();
-    RETURN_RESULT(*thisObject);
+    RETURN_UNDEFINED();
 }
 
 /*!
-    \qmlmethod object Canvas2DContext::setClipRect(real x, real y, real width, real height)
+    \qmlmethod void Canvas2DContext::setClipRect(real x, real y, real width, real height)
 
     Sets the current scissor rectangle to (\a x, \a y, \a width, \a height).
     The scissor rectangle is transformed by the current transform.
@@ -3558,11 +3561,11 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_setClipRect(const QV4::Fu
     if (argc >= 4)
         r->d()->context()->setClipRect(argv[0].toNumber(), argv[1].toNumber(), argv[2].toNumber(), argv[3].toNumber());
 
-    RETURN_RESULT(*thisObject);
+    RETURN_UNDEFINED();
 }
 
 /*!
-    \qmlmethod object Canvas2DContext::resetClipping()
+    \qmlmethod void Canvas2DContext::resetClipping()
 
     Resets and disables clipping.
     \sa setClipRect()
@@ -3575,11 +3578,11 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_resetClipping(const QV4::
 
     r->d()->context()->resetClipping();
 
-    RETURN_RESULT(*thisObject);
+    RETURN_UNDEFINED();
 }
 
 /*!
-    \qmlmethod object Canvas2DContext::fill()
+    \qmlmethod void Canvas2DContext::fill()
 
     Fills the current path with the current fill style, and the current fill rule.
     \table
@@ -3598,14 +3601,14 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_resetClipping(const QV4::
     \sa fillStyle, fillRule, {http://www.w3.org/TR/2dcontext/#dom-context-2d-fill}{W3C 2d context standard for fill}
 */
 /*!
-    \qmlmethod object Canvas2DContext::fill(string fillRule)
+    \qmlmethod void Canvas2DContext::fill(string fillRule)
 
     Fills the current path with the current fill style, and fill rule \a fillRule.
 
     \sa fillStyle, fillRule
 */
 /*!
-    \qmlmethod object Canvas2DContext::fill(path2d path, int pathGroup)
+    \qmlmethod void Canvas2DContext::fill(path2d path, int pathGroup)
 
     Fills the \a path with the current fill style and fill rule, and belonging
     into optional \a pathGroup. Painting through QCanvasPath is optimal
@@ -3639,7 +3642,7 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_resetClipping(const QV4::
     \sa fillStyle, path2d
 */
 /*!
-    \qmlmethod object Canvas2DContext::fill(path2d path, string fillRule, int pathGroup)
+    \qmlmethod void Canvas2DContext::fill(path2d path, string fillRule, int pathGroup)
 
     Fills the \a path with the current fill style and using \a fillRule.
     The cache group parameter \a pathGroup is optional.
@@ -3683,11 +3686,11 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_fill(const QV4::FunctionO
             r->d()->context()->fill(rule);
         }
     }
-    RETURN_RESULT(*thisObject);
+    RETURN_UNDEFINED();
 }
 
 /*!
-    \qmlmethod object Canvas2DContext::stroke()
+    \qmlmethod void Canvas2DContext::stroke()
 
     Strokes the current path with the current stroke style.
     \table
@@ -3706,7 +3709,7 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_fill(const QV4::FunctionO
     \sa strokeStyle, {http://www.w3.org/TR/2dcontext/#dom-context-2d-stroke}{W3C 2d context standard for stroke}
 */
 /*!
-    \qmlmethod object Canvas2DContext::stroke(path2d path, int pathGroup)
+    \qmlmethod void Canvas2DContext::stroke(path2d path, int pathGroup)
 
     Strokes the \a path with the current stroke style and belonging into
     \a pathGroup. Painting through QCanvasPath is optimal when the path
@@ -3759,7 +3762,7 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_stroke(const QV4::Functio
             }
         }
     }
-    RETURN_RESULT(*thisObject);
+    RETURN_UNDEFINED();
 }
 
 QV4::ReturnedValue QCanvasJSContext2DPrototype::method_isPointInPath(const QV4::FunctionObject *b, const QV4::Value *, const QV4::Value *, int)
@@ -4174,7 +4177,7 @@ QV4::ReturnedValue QCanvasJSContext2D::method_set_textDirection(const QV4::Funct
 }
 
 /*!
-    \qmlmethod object Canvas2DContext::fillText(text, x, y, maxWidth)
+    \qmlmethod void Canvas2DContext::fillText(text, x, y, maxWidth)
 
     Draws \a text string at the specified location ( \a x, \a y), with
     current textAlign and textBaseline. To make the text wrap into multiple
@@ -4202,7 +4205,7 @@ QV4::ReturnedValue QCanvasJSContext2D::method_set_textDirection(const QV4::Funct
     \sa font, textAlign, textBaseline, textWrapMode, strokeText
 */
 /*!
-    \qmlmethod object Canvas2DContext::fillText(text, x, y, width, height)
+    \qmlmethod void Canvas2DContext::fillText(text, x, y, width, height)
 
     Draws \a text string inside rect (\a x, \a y, \a width, \a height), with
     current textAlign and textBaseline. Width of the rect parameter is used
@@ -4255,10 +4258,10 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_fillText(const QV4::Funct
         r->d()->context()->buffer()->drawText(argv[0].toQStringNoThrow(), x, y, maxWidth);
     }
 
-    RETURN_RESULT(*thisObject);
+    RETURN_UNDEFINED();
 }
 /*!
-    \qmlmethod object Canvas2DContext::strokeText(text, x, y)
+    \qmlmethod void Canvas2DContext::strokeText(text, x, y)
 
     Strokes the given \a text at a position specified by (\a x, \a y).
 
@@ -4273,7 +4276,7 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_strokeText(const QV4::Fun
     if (argc >= 3)
         r->d()->context()->drawText(argv[0].toQStringNoThrow(), argv[1].toNumber(), argv[2].toNumber(), false);
 
-    RETURN_RESULT(*thisObject);
+    RETURN_UNDEFINED();
 }
 
 // TODO: Should this be extended to cover the HTML canvas measureText(),
@@ -4306,7 +4309,7 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_measureText(const QV4::Fu
 // ***** drawing images *****
 
 /*!
-    \qmlmethod object Canvas2DContext::drawImage(variant image, real dx, real dy)
+    \qmlmethod void Canvas2DContext::drawImage(variant image, real dx, real dy)
     Draws the given \a image on the canvas at position (\a dx, \a dy).
     Note:
     The \a image type can be an Image item or an image url.
@@ -4327,7 +4330,7 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_measureText(const QV4::Fu
     \sa {http://www.w3.org/TR/2dcontext/#dom-context-2d-drawimage}{W3C 2d context standard for drawImage}
 */
 /*!
-    \qmlmethod object Canvas2DContext::drawImage(variant image, real dx, real dy, real dw, real dh)
+    \qmlmethod void Canvas2DContext::drawImage(variant image, real dx, real dy, real dw, real dh)
     This is an overloaded function.
     Draws the given item as \a image onto the canvas at point (\a dx, \a dy) and with width \a dw,
     height \a dh.
@@ -4345,7 +4348,7 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_measureText(const QV4::Fu
     \sa {http://www.w3.org/TR/2dcontext/#dom-context-2d-drawimage}{W3C 2d context standard for drawImage}
 */
 /*!
-    \qmlmethod object Canvas2DContext::drawImage(variant image, real sx, real sy, real sw, real sh, real dx, real dy, real dw, real dh)
+    \qmlmethod void Canvas2DContext::drawImage(variant image, real sx, real sy, real sw, real sh, real dx, real dy, real dw, real dh)
     This is an overloaded function.
     Draws the given item as \a image from source point (\a sx, \a sy) and source width \a sw, source height \a sh
     onto the canvas at point (\a dx, \a dy) and with width \a dw, height \a dh.
@@ -4464,7 +4467,7 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_drawImage(const QV4::Func
 
     r->d()->context()->buffer()->drawPixmap(pixmap, filename, QRectF(sx, sy, sw, sh), QRectF(dx, dy, dw, dh));
 
-    RETURN_RESULT(*thisObject);
+    RETURN_UNDEFINED();
 }
 
 // ***** pixel manipulation *****
