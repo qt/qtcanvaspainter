@@ -37,7 +37,7 @@ void QCRhiColorGlyphCache::ensureAtlas()
     if (m_atlas)
         return;
 
-    m_maxAtlasSize = qMin(4096, m_rhi->resourceLimit(QRhi::TextureSizeMax));
+    m_maxAtlasSize = qMin(2048, m_rhi->resourceLimit(QRhi::TextureSizeMax));
     m_atlasSize = qMin(256, m_maxAtlasSize);
     m_atlas = m_rhi->newTexture(QRhiTexture::RGBA8, QSize(m_atlasSize, m_atlasSize), 1,
                                 QRhiTexture::UsedAsTransferSource);
@@ -102,35 +102,76 @@ void QCRhiColorGlyphCache::growAtlas(int requiredSize)
     m_atlasSize = newSize;
 }
 
+static inline QRect allocationRect(const QRect &atlasRect)
+{
+    return QRect(atlasRect.x() - QC_COLOR_GLYPH_PADDING,
+                 atlasRect.y() - QC_COLOR_GLYPH_PADDING,
+                 atlasRect.width() + QC_COLOR_GLYPH_PADDING * 2,
+                 atlasRect.height() + QC_COLOR_GLYPH_PADDING * 2);
+}
+
+void QCRhiColorGlyphCache::referenceGlyph(const GlyphKey &key, GlyphData &gd)
+{
+    // Count one use per frame, so a glyph drawn many times in a frame is not
+    // weighted more heavily than one drawn once (matches the SDF cache).
+    if (!m_referencedThisFrame.contains(key)) {
+        ++gd.ref;
+        m_referencedThisFrame.insert(key);
+    }
+    m_unusedGlyphs.remove(key);
+}
+
+// Free atlas space held by unused glyphs until allocSize fits (or none are
+// left to evict). Returns the resulting allocation, or a null rect.
+QRect QCRhiColorGlyphCache::evictUntilAllocated(const QSize &allocSize)
+{
+    QRect alloc;
+    while (alloc.isNull() && !m_unusedGlyphs.isEmpty()) {
+        const GlyphKey unused = *m_unusedGlyphs.constBegin();
+        auto it = m_glyphs.constFind(unused);
+        if (it != m_glyphs.constEnd() && it->valid)
+            m_allocator->deallocate(allocationRect(it->atlasRect));
+        m_unusedGlyphs.remove(unused);
+        m_glyphs.remove(unused);
+        alloc = m_allocator->allocate(allocSize);
+    }
+    return alloc;
+}
+
 const QCRhiColorGlyphCache::GlyphData &
 QCRhiColorGlyphCache::ensureGlyph(const GlyphKey &key, QFontEngine *fe,
                                   const QColor &color, const QTransform &rasterTransform)
 {
-    auto it = m_glyphs.constFind(key);
-    if (it != m_glyphs.constEnd())
+    auto it = m_glyphs.find(key);
+    if (it != m_glyphs.end()) {
+        if (it->valid)
+            referenceGlyph(key, it.value());
         return it.value();
+    }
 
     GlyphData gd;
 
     ensureAtlas();
     if (!m_atlas)
-        return *m_glyphs.insert(key, gd); // invalid
+        return m_invalidGlyph;
 
     // The bitmap is already in Format_ARGB32_Premultiplied for color fonts.
     QImage bitmap = fe->bitmapForGlyph(key.glyph, QFixedPoint(), rasterTransform, color);
     if (bitmap.isNull())
-        return *m_glyphs.insert(key, gd); // invalid (no color bitmap for this glyph)
+        return *m_glyphs.insert(key, gd); // permanently invalid: no color bitmap for this glyph
 
     if (bitmap.format() != QImage::Format_RGBA8888_Premultiplied)
         bitmap = bitmap.convertToFormat(QImage::Format_RGBA8888_Premultiplied);
 
     const QSize glyphSize = bitmap.size();
-    QRect alloc = m_allocator->allocate(
-        QSize(glyphSize.width() + QC_COLOR_GLYPH_PADDING * 2,
-              glyphSize.height() + QC_COLOR_GLYPH_PADDING * 2));
+    const QSize allocSize(glyphSize.width() + QC_COLOR_GLYPH_PADDING * 2,
+                          glyphSize.height() + QC_COLOR_GLYPH_PADDING * 2);
+    QRect alloc = m_allocator->allocate(allocSize);
+    if (alloc.isNull())
+        alloc = evictUntilAllocated(allocSize);
     if (alloc.isNull()) {
         qWarning("Color glyph atlas full; emoji glyph dropped");
-        return *m_glyphs.insert(key, gd); // invalid
+        return m_invalidGlyph;
     }
 
     // The allocator hands out positions across the full (max) coordinate space;
@@ -166,7 +207,27 @@ QCRhiColorGlyphCache::ensureGlyph(const GlyphKey &key, QFontEngine *fe,
     gd.atlasRect = QRect(dst, glyphSize);
     gd.bearing = QPointF(gm.x.toReal(), gm.y.toReal());
     gd.valid = true;
-    return *m_glyphs.insert(key, gd);
+    GlyphData &stored = *m_glyphs.insert(key, gd);
+    referenceGlyph(key, stored);
+    return stored;
+}
+
+void QCRhiColorGlyphCache::releaseGlyphs(const QSet<GlyphKey> &glyphs)
+{
+    for (const GlyphKey &key : glyphs) {
+        auto it = m_glyphs.find(key);
+        if (it == m_glyphs.end())
+            continue;
+        if (it->ref > 0 && --it->ref == 0)
+            m_unusedGlyphs.insert(key);
+    }
+}
+
+void QCRhiColorGlyphCache::optimizeAfterRendering()
+{
+    releaseGlyphs(m_referencedPrevFrame);
+    m_referencedPrevFrame.swap(m_referencedThisFrame);
+    m_referencedThisFrame.clear();
 }
 
 void QCRhiColorGlyphCache::addGlyphRun(const QPointF &glyphPos,

@@ -12,6 +12,8 @@
 #include <rhi/qrhi.h>
 #include <QFont>
 #include <QRawFont>
+#include <QGlyphRun>
+#include <QTextLayout>
 
 #ifdef FRAME_CAPTURE
 #include <QtGui/private/qgraphicsframecapture_p.h>
@@ -74,6 +76,8 @@ private slots:
     void canvasRenderPathGroups();
     void canvasRenderGlyphEviction_data();
     void canvasRenderGlyphEviction();
+    void canvasRenderEmojiGlyphEviction_data();
+    void canvasRenderEmojiGlyphEviction();
 
 private:
     void setWindowType(QWindow *window, QRhi::Implementation impl);
@@ -1438,6 +1442,150 @@ void tst_CanvasRhiRendering::canvasRenderGlyphEviction()
         // Sanity check: the first block always fits, so text rendering works at
         // all. If this fails the problem is not eviction.
         QCOMPARE_GT(firstBlockPixels, 500);
+
+        // With broken eviction/reuse this count collapses to something much
+        // smaller than 500.
+        QCOMPARE_GT(lastBlockPixels, 500);
+    }
+}
+
+void tst_CanvasRhiRendering::canvasRenderEmojiGlyphEviction_data()
+{
+    rhiTestData();
+}
+
+void tst_CanvasRhiRendering::canvasRenderEmojiGlyphEviction()
+{
+    QFETCH(QRhi::Implementation, impl);
+    QFETCH(QRhiInitParams *, initParams);
+
+    std::unique_ptr<QRhi> rhi(QRhi::create(impl, initParams, rhiCreateFlags));
+    if (!rhi)
+        QSKIP("Failed to create QRhi, skip");
+
+    std::unique_ptr<QCanvasPainterFactory> factory(new QCanvasPainterFactory);
+    QCanvasPainter *painter = factory->create(rhi.get());
+    QCanvasRhiPaintDriver *pd = factory->paintDriver();
+    QVERIFY(painter && pd);
+
+    RenderTargetPtr rt = createRenderTarget(rhi.get());
+    QVERIFY(rt);
+
+    // Same idea as canvasRenderGlyphEviction(), but for color (emoji) glyphs,
+    // which live in the separate RGBA atlas of QCRhiColorGlyphCache. That atlas
+    // grows on demand up to 2048x2048; a large pixel size is used so it fills
+    // after a couple hundred distinct glyphs rather than many thousands.
+
+    QFont font;
+    font.setPixelSize(90);
+
+    // Resolve the color font the platform substitutes for emoji, so the set of
+    // usable glyphs does not depend on the machine's emoji coverage.
+    auto resolveEmojiFont = [&](char32_t probe) -> QRawFont {
+        QTextLayout layout(QString::fromUcs4(&probe, 1), font);
+        layout.beginLayout();
+        layout.createLine();
+        layout.endLayout();
+        const QList<QGlyphRun> runs = layout.glyphRuns();
+        return runs.isEmpty() ? QRawFont() : runs.first().rawFont();
+    };
+
+    const QRawFont emojiFont = resolveEmojiFont(U'\U0001F600');
+    if (!emojiFont.isValid())
+        QSKIP("No emoji font available on this platform");
+
+    // Emoji-presentation code points (color without a VS16 selector), deduped
+    // by glyph index in the resolved color font.
+    QList<char32_t> emojis;
+    QSet<quint32> seenGlyphs;
+    const QList<std::pair<char32_t, char32_t>> ranges = {
+        { 0x1F300, 0x1F5FF }, // Miscellaneous Symbols and Pictographs
+        { 0x1F600, 0x1F64F }, // Emoticons
+        { 0x1F680, 0x1F6FF }, // Transport and Map Symbols
+        { 0x1F900, 0x1F9FF }, // Supplemental Symbols and Pictographs
+        { 0x1FA70, 0x1FAFF }, // Symbols and Pictographs Extended-A
+    };
+    for (const auto &range : ranges) {
+        for (char32_t cp = range.first; cp <= range.second; ++cp) {
+            if (!emojiFont.supportsCharacter(cp))
+                continue;
+            const QList<quint32> idx = emojiFont.glyphIndexesForString(QString::fromUcs4(&cp, 1));
+            if (idx.size() != 1 || idx.first() == 0 || seenGlyphs.contains(idx.first()))
+                continue;
+            seenGlyphs.insert(idx.first());
+            emojis.append(cp);
+        }
+    }
+
+    // At 90px the atlas holds on the order of ~400 glyphs, so this many is
+    // enough to overflow it and force several frames' worth of eviction.
+    constexpr int requiredGlyphs = 600;
+    if (emojis.size() < requiredGlyphs)
+        QSKIP("Emoji font does not provide enough distinct color glyphs to overflow the atlas");
+
+    constexpr int cell = 100;
+    const int columns = RT_WIDTH / cell;
+    constexpr int blockSize = 40;
+
+    auto drawBlock = [&](int first, int count) {
+        painter->setFillStyle(Qt::white);
+        painter->setFont(font);
+        painter->setTextAlign(QCanvasPainter::TextAlign::Left);
+        painter->setTextBaseline(QCanvasPainter::TextBaseline::Top);
+        for (int i = 0; i < count; ++i) {
+            const int col = i % columns;
+            const int row = i / columns;
+            const char32_t cp = emojis.at(first + i);
+            painter->fillText(QString::fromUcs4(&cp, 1),
+                              float(col * cell + 8), float(row * cell + 8));
+        }
+    };
+
+    // Emoji carry saturated palette colors; the black background and any white
+    // foreground/outline fallbacks are (near-)grey and excluded.
+    auto countColorfulPixels = [](const QImage &image) {
+        int n = 0;
+        for (int y = 0; y < image.height(); ++y) {
+            for (int x = 0; x < image.width(); ++x) {
+                const QRgb p = image.pixel(x, y);
+                const int mx = qMax(qRed(p), qMax(qGreen(p), qBlue(p)));
+                const int mn = qMin(qRed(p), qMin(qGreen(p), qBlue(p)));
+                if (mx > 60 && (mx - mn) > 40)
+                    ++n;
+            }
+        }
+        return n;
+    };
+
+    const int blockCount = emojis.size() / blockSize;
+    QVERIFY(blockCount >= 4);
+
+    int firstBlockPixels = 0;
+    int lastBlockPixels = 0;
+    for (int b = 0; b < blockCount; ++b) {
+        QRhiCommandBuffer *cb;
+        rhi->beginOffscreenFrame(&cb);
+        pd->resetForNewFrame();
+        pd->beginPaint(cb, rt->rt, Qt::black);
+        drawBlock(b * blockSize, blockSize);
+        pd->endPaint();
+        rhi->endOffscreenFrame();
+
+        if (impl != QRhi::Null && (b == 0 || b == blockCount - 1)) {
+            QImage image = imageFromReadback(rhi.get(), rt->tex);
+            const int n = countColorfulPixels(image);
+            if (b == 0)
+                firstBlockPixels = n;
+            else
+                lastBlockPixels = n;
+        }
+    }
+
+    if (impl != QRhi::Null) {
+        // If even the first block does not render in color, the platform is not
+        // producing color emoji and there is nothing to test.
+        if (firstBlockPixels < 500)
+            QSKIP("Platform did not render color emoji; cannot test eviction");
 
         // With broken eviction/reuse this count collapses to something much
         // smaller than 500.
