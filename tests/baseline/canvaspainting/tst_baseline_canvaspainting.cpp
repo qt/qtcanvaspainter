@@ -3,6 +3,7 @@
 
 #include <qbaselinetest.h>
 #include <QColor>
+#include <QGuiApplication>
 #include <QSurfaceFormat>
 #include <QOffscreenSurface>
 #include <rhi/qrhi.h>
@@ -212,6 +213,16 @@ void tst_CanvasPainterLancelot::initTestCase()
     // Check and setup the environment. We treat failures because of test environment
     // (e.g. script files not found) as just warnings, and not QFAILs, to avoid false negatives
     // caused by environment or server instability
+
+    // Pin the application font. Some test items load and unload application fonts
+    // (e.g. testEmojiFillColor), and on macOS QFontDatabase::removeApplicationFont()
+    // invalidates the CoreText font database, which delivers a synchronous theme
+    // change. Unless the application font was set explicitly, that re-initializes the
+    // global default font from the platform theme and never restores it, perturbing
+    // default-family text in every subsequent row (and, since one graphics-API pass
+    // runs after another, the entire next pass). Setting the font marks it as
+    // explicitly set, so the theme change leaves it untouched.
+    QGuiApplication::setFont(QGuiApplication::font());
 
 #ifdef USE_SERVER
     QByteArray msg;

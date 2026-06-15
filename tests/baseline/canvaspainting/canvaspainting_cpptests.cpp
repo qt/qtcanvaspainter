@@ -22,6 +22,8 @@
 #include <QCanvasBoxShadow>
 #include <QCanvasPath>
 #include <QCanvasCustomBrush>
+#include <QFontDatabase>
+#include <QScopeGuard>
 #include <QVector4D>
 
 QStringList CanvasPainterLancelotCppTests::keys()
@@ -843,6 +845,48 @@ void CanvasPainterLancelotCppTests::testManyEmojis()
             }
         }
         y += cell * 1.5f; // gap before the next (larger) size block
+    }
+}
+
+void CanvasPainterLancelotCppTests::testEmojiFillColor()
+{
+    // Color (COLR) fonts mix glyphs with baked-in palette colors and glyphs
+    // that are painted in the current text ("foreground") color. The bundled
+    // test font maps the *-keycap ligature to its single COLR glyph (fixed
+    // palette colors), while the emoji-presentation airplane resolves to a
+    // plain outline glyph, which color fonts render in the foreground color.
+    // Each row repeats the same string with a different fill style: the
+    // letters and the airplane must follow it, the keycap must not. The rows
+    // must not share glyph bitmaps, as the color is part of the color glyph
+    // cache key. The system emoji font is not used, keeping the output
+    // independent of the platform's emoji designs.
+    const int fontId = QFontDatabase::addApplicationFont(
+            QStringLiteral(":/fonts/QtEmojiTestFont-Regular.ttf"));
+    if (fontId < 0)
+        return;
+    const QStringList families = QFontDatabase::applicationFontFamilies(fontId);
+    if (families.isEmpty())
+        return;
+    QFontDatabase::addApplicationEmojiFontFamily(families.first());
+    const auto cleanup = qScopeGuard([&] {
+        QFontDatabase::removeApplicationEmojiFontFamily(families.first());
+        QFontDatabase::removeApplicationFont(fontId);
+    });
+
+    // * + VS16 + U+20E3 (keycap ligature) and U+2708 + VS16 (airplane).
+    const QString text = QStringLiteral("Ab *️⃣ ✈️");
+
+    const QColor colors[] = { Qt::black, Qt::red, QColor(0, 128, 0), Qt::blue };
+
+    QFont font;
+    font.setPointSize(16);
+    painter->setFont(font);
+
+    float y = 30.0f;
+    for (const QColor &color : colors) {
+        painter->setFillStyle(color);
+        painter->fillText(text, 8, y);
+        y += 45.0f;
     }
 }
 

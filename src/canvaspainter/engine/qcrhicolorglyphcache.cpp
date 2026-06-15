@@ -188,6 +188,9 @@ void QCRhiColorGlyphCache::addGlyphRun(const QPointF &glyphPos,
 
     const QFontEngine::FaceId faceId = fe->faceId();
     const int pixelSize = qRound(rawFont.pixelSize());
+    // The color participates in the key because COLR fonts can have layers
+    // painted in the text ("foreground") color.
+    const QRgb rgba = color.rgba();
 
     // Rasterize at the device pixel ratio so the bitmaps match the physical
     // resolution of the render target; the quads below stay in logical
@@ -202,7 +205,7 @@ void QCRhiColorGlyphCache::addGlyphRun(const QPointF &glyphPos,
     }
 
     for (int i = 0; i < count; ++i) {
-        const GlyphKey key{ faceId, glyphIndexes.at(i), pixelSize, float(scale) };
+        const GlyphKey key{ faceId, glyphIndexes.at(i), pixelSize, float(scale), rgba };
         const GlyphData &gd = ensureGlyph(key, fe, color, rasterTransform);
         if (!gd.valid)
             continue;

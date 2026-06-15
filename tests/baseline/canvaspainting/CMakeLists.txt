@@ -54,6 +54,7 @@ qt_internal_add_resource(tst_baseline_canvaspainting "resources"
         "images/dome_argb32.png"
         "images/dome_rgb32.png"
         "images/tiger.json"
+        "fonts/QtEmojiTestFont-Regular.ttf"
 )
 
 qt_add_custom_brush_shaders(tst_baseline_canvaspainting "custombrushes"
