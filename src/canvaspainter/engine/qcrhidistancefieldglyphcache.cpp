@@ -398,7 +398,10 @@ bool QCRhiDistanceFieldGlyphCache::populate(const QList<glyph_t> &glyphs)
         }
 
         GlyphData &gd = glyphData(glyphIndex);
-        ++gd.ref;
+        if (!m_referencedThisFrame.contains(glyphIndex)) {
+            ++gd.ref;
+            m_referencedThisFrame.insert(glyphIndex);
+        }
         referencedGlyphs.insert(glyphIndex);
 
         if (gd.texCoord.isValid() || m_populatingGlyphs.contains(glyphIndex))
@@ -522,7 +525,7 @@ void QCRhiDistanceFieldGlyphCache::requestGlyphs(const QSet<glyph_t> &glyphs)
 
                 m_unusedGlyphs.remove(unusedGlyph);
                 m_glyphsTexture.remove(unusedGlyph);
-                removeGlyph(unusedGlyph);
+                m_glyphsData.remove(unusedGlyph);
 
                 alloc = m_areaAllocator->allocate(glyphSize);
             }
@@ -550,13 +553,6 @@ void QCRhiDistanceFieldGlyphCache::requestGlyphs(const QSet<glyph_t> &glyphs)
 
     setGlyphsPosition(glyphPositions);
     markGlyphsToRender(glyphsToRender);
-}
-
-void QCRhiDistanceFieldGlyphCache::removeGlyph(glyph_t glyph)
-{
-    GlyphData &gd = glyphData(glyph);
-    gd.texCoord = TexCoord();
-    gd.texture = &s_emptyTexture;
 }
 
 void QCRhiDistanceFieldGlyphCache::setGlyphsPosition(const QList<GlyphPosition> &glyphs)
@@ -588,6 +584,24 @@ void QCRhiDistanceFieldGlyphCache::setGlyphsPosition(const QList<GlyphPosition> 
 void QCRhiDistanceFieldGlyphCache::referenceGlyphs(const QSet<glyph_t> &glyphs)
 {
     m_unusedGlyphs -= glyphs;
+}
+
+void QCRhiDistanceFieldGlyphCache::releaseGlyphs(const QSet<glyph_t> &glyphs)
+{
+    for (glyph_t glyph : glyphs) {
+        auto it = m_glyphsData.find(glyph);
+        if (it == m_glyphsData.end())
+            continue;
+        if (it->ref > 0 && --it->ref == 0)
+            m_unusedGlyphs.insert(glyph);
+    }
+}
+
+void QCRhiDistanceFieldGlyphCache::optimizeAfterRendering()
+{
+    releaseGlyphs(m_referencedPrevFrame);
+    m_referencedPrevFrame.swap(m_referencedThisFrame);
+    m_referencedThisFrame.clear();
 }
 
 void QCRhiDistanceFieldGlyphCache::storeGlyphs(const QList<QDistanceField> &glyphs)

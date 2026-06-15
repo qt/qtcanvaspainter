@@ -82,7 +82,7 @@ public:
     QRhiTexture *getOldTextures(const FontKey &key) const;
 
     void setOldTexture(FontKey key, QRhiTexture *tex);
-    void optimizeCache();
+    void optimizeCacheAfterRendering();
 
     const QCRhiDistanceFieldGlyphCache::VertexList &colorVertices() const { return m_colorVertices; }
     const QCRhiDistanceFieldGlyphCache::IndexList &colorIndices() const { return m_colorIndices; }

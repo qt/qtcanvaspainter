@@ -3164,7 +3164,7 @@ void QCPainterRhiRenderer::render()
     rhiCtx->cb->debugMarkEnd();
 
 #ifndef QCPAINTER_DISABLE_TEXT_SUPPORT
-    rhiCtx->fontCache->optimizeCache();
+    rhiCtx->fontCache->optimizeCacheAfterRendering();
 #endif
 
     // Bump passId. This changes what currentPerPassData returns, and the value
