@@ -10,6 +10,8 @@
 #include <QTest>
 #include <memory>
 #include <rhi/qrhi.h>
+#include <QFont>
+#include <QRawFont>
 
 #ifdef FRAME_CAPTURE
 #include <QtGui/private/qgraphicsframecapture_p.h>
@@ -70,6 +72,8 @@ private slots:
     void canvasRenderHqStroking();
     void canvasRenderPathGroups_data();
     void canvasRenderPathGroups();
+    void canvasRenderGlyphEviction_data();
+    void canvasRenderGlyphEviction();
 
 private:
     void setWindowType(QWindow *window, QRhi::Implementation impl);
@@ -1304,6 +1308,141 @@ void tst_CanvasRhiRendering::canvasRenderPathGroups()
 #ifdef FRAME_CAPTURE
     endFrameCapture(m_cap.get());
 #endif
+}
+
+void tst_CanvasRhiRendering::canvasRenderGlyphEviction_data()
+{
+    rhiTestData();
+}
+
+void tst_CanvasRhiRendering::canvasRenderGlyphEviction()
+{
+    QFETCH(QRhi::Implementation, impl);
+    QFETCH(QRhiInitParams *, initParams);
+
+    std::unique_ptr<QRhi> rhi(QRhi::create(impl, initParams, rhiCreateFlags));
+    if (!rhi)
+        QSKIP("Failed to create QRhi, skip");
+
+    std::unique_ptr<QCanvasPainterFactory> factory(new QCanvasPainterFactory);
+    QCanvasPainter *painter = factory->create(rhi.get());
+    QCanvasRhiPaintDriver *pd = factory->paintDriver();
+    QVERIFY(painter && pd);
+
+    RenderTargetPtr rt = createRenderTarget(rhi.get());
+    QVERIFY(rt);
+
+    // The distance-field glyph cache for a given font is a single fixed-size
+    // atlas texture. Unused glyph eviction only kicks in once that atlas is
+    // full: a glyph that was referenced in the previous frame but not in the
+    // current one has its refcount dropped to zero, becomes "unused", and is
+    // then evicted to make room for newly requested glyphs.
+    //
+    // To exercise this we draw a disjoint block of distinct glyphs per frame,
+    // so the cumulative number of glyphs far exceeds the atlas capacity while
+    // only a small working set is referenced in any single frame. With working
+    // eviction every frame - including the last - renders its text. With broken
+    // eviction the atlas fills after the first few frames and every subsequent
+    // frame renders (almost) nothing.
+    //
+    // The test assumes an 1024x1024 atlas.
+
+    QFont font;
+    font.setPixelSize(22);
+
+    // Collect code points that the active font can actually render, deduped by
+    // glyph index, so the test does not depend on the glyph coverage of
+    // whatever font happens to be the default on the test machine.
+    const QRawFont rawFont = QRawFont::fromFont(font);
+    QList<QChar> chars;
+    QSet<quint32> seenGlyphs;
+    const QList<std::pair<uint, uint>> ranges = {
+        { 0x21, 0x7E },     // Basic Latin (printable)
+        { 0xA1, 0x17F },    // Latin-1 Supplement + Latin Extended-A
+        { 0x180, 0x24F },   // Latin Extended-B
+        { 0x370, 0x3FF },   // Greek
+        { 0x400, 0x4FF },   // Cyrillic
+        { 0x4E00, 0x9FFF }, // CJK Unified Ideographs (only if the font has them)
+    };
+    for (const auto &range : ranges) {
+        for (uint uc = range.first; uc <= range.second; ++uc) {
+            if (!rawFont.supportsCharacter(uc))
+                continue;
+            const QChar ch = QChar(char16_t(uc));
+            const QList<quint32> idx = rawFont.glyphIndexesForString(QString(ch));
+            if (idx.size() != 1 || idx.first() == 0 || seenGlyphs.contains(idx.first()))
+                continue;
+            seenGlyphs.insert(idx.first());
+            chars.append(ch);
+        }
+    }
+
+    constexpr int requiredGlyphs = 600;
+    if (chars.size() < requiredGlyphs)
+        QSKIP("Active font does not provide enough distinct glyphs to overflow the atlas");
+
+    auto drawBlock = [&](int first, int count) {
+        painter->setFillStyle(Qt::white);
+        painter->setFont(font);
+        painter->setTextAlign(QCanvasPainter::TextAlign::Left);
+        painter->setTextBaseline(QCanvasPainter::TextBaseline::Top);
+        const int columns = 32;
+        const int cellW = RT_WIDTH / columns;
+        const int cellH = 26;
+        for (int i = 0; i < count; ++i) {
+            const int col = i % columns;
+            const int row = i / columns;
+            painter->fillText(QString(chars.at(first + i)),
+                              float(col * cellW + 2), float(row * cellH + 2));
+        }
+    };
+
+    auto countWhitePixels = [](const QImage &image) {
+        int n = 0;
+        for (int y = 0; y < image.height(); ++y) {
+            for (int x = 0; x < image.width(); ++x) {
+                const QRgb p = image.pixel(x, y);
+                if (qRed(p) > 200 && qGreen(p) > 200 && qBlue(p) > 200)
+                    ++n;
+            }
+        }
+        return n;
+    };
+
+    const int blockSize = 50;
+    const int blockCount = chars.size() / blockSize;
+    QVERIFY(blockCount >= 4);
+
+    int firstBlockPixels = 0;
+    int lastBlockPixels = 0;
+    for (int b = 0; b < blockCount; ++b) {
+        QRhiCommandBuffer *cb;
+        rhi->beginOffscreenFrame(&cb);
+        pd->resetForNewFrame();
+        pd->beginPaint(cb, rt->rt, Qt::black);
+        drawBlock(b * blockSize, blockSize);
+        pd->endPaint();
+        rhi->endOffscreenFrame();
+
+        if (impl != QRhi::Null && (b == 0 || b == blockCount - 1)) {
+            QImage image = imageFromReadback(rhi.get(), rt->tex);
+            const int n = countWhitePixels(image);
+            if (b == 0)
+                firstBlockPixels = n;
+            else
+                lastBlockPixels = n;
+        }
+    }
+
+    if (impl != QRhi::Null) {
+        // Sanity check: the first block always fits, so text rendering works at
+        // all. If this fails the problem is not eviction.
+        QCOMPARE_GT(firstBlockPixels, 500);
+
+        // With broken eviction/reuse this count collapses to something much
+        // smaller than 500.
+        QCOMPARE_GT(lastBlockPixels, 500);
+    }
 }
 
 #include <tst_qcrhiplumbing.moc>

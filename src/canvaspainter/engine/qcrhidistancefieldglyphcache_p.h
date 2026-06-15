@@ -114,9 +114,10 @@ public:
 
     void requestGlyphs(const QSet<glyph_t> &glyphs);
     void storeGlyphs(const QList<QDistanceField> &glyphs);
-    void removeGlyph(glyph_t glyph);
     void setGlyphsPosition(const QList<GlyphPosition> &glyphs);
     void referenceGlyphs(const QSet<glyph_t> &glyphs);
+
+    void optimizeAfterRendering();
 
     bool setGlyphs(QPointF position, const QGlyphRun &glyphs);
     void setGlyphTexture(const QList<glyph_t> &glyphs, const TextureInfo &tex);
@@ -173,6 +174,8 @@ private:
     QHash<glyph_t, GlyphData> m_glyphsData;
     QSet<glyph_t> m_populatingGlyphs;
     QSet<glyph_t> m_unusedGlyphs;
+    QSet<glyph_t> m_referencedThisFrame;
+    QSet<glyph_t> m_referencedPrevFrame;
     QHash<glyph_t, TextureInfo *> m_glyphsTexture;
     QList<TextureInfo> m_textures;
     QDataBuffer<glyph_t> m_pendingGlyphs;
@@ -188,6 +191,7 @@ private:
     GlyphData &emptyData(glyph_t glyph);
     int maxTextureSize() const;
     void markGlyphsToRender(const QList<glyph_t> &glyphs);
+    void releaseGlyphs(const QSet<glyph_t> &glyphs);
     bool useTextureResizeWorkaround() const;
     void updateRhiTexture(QRhiTexture *oldTex, QRhiTexture *newTex, QSize newTexSize);
     Metrics glyphMetrics(glyph_t glyph, qreal pixelSize);

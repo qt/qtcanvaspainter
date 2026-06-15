@@ -301,8 +301,11 @@ void QCDistanceFieldGlyphCache::setOldTexture(FontKey key, QRhiTexture *tex)
     m_glyphCaches[key].prevTextureState = tex;
 }
 
-void QCDistanceFieldGlyphCache::optimizeCache()
+void QCDistanceFieldGlyphCache::optimizeCacheAfterRendering()
 {
+    for (auto it = m_glyphCaches.begin(); it != m_glyphCaches.end(); ++it)
+        it.value().nativeGlyphCache->optimizeAfterRendering();
+
 #ifdef QCPAINTER_CACHE_GLYPH_RUNS
 #ifdef QCPAINTER_GLYPH_RUNS_CACHE_SIZE
     const int maxGlyphRuns = QCPAINTER_GLYPH_RUNS_CACHE_SIZE;
