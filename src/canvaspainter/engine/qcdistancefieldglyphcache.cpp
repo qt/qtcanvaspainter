@@ -135,8 +135,13 @@ void QCDistanceFieldGlyphCache::generate(const QString &text, const QRectF &rect
         if (fe && fe->isColorFont()) {
             if (!m_colorCache)
                 m_colorCache = new QCRhiColorGlyphCache(m_rhi);
-            // Emoji glyphs carry their own colors, so the fill color is unused.
-            m_colorCache->addGlyphRun(glyphPos, run, Qt::black, state->transform,
+            QColor glyphColor = Qt::black;
+            if (state->fill.brushType == BrushColor) {
+                glyphColor = QColor::fromRgbF(state->fill.innerColor.r,
+                                              state->fill.innerColor.g,
+                                              state->fill.innerColor.b);
+            }
+            m_colorCache->addGlyphRun(glyphPos, run, glyphColor, state->transform,
                                       devicePixelRatio, &m_colorVertices, &m_colorIndices);
             continue;
         }

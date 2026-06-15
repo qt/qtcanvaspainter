@@ -53,15 +53,16 @@ private:
         quint32 glyph;
         int pixelSize;
         float scale; // rasterization scale (device pixel ratio)
+        QRgb color;  // text color, used by COLR "foreground" layers
         bool operator==(const GlyphKey &o) const
         {
             return glyph == o.glyph && pixelSize == o.pixelSize && scale == o.scale
-                   && faceId == o.faceId;
+                   && color == o.color && faceId == o.faceId;
         }
     };
     friend size_t qHash(const GlyphKey &k, size_t seed)
     {
-        return qHashMulti(seed, k.faceId, k.glyph, k.pixelSize, k.scale);
+        return qHashMulti(seed, k.faceId, k.glyph, k.pixelSize, k.scale, k.color);
     }
 
     struct GlyphData
