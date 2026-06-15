@@ -311,6 +311,9 @@ void QCDistanceFieldGlyphCache::optimizeCacheAfterRendering()
     for (auto it = m_glyphCaches.begin(); it != m_glyphCaches.end(); ++it)
         it.value().nativeGlyphCache->optimizeAfterRendering();
 
+    if (m_colorCache)
+        m_colorCache->optimizeAfterRendering();
+
 #ifdef QCPAINTER_CACHE_GLYPH_RUNS
 #ifdef QCPAINTER_GLYPH_RUNS_CACHE_SIZE
     const int maxGlyphRuns = QCPAINTER_GLYPH_RUNS_CACHE_SIZE;

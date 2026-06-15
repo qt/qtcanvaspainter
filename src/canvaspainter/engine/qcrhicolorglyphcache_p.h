@@ -21,6 +21,7 @@
 #include <QtGui/QImage>
 #include <QtGui/QRawFont>
 #include <QtGui/QGlyphRun>
+#include <QtCore/QSet>
 #include <QtGui/private/qfontengine_p.h>
 #include <rhi/qrhi.h>
 #include "qcareaallocator_p.h"
@@ -42,6 +43,8 @@ public:
                      QCRhiDistanceFieldGlyphCache::IndexList *indices);
 
     void commitResourceUpdate(QRhiResourceUpdateBatch *batch);
+
+    void optimizeAfterRendering();
 
     QRhiTexture *texture() const { return m_atlas; }
     bool isEmpty() const { return m_atlas == nullptr; }
@@ -70,6 +73,7 @@ private:
         QRect atlasRect;
         QPointF bearing;
         bool valid = false;
+        quint32 ref = 0;
     };
 
     void ensureAtlas();
@@ -78,11 +82,19 @@ private:
                                  const QColor &color, const QTransform &rasterTransform);
     bool useTextureResizeWorkaround() const;
 
+    void referenceGlyph(const GlyphKey &key, GlyphData &gd);
+    QRect evictUntilAllocated(const QSize &allocSize);
+    void releaseGlyphs(const QSet<GlyphKey> &glyphs);
+
     QRhi *m_rhi = nullptr;
     QRhiTexture *m_atlas = nullptr;
     QRhiResourceUpdateBatch *m_batch = nullptr;
     QCAreaAllocator *m_allocator = nullptr;
     QHash<GlyphKey, GlyphData> m_glyphs;
+    QSet<GlyphKey> m_referencedThisFrame;
+    QSet<GlyphKey> m_referencedPrevFrame;
+    QSet<GlyphKey> m_unusedGlyphs;
+    const GlyphData m_invalidGlyph;
     int m_atlasSize = 0;    // current physical atlas texture size (square, px)
     int m_maxAtlasSize = 0; // allocator coordinate space and growth ceiling (px)
     QImage m_atlasImage;    // CPU shadow of the atlas (resize workaround only)
