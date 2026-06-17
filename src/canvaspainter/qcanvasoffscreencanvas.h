@@ -9,6 +9,7 @@
 #include <QtCanvasPainter/qtcanvaspainterglobal.h>
 #include <QtCore/qshareddata.h>
 #include <QtCore/qobjectdefs.h>
+#include <QtCore/qsize.h>
 #include <QtGui/qcolor.h>
 
 QT_BEGIN_NAMESPACE
@@ -39,6 +40,10 @@ public:
     Q_CANVASPAINTER_EXPORT void detach();
 
     Q_CANVASPAINTER_EXPORT bool isNull() const;
+
+    Q_CANVASPAINTER_EXPORT int width() const;
+    Q_CANVASPAINTER_EXPORT int height() const;
+    Q_CANVASPAINTER_EXPORT QSize size() const;
 
     Q_CANVASPAINTER_EXPORT Flags flags() const;
 

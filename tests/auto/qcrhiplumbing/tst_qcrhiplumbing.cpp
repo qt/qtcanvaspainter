@@ -648,6 +648,9 @@ void tst_CanvasRhiRendering::canvasRender()
     QVERIFY(canvasImage.isNull());
     canvasImage = painter->addImage(canvas, QCanvasPainter::ImageFlag::Repeat);
     QVERIFY(!canvasImage.isNull());
+    QCOMPARE(canvasImage.width(), canvas.width());
+    QCOMPARE(canvasImage.height(), canvas.height());
+    QCOMPARE(canvasImage.size(), canvas.size());
     QCanvasImage secondRegistrationImage = painter->addImage(canvas, QCanvasPainter::ImageFlag::Repeat);
     QCOMPARE(canvasImage, secondRegistrationImage);
     drawCircleInCenter(painter, canvasImage);

@@ -170,6 +170,36 @@ bool QCanvasOffscreenCanvas::isNull() const
 }
 
 /*!
+    \return the width of this canvas in pixels.
+
+    \sa height(), size()
+ */
+int QCanvasOffscreenCanvas::width() const
+{
+    return !d->rhiCanvas.isNull() ? d->rhiCanvas.tex->pixelSize().width() : 0;
+}
+
+/*!
+    \return the height of this canvas in pixels.
+
+    \sa width(), size()
+ */
+int QCanvasOffscreenCanvas::height() const
+{
+    return !d->rhiCanvas.isNull() ? d->rhiCanvas.tex->pixelSize().height() : 0;
+}
+
+/*!
+    \return the size (width and height) of this canvas in pixels.
+
+    \sa width(), height()
+ */
+QSize QCanvasOffscreenCanvas::size() const
+{
+    return !d->rhiCanvas.isNull() ? d->rhiCanvas.tex->pixelSize() : QSize();
+}
+
+/*!
     \return the flags with which the canvas was created.
 
     The flags are immutable and cannot be changed once the canvas has been
