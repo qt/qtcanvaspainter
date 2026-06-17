@@ -46,8 +46,6 @@ public:
     Q_CANVASPAINTER_EXPORT QColor tintColor() const;
     Q_CANVASPAINTER_EXPORT void setTintColor(const QColor &color);
 
-    // TODO: Add API for image rotation angle? Or rely only on state transformation?
-
 private:
     friend Q_CANVASPAINTER_EXPORT bool comparesEqual(const QCanvasImage &lhs, const QCanvasImage &rhs) noexcept;
     Q_DECLARE_EQUALITY_COMPARABLE(QCanvasImage)
