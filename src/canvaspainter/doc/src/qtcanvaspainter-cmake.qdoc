@@ -91,7 +91,7 @@
     qt_add_shaders function is not suitable for custom brush shaders, because it
     does not perform the Qt Canvas Painter specific preprocessing.
 
-    See \l{Qt Shader Tools Build System Integration} for the general concepts of
+    See \l{qt_add_shaders}{qt_add_shaders()} for the general concepts of
     working with cross-platform shader code in Qt, and \l QCanvasCustomBrush for
     details on authoring custom brush shaders.
 
@@ -157,5 +157,5 @@
 
     \endlist
 
-    \sa QCanvasCustomBrush, {Qt Shader Tools Build System Integration}
+    \sa QCanvasCustomBrush, qt_add_shaders
 */
