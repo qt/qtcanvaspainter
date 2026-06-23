@@ -4202,7 +4202,7 @@ QV4::ReturnedValue QCanvasJSContext2D::method_set_textDirection(const QV4::Funct
     \endcode
     \endtable
 
-    \sa font, textAlign, textBaseline, textWrapMode, strokeText
+    \sa font, textAlign, textBaseline, textWrapMode
 */
 /*!
     \qmlmethod void Canvas2DContext::fillText(text, x, y, width, height)
@@ -4230,7 +4230,7 @@ QV4::ReturnedValue QCanvasJSContext2D::method_set_textDirection(const QV4::Funct
     \endcode
     \endtable
 
-    \sa font, textAlign, textBaseline, textWrapMode, strokeText
+    \sa font, textAlign, textBaseline, textWrapMode
 */
 QV4::ReturnedValue QCanvasJSContext2DPrototype::method_fillText(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc)
 {
@@ -4260,21 +4260,15 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_fillText(const QV4::Funct
 
     RETURN_UNDEFINED();
 }
-/*!
-    \qmlmethod void Canvas2DContext::strokeText(text, x, y)
 
-    Strokes the given \a text at a position specified by (\a x, \a y).
-
-    \sa font, textAlign, textBaseline, fillText
-*/
 QV4::ReturnedValue QCanvasJSContext2DPrototype::method_strokeText(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc)
 {
     QV4::Scope scope(b);
-    QV4::Scoped<QCanvasJSContext2D> r(scope, *thisObject);
-    CHECK_CONTEXT(r)
+    Q_UNUSED(thisObject);
+    Q_UNUSED(argv);
+    Q_UNUSED(argc);
 
-    if (argc >= 3)
-        r->d()->context()->drawText(argv[0].toQStringNoThrow(), argv[1].toNumber(), argv[2].toNumber(), false);
+    THROW_DOM(DOMEXCEPTION_NOT_SUPPORTED_ERR, "strokeText(): Method not supported");
 
     RETURN_UNDEFINED();
 }
@@ -4649,74 +4643,12 @@ void QCanvas2DContext::strokePath(const QCanvasPath &path, int pathGroup)
 
 // ***** other *****
 
-// Note: This is never called with fill=true, so text is always stroked
-// TODO: Rename to strokeText()?
-void QCanvas2DContext::drawText(const QString& text, qreal x, qreal y, bool fill)
-{
-    if (!qt_is_finite(x) || !qt_is_finite(y))
-        return;
-
-    QPainterPath textPath = createTextGlyphs(x, y, text);
-    if (fill)
-        buffer()->fillPath(textPath);
-    else
-        buffer()->strokePath(textPath);
-}
-
 void QCanvas2DContext::drawBoxShadow(QCanvasBoxShadow *shadow)
 {
     if (!shadow)
         return;
 
     buffer()->drawBoxShadow(shadow);
-}
-
-float baseLineOffset(QCanvasPainter::TextBaseline value, const QFontMetricsF &metrics)
-{
-    float offset = 0;
-    switch (value) {
-    case QCanvasPainter::TextBaseline::Top:
-        break;
-    case QCanvasPainter::TextBaseline::Hanging:
-        offset = metrics.height() - metrics.ascent();
-        break;
-    case QCanvasPainter::TextBaseline::Middle:
-        // TODO: Adjusted to match canvas painter middle, so fill and stroke are
-        // positioned similarly. Check what is the optimal one.
-        // If we will support aligning into middle of rect, this
-        // method needs additional parameters.
-        //offset = (metrics.ascent() >> 1) + metrics.height() - metrics.ascent();
-        offset = metrics.height() - 0.625 * metrics.ascent();
-        break;
-    case QCanvasPainter::TextBaseline::Alphabetic:
-        offset = metrics.ascent();
-        break;
-    case QCanvasPainter::TextBaseline::Bottom:
-        offset = metrics.height();
-        break;
-    }
-    return offset;
-}
-
-static float textAlignOffset(QCanvasPainter::TextAlign value, const QFontMetricsF &metrics, const QString &text)
-{
-    float offset = 0;
-    if (value == QCanvasPainter::TextAlign::Start)
-        value = QGuiApplication::layoutDirection() == Qt::LeftToRight ? QCanvasPainter::TextAlign::Left : QCanvasPainter::TextAlign::Right;
-    else if (value == QCanvasPainter::TextAlign::End)
-        value = QGuiApplication::layoutDirection() == Qt::LeftToRight ? QCanvasPainter::TextAlign::Right: QCanvasPainter::TextAlign::Left;
-    switch (value) {
-    case QCanvasPainter::TextAlign::Center:
-        offset = metrics.horizontalAdvance(text) / 2;
-        break;
-    case QCanvasPainter::TextAlign::Right:
-        offset = metrics.horizontalAdvance(text);
-        break;
-    case QCanvasPainter::TextAlign::Left:
-    default:
-        break;
-    }
-    return offset;
 }
 
 void QCanvas2DContext::setGrabbedImage(const QImage& grab)
@@ -4728,18 +4660,6 @@ void QCanvas2DContext::setGrabbedImage(const QImage& grab)
 QQmlRefPointer<QCanvas2DPixmap> QCanvas2DContext::createPixmap(const QUrl& url, QSizeF sourceSize)
 {
     return m_canvas->loadedPixmap(url, sourceSize);
-}
-
-QPainterPath QCanvas2DContext::createTextGlyphs(qreal x, qreal y, const QString& text)
-{
-    const QFontMetricsF metrics(state.font);
-    float yoffset = baseLineOffset(static_cast<QCanvasPainter::TextBaseline>(state.textBaseline), metrics);
-    float xoffset = textAlignOffset(static_cast<QCanvasPainter::TextAlign>(state.textAlign), metrics, text);
-
-    QPainterPath textPath;
-
-    textPath.addText(x - xoffset, y - yoffset+metrics.ascent(), state.font, text);
-    return textPath;
 }
 
 QCanvas2DContext::QCanvas2DContext(QObject *parent)

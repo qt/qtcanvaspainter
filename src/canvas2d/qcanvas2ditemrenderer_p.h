@@ -42,8 +42,6 @@ Q_SIGNALS:
     void painted();
 
 private:
-    void strokePath(const QPainterPath &path);
-    void fillPath(const QPainterPath &path);
     void setPaintStyle(const QCanvasBrush &brush, bool fill);
     QCanvasImage getCachedImage(const QImage &image, const QString &url, QCanvasPainter::ImageFlags flags);
     void drawImage(const QImage &image, const QString &url, const QRectF &sr, const QRectF &dr);

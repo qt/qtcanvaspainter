@@ -261,12 +261,6 @@ public:
         rects << r;
     }
 
-
-    inline void fillPath(const QPainterPath &path)
-    {
-        commands << QCanvas2DContext::FillPath;
-        paths << path;
-    }
     inline void fillPath(const QCanvasPath &path, int pathGroup)
     {
         commands << QCanvas2DContext::FillCanvasPath;
@@ -290,11 +284,6 @@ public:
         ints << int(fillRule);
     }
 
-    inline void strokePath(const QPainterPath &path)
-    {
-        commands << QCanvas2DContext::StrokePath;
-        paths << path;
-    }
     inline void strokePath(const QCanvasPath &path, int pathGroup)
     {
         commands << QCanvas2DContext::StrokeCanvasPath;

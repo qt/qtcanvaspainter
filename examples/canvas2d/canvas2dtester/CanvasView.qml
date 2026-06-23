@@ -461,7 +461,6 @@ Item {
         ctx.stroke();
 
         ctx.lineWidth = 2;
-        ctx.strokeStyle = "#d08040";
         ctx.font = "30px sans-serif";
         ctx.fillStyle = "#e0e0e0";
         ctx.textBaseline = "top";
@@ -476,7 +475,6 @@ Item {
             const y = h * 0.1 + index * h * 0.15;
             ctx.textAlign = alignment;
             let s = `Align (${alignment})`;
-            ctx.strokeText(s, cX, y);
             ctx.fillText(s, cX, y);
         });
 
@@ -499,9 +497,7 @@ Item {
             ctx.strokeStyle = "red";
             ctx.stroke();
             ctx.lineWidth = 2;
-            ctx.strokeStyle = "#d08040";
             const s = `Baseline (${baseline})`;
-            ctx.strokeText(s, m, y);
             ctx.fillText(s, m, y);
         });
     }
