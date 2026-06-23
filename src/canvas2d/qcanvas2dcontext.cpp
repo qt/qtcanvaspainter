@@ -2752,7 +2752,7 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_drawBoxShadow(const QV4::
 
     QV4::ScopedValue value(scope, argc ? argv[0] : QV4::Value::undefinedValue());
     QCanvasBoxShadow s = QV4::ExecutionEngine::toVariant(value, QMetaType::fromType<QCanvasBoxShadow>()).value<QCanvasBoxShadow>();
-    r->d()->context()->drawBoxShadow(&s);
+    r->d()->context()->buffer()->drawBoxShadow(s);
     RETURN_UNDEFINED();
 }
 
@@ -4642,14 +4642,6 @@ void QCanvas2DContext::strokePath(const QCanvasPath &path, int pathGroup)
 }
 
 // ***** other *****
-
-void QCanvas2DContext::drawBoxShadow(QCanvasBoxShadow *shadow)
-{
-    if (!shadow)
-        return;
-
-    buffer()->drawBoxShadow(shadow);
-}
 
 void QCanvas2DContext::setGrabbedImage(const QImage& grab)
 {

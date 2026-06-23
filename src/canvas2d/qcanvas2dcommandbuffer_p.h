@@ -423,10 +423,10 @@ public:
         reals << x << y << width << height;
     }
 
-    inline void drawBoxShadow(QCanvasBoxShadow *shadow)
+    inline void drawBoxShadow(const QCanvasBoxShadow &shadow)
     {
         commands << QCanvas2DContext::DrawBoxShadow;
-        brushes << QCanvasBrush(*shadow);
+        brushes << QCanvasBrush(shadow);
     }
 
     inline void setTextAlign(QCanvasPainter::TextAlign ta)
