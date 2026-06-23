@@ -3128,7 +3128,7 @@ QV4::ReturnedValue QCanvasJSContext2D::method_set_antialias(const QV4::FunctionO
 
     qreal w = argc ? argv[0].toNumber() : -1;
 
-    if (w > 0 && qt_is_finite(w) && w != r->d()->context()->state.antialias) {
+    if (w >= 0 && qt_is_finite(w) && w != r->d()->context()->state.antialias) {
         r->d()->context()->state.antialias = w;
         r->d()->context()->buffer()->setAntialias(w);
     }
