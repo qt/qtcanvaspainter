@@ -264,13 +264,6 @@ void QCanvas2DItemRenderer::paint(QCanvasPainter *painter)
             m_painter->fill(fillRule);
             break;
         }
-        case QCanvas2DContext::FillPath:
-        {
-            auto path = takePath();
-            path.closeSubpath();
-            fillPath(path);
-            break;
-        }
         case QCanvas2DContext::FillCanvasPath:
         {
             const QCanvasPath &p = takeCanvasPath();
@@ -291,12 +284,6 @@ void QCanvas2DItemRenderer::paint(QCanvasPainter *painter)
         case QCanvas2DContext::Stroke:
         {
             m_painter->stroke();
-            break;
-        }
-        case QCanvas2DContext::StrokePath:
-        {
-            auto p = takePath();
-            strokePath(p);
             break;
         }
         case QCanvas2DContext::StrokeCanvasPath:
@@ -568,20 +555,6 @@ void QCanvas2DItemRenderer::paint(QCanvasPainter *painter)
     //m_state.clip = false;
 
     Q_EMIT painted();
-}
-
-void QCanvas2DItemRenderer::strokePath(const QPainterPath &path)
-{
-    m_painter->beginPath();
-    m_painter->addPath(path);
-    m_painter->stroke();
-}
-
-void QCanvas2DItemRenderer::fillPath(const QPainterPath &path)
-{
-    m_painter->beginPath();
-    m_painter->addPath(path);
-    m_painter->fill();
 }
 
 void QCanvas2DItemRenderer::reset()

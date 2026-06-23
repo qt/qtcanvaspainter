@@ -27,7 +27,6 @@ Rectangle {
             ctx.stroke();
 
             ctx.lineWidth = 2;
-            ctx.strokeStyle = "#d08040";
             ctx.font = "30px sans-serif";
             ctx.fillStyle = "#e0e0e0";
             ctx.textBaseline = "top";
@@ -36,7 +35,6 @@ Rectangle {
                 const y = h * 0.1 + index * h * 0.15;
                 ctx.textAlign = alignment;
                 const s = "Align (" + alignment + ")";
-                ctx.strokeText(s, cX, y);
                 ctx.fillText(s, cX, y);
             });
 
@@ -51,9 +49,7 @@ Rectangle {
                 ctx.strokeStyle = "red";
                 ctx.stroke();
                 ctx.lineWidth = 2;
-                ctx.strokeStyle = "#d08040";
                 const s = "Baseline (" + baseline + ")";
-                ctx.strokeText(s, m, y);
                 ctx.fillText(s, m, y);
             });
         }
