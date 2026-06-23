@@ -2774,6 +2774,25 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_drawBoxShadow(const QV4::
 
     If the repetition argument is empty or null, the value "repeat" is used.
 
+    \table
+    \row
+    \li \inlineimage imagepattern-example.webp
+    \li
+    \code
+    let ip1 = ctx.createPattern("pattern2.png", "repeat");
+    let ip2 = ctx.createPattern("pattern3.png", "repeat");
+    ip1.setImageSize(64, 64);
+    ip2.setImageSize(32, 32);
+    ctx.beginPath();
+    ctx.roundRect(20, 20, 160, 160, 40);
+    ctx.fillStyle = ip1;
+    ctx.strokeStyle = ip2;
+    ctx.fill();
+    ctx.lineWidth = 20;
+    ctx.stroke();
+    \endcode
+    \endtable
+
     \sa strokeStyle
     \sa fillStyle
 */
