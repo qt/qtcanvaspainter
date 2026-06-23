@@ -232,7 +232,6 @@ public:
 
     // ***** other *****
     void drawText(const QString& text, qreal x, qreal y, bool fill);
-    void drawBoxShadow(QCanvasBoxShadow *shadow);
     QQmlRefPointer<QCanvas2DPixmap> createPixmap(const QUrl& url, QSizeF sourceSize = QSizeF());
     void setGrabbedImage(const QImage& grab);
     void addImagePattern(const QCanvasImagePattern &pattern, const QString &url, const QImage &image, QCanvasPainter::ImageFlags flags);
