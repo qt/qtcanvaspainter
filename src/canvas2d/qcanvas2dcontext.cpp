@@ -4546,7 +4546,7 @@ void QCanvas2DContext::transform(qreal a, qreal b, qreal c, qreal d, qreal e, qr
         return;
 
     QTransform transform(a, b, c, d, e, f);
-    state.transform *= transform;
+    state.transform = transform * state.transform;
     buffer()->transform(transform);
 }
 
