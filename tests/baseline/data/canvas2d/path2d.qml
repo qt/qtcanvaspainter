@@ -101,6 +101,20 @@ Rectangle {
             transform.translate(0, 40);
             graphPath3.addPath(graphPath, 40, 100, transform);
             ctx.stroke(graphPath3);
+
+            // Simple path, clearing resources.
+            // Shows 2 circles.
+            ctx.cleanupResources();
+            const circlePath = ctx.createPath2D();
+            if (circlePath.isEmpty())
+                circlePath.circle(540, 20, 15);
+            ctx.fill(circlePath);
+            ctx.stroke(circlePath);
+            const circlePath2 = ctx.createPath2D();
+            circlePath2.circle(580, 20, 15);
+            ctx.fill(circlePath2);
+            ctx.stroke(circlePath2);
+            ctx.cleanupResources();
         }
     }
 }

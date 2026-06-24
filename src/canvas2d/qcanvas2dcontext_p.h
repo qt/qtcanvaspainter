@@ -123,6 +123,8 @@ public:
         Antialias,
         TextAntialias,
         TextLineHeight,
+        CleanupResources,
+        RemovePathGroup,
     };
 
     struct State {

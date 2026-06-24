@@ -548,6 +548,15 @@ void QCanvas2DItemRenderer::paint(QCanvasPainter *painter)
             m_painter->setTextLineHeight(m_state.textLineHeight);
             break;
         }
+        case QCanvas2DContext::CleanupResources: {
+            m_painter->cleanupResources();
+            break;
+        }
+        case QCanvas2DContext::RemovePathGroup: {
+            int pathGroup = takeInt();
+            m_painter->removePathGroup(pathGroup);
+            break;
+        }
         default:
             qWarning() << "Unhandled command:" << cmd;
         }

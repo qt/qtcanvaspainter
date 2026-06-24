@@ -21,6 +21,8 @@ Rectangle {
             const personPathGroup = 1;
             const heartPathGroup = 2;
             const graphPathGroup = 3;
+            const circlePathGroup = 4;
+            const circlePathGroup2 = 5;
 
             // Person icon rendered via an SVG path string
             const svgPath = "M152,84a36,36,0,1,0-36-36A36.04061,36.04061,0,0,0,152,84Zm0-48Z" +
@@ -104,6 +106,22 @@ Rectangle {
             transform.translate(0, 40);
             graphPath3.addPath(graphPath, 40, 100, transform);
             ctx.stroke(graphPath3, graphPathGroup);
+
+            // Simple path, clearing resources.
+            // Shows 1 circle.
+            ctx.cleanupResources();
+            const circlePath = ctx.createPath2D();
+            if (circlePath.isEmpty())
+                circlePath.circle(540, 20, 15);
+            ctx.fill(circlePath, circlePathGroup);
+            ctx.stroke(circlePath, circlePathGroup);
+            const circlePath2 = ctx.createPath2D();
+            circlePath2.circle(580, 20, 15);
+            ctx.fill(circlePath2, circlePathGroup2);
+            ctx.stroke(circlePath2, circlePathGroup2);
+            // Remove the first circle
+            ctx.removePathGroup(circlePathGroup);
+            ctx.cleanupResources();
         }
     }
 }

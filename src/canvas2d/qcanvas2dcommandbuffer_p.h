@@ -461,6 +461,15 @@ public:
     {
         commands << QCanvas2DContext::Reset;
     }
+    inline void cleanupResources()
+    {
+        commands << QCanvas2DContext::CleanupResources;
+    }
+    inline void removePathGroup(int pathGroup)
+    {
+        commands << QCanvas2DContext::RemovePathGroup;
+        ints << pathGroup;
+    }
 
 private:
     friend class QCanvas2DItemRenderer;

@@ -324,6 +324,8 @@ public:
         o->defineDefaultProperty(QStringLiteral("strokeRect"), method_strokeRect, 0);
         o->defineDefaultProperty(QStringLiteral("setLineDash"), method_setLineDash, 0);
         o->defineDefaultProperty(QStringLiteral("getLineDash"), method_getLineDash, 0);
+        o->defineDefaultProperty(QStringLiteral("cleanupResources"), method_cleanupResources, 0);
+        o->defineDefaultProperty(QStringLiteral("removePathGroup"), method_removePathGroup, 0);
         o->defineAccessorProperty(QStringLiteral("canvas"), QCanvasJSContext2DPrototype::method_get_canvas, nullptr);
 
         return o->d();
@@ -393,6 +395,8 @@ public:
     static QV4::ReturnedValue method_putImageData(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc);
     static QV4::ReturnedValue method_setLineDash(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc);
     static QV4::ReturnedValue method_getLineDash(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc);
+    static QV4::ReturnedValue method_cleanupResources(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc);
+    static QV4::ReturnedValue method_removePathGroup(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc);
 
 };
 
@@ -4514,6 +4518,53 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_putImageData(const QV4::F
 
     THROW_DOM(DOMEXCEPTION_NOT_SUPPORTED_ERR, "putImageData(): Method not supported");
 
+    RETURN_UNDEFINED();
+}
+
+/*!
+    \qmlmethod void Canvas2DContext::cleanupResources()
+
+    Schedules dropping unused textures from the cache.
+
+    Additionally, other caches and pools may get shrunk upon
+    calling this function, in order to minimize memory usage.
+    This may potentially lead to more expensive drawing calls
+    afterwards.
+*/
+QV4::ReturnedValue QCanvasJSContext2DPrototype::method_cleanupResources(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *, int)
+{
+    QV4::Scope scope(b);
+    QV4::Scoped<QCanvasJSContext2D> r(scope, *thisObject);
+    CHECK_CONTEXT(r)
+
+    r->d()->context()->buffer()->cleanupResources();
+    RETURN_UNDEFINED();
+}
+
+/*!
+    \qmlmethod void Canvas2DContext::removePathGroup(int pathGroup)
+
+    Removes \a pathGroup from the painter cache. Calling fill() or stroke()
+    for \a pathGroup after this, will regenerate the path into the group cache.
+
+    \note This does not need to be normally called as paths are removed
+    in the painter destructor. Only use this to reduce memory
+    usage when \a pathGroup is not needed anymore or e.g. when the path
+    has a lot less commands that it has had in the past and buffer size
+    should be reduced.
+
+    \sa fill(), stroke()
+*/
+QV4::ReturnedValue QCanvasJSContext2DPrototype::method_removePathGroup(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc)
+{
+    QV4::Scope scope(b);
+    QV4::Scoped<QCanvasJSContext2D> r(scope, *thisObject);
+    CHECK_CONTEXT(r)
+
+    if (argc >= 1) {
+        int pathGroup = argv[0].toInteger();
+        r->d()->context()->buffer()->removePathGroup(pathGroup);
+    }
     RETURN_UNDEFINED();
 }
 
