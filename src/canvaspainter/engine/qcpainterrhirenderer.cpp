@@ -95,7 +95,8 @@ struct QCRHIBlend
     QRhiGraphicsPipeline::BlendFactor dstAlpha;
 };
 
-// Note: memset-zeroed in allocCall(), so must set non-zero default values in that function, not here.
+// Fields with non-zero default values need to be specified, the rest are zeroed
+// implicitly (due to value-initialization to {} in allocCall() f.ex.).
 struct QCRHICall {
     QCRHICallType type;
     int image;
@@ -116,7 +117,7 @@ struct QCRHICall {
     QShader customFragShader;
     QShader customVertShader;
     quint64 pathGroupEntryId;
-    int pathGroup;
+    int pathGroup = -1; // non-zero default
     QCanvasPainter::FillRule fillRule;
     quint8 stencilRef;
     uint simplePathFill : 1;
@@ -1027,8 +1028,7 @@ QCRHICall* QCPainterRhiRenderer::allocCall()
         rhiCtx->calls.resize(newSize);
     }
     QCRHICall *ret = &rhiCtx->calls[rhiCtx->callsCount++];
-    memset((void*)ret, 0, sizeof(QCRHICall));
-    ret->pathGroup = -1;
+    *ret = {};
     return ret;
 }
 
