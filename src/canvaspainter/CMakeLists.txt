@@ -239,3 +239,7 @@ qt_internal_add_custom_brush_shaders(CanvasPainter "qcshaders_aasssct"
         STENCIL_STROKES
         TEXT_A
 )
+
+if(QT_BUILD_DOC_SNIPPETS)
+    add_subdirectory(doc/snippets)
+endif()
