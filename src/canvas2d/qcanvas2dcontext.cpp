@@ -1816,16 +1816,13 @@ QV4::ReturnedValue QCanvasJSContext2D::method_set_globalSaturate(const QV4::Func
     applied to all painting operations. Allowed operations are:
 
     \value "source-atop"
-        QCanvasPainter::CompositeOperation::SourceAtop
         A atop B. Display the source image wherever both images are opaque.
         Display the destination image wherever the destination image is opaque
         but the source image is transparent. Display transparency elsewhere.
     \value "source-over"
-        QCanvasPainter::CompositeOperation::SourceOver (default)
-        A over B. Display the source image wherever the source image is opaque.
+        (default) A over B. Display the source image wherever the source image is opaque.
         Display the destination image elsewhere.
     \value "destination-out"
-        QCanvasPainter::CompositeOperation::DestinationOut
         B out A. Display the destination image wherever the destination image
         is opaque and the source image is transparent. Display transparency
         elsewhere.
@@ -2836,13 +2833,12 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_createPattern(const QV4::
     The possible line cap styles are:
 
     \value "butt"
-        (default) QCanvasPainter::LineCap::Butt the end of each line has a flat edge
-        perpendicular to the direction of the line.
+        (default) The end of each line has a flat edge perpendicular to the direction of the line.
     \value "round"
-        QCanvasPainter::LineCap::Round a semi-circle with the diameter equal to the width of the
+        A semi-circle with the diameter equal to the width of the
         line is added on to the end of the line.
     \value "square"
-        QCanvasPainter::LineCap::Square a rectangle with the length of the line width and the
+        A rectangle with the length of the line width and the
         width of half the line width, placed flat against the edge
         perpendicular to the direction of the line.
 
@@ -2919,10 +2915,10 @@ QV4::ReturnedValue QCanvasJSContext2D::method_set_lineCap(const QV4::FunctionObj
 
     The possible line join styles are:
 
-    \value "bevel"  QCanvasPainter::LineJoin::Bevel The triangular notch between the two lines is filled.
-    \value "round"  QCanvasPainter::LineJoin::Round A circular arc between the two lines is filled.
-    \value "miter"  (default) QCanvasPainter::LineJoin::Miter The outer edges of the lines are extended to
-                    meet at an angle, and this area is filled.
+    \value "bevel"  The triangular notch between the two lines is filled.
+    \value "round"  A circular arc between the two lines is filled.
+    \value "miter"  (default) The outer edges of the lines are extended to meet at an angle,
+                    and this area is filled.
 
     \table
     \row
@@ -3862,13 +3858,13 @@ QV4::ReturnedValue QCanvasJSContext2D::method_set_font(const QV4::FunctionObject
 
     Holds the current text alignment settings. The possible values are:
 
-    \value "start"  (default) QCanvasPainter::TextAlign::Start Align to the start edge of the text (left side in
+    \value "start"  (default) Align to the start edge of the text (left side in
                     left-to-right text, right side in right-to-left text).
-    \value "end"    QCanvasPainter::TextAlign::End Align to the end edge of the text (right side in left-to-right
+    \value "end"    Align to the end edge of the text (right side in left-to-right
                     text, left side in right-to-left text).
-    \value "left"   QCanvasPainter::TextAlign::Left
-    \value "right"  QCanvasPainter::TextAlign::Right
-    \value "center" QCanvasPainter::TextAlign::Center
+    \value "left"   Align to the left.
+    \value "right"  Align to the right.
+    \value "center" Center the text.
 
     \table
     \row
@@ -3952,11 +3948,11 @@ QV4::ReturnedValue QCanvasJSContext2D::method_set_textAlign(const QV4::FunctionO
 
     Holds the current baseline alignment settings. The possible values are:
 
-    \value "top"            QCanvasPainter::TextBaseline::Top The top of the em square
-    \value "hanging"        QCanvasPainter::TextBaseline::Hanging The hanging baseline
-    \value "middle"         QCanvasPainter::TextBaseline::Middle The middle of the em square
-    \value "alphabetic"     (default) QCanvasPainter::TextBaseline::Alphabetic The alphabetic baseline
-    \value "bottom"         QCanvasPainter::TextBaseline::Bottom The bottom of the em square
+    \value "top"            The top of the em square
+    \value "hanging"        The hanging baseline
+    \value "middle"         The middle of the em square
+    \value "alphabetic"     (default) The alphabetic baseline
+    \value "bottom"         The bottom of the em square
 
     \table
     \row
