@@ -2713,6 +2713,12 @@ void QCPainterRhiRenderer::endPrepare()
             }
         }
     }
+
+    // In case there are no draw calls, but something enqueued resource
+    // operations, such as a texture upload.
+    if (rhiCtx->resourceUpdates)
+        commitResourceUpdates();
+
 #ifdef QCPAINTER_PERF_DEBUG
     m_e->perf.tick();
 #endif
