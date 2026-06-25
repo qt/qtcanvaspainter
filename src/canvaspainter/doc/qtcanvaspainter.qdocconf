@@ -19,7 +19,7 @@ qhp.QtCanvasPainter.virtualFolder       = qtcanvaspainter
 qhp.QtCanvasPainter.indexTitle          = Qt Canvas Painter
 qhp.QtCanvasPainter.indexRoot           =
 
-qhp.QtCanvasPainter.subprojects = examples classes
+qhp.QtCanvasPainter.subprojects = examples classes qmltypes
 
 #qhp.QtCanvasPainter.subprojects.manual.title = Qt Canvas Painter
 #qhp.QtCanvasPainter.subprojects.manual.indexTitle = Qt Canvas Painter module topics
@@ -34,6 +34,11 @@ qhp.QtCanvasPainter.subprojects.classes.title      = C++ Classes
 qhp.QtCanvasPainter.subprojects.classes.indexTitle = Qt Canvas Painter C++ Classes
 qhp.QtCanvasPainter.subprojects.classes.selectors  = class doc:headerfile
 qhp.QtCanvasPainter.subprojects.classes.sortPages  = true
+
+qhp.QtCanvasPainter.subprojects.qmltypes.title      = QML Types
+qhp.QtCanvasPainter.subprojects.qmltypes.indexTitle = Qt Canvas2D QML types
+qhp.QtCanvasPainter.subprojects.qmltypes.selectors  = qmlclass
+qhp.QtCanvasPainter.subprojects.qmltypes.sortPages  = true
 
 tagfile                 = ../../../doc/qtcanvaspainter/qtcanvaspainter.tags
 
@@ -56,6 +61,7 @@ excludefiles += "*_p.h"
 
 navigation.landingpage = "Qt Canvas Painter"
 navigation.cppclassespage = "Qt Canvas Painter C++ Classes"
+navigation.qmltypespage = "Qt Canvas2D QML types"
 
 macro.cmakeoptionsince = "\n\nThis option was introduced in Qt \1.\n\n"
 
