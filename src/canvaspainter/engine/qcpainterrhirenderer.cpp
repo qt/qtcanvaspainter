@@ -270,6 +270,7 @@ inline size_t qHash(const QCRHIPipelineState &s, size_t seed) noexcept
 struct QCRHIPipelineStateKey
 {
     QCRHIPipelineState state;
+    // QVector is implicitly shared which is exactly what is wanted here (cheap copying)
     QVector<quint32> renderTargetDescription;
     QVector<quint32> srbLayoutDescription;
     struct {
@@ -283,6 +284,12 @@ struct QCRHIPipelineStateKey
         const QVector<quint32> rtDesc = rpDesc->serializedFormat();
         const QVector<quint32> srbDesc = srb->serializedLayoutDescription();
         return { state, rtDesc, srbDesc, { qHash(rtDesc), qHash(srbDesc) } };
+    }
+    // Returns a copy of this key with a different pipeline state, assuming
+    // rpDesc and srb would be the same as before.
+    QCRHIPipelineStateKey withState(const QCRHIPipelineState &newState) const
+    {
+        return { newState, renderTargetDescription, srbLayoutDescription, extra };
     }
 };
 
@@ -2321,11 +2328,16 @@ void QCPainterRhiRenderer::endPrepare()
 
         basePs.renderFlags = rhiCtx->flags;
         basePs.sampleCount = rhiCtx->rt->sampleCount();
+
+        // rpDesc and srbForLayout are the same for all graphics pipelines, so
+        // create a base key and use withState() afterwards.
+        QRhiRenderPassDescriptor *rpDesc = rhiCtx->rt->renderPassDescriptor();
+        const QCRHIPipelineStateKey baseKey = QCRHIPipelineStateKey::create(basePs, rpDesc, srbForLayout);
+
         bool stencilClipActive = false;
         for (int i = 0; i < rhiCtx->callsCount; i++) {
 
             QCRHICall *call = &rhiCtx->calls[i];
-            QRhiRenderPassDescriptor *rpDesc = rhiCtx->rt->renderPassDescriptor();
 
             const QCRHISrbKey key = { rhiCtx->passId, call->image, call->font };
             QRhiShaderResourceBindings *srbWithCallTexture = rhiCtx->srbs.value(key);
@@ -2408,7 +2420,7 @@ void QCPainterRhiRenderer::endPrepare()
                 ps.cullMode = QRhiGraphicsPipeline::None;
                 ps.targetBlend.colorWrite = {};
 
-                call->ps[0] = pipeline(QCRHIPipelineStateKey::create(ps, rpDesc, srbForLayout), rpDesc, srbForLayout);
+                call->ps[0] = pipeline(baseKey.withState(ps), rpDesc, srbForLayout);
 
                 // 2. Draw anti-aliased pixels
                 ps.cullMode = QRhiGraphicsPipeline::Back;
@@ -2426,7 +2438,7 @@ void QCPainterRhiRenderer::endPrepare()
                 ps.stencilBack = ps.stencilFront;
                 ps.topology = QRhiGraphicsPipeline::TriangleStrip;
 
-                call->ps[1] = pipeline(QCRHIPipelineStateKey::create(ps, rpDesc, srbForLayout), rpDesc, srbForLayout);
+                call->ps[1] = pipeline(baseKey.withState(ps), rpDesc, srbForLayout);
 
                 // 3. Draw fill
                 if (stencilClipActive) {
@@ -2442,7 +2454,7 @@ void QCPainterRhiRenderer::endPrepare()
                 };
                 ps.stencilBack = ps.stencilFront;
 
-                call->ps[2] = pipeline(QCRHIPipelineStateKey::create(ps, rpDesc, srbForLayout), rpDesc, srbForLayout);
+                call->ps[2] = pipeline(baseKey.withState(ps), rpDesc, srbForLayout);
             } else if (call->type == CallConvexFill) {
                 call->srb[0] = srbWithCallTexture;
 
@@ -2460,12 +2472,12 @@ void QCPainterRhiRenderer::endPrepare()
                     call->stencilRef = 0x80;
                 }
                 // 1. Draw fill
-                call->ps[0] = pipeline(QCRHIPipelineStateKey::create(ps, rpDesc, srbForLayout), rpDesc, srbForLayout);
+                call->ps[0] = pipeline(baseKey.withState(ps), rpDesc, srbForLayout);
 
                 // 2. Draw antialiased edges
                 ps.topology = QRhiGraphicsPipeline::TriangleStrip;
 
-                call->ps[1] = pipeline(QCRHIPipelineStateKey::create(ps, rpDesc, srbForLayout), rpDesc, srbForLayout);
+                call->ps[1] = pipeline(baseKey.withState(ps), rpDesc, srbForLayout);
             } else if (call->type == CallStroke) {
                 call->srb[0] = srbWithCallTexture;
 
@@ -2485,7 +2497,7 @@ void QCPainterRhiRenderer::endPrepare()
                     call->stencilRef = 0x80;
                 }
 
-                call->ps[0] = pipeline(QCRHIPipelineStateKey::create(ps, rpDesc, srbForLayout), rpDesc, srbForLayout);
+                call->ps[0] = pipeline(baseKey.withState(ps), rpDesc, srbForLayout);
 
                 // 2. Fill the stroke base without overlap (for semi-transparent strokes)
                 ps.stencilTestEnable = true;
@@ -2506,7 +2518,7 @@ void QCPainterRhiRenderer::endPrepare()
                 };
                 ps.stencilBack = ps.stencilFront;
 
-                call->ps[1] = pipeline(QCRHIPipelineStateKey::create(ps, rpDesc, srbForLayout), rpDesc, srbForLayout);
+                call->ps[1] = pipeline(baseKey.withState(ps), rpDesc, srbForLayout);
 
                 // 3. Draw anti-aliased pixels.
                 if (stencilClipActive) {
@@ -2524,7 +2536,7 @@ void QCPainterRhiRenderer::endPrepare()
                 };
                 ps.stencilBack = ps.stencilFront;
 
-                call->ps[2] = pipeline(QCRHIPipelineStateKey::create(ps, rpDesc, srbForLayout), rpDesc, srbForLayout);
+                call->ps[2] = pipeline(baseKey.withState(ps), rpDesc, srbForLayout);
 
                 // 4. Clear stencil buffer
                 ps.targetBlend.colorWrite = {};
@@ -2539,7 +2551,7 @@ void QCPainterRhiRenderer::endPrepare()
                 };
                 ps.stencilBack = ps.stencilFront;
 
-                call->ps[3] = pipeline(QCRHIPipelineStateKey::create(ps, rpDesc, srbForLayout), rpDesc, srbForLayout);
+                call->ps[3] = pipeline(baseKey.withState(ps), rpDesc, srbForLayout);
             } else if (call->type == CallText) {
                 call->srb[0] = srbWithCallTexture;
 
@@ -2559,7 +2571,7 @@ void QCPainterRhiRenderer::endPrepare()
 
                 // 1.
                 call->ps[0] = pipeline(
-                    QCRHIPipelineStateKey::create(ps, rpDesc, srbForLayout),
+                    baseKey.withState(ps),
                     rpDesc,
                     srbForLayout);
             } else if (call->type == CallClearStencil) {
@@ -2578,7 +2590,7 @@ void QCPainterRhiRenderer::endPrepare()
                 ps.cullMode = QRhiGraphicsPipeline::None;
                 ps.targetBlend.colorWrite = {};
 
-                call->ps[0] = pipeline(QCRHIPipelineStateKey::create(ps, rpDesc, srbForLayout), rpDesc, srbForLayout);
+                call->ps[0] = pipeline(baseKey.withState(ps), rpDesc, srbForLayout);
                 stencilClipActive = false;
             } else if (call->type == CallStencilClip) {
                 call->srb[0] = srbWithDummyTexture;
@@ -2673,7 +2685,7 @@ void QCPainterRhiRenderer::endPrepare()
                 ps.cullMode = QRhiGraphicsPipeline::None;
                 ps.targetBlend.colorWrite = {};
 
-                call->ps[0] = pipeline(QCRHIPipelineStateKey::create(ps, rpDesc, srbForLayout), rpDesc, srbForLayout);
+                call->ps[0] = pipeline(baseKey.withState(ps), rpDesc, srbForLayout);
 
                 ps = basePs;
 
@@ -2695,7 +2707,7 @@ void QCPainterRhiRenderer::endPrepare()
 
                 // ps.cullMode = QRhiGraphicsPipeline::None;
                 ps.targetBlend.colorWrite = {};
-                call->ps[1] = pipeline(QCRHIPipelineStateKey::create(ps, rpDesc, srbForLayout), rpDesc, srbForLayout);
+                call->ps[1] = pipeline(baseKey.withState(ps), rpDesc, srbForLayout);
 
                 stencilClipActive = true;
                 call->stencilRef = 0x80; // Just one stencil ref for whole call (change this???)
