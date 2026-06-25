@@ -910,6 +910,17 @@ bool QCPainterRhiRenderer::renderDeleteTexture(int image)
     for (int i = 0; i < rhiCtx->texturesCount; i++) {
         QCRHITexture *tex = &rhiCtx->textures[i];
         if (tex->id == image) {
+            auto &srbHash = rhiCtx->srbs;
+            for (auto it = srbHash.begin(); it != srbHash.end(); ) {
+                if (it.key().imageId == image || it.key().fontId == image) {
+                    if (*it)
+                        (*it)->deleteLater();
+                    it = srbHash.erase(it);
+                } else {
+                    ++it;
+                }
+            }
+
             // Delete QRhiTexture (unless not owned), but leave QCRHITexture
             // to be reused.
             if (tex->own)
