@@ -4230,8 +4230,8 @@ QV4::ReturnedValue QCanvasJSContext2D::method_set_textDirection(const QV4::Funct
     current textAlign and textBaseline. Width of the rect parameter is used
     as maxWidth.
 
-    It is often useful to set the text baseline to \l TextBaseline::Top or
-    \l TextBaseline::Middle when painting text with this method.
+    It is often useful to set the text baseline to \l{QCanvasPainter::TextBaseline::Top}{TextBaseline::Top} or
+    \l{QCanvasPainter::TextBaseline::Middle}{TextBaseline::Middle} when painting text with this method.
 
     \table
     \row

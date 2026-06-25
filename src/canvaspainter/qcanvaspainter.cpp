@@ -160,7 +160,7 @@ Q_LOGGING_CATEGORY(QC_INFO, "qt.qcpainter.general")
     \section1 Winding rules
     QCanvasPainter uses NonZero ({Qt::WindingFill}) fillrule by default. To select the filling
     based on the path points direction, disable the winding forcing by calling
-    \l setWindingEnforce(false).
+    \l {setWindingEnforce()}{setWindingEnforce(false)}.
 
     \table
     \row

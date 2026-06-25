@@ -18,7 +18,7 @@
     \l QRhi are managed via \l QCanvasRhiPaintDriver. This means hardware
     acceleration is used where available for the selected backend.
 
-    \note \l QRhi is part of \l{Qt Gui Private}. As such, it offers limited
+    \note \l QRhi is part of Qt Gui Private. As such, it offers limited
     compatibility guarantees. There are no source or binary compatibility
     guarantees for these classes, meaning the API is only guaranteed to work
     with the Qt version the application was developed against.
