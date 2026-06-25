@@ -1,6 +1,11 @@
 // Copyright (C) 2025 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR BSD-3-Clause
 
+#include <QtCanvasPainter/qcanvaspainterwidget.h>
+#include <QtCanvasPainter/qcanvaspainter.h>
+#include <QtCanvasPainter/qcanvasimage.h>
+#include <QtGui/qimage.h>
+
 //![0]
 class MyWidget : public QCanvasPainterWidget
 {

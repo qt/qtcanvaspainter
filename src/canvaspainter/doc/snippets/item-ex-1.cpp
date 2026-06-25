@@ -1,6 +1,11 @@
 // Copyright (C) 2025 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR BSD-3-Clause
 
+#include <QtCanvasPainter/qcanvaspainteritem.h>
+#include <QtCanvasPainter/qcanvaspainteritemrenderer.h>
+
+class MyRenderer : public QCanvasPainterItemRenderer {};
+
 //![0]
 class MyItem : public QCanvasPainterItem
 {
@@ -11,7 +16,7 @@ class MyItem : public QCanvasPainterItem
     Q_PROPERTY(float value READ value WRITE setValue NOTIFY valueChanged)
 
 public:
-    HelloItem(QQuickItem *parent = nullptr)
+    MyItem(QQuickItem *parent = nullptr)
         : QCanvasPainterItem(parent)
     {
     }
@@ -29,6 +34,11 @@ public:
             emit valueChanged();
         }
     }
+
+signals:
+    void valueChanged();
+
+private:
     float m_value = 0.0f;
 };
 //![0]

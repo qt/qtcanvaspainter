@@ -1,6 +1,17 @@
 // Copyright (C) 2025 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR BSD-3-Clause
 
+#include <QtCanvasPainter/qcanvaspainter.h>
+#include <QtCanvasPainter/qcanvaspainterfactory.h>
+#include <QtCanvasPainter/qcanvasrhipaintdriver.h>
+#include <QtGui/qguiapplication.h>
+#include <QtGui/qimage.h>
+#include <rhi/qrhi.h>
+
+#include <memory>
+
+static std::unique_ptr<QRhi> rhi; // In real code: QRhi::create(impl, &params)
+
 //![0]
 int main(int argc, char *argv[])
 {
