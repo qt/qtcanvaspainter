@@ -6,6 +6,7 @@
     \qmlmodule QtCanvas2D
     \title Qt Canvas2D QML types
     \preliminary
+    \since 6.12
     \brief Provides the QML types for Canvas2D.
 
     This QML module contains a Canvas2D element for Qt Quick. To use the Canvas2D,
