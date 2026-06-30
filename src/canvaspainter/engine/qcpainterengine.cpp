@@ -1124,17 +1124,19 @@ void QCPainterEngine::setTextDirection(QCanvasPainter::TextDirection direction)
     state.textDirection = direction;
 }
 
-void QCPainterEngine::fillText(const QString &text, const QRectF &rect)
-{
 #ifndef QCPAINTER_DISABLE_TEXT_SUPPORT
-    int width, height;
-    auto tex = m_renderer->populateFont(state.font, rect, text, textVertices, textIndices,
-                                        &width, &height);
 
+// Common part of fillText()/fillShapedText(): renders whatever glyph/decoration
+// geometry populateFont()/populateFontFromShapedText() left in textVertices/
+// textIndices (fontTex is the texture id they returned), then the color-glyph
+// pass, then trims the vertex/index buffers back down if they grew large.
+
+void QCPainterEngine::renderFilledText(int fontTex)
+{
     // Monochrome (SDF) glyphs and text decorations.
     if (!textVertices.empty()) {
         const QCPaint p = getFillPaint();
-        ctx.fontId = tex;
+        ctx.fontId = fontTex;
         updateStateFontVars();
 
         // Decoration rects (underline/overline/strikeout) are appended to
@@ -1169,6 +1171,24 @@ void QCPainterEngine::fillText(const QString &text, const QRectF &rect)
         colorTextVertices = {};
     if (colorTextIndices.capacity() > QCPAINTER_TEXT_VERTEX_INDEX_LIST_REUSE_CAPACITY)
         colorTextIndices = {};
+}
+#endif
+
+void QCPainterEngine::fillText(const QString &text, const QRectF &rect)
+{
+#ifndef QCPAINTER_DISABLE_TEXT_SUPPORT
+    auto tex = m_renderer->populateFont(state.font, rect, text, textVertices, textIndices);
+    renderFilledText(tex);
+#endif
+}
+
+void QCPainterEngine::fillShapedText(QFontEngine *fontEngine, const quint32 *glyphIndexes,
+                                   const QFixedPoint *glyphPositions, int glyphCount)
+{
+#ifndef QCPAINTER_DISABLE_TEXT_SUPPORT
+    auto tex = m_renderer->populateFontFromShapedText(fontEngine, glyphIndexes, glyphPositions,
+                                                     glyphCount, textVertices, textIndices);
+    renderFilledText(tex);
 #endif
 }
 

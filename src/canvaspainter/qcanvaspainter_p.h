@@ -30,6 +30,8 @@ QT_BEGIN_NAMESPACE
 
 class QCPainterEngine;
 class QCPainterRhiRenderer;
+class QFontEngine;
+struct QFixedPoint;
 
 Q_DECLARE_LOGGING_CATEGORY(QC_INFO)
 
@@ -68,7 +70,7 @@ private:
 
 class QRhi;
 
-class QCanvasPainterPrivate
+class Q_CANVASPAINTER_EXPORT QCanvasPainterPrivate
 {
 public:
     QCanvasPainterPrivate();
@@ -89,6 +91,8 @@ public:
     void setFont(const QFont &font);
     void fillText(const QString &text, float x, float y, float maxWidth = -1);
     void fillText(const QString &text, const QRectF &rect);
+    void fillShapedText(QFontEngine *fontEngine, const quint32 *glyphIndexes,
+                      const QFixedPoint *glyphPositions, int glyphCount);
     QRectF textBoundingBox(const QString &text, float x, float y, float maxWidth = -1);
     QRectF textBoundingBox(const QString &text, const QRectF &rect);
     void drawBoxShadow(QCanvasPainter *painter, const QCanvasBoxShadow &shadow);

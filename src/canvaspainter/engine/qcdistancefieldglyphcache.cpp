@@ -269,6 +269,84 @@ void QCDistanceFieldGlyphCache::generate(const QString &text, const QRectF &rect
     }
 }
 
+void QCDistanceFieldGlyphCache::generateFromShapedText(
+    QFontEngine *fontEngine,
+    const quint32 *glyphIndexes,
+    const QFixedPoint *glyphPositions,
+    int glyphCount,
+    const QCState &state,
+    float devicePixelRatio,
+    QCRhiDistanceFieldGlyphCache::VertexList *verts,
+    QCRhiDistanceFieldGlyphCache::IndexList *indices)
+{
+    if (glyphCount == 0)
+        return;
+
+    // Build a QRawFont directly from the font engine, matching how Qt's own
+    // QTextEngine::createGlyphRun() does it (qtextlayout.cpp). This is the only
+    // correct source of font identity here: a QStaticTextItem's font can be a
+    // meaningless painter-ambient font whenever usesRawFont is set.
+    QRawFont rFont;
+    QRawFontPrivate::get(rFont)->setFontEngine(fontEngine);
+
+    QCRhiDistanceFieldGlyphCache *cache;
+    FontKey key = {rFont};
+    if (m_glyphCaches.contains(key)) {
+        cache = m_glyphCaches[key].nativeGlyphCache;
+    } else {
+        cache = new QCRhiDistanceFieldGlyphCache(m_rhi);
+        FontKeyData f{ nullptr, cache, {} };
+        m_glyphCaches.insert(key, std::move(f));
+    }
+
+    verts->clear();
+    indices->clear();
+    m_colorVertices.clear();
+    m_colorIndices.clear();
+
+    // One unavoidable conversion pass: QFixedPoint (26.6 fixed) -> QPointF. Everything
+    // downstream (generateVertices(), addGlyphRun()) works in qreal.
+    QVarLengthArray<QPointF, 128> positions(glyphCount);
+    for (int i = 0; i < glyphCount; ++i)
+        positions[i] = glyphPositions[i].toPointF();
+
+    // setRawData() does not copy the index array — it aliases the caller-owned
+    // buffer for the lifetime of this call, so glyphIndexes/positions must stay
+    // valid until run is no longer used below.
+    QGlyphRun run;
+    run.setRawFont(rFont);
+    run.setRawData(glyphIndexes, positions.constData(), glyphCount);
+
+    if (fontEngine && fontEngine->isColorFont()) {
+        if (!m_colorCache)
+            m_colorCache = new QCRhiColorGlyphCache(m_rhi);
+        QColor glyphColor = Qt::black;
+        if (state.fill.brushType == BrushColor) {
+            glyphColor = QColor::fromRgbF(state.fill.innerColor.r,
+                                          state.fill.innerColor.g,
+                                          state.fill.innerColor.b);
+        }
+        m_colorCache->addGlyphRun(QPointF(0, 0), run, glyphColor, state.transform,
+                                  devicePixelRatio, &m_colorVertices, &m_colorIndices);
+    } else {
+        cache->setRawFont(rFont);
+        // addGlyphs() re-adds the font ascent internally before handing off to
+        // setGlyphs(), which subtracts it again — the two cancel out, so passing
+        // (0, 0) here is what actually yields m_position=(0,0), keeping the
+        // absolute positions in the run as-is in world space.
+        cache->addGlyphs(QPointF(0.0, 0.0), run);
+        cache->update();
+        QRectF box{};
+        cache->generateVertices(verts, indices, state.transform, &box);
+    }
+
+    // Underline/overline/strikeout are deliberately not drawn here: QPainter always
+    // draws text decorations itself via qt_draw_decoration_for_glyphs() (through
+    // ordinary drawLine()/fillRect() calls on the same engine), never through
+    // drawStaticTextItem(). Drawing them here too would double-render them for any
+    // caller reached through QPainter::drawStaticText()/drawGlyphRun().
+}
+
 void QCDistanceFieldGlyphCache::commitResourceUpdates(QRhiResourceUpdateBatch *batch)
 {
     for (auto it = m_glyphCaches.begin(); it != m_glyphCaches.end(); ++it)
