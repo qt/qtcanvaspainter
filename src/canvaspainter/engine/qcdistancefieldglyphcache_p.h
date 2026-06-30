@@ -75,6 +75,14 @@ public:
     void generate(const QString &text, const QRectF &rect, const QFont &font, QCState *state, QCanvasPainter::TextAlign alignment,
                   float devicePixelRatio,
                   QCRhiDistanceFieldGlyphCache::VertexList *verts, QCRhiDistanceFieldGlyphCache::IndexList *indices);
+    void generateFromShapedText(QFontEngine *fontEngine,
+                              const quint32 *glyphIndexes,
+                              const QFixedPoint *glyphPositions,
+                              int glyphCount,
+                              const QCState &state,
+                              float devicePixelRatio,
+                              QCRhiDistanceFieldGlyphCache::VertexList *verts,
+                              QCRhiDistanceFieldGlyphCache::IndexList *indices);
 
     void commitResourceUpdates(QRhiResourceUpdateBatch *batch);
 

@@ -3199,6 +3199,12 @@ void QCanvasPainterPrivate::fillText(const QString &text, const QRectF &rect)
     m_e->fillText(text, rect);
 }
 
+void QCanvasPainterPrivate::fillShapedText(QFontEngine *fontEngine, const quint32 *glyphIndexes,
+                                         const QFixedPoint *glyphPositions, int glyphCount)
+{
+    m_e->fillShapedText(fontEngine, glyphIndexes, glyphPositions, glyphCount);
+}
+
 QRectF QCanvasPainterPrivate::textBoundingBox(const QString &text, float x, float y, float maxWidth)
 {
     // Unify point & rect APIs behavior.

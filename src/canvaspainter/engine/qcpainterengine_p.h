@@ -143,6 +143,8 @@ public:
     void setTextBaseline(QCanvasPainter::TextBaseline baseline);
     void setTextDirection(QCanvasPainter::TextDirection direction);
     void fillText(const QString &text, const QRectF &rect);
+    void fillShapedText(QFontEngine *fontEngine, const quint32 *glyphIndexes,
+                      const QFixedPoint *glyphPositions, int glyphCount);
     QRectF textBoundingBox(const QString &text, const QRectF &rect);
 
     // Other
@@ -219,6 +221,7 @@ private:
     QCPaint getStrokePaint(float *strokeWidth, bool ignoreTransform = false);
 #ifndef QCPAINTER_DISABLE_TEXT_SUPPORT
     void updateStateFontVars();
+    void renderFilledText(int fontTex);
 #endif
     QCContext ctx;
     QCState state;

@@ -7,6 +7,7 @@
 #include "engine/qcpainterengineutils_p.h"
 #ifndef QCPAINTER_DISABLE_TEXT_SUPPORT
 #include "qcdistancefieldglyphcache_p.h"
+#include <private/qrawfont_p.h>
 #endif
 #include "qcpainterengine_p.h"
 #include "qcpainterrhirenderer_p.h"
@@ -2871,9 +2872,7 @@ int QCPainterRhiRenderer::populateFont(
     const QRectF &rect,
     const QString &text,
     QCRhiDistanceFieldGlyphCache::VertexList &vertices,
-    QCRhiDistanceFieldGlyphCache::IndexList &indices,
-    int *textureWidth,
-    int *textureHeight)
+    QCRhiDistanceFieldGlyphCache::IndexList &indices)
 {
     QCRHIContext *rc = rhiCtx;
     QCRHITexture *tex = nullptr;
@@ -2910,18 +2909,70 @@ int QCPainterRhiRenderer::populateFont(
     if (!tex)
         return 0;
 
-    *textureWidth = tex->tex->pixelSize().width();
-    *textureHeight = tex->tex->pixelSize().height();
+    int textureWidth = tex->tex->pixelSize().width();
+    int textureHeight = tex->tex->pixelSize().height();
 
     //Convert UVs to 0..1
     // for (int i = 0; i < vertices.size(); ++i) {
-    //     vertices[i].tx /= *textureWidth;
-    //     vertices[i].ty /= *textureHeight;
+    //     vertices[i].tx /= textureWidth;
+    //     vertices[i].ty /= textureHeight;
     // }
 
 
-    tex->width = *textureWidth;
-    tex->height = *textureHeight;
+    tex->width = textureWidth;
+    tex->height = textureHeight;
+
+    return tex->id;
+}
+
+int QCPainterRhiRenderer::populateFontFromShapedText(
+    QFontEngine *fontEngine,
+    const quint32 *glyphIndexes,
+    const QFixedPoint *glyphPositions,
+    int glyphCount,
+    QCRhiDistanceFieldGlyphCache::VertexList &vertices,
+    QCRhiDistanceFieldGlyphCache::IndexList &indices)
+{
+    QCRHIContext *rc = rhiCtx;
+    QCRHITexture *tex = nullptr;
+
+    rc->fontCache->generateFromShapedText(fontEngine, glyphIndexes, glyphPositions, glyphCount,
+                                        m_e->state, m_e->ctx.devicePxRatio, &vertices, &indices);
+
+    QRhiResourceUpdateBatch *u = resourceUpdateBatch();
+
+    rc->fontCache->commitResourceUpdates(u);
+    // Must key off the same QRawFont generateFromShapedText() builds (wrapping the
+    // font engine directly) so the two agree on the same FontKey; there is no QFont
+    // available here to derive one from.
+    QRawFont rawFont;
+    QRawFontPrivate::get(rawFont)->setFontEngine(fontEngine);
+    const auto cacheKey = QCDistanceFieldGlyphCache::FontKey(rawFont);
+    auto mainTexture = rc->fontCache->getCurrentTextures(cacheKey);
+    auto currentTexture = rc->fontCache->getOldTextures(cacheKey);
+
+    if (!mainTexture)
+        return 0;
+
+    if (!currentTexture) {
+        tex = renderCreateNativeTexture(mainTexture);
+        rc->fontCache->setOldTexture(cacheKey, tex->tex);
+    }
+    if (!tex && currentTexture != mainTexture) {
+        tex = renderUpdateNativeTexture(currentTexture, mainTexture);
+        rc->fontCache->setOldTexture(cacheKey, tex->tex);
+    } else if (!tex) {
+        tex = findTexture(currentTexture);
+    }
+
+    if (!tex)
+        return 0;
+
+    int textureWidth = tex->tex->pixelSize().width();
+    int textureHeight = tex->tex->pixelSize().height();
+
+    tex->width = textureWidth;
+    tex->height = textureHeight;
 
     return tex->id;
 }

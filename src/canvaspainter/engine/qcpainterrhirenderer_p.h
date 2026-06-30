@@ -176,9 +176,14 @@ public:
         const QRectF &rect,
         const QString &text,
         QCRhiDistanceFieldGlyphCache::VertexList &vertices,
-        QCRhiDistanceFieldGlyphCache::IndexList &indices,
-        int *textureWidth,
-        int *textureHeight);
+        QCRhiDistanceFieldGlyphCache::IndexList &indices);
+    int populateFontFromShapedText(
+        QFontEngine *fontEngine,
+        const quint32 *glyphIndexes,
+        const QFixedPoint *glyphPositions,
+        int glyphCount,
+        QCRhiDistanceFieldGlyphCache::VertexList &vertices,
+        QCRhiDistanceFieldGlyphCache::IndexList &indices);
     int populateColorFont(
         QCRhiDistanceFieldGlyphCache::VertexList &vertices,
         QCRhiDistanceFieldGlyphCache::IndexList &indices);
