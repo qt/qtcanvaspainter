@@ -13,6 +13,7 @@
 #include <QFont>
 #include <QRawFont>
 #include <QGlyphRun>
+#include <QtCore/qset.h>
 #include <QTextLayout>
 
 #ifdef FRAME_CAPTURE
