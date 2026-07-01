@@ -163,7 +163,7 @@ private:
 
     QRhi *m_rhi;
     QCAreaAllocator *m_areaAllocator = nullptr;
-    QRhiResourceUpdateBatch *m_batch;
+    QRhiResourceUpdateBatch *m_batch = nullptr;
 
     QPointF m_position;
     QGlyphRun m_glyphs;
@@ -214,6 +214,8 @@ private:
 
         return &m_textures[index];
     }
+
+    bool ensureUpdateBatch();
 
     TexCoord glyphTexCoord(glyph_t glyph) { return glyphData(glyph).texCoord; };
 };
