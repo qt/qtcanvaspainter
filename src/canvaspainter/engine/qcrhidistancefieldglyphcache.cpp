@@ -23,23 +23,36 @@ QCRhiDistanceFieldGlyphCache::QCRhiDistanceFieldGlyphCache(QRhi *rhi)
     : m_rhi(rhi)
     , m_pendingGlyphs(64)
 {
-    m_batch = rhi->nextResourceUpdateBatch();
 }
 
 QCRhiDistanceFieldGlyphCache::~QCRhiDistanceFieldGlyphCache()
 {
-    m_batch->release();
+    if (m_batch)
+        m_batch->release();
 
-    for (auto i = 0; i < m_textures.size(); ++i)
-        m_textures[i].texture->deleteLater();
+    for (auto i = 0; i < m_textures.size(); ++i) {
+        if (auto *texture = m_textures[i].texture)
+            texture->deleteLater();
+    }
 
     if (m_areaAllocator != nullptr)
         delete m_areaAllocator;
 }
 
+bool QCRhiDistanceFieldGlyphCache::ensureUpdateBatch()
+{
+    if (!m_batch)
+        m_batch = m_rhi->nextResourceUpdateBatch();
+    if (!m_batch)
+        qWarning("QCRhiDistanceFieldGlyphCache: could not allocate QRhiResourceUpdateBatch");
+    return !!m_batch;
+}
+
 bool QCRhiDistanceFieldGlyphCache::addGlyphs(
     QPointF position, const QGlyphRun &glyphs)
 {
+    if (!ensureUpdateBatch())
+        return false;
     // Reserve the solid tile before the run's glyphs so the area allocator
     // packs it next to the very first glyph rather than mid-atlas. The actual
     // texel upload happens in update() once the texture has been created.
@@ -50,6 +63,8 @@ bool QCRhiDistanceFieldGlyphCache::addGlyphs(
 void QCRhiDistanceFieldGlyphCache::ensureSolidTile()
 {
     if (m_solidTileTexCoord.isValid())
+        return;
+    if (!ensureUpdateBatch())
         return;
 
     if (m_areaAllocator == nullptr)
@@ -80,6 +95,8 @@ void QCRhiDistanceFieldGlyphCache::uploadSolidTileIfNeeded()
         return;
     if (!m_solidTileTexture || !m_solidTileTexture->texture)
         return;
+    if (!ensureUpdateBatch())
+        return;
 
     const int w = int(m_solidTileTexCoord.width);
     const int h = int(m_solidTileTexCoord.height);
@@ -107,6 +124,8 @@ void QCRhiDistanceFieldGlyphCache::uploadSolidTileIfNeeded()
 
 void QCRhiDistanceFieldGlyphCache::ensureSolidTileTexture()
 {
+    if (!ensureUpdateBatch())
+        return;
     ensureSolidTile();
     if (!m_solidTileTexture)
         return;
@@ -130,6 +149,7 @@ void QCRhiDistanceFieldGlyphCache::createTexture(TextureInfo *texInfo, int width
 void QCRhiDistanceFieldGlyphCache::createTexture(
     TextureInfo *texInfo, int width, int height, const void *pixels)
 {
+    Q_ASSERT(m_batch);
     if (useTextureResizeWorkaround() && texInfo->image.isNull()) {
         texInfo->image = QDistanceField(width, height);
         memcpy(texInfo->image.bits(), pixels, width * height);
@@ -152,6 +172,9 @@ void QCRhiDistanceFieldGlyphCache::createTexture(
 
 void QCRhiDistanceFieldGlyphCache::resizeTexture(TextureInfo *texInfo, int width, int height)
 {
+    if (!ensureUpdateBatch())
+        return;
+
     int oldWidth = texInfo->size.width();
     int oldHeight = texInfo->size.height();
     if (width == oldWidth && height == oldHeight)
@@ -311,9 +334,12 @@ void QCRhiDistanceFieldGlyphCache::generateVertices(
 
 void QCRhiDistanceFieldGlyphCache::commitResourceUpdate(QRhiResourceUpdateBatch *batch)
 {
+    if (!m_batch)
+        return;
+
     batch->merge(m_batch);
     m_batch->release();
-    m_batch = m_rhi->nextResourceUpdateBatch();
+    m_batch = nullptr;
 }
 
 int QCRhiDistanceFieldGlyphCache::maxTextureSize() const
@@ -601,6 +627,9 @@ void QCRhiDistanceFieldGlyphCache::optimizeAfterRendering()
 
 void QCRhiDistanceFieldGlyphCache::storeGlyphs(const QList<QDistanceField> &glyphs)
 {
+    if (!ensureUpdateBatch())
+        return;
+
     typedef QHash<TextureInfo *, QList<glyph_t>> GlyphTextureHash;
 
     GlyphTextureHash glyphTextures;
