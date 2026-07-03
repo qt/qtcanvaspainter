@@ -82,7 +82,7 @@
 
     \c qt_add_custom_brush_shaders is dedicated to shaders that are used with \l
     QCanvasCustomBrush. It performs additional preprocessing at build time
-    before internally invoking the standard \l{qt_add_shaders}{qt_add_shaders}
+    before internally invoking the standard \l qt_add_shaders()
     from the \l{Qt Shader Tools} module.
 
     \note Shaders for custom brushes must always contain a \c QC_INCLUDE
@@ -91,7 +91,7 @@
     qt_add_shaders function is not suitable for custom brush shaders, because it
     does not perform the Qt Canvas Painter specific preprocessing.
 
-    See \l{qt_add_shaders}{qt_add_shaders()} for the general concepts of
+    See \l qt_add_shaders() for the general concepts of
     working with cross-platform shader code in Qt, and \l QCanvasCustomBrush for
     details on authoring custom brush shaders.
 
@@ -109,7 +109,7 @@
     \li MSL \c{1.2} (for Metal)
     \endlist
 
-    Unlike \l{qt_add_shaders}, there is currently no further
+    Unlike \l qt_add_shaders(), there is currently no further
     configurability offered for the set of target languages and versions.
 
     \section1 Arguments
@@ -157,5 +157,5 @@
 
     \endlist
 
-    \sa QCanvasCustomBrush, qt_add_shaders
+    \sa QCanvasCustomBrush, qt_add_shaders()
 */
