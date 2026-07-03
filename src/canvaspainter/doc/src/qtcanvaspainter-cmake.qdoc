@@ -5,7 +5,7 @@
     \page qt-add-custom-brush-shaders.html
     \ingroup cmake-commands-qtcanvaspainter
     \title qt_add_custom_brush_shaders
-    \keyword qt6_add_custom_brush_shaders
+    \keyword qt_add_custom_brush_shaders()
     \summary {Prepares custom brush shaders and adds them to the Qt resource system}
     \brief Prepares QCanvasCustomBrush shaders and adds them to the Qt resource system.
 
