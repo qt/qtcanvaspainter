@@ -183,12 +183,7 @@ bool QCRhiDistanceFieldGlyphCache::setGlyphs(QPointF position, const QGlyphRun &
     QRawFont font = glyphs.rawFont();
     m_position = QPointF(position.x(), position.y() - font.ascent());
     m_glyphs = glyphs;
-
-    auto populated = populate(glyphs.glyphIndexes());
-
-    const QList<quint32> glyphIndexes = m_glyphs.glyphIndexes();
-
-    return populated;
+    return populate(glyphs.glyphIndexes());
 }
 
 void QCRhiDistanceFieldGlyphCache::setGlyphTexture(
