@@ -27,7 +27,7 @@ class Q_CANVASPAINTER_EXPORT QCanvasPainterItem : public QQuickRhiItem
 
 public:
 
-    QCanvasPainterItem(QQuickItem *parent = nullptr);
+    explicit QCanvasPainterItem(QQuickItem *parent = nullptr);
     ~QCanvasPainterItem() override;
 
     QColor fillColor() const;
