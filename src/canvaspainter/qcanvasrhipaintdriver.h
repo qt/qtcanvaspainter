@@ -46,7 +46,7 @@ public:
     Q_CANVASPAINTER_EXPORT void grabCanvas(const QCanvasOffscreenCanvas &canvas, std::function<void(const QImage &)> callback);
 
 private:
-    Q_DISABLE_COPY(QCanvasRhiPaintDriver)
+    Q_DISABLE_COPY_MOVE(QCanvasRhiPaintDriver)
     QCanvasRhiPaintDriverPrivate *d = nullptr;
     friend class QCanvasRhiPaintDriverPrivate;
 };

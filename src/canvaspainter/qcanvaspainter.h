@@ -252,7 +252,7 @@ public:
     Q_CANVASPAINTER_EXPORT void grabCanvas(const QCanvasOffscreenCanvas &canvas, std::function<void(const QImage &)> callback);
 
 private:
-    Q_DISABLE_COPY(QCanvasPainter)
+    Q_DISABLE_COPY_MOVE(QCanvasPainter)
     Q_DECLARE_PRIVATE(QCanvasPainter)
     std::unique_ptr<QCanvasPainterPrivate> d_ptr;
 };
