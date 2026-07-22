@@ -39,7 +39,7 @@ protected:
     virtual void prePaint(QCanvasPainter *painter);
     virtual void paint(QCanvasPainter *painter);
     virtual void synchronizeData(QCanvasPainterItem *item);
-    virtual void initialize(QRhiCommandBuffer *cb) override;
+    void initialize(QRhiCommandBuffer *cb) override;
 
 #if QT_VERSION < QT_VERSION_CHECK(6, 12, 0)
     // Keep synchronize() working with Qt 6.11.x
