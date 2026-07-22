@@ -33,7 +33,7 @@ public:
     Q_CANVASPAINTER_EXPORT QCanvasRhiPaintDriver *paintDriver();
 
 private:
-    Q_DISABLE_COPY(QCanvasPainterFactory)
+    Q_DISABLE_COPY_MOVE(QCanvasPainterFactory)
     QCanvasPainterFactoryPrivate *d = nullptr;
     friend class QCanvasPainterFactoryPrivate;
 };
