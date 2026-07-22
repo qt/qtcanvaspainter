@@ -26,7 +26,7 @@ public:
     Q_CANVASPAINTER_EXPORT ~QCanvasPath();
 
     Q_CANVASPAINTER_EXPORT QCanvasPath &operator=(const QCanvasPath &path);
-    QCanvasPath(QCanvasPath &&other) : d_ptr(std::exchange(other.d_ptr, nullptr)) { }
+    QCanvasPath(QCanvasPath &&other) noexcept : d_ptr(std::exchange(other.d_ptr, nullptr)) { }
     QT_MOVE_ASSIGNMENT_OPERATOR_IMPL_VIA_PURE_SWAP(QCanvasPath)
     void swap(QCanvasPath &other) noexcept { qt_ptr_swap(d_ptr, other.d_ptr); }
 
