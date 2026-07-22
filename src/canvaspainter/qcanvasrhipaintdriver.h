@@ -4,8 +4,8 @@
 // Qt-Security score:significant reason:default
 
 
-#ifndef QCANVASRHIPAINTPAINTDRIVER_H
-#define QCANVASRHIPAINTPAINTDRIVER_H
+#ifndef QCANVASRHIPAINTDRIVER_H
+#define QCANVASRHIPAINTDRIVER_H
 
 #include <QtCanvasPainter/qtcanvaspainterglobal.h>
 #include <QtCore/qsize.h>
@@ -56,4 +56,4 @@ Q_DECLARE_OPERATORS_FOR_FLAGS(QCanvasRhiPaintDriver::EndPaintFlags)
 
 QT_END_NAMESPACE
 
-#endif // QCANVASRHIPAINTPAINTDRIVER_H
+#endif // QCANVASRHIPAINTDRIVER_H
