@@ -24,7 +24,7 @@ class Q_CANVASPAINTER_EXPORT QCanvasPainterItemRenderer : public QQuickRhiItemRe
 {
 public:
     QCanvasPainterItemRenderer();
-    virtual ~QCanvasPainterItemRenderer() override;
+    ~QCanvasPainterItemRenderer() override;
 
     QColor fillColor() const;
     QCanvasPainter *painter() const;
