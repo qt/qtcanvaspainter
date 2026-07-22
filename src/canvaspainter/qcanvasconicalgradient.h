@@ -2,12 +2,12 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
 // Qt-Security score:significant reason:default
 
-
 #ifndef QCANVASCONICALGRADIENT_H
 #define QCANVASCONICALGRADIENT_H
 
-#include <QtCore/qglobal.h>
+#include <QtCanvasPainter/qtcanvaspainterglobal.h>
 #include <QtCanvasPainter/qcanvasgradient.h>
+
 #include <QtCore/qpoint.h>
 
 QT_BEGIN_NAMESPACE
