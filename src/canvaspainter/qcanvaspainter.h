@@ -101,8 +101,6 @@ public:
     Q_CANVASPAINTER_EXPORT void scale(float scaleX, float scaleY);
     Q_CANVASPAINTER_EXPORT QTransform getTransform() const;
 
-    Q_CANVASPAINTER_EXPORT void setBrushTransform(const QTransform &transform);
-
     // *** Clipping ***
 
     Q_CANVASPAINTER_EXPORT void setClipRect(float x, float y, float width, float height);
@@ -184,8 +182,6 @@ public:
     Q_CANVASPAINTER_EXPORT void fill(const QCanvasPath &path, int pathGroup = -1);
     Q_CANVASPAINTER_EXPORT void fill(const QCanvasPath &path, FillRule fillRule, int pathGroup = -1);
     Q_CANVASPAINTER_EXPORT void stroke(const QCanvasPath &path, int pathGroup = -1);
-    Q_CANVASPAINTER_EXPORT void setStencilClip(const QList<QRectF> &rects);
-    Q_CANVASPAINTER_EXPORT void setStencilClip(const QVectorPath &clipPath);
 
     // *** Direct drawing ***
 

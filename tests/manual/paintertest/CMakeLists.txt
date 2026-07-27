@@ -15,4 +15,5 @@ qt_internal_add_manual_test(paintertest
         Qt::GuiPrivate
         Qt::Widgets
         Qt::CanvasPainter
+        Qt::CanvasPainterPrivate
 )

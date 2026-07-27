@@ -1199,10 +1199,9 @@ QTransform QCanvasPainter::getTransform() const
     paint operations.
 */
 
-void QCanvasPainter::setBrushTransform(const QTransform &transform)
+void QCanvasPainterPrivate::setBrushTransform(const QTransform &transform)
 {
-    Q_D(QCanvasPainter);
-    d->m_e->setBrushTransform(transform);
+    m_e->setBrushTransform(transform);
 }
 
 // *** Clipping ***
@@ -1976,7 +1975,7 @@ void QCanvasPainter::stroke(const QCanvasPath &path, int pathGroup)
     d->m_e->stroke(path, pathGroup);
 }
 
-/*!
+/*
    \internal
     Sets the stencil clip to \a rects, restricting subsequent rendering
     to the inside of the rectangles, respecting the current transformation.
@@ -1988,22 +1987,20 @@ void QCanvasPainter::stroke(const QCanvasPath &path, int pathGroup)
 
     \sa setClipRect()
 */
-void QCanvasPainter::setStencilClip(const QList<QRectF> &rects)
+void QCanvasPainterPrivate::setStencilClip(const QList<QRectF> &rects)
 {
-    Q_D(QCanvasPainter);
-    d->m_e->setStencilClip(rects);
+    m_e->setStencilClip(rects);
 }
 
-/*!
+/*
     \internal
 
     \a clipPath must be a simple path: all sub-paths must be convex
     and non-overlapping.
 */
-void QCanvasPainter::setStencilClip(const QVectorPath &clipPath)
+void QCanvasPainterPrivate::setStencilClip(const QVectorPath &clipPath)
 {
-    Q_D(QCanvasPainter);
-    d->m_e->setStencilClip(clipPath);
+    m_e->setStencilClip(clipPath);
 }
 
 // *** Direct drawing ***

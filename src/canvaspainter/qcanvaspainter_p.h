@@ -88,6 +88,11 @@ public:
     void clearTextureCache();
     void markTextureIdUsed(int imageId);
 
+    void setStencilClip(const QList<QRectF> &rects);
+    void setStencilClip(const QVectorPath &clipPath);
+    void setBrushTransform(const QTransform &transform);
+
+
     void setFont(const QFont &font);
     void fillText(const QString &text, float x, float y, float maxWidth = -1);
     void fillText(const QString &text, const QRectF &rect);

@@ -12,6 +12,7 @@
 #include <QJsonValue>
 #include <QtGui/private/qvectorpath_p.h>
 #include <QtGui/private/qpainterpath_p.h>
+#include <private/qcanvaspainter_p.h>
 
 #include <QCanvasLinearGradient>
 #include <QCanvasRadialGradient>
@@ -3243,6 +3244,7 @@ void CanvasPainterLancelotCppTests::testPathFillRule()
 
 void CanvasPainterLancelotCppTests::testStencilClip()
 {
+    auto *painterPriv = QCanvasPainterPrivate::get(painter);
     // setStencilClip(QList<QRectF>): draw shapes clipped to a union of rects,
     // then clear the clip and verify the unclipped draw reaches everywhere.
     // Adapted from testClipRegion in paintertest.cpp.
@@ -3256,7 +3258,7 @@ void CanvasPainterLancelotCppTests::testStencilClip()
     for (const auto &rect : clipRects)
         painter->strokeRect(rect.x(), rect.y(), rect.width(), rect.height());
 
-    painter->setStencilClip(clipRects);
+    painterPriv->setStencilClip(clipRects);
 
     // Blue semi-transparent ellipse — only shows inside the clip rects
     painter->setFillStyle(QColor(0, 0, 255, 160));
@@ -3279,7 +3281,7 @@ void CanvasPainterLancelotCppTests::testStencilClip()
     painter->restore();
 
     // Clear clip — magenta ellipse should be fully visible
-    painter->setStencilClip(QList<QRectF>{});
+    painterPriv->setStencilClip(QList<QRectF>{});
     painter->setFillStyle(Qt::magenta);
     painter->beginPath();
     painter->ellipse(QRectF(100, 250, 100, 50));
@@ -3288,6 +3290,7 @@ void CanvasPainterLancelotCppTests::testStencilClip()
 
 void CanvasPainterLancelotCppTests::testStencilClipTransform()
 {
+    auto *painterPriv = QCanvasPainterPrivate::get(painter);
     // setStencilClip() applied while the painter is rotated.
     // Adapted from testClipRegionTransform in paintertest.cpp.
     painter->setStrokeStyle(Qt::red);
@@ -3295,7 +3298,7 @@ void CanvasPainterLancelotCppTests::testStencilClipTransform()
 
     const QRectF rect(100, 100, 200, 100);
     painter->strokeRect(rect.x(), rect.y(), rect.width(), rect.height());
-    painter->setStencilClip({rect});
+    painterPriv->setStencilClip({rect});
 
     painter->rotate(-float(M_PI) / 180.0 * 15.0);
     painter->setFillStyle(QColor(255, 255, 0, 192));
@@ -3304,6 +3307,7 @@ void CanvasPainterLancelotCppTests::testStencilClipTransform()
 
 void CanvasPainterLancelotCppTests::testStencilClipIntersect()
 {
+    auto *painterPriv = QCanvasPainterPrivate::get(painter);
     // Two successive setStencilClip() calls should intersect.
     // Adapted from testClipRegionIntersect in paintertest.cpp.
     painter->setStrokeStyle(Qt::red);
@@ -3316,13 +3320,13 @@ void CanvasPainterLancelotCppTests::testStencilClipIntersect()
     painter->restore();
 
     // Fill yellow inside the (unrotated) first clip
-    painter->setStencilClip({rect});
+    painterPriv->setStencilClip({rect});
     painter->setFillStyle(QColor(255, 255, 0, 192));
     painter->fillRect(0, 0, 500, 400);
 
     // Intersect with the same rect rotated 15°; only the intersection turns blue
     painter->rotate(float(M_PI) / 180.0 * 15.0);
-    painter->setStencilClip({rect});
+    painterPriv->setStencilClip({rect});
     painter->rotate(-float(M_PI) / 180.0 * 15.0);
     painter->setFillStyle(QColor(0, 0, 255, 128));
     painter->fillRect(0, 0, 500, 400);
@@ -3352,6 +3356,7 @@ void CanvasPainterLancelotCppTests::testStrokingImpl()
 
 void CanvasPainterLancelotCppTests::testStrokingWithStencilClip()
 {
+    auto *painterPriv = QCanvasPainterPrivate::get(painter);
     painter->setStrokeStyle(Qt::red);
     const QList<QRectF> clipRects{
         QRectF(100, 100, 200, 150),
@@ -3360,7 +3365,7 @@ void CanvasPainterLancelotCppTests::testStrokingWithStencilClip()
     for (const auto &rect : clipRects)
         painter->strokeRect(rect.x(), rect.y(), rect.width(), rect.height());
 
-    painter->setStencilClip(clipRects);
+    painterPriv->setStencilClip(clipRects);
 
     testStrokingImpl();
 
@@ -3370,6 +3375,7 @@ void CanvasPainterLancelotCppTests::testStrokingWithStencilClip()
 
 void CanvasPainterLancelotCppTests::testHighQualityStrokingWithStencilClip()
 {
+    auto *painterPriv = QCanvasPainterPrivate::get(painter);
     painter->setHighQualityStroking(true);
 
     painter->setStrokeStyle(Qt::red);
@@ -3380,7 +3386,7 @@ void CanvasPainterLancelotCppTests::testHighQualityStrokingWithStencilClip()
     for (const auto &rect : clipRects)
         painter->strokeRect(rect.x(), rect.y(), rect.width(), rect.height());
 
-    painter->setStencilClip(clipRects);
+    painterPriv->setStencilClip(clipRects);
 
     testStrokingImpl();
 
@@ -3493,6 +3499,7 @@ void CanvasPainterLancelotCppTests::testTextDirection()
 
 void CanvasPainterLancelotCppTests::testVectorPathStencilClip()
 {
+    auto *painterPriv = QCanvasPainterPrivate::get(painter);
     // setStencilClip(QVectorPath): intersect a rect-based clip with a
     // QVectorPath-based clip.
     // Adapted from testVectorPath in paintertest.cpp.
@@ -3541,15 +3548,15 @@ void CanvasPainterLancelotCppTests::testVectorPathStencilClip()
     painter->strokeRect(clipRegionRect);
 
     // First stencil clip: the bounding rect
-    painter->setStencilClip({clipRegionRect});
+    painterPriv->setStencilClip({clipRegionRect});
     // Second stencil clip: the vector path (intersects with the first)
-    painter->setStencilClip(path);
+    painterPriv->setStencilClip(path);
 
     painter->setFillStyle(Qt::red);
     painter->fillRect(QRectF(0, 0, 500, 500));
 
     // Clear clip, then stroke the path outline in blue for reference
-    painter->setStencilClip(QList<QRectF>{});
+    painterPriv->setStencilClip(QList<QRectF>{});
     painter->beginPath();
     painter->addPath(path.convertToPainterPath());
     painter->setStrokeStyle(Qt::blue);
