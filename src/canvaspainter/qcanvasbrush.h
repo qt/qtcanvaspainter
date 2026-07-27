@@ -67,10 +67,7 @@ protected:
     Q_CANVASPAINTER_EXPORT explicit QCanvasBrush(QCanvasBrushPrivate *priv);
     QExplicitlySharedDataPointer<QCanvasBrushPrivate> baseData;
 private:
-    friend bool comparesEqual(const QCanvasBrush &lhs, const QCanvasBrush &rhs) noexcept
-    {
-        return lhs.baseData.data() == rhs.baseData.data();
-    }
+    friend Q_CANVASPAINTER_EXPORT bool comparesEqual(const QCanvasBrush &lhs, const QCanvasBrush &rhs) noexcept;
     Q_DECLARE_EQUALITY_COMPARABLE(QCanvasBrush)
 
     QCPaint createPaint(QCanvasPainter *painter) const;

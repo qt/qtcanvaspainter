@@ -109,6 +109,39 @@ QCanvasBrush::BrushType QCanvasBrush::type() const
     return baseData ? baseData->type : QCanvasBrush::BrushType::Invalid;
 }
 
+/*!
+    \fn bool QCanvasBrush::operator!=(const QCanvasBrush &lhs, const QCanvasBrush &rhs)
+
+    \return \c true if the brush \a lhs is different from \a rhs; \c false otherwise.
+
+    \sa operator==()
+*/
+
+/*!
+    \fn bool QCanvasBrush::operator==(const QCanvasBrush &lhs, const QCanvasBrush &rhs)
+
+    \return \c true if the brush \a lhs is equal to \a rhs; \c false otherwise.
+
+    Brushes are compared by value, and comparing two QCanvasBrush gives the same
+    result as comparing the concrete brushes (e.g., QCanvasGridPattern) they
+    were created from.
+
+    \sa operator!=()
+*/
+bool comparesEqual(const QCanvasBrush &lhs, const QCanvasBrush &rhs) noexcept
+{
+    const QCanvasBrushPrivate *lhsPrivate = lhs.baseData.data();
+    const QCanvasBrushPrivate *rhsPrivate = rhs.baseData.data();
+
+    if (lhsPrivate == rhsPrivate)
+        return true;
+
+    if (!lhsPrivate || !rhsPrivate || lhsPrivate->type != rhsPrivate->type)
+        return false;
+
+    return lhsPrivate->equals(*rhsPrivate);
+}
+
 // ***** Private *****
 
 /*!

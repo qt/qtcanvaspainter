@@ -41,6 +41,7 @@ public:
         serialNumber = nextSerialNumber();
     }
     QCanvasBrushPrivate *clone() override;
+    bool equals(const QCanvasBrushPrivate &other) const noexcept override;
 
     QCPaint createPaint(QCanvasPainter *painter) const override;
 

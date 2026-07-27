@@ -31,6 +31,7 @@ public:
     QCanvasGridPatternPrivate(const QCanvasGridPatternPrivate &) = default;
     QCanvasGridPatternPrivate() : QCanvasBrushPrivate(QCanvasBrush::BrushType::GridPattern) {}
     QCanvasBrushPrivate *clone() override;
+    bool equals(const QCanvasBrushPrivate &other) const noexcept override;
     QCPaint createPaint(QCanvasPainter *painter) const override;
 
     static QCanvasGridPatternPrivate *get(QCanvasGridPattern *brush)

@@ -389,37 +389,24 @@ bool comparesEqual(const QCanvasGradient &lhs, const QCanvasGradient &rhs) noexc
         return true;
     if (lhs.m_type != rhs.m_type)
         return false;
-    if (lhs.m_type == QCanvasBrush::BrushType::LinearGradient) {
-        if (lhs.m_data.linear.sx != rhs.m_data.linear.sx
-            || lhs.m_data.linear.sy != rhs.m_data.linear.sy
-            || lhs.m_data.linear.ex != rhs.m_data.linear.ex
-            || lhs.m_data.linear.ey != rhs.m_data.linear.ey)
-            return false;
-    } else if (lhs.m_type == QCanvasBrush::BrushType::RadialGradient) {
-        if (lhs.m_data.radial.icx != rhs.m_data.radial.icx
-            || lhs.m_data.radial.icy != rhs.m_data.radial.icy
-            || lhs.m_data.radial.iRadius != rhs.m_data.radial.iRadius
-            || lhs.m_data.radial.ocx != rhs.m_data.radial.ocx
-            || lhs.m_data.radial.ocy != rhs.m_data.radial.ocy
-            || lhs.m_data.radial.oRadius != rhs.m_data.radial.oRadius)
-            return false;
-    } else if (lhs.m_type == QCanvasBrush::BrushType::ConicalGradient) {
-        if (lhs.m_data.conical.cx != rhs.m_data.conical.cx
-            || lhs.m_data.conical.cy != rhs.m_data.conical.cy
-            || lhs.m_data.conical.angle != rhs.m_data.conical.angle)
-            return false;
-    } else if (lhs.m_type == QCanvasBrush::BrushType::BoxGradient) {
-        if (lhs.m_data.box.x != rhs.m_data.box.x
-            || lhs.m_data.box.y != rhs.m_data.box.y
-            || lhs.m_data.box.width != rhs.m_data.box.width
-            || lhs.m_data.box.height != rhs.m_data.box.height
-            || lhs.m_data.box.feather != rhs.m_data.box.feather
-            || lhs.m_data.box.radius != rhs.m_data.box.radius)
-            return false;
-    }
+    if (!qCanvasGradientDataEquals(lhs.m_type, lhs.m_data, rhs.m_data))
+        return false;
     return lhs.m_stops == rhs.m_stops
             && lhs.m_imageId == rhs.m_imageId
             && lhs.m_imageY == rhs.m_imageY;
+}
+
+bool QCanvasGradientBrushPrivate::equals(const QCanvasBrushPrivate &other) const noexcept
+{
+    Q_ASSERT(other.type == type);
+    const auto &pd = static_cast<const QCanvasGradientBrushPrivate &>(other);
+
+    if (!qCanvasGradientDataEquals(type, data, pd.data))
+        return false;
+
+    return gradientStops == pd.gradientStops
+           && imageId == pd.imageId
+           && imageY == pd.imageY;
 }
 
 #ifndef QT_NO_DEBUG_STREAM

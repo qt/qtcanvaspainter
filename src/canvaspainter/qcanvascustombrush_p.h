@@ -31,6 +31,7 @@ public:
     QCanvasCustomBrushPrivate() : QCanvasBrushPrivate(QCanvasBrush::BrushType::Custom) {}
     QCanvasCustomBrushPrivate(const QCanvasCustomBrushPrivate&) = default;
     QCanvasBrushPrivate *clone() override;
+    bool equals(const QCanvasBrushPrivate &other) const noexcept override;
     QCPaint createPaint(QCanvasPainter *painter) const override;
 
     static QCanvasCustomBrushPrivate *get(QCanvasCustomBrush *brush)
