@@ -307,8 +307,8 @@ QCanvasCustomBrush::QCanvasCustomBrush(const QString &fragmentShader,
     Destroys the custom brush.
 */
 
-QCanvasCustomBrush::QCanvasCustomBrush(const QCanvasCustomBrush &) noexcept = default;
-QCanvasCustomBrush &QCanvasCustomBrush::operator=(const QCanvasCustomBrush &) noexcept = default;
+QCanvasCustomBrush::QCanvasCustomBrush(const QCanvasCustomBrush &) = default;
+QCanvasCustomBrush &QCanvasCustomBrush::operator=(const QCanvasCustomBrush &) = default;
 QCanvasCustomBrush::~QCanvasCustomBrush() = default;
 
 QCanvasCustomBrush::operator QCanvasBrush() const

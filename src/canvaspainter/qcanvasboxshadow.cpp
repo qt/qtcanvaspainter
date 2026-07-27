@@ -108,8 +108,8 @@ QCanvasBoxShadow::QCanvasBoxShadow(float x, float y, float width, float height, 
     d->color = color;
 }
 
-QCanvasBoxShadow::QCanvasBoxShadow(const QCanvasBoxShadow &) noexcept = default;
-QCanvasBoxShadow &QCanvasBoxShadow::operator=(const QCanvasBoxShadow &) noexcept = default;
+QCanvasBoxShadow::QCanvasBoxShadow(const QCanvasBoxShadow &) = default;
+QCanvasBoxShadow &QCanvasBoxShadow::operator=(const QCanvasBoxShadow &) = default;
 QCanvasBoxShadow::~QCanvasBoxShadow() = default;
 
 QCanvasBoxShadow::operator QCanvasBrush() const
