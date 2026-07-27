@@ -41,13 +41,6 @@ protected:
     virtual void synchronizeData(QCanvasPainterItem *item);
     void initialize(QRhiCommandBuffer *cb) override;
 
-#if QT_VERSION < QT_VERSION_CHECK(6, 12, 0)
-    // Keep synchronize() working with Qt 6.11.x
-    virtual void synchronize(QCanvasPainterItem *item) {
-        Q_UNUSED(item);
-    }
-#endif
-
     void render(QRhiCommandBuffer *cb) override;
     void synchronize(QQuickRhiItem *item) override;
 
