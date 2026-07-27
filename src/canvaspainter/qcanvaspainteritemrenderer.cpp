@@ -277,10 +277,6 @@ void QCanvasPainterItemRenderer::synchronize(QQuickRhiItem * item)
         initializeResources(d->m_factory->painter());
     }
 
-#if QT_VERSION < QT_VERSION_CHECK(6, 12, 0)
-    // Keep synchronize() working with Qt 6.11.x
-    synchronize(realItem);
-#endif
     synchronizeData(realItem);
 }
 
