@@ -22,6 +22,7 @@ class tst_QCanvasBrush : public QObject
 private slots:
     // Brush autotests
     void testEqual();
+    void testBrushEqual();
     void testDataStreams();
     void testDebugs();
     void testTypes();
@@ -120,6 +121,153 @@ void tst_QCanvasBrush::testEqual()
     gp1.setLineColor(gp2.lineColor());
     QVERIFY(gp1 == gp2);
 
+}
+
+void tst_QCanvasBrush::testBrushEqual()
+{
+    // QCanvasBrush comparison is also value based. Comparing two QCanvasBrush
+    // gives the same result as comparing the concrete brushes they were created
+    // from, also when the brushes do not share their data.
+
+    QCanvasBrush invalid1;
+    QCanvasBrush invalid2;
+    QCOMPARE(invalid1, invalid2);
+
+    const QCanvasGradientStops stops = {
+        { 0.0f, QColorConstants::Red },
+        { 0.5f, QColorConstants::Green },
+        { 1.0f, QColorConstants::Blue },
+    };
+
+    // QCanvasLinearGradient
+    {
+        QCanvasLinearGradient a(10, 20, 30, 40);
+        a.setStops(stops);
+        QCanvasLinearGradient b(10, 20, 30, 40);
+        b.setStops(stops);
+        QCOMPARE(a, b);
+        QCOMPARE(QCanvasBrush(a), QCanvasBrush(b));
+        QVERIFY(QCanvasBrush(a) != invalid1);
+
+        b.setEndPosition(31, 40);
+        QVERIFY(a != b);
+        QVERIFY(QCanvasBrush(a) != QCanvasBrush(b));
+
+        b.setEndPosition(30, 40);
+        b.setColorAt(0.25f, QColorConstants::Black);
+        QVERIFY(a != b);
+        QVERIFY(QCanvasBrush(a) != QCanvasBrush(b));
+    }
+
+    // QCanvasRadialGradient
+    {
+        QCanvasRadialGradient a(50, 100, 40, 60, 90, 80);
+        QCanvasRadialGradient b(50, 100, 40, 60, 90, 80);
+        QCOMPARE(QCanvasBrush(a), QCanvasBrush(b));
+        b.setInnerRadius(41);
+        QVERIFY(QCanvasBrush(a) != QCanvasBrush(b));
+    }
+
+    // QCanvasConicalGradient
+    {
+        QCanvasConicalGradient a(100, 200, float(M_PI));
+        QCanvasConicalGradient b(100, 200, float(M_PI));
+        QCOMPARE(QCanvasBrush(a), QCanvasBrush(b));
+        b.setAngle(1.5f);
+        QVERIFY(QCanvasBrush(a) != QCanvasBrush(b));
+    }
+
+    // QCanvasBoxGradient
+    {
+        QCanvasBoxGradient a(10, 20, 30, 40, 15, 5);
+        QCanvasBoxGradient b(10, 20, 30, 40, 15, 5);
+        QCOMPARE(QCanvasBrush(a), QCanvasBrush(b));
+        b.setFeather(16);
+        QVERIFY(QCanvasBrush(a) != QCanvasBrush(b));
+    }
+
+    // QCanvasBoxShadow
+    {
+        QCanvasBoxShadow a(10, 20, 30, 40, 2, 5, QColorConstants::Red);
+        a.setTopLeftRadius(1);
+        QCanvasBoxShadow b(10, 20, 30, 40, 2, 5, QColorConstants::Red);
+        b.setTopLeftRadius(1);
+        QCOMPARE(a, b);
+        QCOMPARE(QCanvasBrush(a), QCanvasBrush(b));
+
+        b.setColor(QColorConstants::Blue);
+        QVERIFY(a != b);
+        QVERIFY(QCanvasBrush(a) != QCanvasBrush(b));
+    }
+
+    // QCanvasGridPattern
+    {
+        QCanvasGridPattern a(10, 20, 30, 40, QColorConstants::Red, QColorConstants::Blue);
+        a.setLineWidth(3.0f);
+        QCanvasGridPattern b(10, 20, 30, 40, QColorConstants::Red, QColorConstants::Blue);
+        b.setLineWidth(3.0f);
+        QCOMPARE(a, b);
+        QCOMPARE(QCanvasBrush(a), QCanvasBrush(b));
+
+        b.setLineWidth(9.0f);
+        QVERIFY(a != b);
+        QVERIFY(QCanvasBrush(a) != QCanvasBrush(b));
+    }
+
+    // QCanvasImagePattern
+    {
+        QCanvasImage image;
+        QCanvasImagePattern a(image, 10, 20, 30, 40, 0.5f, QColorConstants::Red);
+        QCanvasImagePattern b(image, 10, 20, 30, 40, 0.5f, QColorConstants::Red);
+        QCOMPARE(a, b);
+        QCOMPARE(QCanvasBrush(a), QCanvasBrush(b));
+
+        b.setTintColor(QColorConstants::Green);
+        QVERIFY(a != b);
+        QVERIFY(QCanvasBrush(a) != QCanvasBrush(b));
+    }
+
+    // QCanvasCustomBrush
+    {
+        QCanvasCustomBrush a;
+        a.setData1(QVector4D(1, 2, 3, 4));
+        QCanvasCustomBrush b;
+        b.setData1(QVector4D(1, 2, 3, 4));
+        QCOMPARE(a, b);
+        QCOMPARE(QCanvasBrush(a), QCanvasBrush(b));
+
+        b.setData2(QVector4D(5, 6, 7, 8));
+        QVERIFY(a != b);
+        QVERIFY(QCanvasBrush(a) != QCanvasBrush(b));
+    }
+
+    // Brushes of different types are never equal, not even when the
+    // type specific values would match.
+    {
+        const QCanvasBrush linear = QCanvasLinearGradient(10, 20, 30, 40);
+        const QCanvasBrush box = QCanvasBoxGradient(10, 20, 30, 40, 0);
+        const QCanvasBrush grid = QCanvasGridPattern(10, 20, 30, 40);
+        const QCanvasBrush shadow = QCanvasBoxShadow(10, 20, 30, 40);
+        QVERIFY(linear != box);
+        QVERIFY(grid != shadow);
+        QVERIFY(linear != grid);
+        QVERIFY(shadow != invalid1);
+    }
+
+    // Copies and brushes sharing their data stay equal.
+    {
+        QCanvasGridPattern gp(10, 20, 30, 40, QColorConstants::Red, QColorConstants::Blue);
+        const QCanvasBrush brush = gp;
+        const QCanvasBrush shared = gp;
+        const QCanvasBrush copy = brush;
+        QCOMPARE(brush, shared);
+        QCOMPARE(brush, copy);
+
+        // Detaching does not change the value, so the brushes remain equal.
+        QCanvasBrush detached = brush;
+        detached.detach();
+        QCOMPARE(brush, detached);
+    }
 }
 
 void tst_QCanvasBrush::testDataStreams()

@@ -25,10 +25,48 @@
 
 QT_BEGIN_NAMESPACE
 
+namespace {
+template <typename GradientData>
+bool qCanvasGradientDataEquals(QCanvasBrush::BrushType type,
+                               const GradientData &lhs,
+                               const GradientData &rhs) noexcept
+{
+    switch (type) {
+    case QCanvasBrush::BrushType::LinearGradient:
+        return lhs.linear.sx == rhs.linear.sx
+            && lhs.linear.sy == rhs.linear.sy
+            && lhs.linear.ex == rhs.linear.ex
+            && lhs.linear.ey == rhs.linear.ey;
+    case QCanvasBrush::BrushType::RadialGradient:
+        return lhs.radial.icx == rhs.radial.icx
+            && lhs.radial.icy == rhs.radial.icy
+            && lhs.radial.iRadius == rhs.radial.iRadius
+            && lhs.radial.ocx == rhs.radial.ocx
+            && lhs.radial.ocy == rhs.radial.ocy
+            && lhs.radial.oRadius == rhs.radial.oRadius;
+    case QCanvasBrush::BrushType::ConicalGradient:
+        return lhs.conical.cx == rhs.conical.cx
+            && lhs.conical.cy == rhs.conical.cy
+            && lhs.conical.angle == rhs.conical.angle;
+    case QCanvasBrush::BrushType::BoxGradient:
+        return lhs.box.x == rhs.box.x
+            && lhs.box.y == rhs.box.y
+            && lhs.box.width == rhs.box.width
+            && lhs.box.height == rhs.box.height
+            && lhs.box.feather == rhs.box.feather
+            && lhs.box.radius == rhs.box.radius;
+    default:
+        return true;
+    }
+}
+} // namespace
+
 class QCanvasGradientBrushPrivate : public QCanvasBrushPrivate
 {
 public:
     QCanvasGradientBrushPrivate(QCanvasBrush::BrushType type);
+
+    bool equals(const QCanvasBrushPrivate &other) const noexcept override;
 
     qint64 generateGradientKey() const;
     void updateGradientTexture(QCanvasPainter *painter);

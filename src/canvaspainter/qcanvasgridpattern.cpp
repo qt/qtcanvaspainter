@@ -179,15 +179,23 @@ bool comparesEqual(const QCanvasGridPattern &lhs, const QCanvasGridPattern &rhs)
     if (pd == d)
         return true;
 
-    if (d->x != pd->x
-        || d->y != pd->y
-        || d->width != pd->width
-        || d->height != pd->height
-        || d->feather != pd->feather
-        || d->angle != pd->angle
-        || d->lineWidth != pd->lineWidth
-        || d->lineColor != pd->lineColor
-        || d->backgroundColor != pd->backgroundColor)
+    return d->equals(*pd);
+}
+
+bool QCanvasGridPatternPrivate::equals(const QCanvasBrushPrivate &other) const noexcept
+{
+    Q_ASSERT(other.type == type);
+    const auto &pd = static_cast<const QCanvasGridPatternPrivate &>(other);
+
+    if (x != pd.x
+        || y != pd.y
+        || width != pd.width
+        || height != pd.height
+        || feather != pd.feather
+        || angle != pd.angle
+        || lineWidth != pd.lineWidth
+        || lineColor != pd.lineColor
+        || backgroundColor != pd.backgroundColor)
         return false;
 
     return true;

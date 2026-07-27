@@ -354,14 +354,22 @@ bool comparesEqual(const QCanvasCustomBrush &lhs, const QCanvasCustomBrush &rhs)
     if (bd == d)
         return true;
 
-    if (d->fragmentShader != bd->fragmentShader
-        || d->vertexShader != bd->vertexShader
-        || d->timeRunning != bd->timeRunning
-        || d->time != bd->time
-        || d->data[0] != bd->data[0]
-        || d->data[1] != bd->data[1]
-        || d->data[2] != bd->data[2]
-        || d->data[3] != bd->data[3])
+    return d->equals(*bd);
+}
+
+bool QCanvasCustomBrushPrivate::equals(const QCanvasBrushPrivate &other) const noexcept
+{
+    Q_ASSERT(other.type == type);
+    const auto &bd = static_cast<const QCanvasCustomBrushPrivate &>(other);
+
+    if (fragmentShader != bd.fragmentShader
+        || vertexShader != bd.vertexShader
+        || timeRunning != bd.timeRunning
+        || time != bd.time
+        || data[0] != bd.data[0]
+        || data[1] != bd.data[1]
+        || data[2] != bd.data[2]
+        || data[3] != bd.data[3])
         return false;
 
     return true;

@@ -187,16 +187,24 @@ bool comparesEqual(const QCanvasImagePattern &lhs, const QCanvasImagePattern &rh
     if (pd == d)
         return true;
 
-    if (d->x != pd->x
-        || d->y != pd->y
-        || d->width != pd->width
-        || d->height != pd->height
-        || d->angle != pd->angle
-        || d->tintColor != pd->tintColor)
+    return d->equals(*pd);
+}
+
+bool QCanvasImagePatternPrivate::equals(const QCanvasBrushPrivate &other) const noexcept
+{
+    Q_ASSERT(other.type == type);
+    const auto &pd = static_cast<const QCanvasImagePatternPrivate &>(other);
+
+    if (x != pd.x
+        || y != pd.y
+        || width != pd.width
+        || height != pd.height
+        || angle != pd.angle
+        || tintColor != pd.tintColor)
         return false;
 
     // For images comparing the id is enough
-    if (d->image.id() != pd->image.id())
+    if (image.id() != pd.image.id())
         return false;
 
     return true;

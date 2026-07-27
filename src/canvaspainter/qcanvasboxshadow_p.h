@@ -32,6 +32,7 @@ public:
     QCanvasBoxShadowPrivate() : QCanvasBrushPrivate(QCanvasBrush::BrushType::BoxShadow) {}
     QCanvasBoxShadowPrivate(const QCanvasBoxShadowPrivate &) = default;
     QCanvasBrushPrivate *clone() override;
+    bool equals(const QCanvasBrushPrivate &other) const noexcept override;
 
     static QCanvasBoxShadowPrivate *get(QCanvasBoxShadow *brush)
     { return brush->d.data(); }
