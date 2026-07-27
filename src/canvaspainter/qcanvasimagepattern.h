@@ -29,8 +29,8 @@ public:
     Q_CANVASPAINTER_EXPORT QCanvasImagePattern(const QCanvasImage &image);
     Q_CANVASPAINTER_EXPORT QCanvasImagePattern(const QCanvasImage &image, const QRectF &rect, float angle = 0.0f, const QColor &tintColor = QColorConstants::White);
     Q_CANVASPAINTER_EXPORT QCanvasImagePattern(const QCanvasImage &image, float x, float y, float width, float height, float angle = 0.0f, const QColor &tintColor = QColorConstants::White);
-    Q_CANVASPAINTER_EXPORT QCanvasImagePattern(const QCanvasImagePattern &) noexcept;
-    Q_CANVASPAINTER_EXPORT QCanvasImagePattern &operator=(const QCanvasImagePattern &) noexcept;
+    Q_CANVASPAINTER_EXPORT QCanvasImagePattern(const QCanvasImagePattern &);
+    Q_CANVASPAINTER_EXPORT QCanvasImagePattern &operator=(const QCanvasImagePattern &);
     QCanvasImagePattern(QCanvasImagePattern &&) = default;
     QT_MOVE_ASSIGNMENT_OPERATOR_IMPL_VIA_PURE_SWAP(QCanvasImagePattern)
     Q_CANVASPAINTER_EXPORT ~QCanvasImagePattern();

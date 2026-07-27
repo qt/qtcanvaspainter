@@ -132,8 +132,8 @@ QCanvasGridPattern::QCanvasGridPattern(float x, float y, float width, float heig
     Destroys the grid pattern.
 */
 
-QCanvasGridPattern::QCanvasGridPattern(const QCanvasGridPattern &) noexcept = default;
-QCanvasGridPattern &QCanvasGridPattern::operator=(const QCanvasGridPattern &) noexcept = default;
+QCanvasGridPattern::QCanvasGridPattern(const QCanvasGridPattern &) = default;
+QCanvasGridPattern &QCanvasGridPattern::operator=(const QCanvasGridPattern &) = default;
 QCanvasGridPattern::~QCanvasGridPattern() = default;
 
 QCanvasGridPattern::operator QCanvasBrush() const

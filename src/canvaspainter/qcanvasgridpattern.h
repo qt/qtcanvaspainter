@@ -33,8 +33,8 @@ public:
                   const QColor &lineColor = QColorConstants::White,
                   const QColor &backgroundColor = QColorConstants::Black,
                   float lineWidth = 1.0f, float feather = 1.0f, float angle = 0.0f);
-    Q_CANVASPAINTER_EXPORT QCanvasGridPattern(const QCanvasGridPattern &) noexcept;
-    Q_CANVASPAINTER_EXPORT QCanvasGridPattern &operator=(const QCanvasGridPattern &) noexcept;
+    Q_CANVASPAINTER_EXPORT QCanvasGridPattern(const QCanvasGridPattern &);
+    Q_CANVASPAINTER_EXPORT QCanvasGridPattern &operator=(const QCanvasGridPattern &);
     QCanvasGridPattern(QCanvasGridPattern &&) = default;
     QT_MOVE_ASSIGNMENT_OPERATOR_IMPL_VIA_PURE_SWAP(QCanvasGridPattern)
     Q_CANVASPAINTER_EXPORT ~QCanvasGridPattern();

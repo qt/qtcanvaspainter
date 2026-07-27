@@ -137,8 +137,8 @@ QCanvasImagePattern::QCanvasImagePattern(const QCanvasImage &image, float x, flo
     Destroys the image pattern.
 */
 
-QCanvasImagePattern::QCanvasImagePattern(const QCanvasImagePattern &) noexcept = default;
-QCanvasImagePattern &QCanvasImagePattern::operator=(const QCanvasImagePattern &) noexcept = default;
+QCanvasImagePattern::QCanvasImagePattern(const QCanvasImagePattern &) = default;
+QCanvasImagePattern &QCanvasImagePattern::operator=(const QCanvasImagePattern &) = default;
 QCanvasImagePattern::~QCanvasImagePattern() = default;
 
 QT_DEFINE_QESDP_SPECIALIZATION_DTOR(QCanvasImagePatternPrivate)

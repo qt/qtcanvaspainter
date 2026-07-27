@@ -26,8 +26,8 @@ public:
     Q_CANVASPAINTER_EXPORT QCanvasCustomBrush();
     Q_CANVASPAINTER_EXPORT QCanvasCustomBrush(const QString &fragmentShader,
                                               const QString &vertexShader = {});
-    Q_CANVASPAINTER_EXPORT QCanvasCustomBrush(const QCanvasCustomBrush &) noexcept;
-    Q_CANVASPAINTER_EXPORT QCanvasCustomBrush &operator=(const QCanvasCustomBrush &) noexcept;
+    Q_CANVASPAINTER_EXPORT QCanvasCustomBrush(const QCanvasCustomBrush &);
+    Q_CANVASPAINTER_EXPORT QCanvasCustomBrush &operator=(const QCanvasCustomBrush &);
     QCanvasCustomBrush(QCanvasCustomBrush &&) = default;
     QT_MOVE_ASSIGNMENT_OPERATOR_IMPL_VIA_PURE_SWAP(QCanvasCustomBrush)
     Q_CANVASPAINTER_EXPORT ~QCanvasCustomBrush();
