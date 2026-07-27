@@ -35,6 +35,7 @@ qt_internal_add_test(tst_baseline_canvaspainting
         Qt::GuiPrivate
         Qt::Network
         Qt::CanvasPainter
+        Qt::CanvasPainterPrivate
     TESTDATA ${test_data}
 )
 

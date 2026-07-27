@@ -7,6 +7,7 @@
 #include <QCommandLineParser>
 #include <private/qvectorpath_p.h>
 #include <private/qpainterpath_p.h>
+#include <private/qcanvaspainter_p.h>
 
 using CanvasPainterTestFunction = void (*)(QCanvasPainter *p);
 using PainterTestFunction = void (*)(QPainter *p);
@@ -19,6 +20,7 @@ struct TestDescription {
 
 static void testGradients(QCanvasPainter *p)
 {
+    auto *pp = QCanvasPainterPrivate::get(p);
     QRectF rect1(50, 50, 50, 50);
     QCanvasLinearGradient linearGrad(rect1.topLeft(), rect1.bottomRight());
     linearGrad.setColorAt(0.0, "#1a2a3c");
@@ -52,7 +54,7 @@ static void testGradients(QCanvasPainter *p)
 
     QTransform bt;
     bt.translate(-25, -25);
-    p->setBrushTransform(bt);
+    pp->setBrushTransform(bt);
 
     p->translate(150, 10);
     p->fillRect(150, 50, 100, 100);
@@ -71,7 +73,7 @@ static void testGradients(QCanvasPainter *p)
     QTransform bt2;
     bt2.translate(objRect.left(), objRect.top());
     bt2.scale(objRect.width(), objRect.height());
-    p->setBrushTransform(bt2);
+    pp->setBrushTransform(bt2);
 
     p->fillRect(objRect);
     p->strokeRect(objRect);
@@ -88,7 +90,7 @@ static void testGradients(QCanvasPainter *p)
     QTransform bt3;
     bt3.translate(objRect3.left(), objRect3.top());
     bt3.scale(objRect3.width(), objRect3.height());
-    p->setBrushTransform(bt3);
+    pp->setBrushTransform(bt3);
 
     p->fillRect(objRect3);
     p->strokeRect(objRect3);
@@ -189,6 +191,7 @@ static void testGradients_reference(QPainter *p)
 
 static void testPen(QCanvasPainter *p)
 {
+    auto *pp = QCanvasPainterPrivate::get(p);
     p->setLineWidth(1);
     p->strokeRect(50 - 15, 10, 200 + 30, 10);
 
@@ -217,7 +220,7 @@ static void testPen(QCanvasPainter *p)
     p->setStrokeStyle(grad);
     QTransform t;
     t.scale(100, 100);
-    p->setBrushTransform(t);
+    pp->setBrushTransform(t);
 
     p->strokeRect(r);
 }
@@ -997,6 +1000,7 @@ static const char *xman[] = {
 
 static void testClipRegion(QCanvasPainter *p)
 {
+    auto *pp = QCanvasPainterPrivate::get(p);
     p->setStrokeStyle(Qt::red);
 
     QList<QRectF> clipRegion;
@@ -1007,7 +1011,7 @@ static void testClipRegion(QCanvasPainter *p)
     for (const auto &rect : clipRegion) {
         p->strokeRect(rect);
     }
-    p->setStencilClip(clipRegion);
+    pp->setStencilClip(clipRegion);
 
     p->setFillStyle(QColor(0,0,255,160));
     p->setStrokeStyle(Qt::green);
@@ -1066,7 +1070,7 @@ static void testClipRegion(QCanvasPainter *p)
     }
 
     // Clear clip
-    p->setStencilClip(QList<QRectF>{});
+    pp->setStencilClip(QList<QRectF>{});
     p->setFillStyle(Qt::magenta);
     p->beginPath();
     p->ellipse(QRectF(100, 250, 100, 50));
@@ -1145,6 +1149,7 @@ static void testClipRegion_reference(QPainter *p)
 
 static void testClipRegionTransform(QCanvasPainter *p)
 {
+    auto *pp = QCanvasPainterPrivate::get(p);
     p->setStrokeStyle(Qt::red);
     p->rotate(M_PI/180 * 15);
 
@@ -1157,7 +1162,7 @@ static void testClipRegionTransform(QCanvasPainter *p)
                       float(rect.width()),
                       float(rect.height()));
     }
-    p->setStencilClip(clipRegion);
+    pp->setStencilClip(clipRegion);
 
     p->rotate(-M_PI/180 * 15);
     p->setFillStyle(QColor(255, 255, 0, 192));
@@ -1183,6 +1188,7 @@ static void testClipRegionTransform_reference(QPainter *p)
 
 static void testClipRegionIntersect(QCanvasPainter *p)
 {
+    auto *pp = QCanvasPainterPrivate::get(p);
     p->setStrokeStyle(Qt::red);
 
     QRectF rect(50, 50, 200, 100);
@@ -1193,14 +1199,14 @@ static void testClipRegionIntersect(QCanvasPainter *p)
     p->strokeRect(rect);
     p->restore();
 
-    p->setStencilClip({rect});
+    pp->setStencilClip({rect});
 
     p->setFillStyle(QColor(255, 255, 0, 192)); // Yellow in unrotated
     p->fillRect(0, 0, 500, 400);
 
     p->rotate(M_PI/180 * 15);
 
-    p->setStencilClip({rect});
+    pp->setStencilClip({rect});
 
     p->rotate(-M_PI/180 * 15);
     p->setFillStyle(QColor(0, 0, 255, 128)); // blue in intersection
@@ -1281,6 +1287,7 @@ static void testStroking_reference(QPainter *p)
 
 static void testClipStroking(QCanvasPainter *p)
 {
+    auto *pp = QCanvasPainterPrivate::get(p);
     p->setStrokeStyle(Qt::red);
     QList<QRectF> clipRegion{{100, 100, 200, 150}};
     clipRegion += QRectF(50, 10, 150, 50);
@@ -1291,7 +1298,7 @@ static void testClipStroking(QCanvasPainter *p)
                       float(rect.width()),
                       float(rect.height()));
     }
-    p->setStencilClip(clipRegion);
+    pp->setStencilClip(clipRegion);
 
     testStroking(p);
 
@@ -1327,6 +1334,7 @@ static void testClipStroking_reference(QPainter *p)
 
 static void testVectorPath(QCanvasPainter *p)
 {
+    auto *pp = QCanvasPainterPrivate::get(p);
     QRectF clipRegionRect{50, 50, 400, 150};
 
     const int count = 14;
@@ -1372,13 +1380,13 @@ static void testVectorPath(QCanvasPainter *p)
 
     p->strokeRect(clipRegionRect);
 
-    p->setStencilClip({clipRegionRect});
-    p->setStencilClip(path);
+    pp->setStencilClip({clipRegionRect});
+    pp->setStencilClip(path);
 
     p->setFillStyle(Qt::red);
     p->fillRect(QRectF(0, 0, 500, 500));
 
-    p->setStencilClip({});
+    pp->setStencilClip({});
     p->beginPath();
     p->addPath(path.convertToPainterPath());
     p->setStrokeStyle(Qt::blue);
