@@ -121,6 +121,21 @@ void tst_QCanvasBrush::testEqual()
     gp1.setLineColor(gp2.lineColor());
     QVERIFY(gp1 == gp2);
 
+    QCanvasBoxShadow bs1(10, 20, 30, 40, 2, 5, QColorConstants::Red);
+    QCanvasBoxShadow bs2(10, 20, 30, 40, 2, 5, QColorConstants::Red);
+    QVERIFY(bs1 == bs2);
+    bs2.setSpread(7);
+    QVERIFY(bs1 != bs2);
+    bs1.setSpread(7);
+    QVERIFY(bs1 == bs2);
+    bs2.setBlur(12.3f);
+    QVERIFY(bs1 != bs2);
+    bs1.setBlur(bs2.blur());
+    QVERIFY(bs1 == bs2);
+    bs2.setBottomRightRadius(4);
+    QVERIFY(bs1 != bs2);
+    bs1.setBottomRightRadius(bs2.bottomRightRadius());
+    QVERIFY(bs1 == bs2);
 }
 
 void tst_QCanvasBrush::testBrushEqual()
@@ -949,6 +964,11 @@ void tst_QCanvasBrush::testBrushRoundtrip()
         a.setBottomRightRadius(4);
         QCanvasBrush brush = a;
         QCOMPARE(a, brush.as<QCanvasBoxShadow>());
+
+        QCanvasBoxShadow b = a;
+        b.setSpread(8);
+        QVERIFY(a != b);
+        QVERIFY(QCanvasBrush(a) != QCanvasBrush(b));
     }
 
     // QCanvasGridPattern

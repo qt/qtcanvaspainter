@@ -165,6 +165,7 @@ bool QCanvasBoxShadowPrivate::equals(const QCanvasBrushPrivate &other) const noe
         || height != pd.height
         || radius != pd.radius
         || blur != pd.blur
+        || spread != pd.spread
         || color != pd.color
         || topLeftRadius != pd.topLeftRadius
         || topRightRadius != pd.topRightRadius
