@@ -25,14 +25,14 @@ QT_BEGIN_NAMESPACE
     QCanvasGridPattern gp1(rect.topLeft(), QSizeF(16, 16));
     gp1.setLineColor("#DBEB00");
     gp1.setBackgroundColor("#373F26");
-    gp1.setLineWidth(2.0f);
+    gp1.setLineWidth(2.0);
     gp1.setRotation(M_PI / 4);
-    gp1.setFeather(5.0f);
+    gp1.setFeather(5.0);
     painter.setFillStyle(gp1);
     painter.fillRect(rect);
     // Rounded rectangle, stroked with
     // grid pattern for dashes.
-    float strokeW = 10;
+    qreal strokeW = 10;
     QRectF rect2(40, 40, 140, 140);
     QCanvasGridPattern gp2;
     gp2.setLineColor(Qt::transparent);
@@ -96,8 +96,8 @@ QCanvasGridPattern::QCanvasGridPattern()
         setRotation()
 */
 
-QCanvasGridPattern::QCanvasGridPattern(float startX, float startY,
-                                       float cellWidth, float cellHeight)
+QCanvasGridPattern::QCanvasGridPattern(qreal startX, qreal startY,
+                                       qreal cellWidth, qreal cellHeight)
     : d(new QCanvasGridPatternPrivate)
 {
     d->x = startX;
@@ -230,7 +230,7 @@ QDataStream &operator<<(QDataStream &s, const QCanvasGridPattern &p)
 
 QDataStream &operator>>(QDataStream &s, QCanvasGridPattern &p)
 {
-    float x, y, width, height, lineWidth, feather, angle;
+    qreal x, y, width, height, lineWidth, feather, angle;
     QColor lineColor, backgroundColor;
     s >> x >> y >> width >> height;
     s >> lineWidth >> feather >> angle;
@@ -264,7 +264,7 @@ QPointF QCanvasGridPattern::startPosition() const
     The default value is \c{(0.0, 0.0)}.
 */
 
-void QCanvasGridPattern::setStartPosition(float x, float y)
+void QCanvasGridPattern::setStartPosition(qreal x, qreal y)
 {
     detach();
     d->x = x;
@@ -300,7 +300,7 @@ QSizeF QCanvasGridPattern::cellSize() const
     The default value is \c{(10, 10)}.
 */
 
-void QCanvasGridPattern::setCellSize(float width, float height)
+void QCanvasGridPattern::setCellSize(qreal width, qreal height)
 {
     detach();
     d->width = width;
@@ -323,7 +323,7 @@ void QCanvasGridPattern::setCellSize(float width, float height)
     \sa setLineWidth()
 */
 
-float QCanvasGridPattern::lineWidth() const
+qreal QCanvasGridPattern::lineWidth() const
 {
     return d->lineWidth;
 }
@@ -333,7 +333,7 @@ float QCanvasGridPattern::lineWidth() const
     The default value is \c 1.0.
 */
 
-void QCanvasGridPattern::setLineWidth(float width)
+void QCanvasGridPattern::setLineWidth(qreal width)
 {
     detach();
     d->lineWidth = width;
@@ -344,7 +344,7 @@ void QCanvasGridPattern::setLineWidth(float width)
     Returns the pattern feather in pixels.
 */
 
-float QCanvasGridPattern::feather() const
+qreal QCanvasGridPattern::feather() const
 {
     return d->feather;
 }
@@ -354,7 +354,7 @@ float QCanvasGridPattern::feather() const
     The default value is \c 1.0, meaning a single pixel antialiasing.
 */
 
-void QCanvasGridPattern::setFeather(float feather)
+void QCanvasGridPattern::setFeather(qreal feather)
 {
     detach();
     d->feather = feather;
@@ -365,7 +365,7 @@ void QCanvasGridPattern::setFeather(float feather)
     Returns the pattern rotation in radians.
 */
 
-float QCanvasGridPattern::rotation() const
+qreal QCanvasGridPattern::rotation() const
 {
     return d->angle;
 }
@@ -376,7 +376,7 @@ float QCanvasGridPattern::rotation() const
     The default value is \c 0.0, meaning the grid is not rotated.
 */
 
-void QCanvasGridPattern::setRotation(float rotation)
+void QCanvasGridPattern::setRotation(qreal rotation)
 {
     detach();
     d->angle = rotation;
@@ -452,11 +452,11 @@ void QCanvasGridPatternPrivate::createGridPattern() const
     if (!qFuzzyIsNull(d->angle))
         p.transform = p.transform.rotateRadians(d->angle);
 
-    p.extent[0] = d->width;
-    p.extent[1] = d->height;
+    p.extent[0] = float(d->width);
+    p.extent[1] = float(d->height);
 
-    p.feather = d->feather;
-    p.radius = d->lineWidth;
+    p.feather = float(d->feather);
+    p.radius = float(d->lineWidth);
 
     p.innerColor = { d->lineColor.redF(),
                      d->lineColor.greenF(),

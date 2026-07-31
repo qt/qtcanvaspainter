@@ -28,8 +28,8 @@ public:
 
     QColor fillColor() const;
     QCanvasPainter *painter() const;
-    float width() const;
-    float height() const;
+    qreal width() const;
+    qreal height() const;
 
     bool hasSharedPainter() const;
     void setSharedPainter(bool enable);

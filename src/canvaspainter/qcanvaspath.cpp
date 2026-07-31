@@ -345,10 +345,10 @@ void QCanvasPath::closePath()
     Moves the current position to (\a{x}, \a{y}) and starts a new
     subpath, implicitly closing the previous path.
 */
-void QCanvasPath::moveTo(float x, float y)
+void QCanvasPath::moveTo(qreal x, qreal y)
 {
     Q_D(QCanvasPath);
-    float data[] = { x, y };
+    const qreal data[] = { x, y };
     d->appendCommandsData(data, 2);
     d->appendCommand(QCCommand::MoveTo);
 
@@ -367,10 +367,10 @@ void QCanvasPath::moveTo(float x, float y)
     Draws a line from the current position to the point (\a{x},
     \a{y}).
 */
-void QCanvasPath::lineTo(float x, float y)
+void QCanvasPath::lineTo(qreal x, qreal y)
 {
     Q_D(QCanvasPath);
-    float data[] = { x, y };
+    const qreal data[] = { x, y };
     d->appendCommandsData(data, 2);
     d->appendCommand(QCCommand::LineTo);
 }
@@ -392,10 +392,10 @@ void QCanvasPath::lineTo(float x, float y)
     After the curve is added, the current position is updated to be at
     the end point of the curve.
 */
-void QCanvasPath::bezierCurveTo(float cp1X, float cp1Y, float cp2X, float cp2Y, float x, float y)
+void QCanvasPath::bezierCurveTo(qreal cp1X, qreal cp1Y, qreal cp2X, qreal cp2Y, qreal x, qreal y)
 {
     Q_D(QCanvasPath);
-    float data[] = { cp1X, cp1Y, cp2X, cp2Y, x, y };
+    const qreal data[] = { cp1X, cp1Y, cp2X, cp2Y, x, y };
     d->appendCommandsData(data, 6);
     d->appendCommand(QCCommand::BezierTo);
 }
@@ -417,19 +417,19 @@ void QCanvasPath::bezierCurveTo(float cp1X, float cp1Y, float cp2X, float cp2Y, 
     (\a{x}, \a{y}) with the control point specified by
     (\a{cpX}, \a{cpY}).
 */
-void QCanvasPath::quadraticCurveTo(float cpX, float cpY, float x, float y)
+void QCanvasPath::quadraticCurveTo(qreal cpX, qreal cpY, qreal x, qreal y)
 {
     Q_D(QCanvasPath);
     // Continue from previous point
     const QPointF prev = currentPosition();
-    float prevX = prev.x();
-    float prevY = prev.y();
-    static constexpr float m = 2.0f / 3.0f;
-    float cp1X = prevX + m * (cpX - prevX);
-    float cp1Y = prevY + m * (cpY - prevY);
-    float cp2X = x + m * (cpX - x);
-    float cp2Y = y + m * (cpY - y);
-    float data[] = { cp1X, cp1Y, cp2X, cp2Y, x, y };
+    const qreal prevX = prev.x();
+    const qreal prevY = prev.y();
+    static constexpr qreal m = 2.0 / 3.0;
+    const qreal cp1X = prevX + m * (cpX - prevX);
+    const qreal cp1Y = prevY + m * (cpY - prevY);
+    const qreal cp2X = x + m * (cpX - x);
+    const qreal cp2Y = y + m * (cpY - y);
+    const qreal data[] = { cp1X, cp1Y, cp2X, cp2Y, x, y };
     d->appendCommandsData(data, 6);
     d->appendCommand(QCCommand::BezierTo);
 }
@@ -446,19 +446,19 @@ void QCanvasPath::quadraticCurveTo(float cpX, float cpY, float x, float y)
     Creates an arc using the points QPointF(\a x1, \a y1) and QPointF(\a
     x2, \a y2) with the given \a radius.
 */
-void QCanvasPath::arcTo(float x1, float y1, float x2, float y2, float radius)
+void QCanvasPath::arcTo(qreal x1, qreal y1, qreal x2, qreal y2, qreal radius)
 {
     // Continue from previous point
-    const QPointF prev = currentPosition();
-    float prevX = prev.x();
-    float prevY = prev.y();
+    const qreal prevX = currentPosition().x();
+    const qreal prevY = currentPosition().y();
 
 #ifdef QCPAINTER_EQUAL_POINTS_CHECKING_ENABLED
     Q_D(QCanvasPath);
     // See if straight line is enough
-    if (pointsEquals(prevX, prevY, x1, y1, d->distTol) ||
-        pointsEquals(x1, y1, x2, y2, d->distTol) ||
-        pointInSegment(x1, y1, prevX, prevY, x2, y2, d->distTol) ||
+    if (pointsEquals(float(prevX), float(prevY), float(x1), float(y1), d->distTol) ||
+        pointsEquals(float(x1), float(y1), float(x2), float(y2), d->distTol) ||
+        pointInSegment(float(x1), float(y1), float(prevX), float(prevY),
+                       float(x2), float(y2), d->distTol) ||
         radius < d->distTol) {
         lineTo(x1, y1);
         return;
@@ -466,16 +466,16 @@ void QCanvasPath::arcTo(float x1, float y1, float x2, float y2, float radius)
 #endif
 
     // Calculate tangential circle to lines (x0,y0)-(x1,y1) and (x1,y1)-(x2,y2).
-    float dx0 = prevX - x1;
-    float dy0 = prevY - y1;
-    float dx1 = x2 - x1;
-    float dy1 = y2 - y1;
+    float dx0 = float(prevX - x1);
+    float dy0 = float(prevY - y1);
+    float dx1 = float(x2 - x1);
+    float dy1 = float(y2 - y1);
     normalizePoint(&dx0, &dy0);
     normalizePoint(&dx1, &dy1);
-    float a = std::acos(dx0 * dx1 + dy0 * dy1);
-    float dd = radius / std::tan(a * 0.5f);
+    const qreal a = std::acos(qreal(dx0) * dx1 + qreal(dy0) * dy1);
+    const qreal dd = radius / std::tan(a * 0.5);
 
-    float cx, cy, a0, a1;
+    qreal cx, cy, a0, a1;
     QCanvasPainter::PathWinding direction;
     if (crossProduct(dx0, dy0, dx1, dy1) > 0.0f) {
         direction = QCanvasPainter::PathWinding::ClockWise;
@@ -495,7 +495,7 @@ void QCanvasPath::arcTo(float x1, float y1, float x2, float y2, float radius)
 }
 
 /*!
-    \fn void QCanvasPath::arcTo(QPointF point1, QPointF point2, float radius)
+    \fn void QCanvasPath::arcTo(QPointF point1, QPointF point2, qreal radius)
     \overload
 
     Creates an arc using the points \a point1 and \a point2 with the given \a radius.
@@ -509,58 +509,58 @@ void QCanvasPath::arcTo(float x1, float y1, float x2, float y2, float radius)
     sub-path is started.
 */
 void QCanvasPath::arc(
-    float centerX,
-    float centerY,
-    float radius,
-    float a0,
-    float a1,
+    qreal centerX,
+    qreal centerY,
+    qreal radius,
+    qreal a0,
+    qreal a1,
     QCanvasPainter::PathWinding direction,
     QCanvasPainter::PathConnection connection)
 {
     Q_D(QCanvasPath);
     // Clamp angles
-    float da = a1 - a0;
-    static constexpr float TWOPI = float(M_PI) * 2;
+    qreal da = a1 - a0;
+    static constexpr qreal TWOPI = M_PI * 2;
     if (direction == QCanvasPainter::PathWinding::ClockWise) {
         if (std::abs(da) >= TWOPI) {
             da = TWOPI;
         } else {
-            while (da < 0.0f) da += TWOPI;
+            while (da < 0.0) da += TWOPI;
         }
     } else {
         if (std::abs(da) >= TWOPI) {
             da = -TWOPI;
         } else {
-            while (da > 0.0f) da -= TWOPI;
+            while (da > 0.0) da -= TWOPI;
         }
     }
 
     // Split arc into max 90 degree segments.
-    const int divsCount = std::clamp(int(std::abs(da) / M_PI_2 + 0.5f), 1, 5);
-    float hda = (da / float(divsCount)) * 0.5f;
-    float kappa = std::abs(4.0f / 3.0f * (1.0f - std::cos(hda)) / std::sin(hda));
+    const int divsCount = std::clamp(int(std::abs(da) / M_PI_2 + 0.5), 1, 5);
+    const qreal hda = (da / divsCount) * 0.5;
+    qreal kappa = std::abs(4.0 / 3.0 * (1.0 - std::cos(hda)) / std::sin(hda));
 
     if (direction == QCanvasPainter::PathWinding::CounterClockWise)
         kappa = -kappa;
 
     const bool isConnected = connection == QCanvasPainter::PathConnection::Connected;
     QCCommand firstCmd = d->commandsCount == 0 || !isConnected ? QCCommand::MoveTo : QCCommand::LineTo;
-    float prevtanx = 0, prevtany = 0;
-    float prevvx = 0, prevvy = 0;
+    qreal prevtanx = 0, prevtany = 0;
+    qreal prevvx = 0, prevvy = 0;
     // divsCount is max 5 and min 1
     const int dSize = 2 + divsCount * 6;
     QVarLengthArray<QCCommand, 6> commands(1 + divsCount);
-    QVarLengthArray<float, 32> data(dSize);
+    QVarLengthArray<qreal, 32> data(dSize);
     int cCount = 0;
     int dCount = 0;
     for (int i = 0; i <= divsCount; i++) {
-        float a = a0 + da * (i/(float)divsCount);
-        float dx = std::cos(a);
-        float dy = std::sin(a);
-        float vx = centerX + dx * radius;
-        float vy = centerY + dy * radius;
-        float tanx = -dy * radius * kappa;
-        float tany = dx * radius * kappa;
+        const qreal a = a0 + da * (qreal(i) / divsCount);
+        const qreal dx = std::cos(a);
+        const qreal dy = std::sin(a);
+        const qreal vx = centerX + dx * radius;
+        const qreal vy = centerY + dy * radius;
+        const qreal tanx = -dy * radius * kappa;
+        const qreal tany = dx * radius * kappa;
         if (i == 0) {
             commands[cCount++] = firstCmd;
             data[dCount++] = vx;
@@ -584,7 +584,7 @@ void QCanvasPath::arc(
 }
 
 /*!
-    \fn void QCanvasPath::arc(QPointF centerPoint, float radius, float a0, float a1, QCanvasPainter::PathWinding direction, QCanvasPainter::PathConnection connection)
+    \fn void QCanvasPath::arc(QPointF centerPoint, qreal radius, qreal a0, qreal a1, QCanvasPainter::PathWinding direction, QCanvasPainter::PathConnection connection)
     \overload
 
     Creates an arc centered on \a centerPoint with the given \a radius, starting
@@ -597,10 +597,10 @@ void QCanvasPath::arc(
 /*!
    Creates a rectangle positioned at QPointF(\a x, \a y) with the given \a width and \a height.
 */
-void QCanvasPath::rect(float x, float y, float width, float height)
+void QCanvasPath::rect(qreal x, qreal y, qreal width, qreal height)
 {
     Q_D(QCanvasPath);
-    float data[] = {
+    const qreal data[] = {
         x, y,
         x, y + height,
         x + width, y + height,
@@ -628,25 +628,25 @@ void QCanvasPath::rect(float x, float y, float width, float height)
     Adds the given rectangle \a x, \a y, \a width, \a height with rounded corners to the path. The
     corners are quarter circles with the given \a radius.
 */
-void QCanvasPath::roundRect(float x, float y, float width, float height, float radius)
+void QCanvasPath::roundRect(qreal x, qreal y, qreal width, qreal height, qreal radius)
 {
-    static const float MINR = 0.1f;
+    static constexpr qreal MINR = 0.1;
     const bool noRadius = (radius < MINR);
     if (noRadius) {
         rect(x, y, width, height);
     } else {
         Q_D(QCanvasPath);
         // The maximum radius is slightly less than half of smaller side of the rect,
-        // to not grow too big even with some float rounding errors.
-        const float maxRad = std::min(std::abs(width), std::abs(height)) * 0.4999f;
-        const float cornerRad = std::min(radius, maxRad);
-        const float rX = cornerRad * sign(width);
-        const float rY = cornerRad * sign(height);
-        const float xW = x + width;
-        const float yH = y + height;
-        const float rYCK = rY * COMP_KAPPA90;
-        const float rXCK = rX * COMP_KAPPA90;
-        float data[] = {
+        // to not grow too big even with some rounding errors.
+        const qreal maxRad = std::min(std::abs(width), std::abs(height)) * 0.4999;
+        const qreal cornerRad = std::min(radius, maxRad);
+        const qreal rX = cornerRad * sign(float(width));
+        const qreal rY = cornerRad * sign(float(height));
+        const qreal xW = x + width;
+        const qreal yH = y + height;
+        const qreal rYCK = rY * COMP_KAPPA90;
+        const qreal rXCK = rX * COMP_KAPPA90;
+        const qreal data[] = {
             x, y + rY,
             x, yH - rY,
             x, yH - rYCK, x + rXCK, yH, x + rX, yH,
@@ -676,7 +676,7 @@ void QCanvasPath::roundRect(float x, float y, float width, float height, float r
 }
 
 /*!
-    \fn void QCanvasPath::roundRect(const QRectF &rect, float radius)
+    \fn void QCanvasPath::roundRect(const QRectF &rect, qreal radius)
     \overload
 
     Adds the given rectangle \a rect with rounded corners to the path. The
@@ -689,46 +689,46 @@ void QCanvasPath::roundRect(float x, float y, float width, float height, float r
     \a radiusBottomRight and \a radiusBottomLeft, respectively.
 */
 void QCanvasPath::roundRect(
-    float x,
-    float y,
-    float width,
-    float height,
-    float radiusTopLeft,
-    float radiusTopRight,
-    float radiusBottomRight,
-    float radiusBottomLeft)
+    qreal x,
+    qreal y,
+    qreal width,
+    qreal height,
+    qreal radiusTopLeft,
+    qreal radiusTopRight,
+    qreal radiusBottomRight,
+    qreal radiusBottomLeft)
 {
-    static const float MINR = 0.1f;
+    static constexpr qreal MINR = 0.1;
     const bool noRadius = (radiusTopLeft < MINR) && (radiusTopRight < MINR) &&
                           (radiusBottomRight < MINR) && (radiusBottomLeft < MINR);
     if (noRadius) {
         rect(x, y, width, height);
     } else {
         Q_D(QCanvasPath);
-        const float top = std::max(MINR, radiusTopLeft + radiusTopRight);
-        const float right = std::max(MINR, radiusTopRight + radiusBottomRight);
-        const float bottom = std::max(MINR, radiusBottomRight + radiusBottomLeft);
-        const float left = std::max(MINR, radiusBottomLeft + radiusTopLeft);
+        const qreal top = std::max(MINR, radiusTopLeft + radiusTopRight);
+        const qreal right = std::max(MINR, radiusTopRight + radiusBottomRight);
+        const qreal bottom = std::max(MINR, radiusBottomRight + radiusBottomLeft);
+        const qreal left = std::max(MINR, radiusBottomLeft + radiusTopLeft);
         // Find scale, if all radius don't fit. This is how canvas roundRect() behaves:
         // https://html.spec.whatwg.org/multipage/canvas.html#dom-context-2d-roundrect
-        const float scale = std::min({1.0f,
+        const qreal scale = std::min({1.0,
                                       qAbs(width / top),
                                       qAbs(height / right),
                                       qAbs(width / bottom),
                                       qAbs(height / left)});
-        const float wScale = scale * sign(width);
-        const float hScale = scale * sign(height);
-        const float rXBL = radiusBottomLeft * wScale;
-        const float rYBL = radiusBottomLeft * hScale;
-        const float rXBR = radiusBottomRight * wScale;
-        const float rYBR = radiusBottomRight * hScale;
-        const float rXTR = radiusTopRight * wScale;
-        const float rYTR = radiusTopRight * hScale;
-        const float rXTL = radiusTopLeft * wScale;
-        const float rYTL = radiusTopLeft * hScale;
-        const float xW = x + width;
-        const float yH = y + height;
-        float data[] = {
+        const qreal wScale = scale * sign(float(width));
+        const qreal hScale = scale * sign(float(height));
+        const qreal rXBL = radiusBottomLeft * wScale;
+        const qreal rYBL = radiusBottomLeft * hScale;
+        const qreal rXBR = radiusBottomRight * wScale;
+        const qreal rYBR = radiusBottomRight * hScale;
+        const qreal rXTR = radiusTopRight * wScale;
+        const qreal rYTR = radiusTopRight * hScale;
+        const qreal rXTL = radiusTopLeft * wScale;
+        const qreal rYTL = radiusTopLeft * hScale;
+        const qreal xW = x + width;
+        const qreal yH = y + height;
+        const qreal data[] = {
             x, y + rYTL,
             x, yH - rYBL,
             x, yH - rYBL * COMP_KAPPA90, x + rXBL * COMP_KAPPA90, yH, x + rXBL, yH,
@@ -758,7 +758,7 @@ void QCanvasPath::roundRect(
 }
 
 /*!
-    \fn void QCanvasPath::roundRect(const QRectF &rect, float radiusTopLeft, float radiusTopRight, float radiusBottomRight, float radiusBottomLeft)
+    \fn void QCanvasPath::roundRect(const QRectF &rect, qreal radiusTopLeft, qreal radiusTopRight, qreal radiusBottomRight, qreal radiusBottomLeft)
     \overload
 
     Adds the rectangle \a rect with rounded corners to the path. The
@@ -770,16 +770,16 @@ void QCanvasPath::roundRect(
     Creates an ellipse centered at (\a x, \a y), with radii defined by \a radiusX, \a radiusY
     and adds it to the path as a closed subpath.
 */
-void QCanvasPath::ellipse(float x, float y, float radiusX, float radiusY)
+void QCanvasPath::ellipse(qreal x, qreal y, qreal radiusX, qreal radiusY)
 {
     Q_D(QCanvasPath);
-    const float radYK = radiusY * KAPPA90;
-    const float radXK = radiusX * KAPPA90;
-    const float ymRadY = y - radiusY;
-    const float ypRadY = y + radiusY;
-    const float xmRadX = x - radiusX;
-    const float xpRadX = x + radiusX;
-    float data[] = {
+    const qreal radYK = radiusY * KAPPA90;
+    const qreal radXK = radiusX * KAPPA90;
+    const qreal ymRadY = y - radiusY;
+    const qreal ypRadY = y + radiusY;
+    const qreal xmRadX = x - radiusX;
+    const qreal xpRadX = x + radiusX;
+    const qreal data[] = {
         xmRadX, y,
         xmRadX, y + radYK, x - radXK, ypRadY, x, ypRadY,
         x + radXK, ypRadY, xpRadX, y + radYK, xpRadX, y,
@@ -808,13 +808,13 @@ void QCanvasPath::ellipse(float x, float y, float radiusX, float radiusY)
 /*!
    Adds a circle with center at QPointF(\a x, \a y) and the given \a radius to the path.
 */
-void QCanvasPath::circle(float x, float y, float radius)
+void QCanvasPath::circle(qreal x, qreal y, qreal radius)
 {
     Q_D(QCanvasPath);
-    const float radK = radius * KAPPA90;
-    const float ymRad = y - radius;
-    const float ypRad = y + radius;
-    float data[] = {
+    const qreal radK = radius * KAPPA90;
+    const qreal ymRad = y - radius;
+    const qreal ypRad = y + radius;
+    const qreal data[] = {
         x - radius, y,
         x - radius, y + radK, x - radK, ypRad, x, ypRad,
         x + radK, ypRad, x + radius, y + radK, x + radius, y,
@@ -833,7 +833,7 @@ void QCanvasPath::circle(float x, float y, float radius)
 }
 
 /*!
-    \fn void QCanvasPath::circle(QPointF centerPoint, float radius)
+    \fn void QCanvasPath::circle(QPointF centerPoint, qreal radius)
     \overload
 
     Adds a circle with center at \a centerPoint and the given \a radius to the path.
@@ -1264,15 +1264,17 @@ void QCanvasPathPrivate::appendCommands(const QCCommand commands[], int cCount)
 // Append \a dCount amount of \a commands data.
 // Note: Compared to engine appendCommandsData, in QCanvasPath
 // the commands are not transformed at this point.
-void QCanvasPathPrivate::appendCommandsData(const float commandsData[], int dCount)
+void QCanvasPathPrivate::appendCommandsData(const qreal commandsData[], int dCount)
 {
     // There are always even amount of data as they are (x, y) points.
     Q_ASSERT(dCount % 2 == 0);
 
+    // The path data is stored with float precision, so this is where the
+    // qreal values coming from the public API get truncated.
     ensureCommandsData(dCount);
     auto &c = this->commandsData;
     for (int i = 0; i < dCount; i++)
-        c[commandsDataCount++] = commandsData[i];
+        c[commandsDataCount++] = float(commandsData[i]);
 }
 
 // Makes sure there is space for at least \a addition

@@ -38,7 +38,7 @@ public:
 
     Q_CANVASPAINTER_EXPORT void resetForNewFrame();
     Q_CANVASPAINTER_EXPORT void beginPaint(QRhiCommandBuffer *cb, QRhiRenderTarget *rt,
-                                           const QColor &fillColor = Qt::black, QSize logicalSize = QSize(), float dpr = 1.0f,
+                                           const QColor &fillColor = Qt::black, QSize logicalSize = QSize(), qreal dpr = 1.0,
                                            BeginPaintFlags flags = {});
     Q_CANVASPAINTER_EXPORT void beginPaint(QRhiCommandBuffer *cb, QRhiRenderTarget *rt, const QMatrix4x4 &matrix, BeginPaintFlags flags = {});
     Q_CANVASPAINTER_EXPORT void beginPaint(QCanvasOffscreenCanvas &canvas, QRhiCommandBuffer *cb, BeginPaintFlags flags = {});

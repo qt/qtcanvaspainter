@@ -77,15 +77,15 @@ public:
     Q_CANVASPAINTER_EXPORT void setStrokeStyle(const QCanvasBrush &brush);
     Q_CANVASPAINTER_EXPORT void setFillStyle(const QColor &color);
     Q_CANVASPAINTER_EXPORT void setFillStyle(const QCanvasBrush &brush);
-    Q_CANVASPAINTER_EXPORT void setMiterLimit(float limit);
-    Q_CANVASPAINTER_EXPORT void setLineWidth(float width);
+    Q_CANVASPAINTER_EXPORT void setMiterLimit(qreal limit);
+    Q_CANVASPAINTER_EXPORT void setLineWidth(qreal width);
     Q_CANVASPAINTER_EXPORT void setLineCap(LineCap cap);
     Q_CANVASPAINTER_EXPORT void setLineJoin(LineJoin join);
-    Q_CANVASPAINTER_EXPORT void setGlobalAlpha(float alpha);
+    Q_CANVASPAINTER_EXPORT void setGlobalAlpha(qreal alpha);
     Q_CANVASPAINTER_EXPORT void setGlobalCompositeOperation(CompositeOperation operation);
-    Q_CANVASPAINTER_EXPORT void setGlobalBrightness(float value);
-    Q_CANVASPAINTER_EXPORT void setGlobalContrast(float value);
-    Q_CANVASPAINTER_EXPORT void setGlobalSaturation(float value);
+    Q_CANVASPAINTER_EXPORT void setGlobalBrightness(qreal value);
+    Q_CANVASPAINTER_EXPORT void setGlobalContrast(qreal value);
+    Q_CANVASPAINTER_EXPORT void setGlobalSaturation(qreal value);
     Q_CANVASPAINTER_EXPORT void setFillRule(FillRule fillRule);
 
     // *** Transforms ***
@@ -93,17 +93,17 @@ public:
     Q_CANVASPAINTER_EXPORT void resetTransform();
     Q_CANVASPAINTER_EXPORT void setTransform(const QTransform &transform);
     Q_CANVASPAINTER_EXPORT void transform(const QTransform &transform);
-    Q_CANVASPAINTER_EXPORT void translate(float x, float y);
+    Q_CANVASPAINTER_EXPORT void translate(qreal x, qreal y);
     inline void translate(QPointF point);
-    Q_CANVASPAINTER_EXPORT void rotate(float angle);
-    Q_CANVASPAINTER_EXPORT void skew(float angleX, float angleY = 0.0f);
-    Q_CANVASPAINTER_EXPORT void scale(float scale);
-    Q_CANVASPAINTER_EXPORT void scale(float scaleX, float scaleY);
+    Q_CANVASPAINTER_EXPORT void rotate(qreal angle);
+    Q_CANVASPAINTER_EXPORT void skew(qreal angleX, qreal angleY = 0.0);
+    Q_CANVASPAINTER_EXPORT void scale(qreal scale);
+    Q_CANVASPAINTER_EXPORT void scale(qreal scaleX, qreal scaleY);
     Q_CANVASPAINTER_EXPORT QTransform getTransform() const;
 
     // *** Clipping ***
 
-    Q_CANVASPAINTER_EXPORT void setClipRect(float x, float y, float width, float height);
+    Q_CANVASPAINTER_EXPORT void setClipRect(qreal x, qreal y, qreal width, qreal height);
     inline void setClipRect(const QRectF &rect);
     Q_CANVASPAINTER_EXPORT void resetClipping();
 
@@ -112,57 +112,57 @@ public:
     Q_CANVASPAINTER_EXPORT void beginPath();
     // These should match to path methods of QCanvasPath for consistency.
     Q_CANVASPAINTER_EXPORT void closePath();
-    Q_CANVASPAINTER_EXPORT void moveTo(float x, float y);
+    Q_CANVASPAINTER_EXPORT void moveTo(qreal x, qreal y);
     inline void moveTo(QPointF point);
-    Q_CANVASPAINTER_EXPORT void lineTo(float x, float y);
+    Q_CANVASPAINTER_EXPORT void lineTo(qreal x, qreal y);
     inline void lineTo(QPointF point);
-    Q_CANVASPAINTER_EXPORT void bezierCurveTo(float cp1X, float cp1Y, float cp2X, float cp2Y, float x, float y);
+    Q_CANVASPAINTER_EXPORT void bezierCurveTo(qreal cp1X, qreal cp1Y, qreal cp2X, qreal cp2Y, qreal x, qreal y);
     inline void bezierCurveTo(
         QPointF controlPoint1, QPointF controlPoint2, QPointF endPoint);
-    Q_CANVASPAINTER_EXPORT void quadraticCurveTo(float cpX, float cpY, float x, float y);
+    Q_CANVASPAINTER_EXPORT void quadraticCurveTo(qreal cpX, qreal cpY, qreal x, qreal y);
     inline void quadraticCurveTo(QPointF controlPoint, QPointF endPoint);
-    Q_CANVASPAINTER_EXPORT void arcTo(float x1, float y1, float x2, float y2, float radius);
-    inline void arcTo(QPointF controlPoint1, QPointF controlPoint2, float radius);
+    Q_CANVASPAINTER_EXPORT void arcTo(qreal x1, qreal y1, qreal x2, qreal y2, qreal radius);
+    inline void arcTo(QPointF controlPoint1, QPointF controlPoint2, qreal radius);
 
     Q_CANVASPAINTER_EXPORT void arc(
-        float centerX,
-        float centerY,
-        float radius,
-        float a0,
-        float a1,
+        qreal centerX,
+        qreal centerY,
+        qreal radius,
+        qreal a0,
+        qreal a1,
         PathWinding direction = PathWinding::ClockWise,
         PathConnection connection = PathConnection::Connected);
     inline void arc(
         QPointF centerPoint,
-        float radius,
-        float a0,
-        float a1,
+        qreal radius,
+        qreal a0,
+        qreal a1,
         PathWinding direction = PathWinding::ClockWise,
         PathConnection connection = PathConnection::Connected);
-    Q_CANVASPAINTER_EXPORT void rect(float x, float y, float width, float height);
+    Q_CANVASPAINTER_EXPORT void rect(qreal x, qreal y, qreal width, qreal height);
     inline void rect(const QRectF &rect);
-    Q_CANVASPAINTER_EXPORT void roundRect(float x, float y, float width, float height, float radius);
-    inline void roundRect(const QRectF &rect, float radius);
+    Q_CANVASPAINTER_EXPORT void roundRect(qreal x, qreal y, qreal width, qreal height, qreal radius);
+    inline void roundRect(const QRectF &rect, qreal radius);
     Q_CANVASPAINTER_EXPORT void roundRect(
-        float x,
-        float y,
-        float width,
-        float height,
-        float radiusTopLeft,
-        float radiusTopRight,
-        float radiusBottomRight,
-        float radiusBottomLeft);
+        qreal x,
+        qreal y,
+        qreal width,
+        qreal height,
+        qreal radiusTopLeft,
+        qreal radiusTopRight,
+        qreal radiusBottomRight,
+        qreal radiusBottomLeft);
     inline void roundRect(
         const QRectF &rect,
-        float radiusTopLeft,
-        float radiusTopRight,
-        float radiusBottomRight,
-        float radiusBottomLeft);
-    Q_CANVASPAINTER_EXPORT void ellipse(float centerX, float centerY, float radiusX, float radiusY);
-    inline void ellipse(QPointF centerPoint, float radiusX, float radiusY);
+        qreal radiusTopLeft,
+        qreal radiusTopRight,
+        qreal radiusBottomRight,
+        qreal radiusBottomLeft);
+    Q_CANVASPAINTER_EXPORT void ellipse(qreal centerX, qreal centerY, qreal radiusX, qreal radiusY);
+    inline void ellipse(QPointF centerPoint, qreal radiusX, qreal radiusY);
     inline void ellipse(const QRectF &rect);
-    Q_CANVASPAINTER_EXPORT void circle(float centerX, float centerY, float radius);
-    inline void circle(QPointF centerPoint, float radius);
+    Q_CANVASPAINTER_EXPORT void circle(qreal centerX, qreal centerY, qreal radius);
+    inline void circle(QPointF centerPoint, qreal radius);
 
     Q_CANVASPAINTER_EXPORT void addPath(const QPainterPath &path);
     Q_CANVASPAINTER_EXPORT void addPath(const QCanvasPath &path,
@@ -185,11 +185,11 @@ public:
 
     // *** Direct drawing ***
 
-    Q_CANVASPAINTER_EXPORT void fillRect(float x, float y, float width, float height);
+    Q_CANVASPAINTER_EXPORT void fillRect(qreal x, qreal y, qreal width, qreal height);
     inline void fillRect(const QRectF &rect);
-    Q_CANVASPAINTER_EXPORT void clearRect(float x, float y, float width, float height);
+    Q_CANVASPAINTER_EXPORT void clearRect(qreal x, qreal y, qreal width, qreal height);
     inline void clearRect(const QRectF &rect);
-    Q_CANVASPAINTER_EXPORT void strokeRect(float x, float y, float width, float height);
+    Q_CANVASPAINTER_EXPORT void strokeRect(qreal x, qreal y, qreal width, qreal height);
     inline void strokeRect(const QRectF &rect);
 
     // *** Shadows ***
@@ -198,8 +198,8 @@ public:
 
     // *** Images ***
 
-    Q_CANVASPAINTER_EXPORT void drawImage(const QCanvasImage &image, float x, float y);
-    Q_CANVASPAINTER_EXPORT void drawImage(const QCanvasImage &image, float x, float y, float width, float height);
+    Q_CANVASPAINTER_EXPORT void drawImage(const QCanvasImage &image, qreal x, qreal y);
+    Q_CANVASPAINTER_EXPORT void drawImage(const QCanvasImage &image, qreal x, qreal y, qreal width, qreal height);
     inline void drawImage(const QCanvasImage &image, const QRectF &destinationRect);
     Q_CANVASPAINTER_EXPORT void drawImage(const QCanvasImage &image, const QRectF &sourceRect, const QRectF &destinationRect);
 
@@ -210,20 +210,20 @@ public:
     Q_CANVASPAINTER_EXPORT void setTextBaseline(QCanvasPainter::TextBaseline baseline);
     Q_CANVASPAINTER_EXPORT void setTextDirection(QCanvasPainter::TextDirection direction);
     Q_CANVASPAINTER_EXPORT void setTextWrapMode(QCanvasPainter::WrapMode wrapMode);
-    Q_CANVASPAINTER_EXPORT void setTextLineHeight(float height);
-    Q_CANVASPAINTER_EXPORT void setTextAntialias(float antialias);
+    Q_CANVASPAINTER_EXPORT void setTextLineHeight(qreal height);
+    Q_CANVASPAINTER_EXPORT void setTextAntialias(qreal antialias);
 
-    Q_CANVASPAINTER_EXPORT void fillText(const QString &text, float x, float y, float maxWidth = 0);
-    inline void fillText(const QString &text, QPointF point, float maxWidth = 0);
+    Q_CANVASPAINTER_EXPORT void fillText(const QString &text, qreal x, qreal y, qreal maxWidth = 0);
+    inline void fillText(const QString &text, QPointF point, qreal maxWidth = 0);
     Q_CANVASPAINTER_EXPORT void fillText(const QString &text, const QRectF &rect);
 
-    Q_CANVASPAINTER_EXPORT QRectF textBoundingBox(const QString &text, float x, float y, float maxWidth = 0);
-    inline QRectF textBoundingBox(const QString &text, QPointF point, float maxWidth = 0);
+    Q_CANVASPAINTER_EXPORT QRectF textBoundingBox(const QString &text, qreal x, qreal y, qreal maxWidth = 0);
+    inline QRectF textBoundingBox(const QString &text, QPointF point, qreal maxWidth = 0);
     Q_CANVASPAINTER_EXPORT QRectF textBoundingBox(const QString &text, const QRectF &rect);
 
     // *** Other ***
 
-    Q_CANVASPAINTER_EXPORT void setAntialias(float antialias);
+    Q_CANVASPAINTER_EXPORT void setAntialias(qreal antialias);
     Q_CANVASPAINTER_EXPORT void setWindingEnforce(bool enabled);
     Q_CANVASPAINTER_EXPORT void setHighQualityStroking(bool enabled);
 
@@ -251,151 +251,151 @@ Q_DECLARE_OPERATORS_FOR_FLAGS(QCanvasPainter::ImageFlags)
 
 void QCanvasPainter::translate(QPointF point)
 {
-    translate(float(point.x()), float(point.y()));
+    translate(point.x(), point.y());
 }
 
 void QCanvasPainter::setClipRect(const QRectF &rect)
 {
-    setClipRect(float(rect.x()),
-                float(rect.y()),
-                float(rect.width()),
-                float(rect.height()));
+    setClipRect(rect.x(),
+                rect.y(),
+                rect.width(),
+                rect.height());
 }
 
 void QCanvasPainter::moveTo(QPointF point)
 {
-    moveTo(float(point.x()), float(point.y()));
+    moveTo(point.x(), point.y());
 }
 
 void QCanvasPainter::lineTo(QPointF point)
 {
-    lineTo(float(point.x()), float(point.y()));
+    lineTo(point.x(), point.y());
 }
 
 void QCanvasPainter::bezierCurveTo(QPointF controlPoint1, QPointF controlPoint2, QPointF endPoint)
 {
-    bezierCurveTo(float(controlPoint1.x()),
-                  float(controlPoint1.y()),
-                  float(controlPoint2.x()),
-                  float(controlPoint2.y()),
-                  float(endPoint.x()),
-                  float(endPoint.y()));
+    bezierCurveTo(controlPoint1.x(),
+                  controlPoint1.y(),
+                  controlPoint2.x(),
+                  controlPoint2.y(),
+                  endPoint.x(),
+                  endPoint.y());
 }
 
 void QCanvasPainter::quadraticCurveTo(QPointF controlPoint, QPointF endPoint)
 {
-    quadraticCurveTo(float(controlPoint.x()),
-                     float(controlPoint.y()),
-                     float(endPoint.x()),
-                     float(endPoint.y()));
+    quadraticCurveTo(controlPoint.x(),
+                     controlPoint.y(),
+                     endPoint.x(),
+                     endPoint.y());
 }
 
-void QCanvasPainter::arcTo(QPointF controlPoint1, QPointF controlPoint2, float radius)
+void QCanvasPainter::arcTo(QPointF controlPoint1, QPointF controlPoint2, qreal radius)
 {
-    arcTo(float(controlPoint1.x()),
-          float(controlPoint1.y()),
-          float(controlPoint2.x()),
-          float(controlPoint2.y()),
+    arcTo(controlPoint1.x(),
+          controlPoint1.y(),
+          controlPoint2.x(),
+          controlPoint2.y(),
           radius);
 }
 
-void QCanvasPainter::arc(QPointF centerPoint, float radius, float a0, float a1, PathWinding direction, PathConnection connection)
+void QCanvasPainter::arc(QPointF centerPoint, qreal radius, qreal a0, qreal a1, PathWinding direction, PathConnection connection)
 {
-    arc(float(centerPoint.x()),
-        float(centerPoint.y()),
+    arc(centerPoint.x(),
+        centerPoint.y(),
         radius, a0, a1, direction,
         connection);
 }
 
 void QCanvasPainter::rect(const QRectF &rect)
 {
-    this->rect(float(rect.x()),
-               float(rect.y()),
-               float(rect.width()),
-               float(rect.height()));
+    this->rect(rect.x(),
+               rect.y(),
+               rect.width(),
+               rect.height());
 }
 
-void QCanvasPainter::roundRect(const QRectF &rect, float radius)
+void QCanvasPainter::roundRect(const QRectF &rect, qreal radius)
 {
-    roundRect(float(rect.x()),
-              float(rect.y()),
-              float(rect.width()),
-              float(rect.height()),
+    roundRect(rect.x(),
+              rect.y(),
+              rect.width(),
+              rect.height(),
               radius);
 }
 
-void QCanvasPainter::roundRect(const QRectF &rect, float radiusTopLeft, float radiusTopRight, float radiusBottomRight, float radiusBottomLeft)
+void QCanvasPainter::roundRect(const QRectF &rect, qreal radiusTopLeft, qreal radiusTopRight, qreal radiusBottomRight, qreal radiusBottomLeft)
 {
-    roundRect(float(rect.x()),
-              float(rect.y()),
-              float(rect.width()),
-              float(rect.height()),
+    roundRect(rect.x(),
+              rect.y(),
+              rect.width(),
+              rect.height(),
               radiusTopLeft, radiusTopRight, radiusBottomRight, radiusBottomLeft);
 }
 
-void QCanvasPainter::ellipse(QPointF centerPoint, float radiusX, float radiusY)
+void QCanvasPainter::ellipse(QPointF centerPoint, qreal radiusX, qreal radiusY)
 {
-    ellipse(float(centerPoint.x()),
-            float(centerPoint.y()),
+    ellipse(centerPoint.x(),
+            centerPoint.y(),
             radiusX,
             radiusY);
 }
 
 void QCanvasPainter::ellipse(const QRectF &rect)
 {
-    ellipse(float(rect.x() + rect.width() * 0.5),
-            float(rect.y() + rect.height() * 0.5),
-            float(rect.width() * 0.5),
-            float(rect.height() * 0.5));
+    ellipse(rect.x() + rect.width() * 0.5,
+            rect.y() + rect.height() * 0.5,
+            rect.width() * 0.5,
+            rect.height() * 0.5);
 }
 
-void QCanvasPainter::circle(QPointF centerPoint, float radius)
+void QCanvasPainter::circle(QPointF centerPoint, qreal radius)
 {
-    circle(float(centerPoint.x()),
-           float(centerPoint.y()), radius);
+    circle(centerPoint.x(),
+           centerPoint.y(), radius);
 }
 
 void QCanvasPainter::fillRect(const QRectF &rect)
 {
-    fillRect(float(rect.x()),
-             float(rect.y()),
-             float(rect.width()),
-             float(rect.height()));
+    fillRect(rect.x(),
+             rect.y(),
+             rect.width(),
+             rect.height());
 }
 
 void QCanvasPainter::clearRect(const QRectF &rect)
 {
-    clearRect(float(rect.x()),
-              float(rect.y()),
-              float(rect.width()),
-              float(rect.height()));
+    clearRect(rect.x(),
+              rect.y(),
+              rect.width(),
+              rect.height());
 }
 
 void QCanvasPainter::strokeRect(const QRectF &rect)
 {
-    strokeRect(float(rect.x()),
-               float(rect.y()),
-               float(rect.width()),
-               float(rect.height()));
+    strokeRect(rect.x(),
+               rect.y(),
+               rect.width(),
+               rect.height());
 }
 
 void QCanvasPainter::drawImage(const QCanvasImage &image, const QRectF &destinationRect)
 {
     drawImage(image,
-              float(destinationRect.x()),
-              float(destinationRect.y()),
-              float(destinationRect.width()),
-              float(destinationRect.height()));
+              destinationRect.x(),
+              destinationRect.y(),
+              destinationRect.width(),
+              destinationRect.height());
 }
 
-void QCanvasPainter::fillText(const QString &text, QPointF point, float maxWidth)
+void QCanvasPainter::fillText(const QString &text, QPointF point, qreal maxWidth)
 {
-    fillText(text, float(point.x()), float(point.y()), maxWidth);
+    fillText(text, point.x(), point.y(), maxWidth);
 }
 
-QRectF QCanvasPainter::textBoundingBox(const QString &text, QPointF point, float maxWidth)
+QRectF QCanvasPainter::textBoundingBox(const QString &text, QPointF point, qreal maxWidth)
 {
-    return textBoundingBox(text, float(point.x()), float(point.y()), maxWidth);
+    return textBoundingBox(text, point.x(), point.y(), maxWidth);
 }
 
 QT_END_NAMESPACE

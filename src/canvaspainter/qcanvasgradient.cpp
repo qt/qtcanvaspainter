@@ -137,7 +137,7 @@ QColor QCanvasGradient::startColor() const
 
 void QCanvasGradient::setStartColor(const QColor &color)
 {
-    setColorAt(0.0f, color);
+    setColorAt(0.0, color);
 }
 
 /*!
@@ -161,7 +161,7 @@ QColor QCanvasGradient::endColor() const
 
 void QCanvasGradient::setEndColor(const QColor &color)
 {
-    setColorAt(1.0f, color);
+    setColorAt(1.0, color);
 }
 
 /*!
@@ -171,7 +171,7 @@ void QCanvasGradient::setEndColor(const QColor &color)
     \sa setStops(), stops()
 */
 
-void QCanvasGradient::setColorAt(float position, const QColor &color)
+void QCanvasGradient::setColorAt(qreal position, const QColor &color)
 {
     if (QCanvasGradientBrushPrivate::get(std::as_const(*this))->gradientStops.size()
         >= QCPAINTER_GRADIENT_MAX_STOPS) {
@@ -180,7 +180,7 @@ void QCanvasGradient::setColorAt(float position, const QColor &color)
         return;
     }
 
-    position = qBound(0.0f, position, 1.0f);
+    position = qBound(0.0, position, 1.0);
     auto *d = QCanvasGradientBrushPrivate::get(*this);
     auto &stops = d->gradientStops;
     // Add or replace stop in the correct index so that stops remains sorted.
@@ -228,7 +228,7 @@ QCanvasGradientStops QCanvasGradient::stops() const
 }
 
 /*!
-    \fn void QCanvasGradient::addColorStop(float position, const QColor &color)
+    \fn void QCanvasGradient::addColorStop(qreal position, const QColor &color)
     \since 6.12
 
     Creates a stop point at the given \a position with the given \a
@@ -320,7 +320,7 @@ void QCanvasGradient::setImage(const QCanvasImage &image, int index)
     auto *d = QCanvasGradientBrushPrivate::get(*this);
     d->imageId = image.id();
     // Y-coordinate of the texture is the middle of the pixel at index.
-    d->imageY = (index + 0.5f) / image.height();
+    d->imageY = (index + 0.5) / image.height();
     d->dirty = QCanvasGradientBrushPrivate::DirtyFlag::All;
 }
 
@@ -449,7 +449,7 @@ QDataStream &operator<<(QDataStream &s, const QCanvasGradientStop &stop)
 */
 QDataStream &operator>>(QDataStream &s, QCanvasGradientStop &stop)
 {
-    float position;
+    qreal position;
     s >> position;
     QColor color;
     s >> color;
@@ -518,19 +518,19 @@ QDataStream &operator>>(QDataStream &s, QCanvasGradient &g)
     s >> stops;
     // Gradient specifics
     if (type == QCanvasBrush::BrushType::LinearGradient) {
-        float startX, startY, endX, endY;
+        qreal startX, startY, endX, endY;
         s >> startX >> startY >> endX >> endY;
         g = QCanvasLinearGradient(startX, startY, endX, endY);
     } else if (type == QCanvasBrush::BrushType::RadialGradient) {
-        float icX, icY, iRad, ocX, ocY, oRad;
+        qreal icX, icY, iRad, ocX, ocY, oRad;
         s >> icX >> icY >> iRad >> ocX >> ocY >> oRad;
         g = QCanvasRadialGradient(icX, icY, iRad, ocX, ocY, oRad);
     } else if (type == QCanvasBrush::BrushType::ConicalGradient) {
-        float cX, cY, angle;
+        qreal cX, cY, angle;
         s >> cX >> cY >> angle;
         g = QCanvasConicalGradient(cX, cY, angle);
     } else if (type == QCanvasBrush::BrushType::BoxGradient) {
-        float x, y, w, h, feather, radius;
+        qreal x, y, w, h, feather, radius;
         s >> x >> y >> w >> h >> feather >> radius;
         QCanvasBoxGradient bg(x, y, w, h);
         bg.setFeather(feather);
@@ -548,7 +548,7 @@ QDataStream &operator>>(QDataStream &s, QCanvasGradient &g)
 QCanvasGradientBrushPrivate::QCanvasGradientBrushPrivate(QCanvasBrush::BrushType type)
     : QCanvasBrushPrivate(type)
     , imageId(0)
-    , imageY(0.5f)
+    , imageY(0.5)
     , dirty(DirtyFlag::All)
     , textureId(0)
 {
@@ -628,8 +628,8 @@ void QCanvasGradientBrushPrivate::updateGradientTexture(QCanvasPainter *painter)
             // Premultipled alpha
             QRgb c1 = qPremultiply(grad1.color.rgba());
             QRgb c2 = qPremultiply(grad2.color.rgba());
-            float o1 = std::clamp(grad1.position, 0.0f, 1.0f);
-            float o2 = std::clamp(grad2.position, 0.0f, 1.0f);
+            const float o1 = float(std::clamp(grad1.position, 0.0, 1.0));
+            const float o2 = float(std::clamp(grad2.position, 0.0, 1.0));
             gradientColorSpan(data, c1, c2, o1, o2);
         }
         // Make the first & last pixels to contain the colors

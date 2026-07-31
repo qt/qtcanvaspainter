@@ -104,7 +104,7 @@ static inline void setRendererFlags(QCPainterRhiRenderer *renderer, QCanvasRhiPa
     \overload
  */
 void QCanvasRhiPaintDriver::beginPaint(QRhiCommandBuffer *cb, QRhiRenderTarget *rt,
-                                  const QColor &fillColor, QSize logicalSize, float dpr,
+                                  const QColor &fillColor, QSize logicalSize, qreal dpr,
                                   BeginPaintFlags flags)
 {
     if (d->currentCb) {
@@ -124,7 +124,7 @@ void QCanvasRhiPaintDriver::beginPaint(QRhiCommandBuffer *cb, QRhiRenderTarget *
     } else {
         d->mainLogicalWidth = float(logicalSize.width());
         d->mainLogicalHeight = float(logicalSize.height());
-        d->mainDpr = dpr;
+        d->mainDpr = float(dpr);
     }
 
     // This is what triggers the releasing of textures for images the user

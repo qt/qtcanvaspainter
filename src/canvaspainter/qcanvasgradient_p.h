@@ -97,20 +97,24 @@ public:
     template <typename Gradient>
     static Gradient create(const QCanvasBrush &brush) { return Gradient(brush); }
 
-    // Variables specific to gradient types
+    // Variables specific to gradient types.
+    //
+    // The values are stored in qreal precision so that the public getters
+    // return exactly what was passed to the setters. They are truncated to
+    // float when the engine-side QCPaint is created.
     union QCanvasGradientData {
         QCanvasGradientData() {}
         struct {
-            float sx, sy, ex, ey;
+            qreal sx, sy, ex, ey;
         } linear;
         struct {
-            float icx, icy, iRadius, ocx, ocy, oRadius;
+            qreal icx, icy, iRadius, ocx, ocy, oRadius;
         } radial;
         struct {
-            float cx, cy, angle;
+            qreal cx, cy, angle;
         } conical;
         struct {
-            float x, y, width, height, feather, radius;
+            qreal x, y, width, height, feather, radius;
         } box;
     };
 
@@ -118,7 +122,7 @@ public:
     QCanvasGradientStops gradientStops;
     QCanvasGradientData data;
     int imageId;
-    float imageY;
+    qreal imageY;
 
     // Rendering cache, generated from the data above.
     QCPaint paint;

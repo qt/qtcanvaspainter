@@ -46,7 +46,7 @@ public:
 
     void appendCommand(QCCommand command);
     void appendCommands(const QCCommand commands[], int cCount);
-    void appendCommandsData(const float commandsData[], int dCount);
+    void appendCommandsData(const qreal commandsData[], int dCount);
     void ensureCommands(int addition);
     void ensureCommandsData(int addition);
 

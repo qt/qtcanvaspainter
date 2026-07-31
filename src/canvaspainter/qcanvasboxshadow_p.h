@@ -41,25 +41,28 @@ public:
     static QCanvasBoxShadow create(QCanvasBoxShadowPrivate *p) { return QCanvasBoxShadow(p); }
 
     QCPaint createPaint(QCanvasPainter *painter) const override;
-    void createBoxShadow(float x, float y, float width, float height,
+    void createBoxShadow(qreal x, qreal y, qreal width, qreal height,
                          const QVector4D &radius,
-                         float blur, const QColor &color) const;
+                         qreal blur, const QColor &color) const;
 
-    float clampedRadius(float radius, float width, float height) const;
+    qreal clampedRadius(qreal radius, qreal width, qreal height) const;
     QColor clampedColor() const;
 
+    // The values are stored in qreal precision so that the QCanvasBoxShadow
+    // getters return exactly what was passed to the setters. They are
+    // truncated to float when the engine-side QCPaint is created.
     QCPaint paint;
-    float x = 0.0f;
-    float y = 0.0f;
-    float width = 100.0f;
-    float height = 100.0f;
-    float radius = 0.0f;
-    float spread = 0.0f;
-    float topLeftRadius = -1.0f;
-    float topRightRadius = -1.0f;
-    float bottomLeftRadius = -1.0f;
-    float bottomRightRadius = -1.0f;
-    float blur = 0.0f;
+    qreal x = 0.0;
+    qreal y = 0.0;
+    qreal width = 100.0;
+    qreal height = 100.0;
+    qreal radius = 0.0;
+    qreal spread = 0.0;
+    qreal topLeftRadius = -1.0;
+    qreal topRightRadius = -1.0;
+    qreal bottomLeftRadius = -1.0;
+    qreal bottomRightRadius = -1.0;
+    qreal blur = 0.0;
     QColor color = QColorConstants::Black;
 
     bool changed = true;
