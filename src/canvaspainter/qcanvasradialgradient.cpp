@@ -53,7 +53,7 @@ QT_BEGIN_NAMESPACE
 */
 
 QCanvasRadialGradient::QCanvasRadialGradient()
-    : QCanvasRadialGradient(0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 100.0f)
+    : QCanvasRadialGradient(0.0, 0.0, 0.0, 0.0, 0.0, 100.0)
 {
 }
 
@@ -63,8 +63,8 @@ QCanvasRadialGradient::QCanvasRadialGradient()
     Gradient inner radius is \a innerRadius and outer radius is \a outerRadius.
 */
 
-QCanvasRadialGradient::QCanvasRadialGradient(float centerX, float centerY,
-                                             float innerRadius, float outerRadius)
+QCanvasRadialGradient::QCanvasRadialGradient(qreal centerX, qreal centerY,
+                                             qreal innerRadius, qreal outerRadius)
     : QCanvasRadialGradient(centerX, centerY, innerRadius, centerX, centerY, outerRadius)
 {
 }
@@ -76,8 +76,8 @@ QCanvasRadialGradient::QCanvasRadialGradient(float centerX, float centerY,
 */
 
 QCanvasRadialGradient::QCanvasRadialGradient(QPointF centerPosition,
-                                             float innerRadius, float outerRadius)
-    : QCanvasRadialGradient(float(centerPosition.x()), float(centerPosition.y()),
+                                             qreal innerRadius, qreal outerRadius)
+    : QCanvasRadialGradient(centerPosition.x(), centerPosition.y(),
                             innerRadius, outerRadius)
 {
 }
@@ -90,8 +90,8 @@ QCanvasRadialGradient::QCanvasRadialGradient(QPointF centerPosition,
     Gradient inner radius is \a innerRadius and outer radius is \a outerRadius.
 */
 
-QCanvasRadialGradient::QCanvasRadialGradient(float innerCenterX, float innerCenterY, float innerRadius,
-                                             float outerCenterX, float outerCenterY, float outerRadius)
+QCanvasRadialGradient::QCanvasRadialGradient(qreal innerCenterX, qreal innerCenterY, qreal innerRadius,
+                                             qreal outerCenterX, qreal outerCenterY, qreal outerRadius)
     : QCanvasGradient(QCanvasBrush::BrushType::RadialGradient)
 {
     auto &radial = QCanvasGradientBrushPrivate::get(*this)->data.radial;
@@ -111,10 +111,10 @@ QCanvasRadialGradient::QCanvasRadialGradient(float innerCenterX, float innerCent
     Gradient inner radius is \a innerRadius and outer radius is \a outerRadius.
 */
 
-QCanvasRadialGradient::QCanvasRadialGradient(QPointF innerCenterPosition, float innerRadius,
-                                             QPointF outerCenterPosition, float outerRadius)
-    : QCanvasRadialGradient(float(innerCenterPosition.x()), float(innerCenterPosition.y()), innerRadius,
-                            float(outerCenterPosition.x()), float(outerCenterPosition.y()), outerRadius)
+QCanvasRadialGradient::QCanvasRadialGradient(QPointF innerCenterPosition, qreal innerRadius,
+                                             QPointF outerCenterPosition, qreal outerRadius)
+    : QCanvasRadialGradient(innerCenterPosition.x(), innerCenterPosition.y(), innerRadius,
+                            outerCenterPosition.x(), outerCenterPosition.y(), outerRadius)
 {
 }
 
@@ -138,7 +138,7 @@ QPointF QCanvasRadialGradient::centerPosition() const
     \sa centerPosition()
 */
 
-void QCanvasRadialGradient::setCenterPosition(float x, float y)
+void QCanvasRadialGradient::setCenterPosition(qreal x, qreal y)
 {
     auto *d = QCanvasGradientBrushPrivate::get(*this);
     d->data.radial.icx = x;
@@ -168,7 +168,7 @@ QPointF QCanvasRadialGradient::innerCenterPosition() const
     \sa innerCenterPosition()
 */
 
-void QCanvasRadialGradient::setInnerCenterPosition(float x, float y)
+void QCanvasRadialGradient::setInnerCenterPosition(qreal x, qreal y)
 {
     auto *d = QCanvasGradientBrushPrivate::get(*this);
     d->data.radial.icx = x;
@@ -196,7 +196,7 @@ QPointF QCanvasRadialGradient::outerCenterPosition() const
     \sa outerCenterPosition()
 */
 
-void QCanvasRadialGradient::setOuterCenterPosition(float x, float y)
+void QCanvasRadialGradient::setOuterCenterPosition(qreal x, qreal y)
 {
     auto *d = QCanvasGradientBrushPrivate::get(*this);
     d->data.radial.ocx = x;
@@ -234,7 +234,7 @@ void QCanvasRadialGradient::setOuterCenterPosition(float x, float y)
     \sa setOuterRadius()
 */
 
-float QCanvasRadialGradient::outerRadius() const
+qreal QCanvasRadialGradient::outerRadius() const
 {
     return QCanvasGradientBrushPrivate::get(*this)->data.radial.oRadius;
 }
@@ -244,7 +244,7 @@ float QCanvasRadialGradient::outerRadius() const
     End color will be drawn at this radius from outer center position.
 */
 
-void QCanvasRadialGradient::setOuterRadius(float radius)
+void QCanvasRadialGradient::setOuterRadius(qreal radius)
 {
     auto *d = QCanvasGradientBrushPrivate::get(*this);
     d->data.radial.oRadius = radius;
@@ -256,7 +256,7 @@ void QCanvasRadialGradient::setOuterRadius(float radius)
     \sa setInnerRadius()
 */
 
-float QCanvasRadialGradient::innerRadius() const
+qreal QCanvasRadialGradient::innerRadius() const
 {
     return QCanvasGradientBrushPrivate::get(*this)->data.radial.iRadius;
 }
@@ -268,7 +268,7 @@ float QCanvasRadialGradient::innerRadius() const
     directly from inner center position.
 */
 
-void QCanvasRadialGradient::setInnerRadius(float radius)
+void QCanvasRadialGradient::setInnerRadius(qreal radius)
 {
     auto *d = QCanvasGradientBrushPrivate::get(*this);
     d->data.radial.iRadius = radius;
@@ -324,24 +324,24 @@ void QCanvasRadialGradientBrushPrivate::createRadialGradient(const QColor &iColo
         // extended type.
         p.brushType = BrushRadialGradientExtended;
         // extent used for inner center position.
-        p.extent[0] = dd.icx;
-        p.extent[1] = dd.icy;
-        p.radius = dd.iRadius;
+        p.extent[0] = float(dd.icx);
+        p.extent[1] = float(dd.icy);
+        p.radius = float(dd.iRadius);
         // feather used for outer radius.
-        p.feather = dd.oRadius;
+        p.feather = float(dd.oRadius);
     } else {
         p.brushType = BrushRadialGradient;
-        constexpr float small = 0.0001f;
-        const float r = (dd.iRadius + dd.oRadius) * 0.5f;
-        const float f = (dd.oRadius - dd.iRadius);
-        p.radius = r;
-        p.feather = qMax(small, f);
+        constexpr qreal small = 0.0001;
+        const qreal r = (dd.iRadius + dd.oRadius) * 0.5;
+        const qreal f = (dd.oRadius - dd.iRadius);
+        p.radius = float(r);
+        p.feather = float(qMax(small, f));
     }
 
     if (imageId != 0) {
         // Multistop gradient
         p.imageId = imageId;
-        p.innerColor.a = d->imageY;
+        p.innerColor.a = float(d->imageY);
     } else {
         // 2 stops gradient
         p.innerColor = { iColor.redF(), iColor.greenF(), iColor.blueF(), iColor.alphaF() };

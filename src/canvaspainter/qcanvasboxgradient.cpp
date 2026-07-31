@@ -61,7 +61,7 @@ QT_BEGIN_NAMESPACE
 */
 
 QCanvasBoxGradient::QCanvasBoxGradient()
-    : QCanvasBoxGradient(0.0f, 0.0f, 100.0f, 100.0f)
+    : QCanvasBoxGradient(0.0, 0.0, 100.0, 100.0)
 {
 }
 
@@ -73,7 +73,7 @@ QCanvasBoxGradient::QCanvasBoxGradient()
     \sa setFeather(), setRadius()
 */
 
-QCanvasBoxGradient::QCanvasBoxGradient(float x, float y, float width, float height)
+QCanvasBoxGradient::QCanvasBoxGradient(qreal x, qreal y, qreal width, qreal height)
     : QCanvasGradient(QCanvasBrush::BrushType::BoxGradient)
 {
     auto &box = QCanvasGradientBrushPrivate::get(*this)->data.box;
@@ -81,8 +81,8 @@ QCanvasBoxGradient::QCanvasBoxGradient(float x, float y, float width, float heig
     box.y = y;
     box.width = width;
     box.height = height;
-    box.feather = 10.0f;
-    box.radius = 0.0f;
+    box.feather = 10.0;
+    box.radius = 0.0;
 }
 
 /*!
@@ -110,7 +110,7 @@ QRectF QCanvasBoxGradient::rect() const
     Sets the rectangle of box gradient to position ( \a x, \a y) and size ( \a width, \a height).
 */
 
-void QCanvasBoxGradient::setRect(float x, float y, float width, float height)
+void QCanvasBoxGradient::setRect(qreal x, qreal y, qreal width, qreal height)
 {
     auto *d = QCanvasGradientBrushPrivate::get(*this);
     d->data.box.x = x;
@@ -132,7 +132,7 @@ void QCanvasBoxGradient::setRect(float x, float y, float width, float height)
     \sa setFeather()
 */
 
-float QCanvasBoxGradient::feather() const
+qreal QCanvasBoxGradient::feather() const
 {
     return QCanvasGradientBrushPrivate::get(*this)->data.box.feather;
 }
@@ -141,7 +141,7 @@ float QCanvasBoxGradient::feather() const
     Sets the feather of box gradient to \a feather.
 */
 
-void QCanvasBoxGradient::setFeather(float feather)
+void QCanvasBoxGradient::setFeather(qreal feather)
 {
     auto *d = QCanvasGradientBrushPrivate::get(*this);
     d->data.box.feather = feather;
@@ -153,7 +153,7 @@ void QCanvasBoxGradient::setFeather(float feather)
     \sa setRadius()
 */
 
-float QCanvasBoxGradient::radius() const
+qreal QCanvasBoxGradient::radius() const
 {
     return QCanvasGradientBrushPrivate::get(*this)->data.box.radius;
 }
@@ -164,7 +164,7 @@ float QCanvasBoxGradient::radius() const
     depending on which one is smaller.
 */
 
-void QCanvasBoxGradient::setRadius(float radius)
+void QCanvasBoxGradient::setRadius(qreal radius)
 {
     auto *d = QCanvasGradientBrushPrivate::get(*this);
     d->data.box.radius = radius;
@@ -214,18 +214,18 @@ void QCanvasBoxGradientBrushPrivate::createBoxGradient(const QColor &iColor, con
     const auto dd = d->data.box;
     QCPaint &p = DECONST(d)->paint;
     p.brushType = BrushBoxGradient;
-    p.transform = QTransform::fromTranslate(dd.x + (dd.width * 0.5f), dd.y + (dd.height * 0.5f));
+    p.transform = QTransform::fromTranslate(dd.x + (dd.width * 0.5), dd.y + (dd.height * 0.5));
 
-    p.extent[0] = dd.width * 0.5f;
-    p.extent[1] = dd.height * 0.5f;
+    p.extent[0] = float(dd.width * 0.5);
+    p.extent[1] = float(dd.height * 0.5);
 
-    p.radius = qMin(dd.radius, qMin(dd.width, dd.height) * 0.5f);
-    constexpr float small = 0.0001f;
-    p.feather = qMax(small, dd.feather);
+    p.radius = float(qMin(dd.radius, qMin(dd.width, dd.height) * 0.5));
+    constexpr qreal small = 0.0001;
+    p.feather = float(qMax(small, dd.feather));
     if (imageId != 0) {
         // Multistop gradient
         p.imageId = imageId;
-        p.innerColor.a = d->imageY;
+        p.innerColor.a = float(d->imageY);
     } else {
         // 2 stops gradient
         p.innerColor = { iColor.redF(), iColor.greenF(), iColor.blueF(), iColor.alphaF() };

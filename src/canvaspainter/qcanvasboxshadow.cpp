@@ -9,7 +9,7 @@
 
 QT_BEGIN_NAMESPACE
 
-static const float QCPAINTER_BOX_SHADOW_MULTIPLIER = 1.0f;
+static constexpr qreal QCPAINTER_BOX_SHADOW_MULTIPLIER = 1.0;
 
 /*!
     \class QCanvasBoxShadow
@@ -84,7 +84,7 @@ QCanvasBoxShadow::QCanvasBoxShadow()
     \sa blur(), radius()
 */
 
-QCanvasBoxShadow::QCanvasBoxShadow(float x, float y, float width, float height)
+QCanvasBoxShadow::QCanvasBoxShadow(qreal x, qreal y, qreal width, qreal height)
     : d(new QCanvasBoxShadowPrivate)
 {
     d->x = x;
@@ -211,9 +211,9 @@ QDataStream &operator<<(QDataStream &s, const QCanvasBoxShadow &p)
 
 QDataStream &operator>>(QDataStream &s, QCanvasBoxShadow &p)
 {
-    float x, y, width, height;
-    float radius, blur, spread;
-    float tlRad, trRad, blRad, brRad;
+    qreal x, y, width, height;
+    qreal radius, blur, spread;
+    qreal tlRad, trRad, blRad, brRad;
     QColor color;
     s >> x >> y >> width >> height;
     s >> radius >> blur >> spread;
@@ -258,7 +258,7 @@ QRectF QCanvasBoxShadow::rect() const
     \sa rect()
 */
 
-void QCanvasBoxShadow::setRect(float x, float y, float width, float height)
+void QCanvasBoxShadow::setRect(qreal x, qreal y, qreal width, qreal height)
 {
     detach();
     d->x = x;
@@ -283,12 +283,12 @@ void QCanvasBoxShadow::setRect(float x, float y, float width, float height)
 QRectF QCanvasBoxShadow::boundingRect() const
 {
     // Extend the rect with blur, spread and aa
-    const float aa = 1.0f;
-    const float extend = d->blur + d->spread + aa;
-    const float x = d->x - extend;
-    const float y = d->y - extend;
-    const float width = d->width + 2 * extend;
-    const float height = d->height + 2 * extend;
+    const qreal aa = 1.0;
+    const qreal extend = d->blur + d->spread + aa;
+    const qreal x = d->x - extend;
+    const qreal y = d->y - extend;
+    const qreal width = d->width + 2 * extend;
+    const qreal height = d->height + 2 * extend;
     return QRectF(x, y, width, height);
 }
 
@@ -297,7 +297,7 @@ QRectF QCanvasBoxShadow::boundingRect() const
     \sa setRadius()
 */
 
-float QCanvasBoxShadow::radius() const
+qreal QCanvasBoxShadow::radius() const
 {
     return d->radius;
 }
@@ -307,7 +307,7 @@ float QCanvasBoxShadow::radius() const
     The default value is \c 0.0 meaning no radius.
 */
 
-void QCanvasBoxShadow::setRadius(float radius)
+void QCanvasBoxShadow::setRadius(qreal radius)
 {
     detach();
     d->radius = radius;
@@ -319,7 +319,7 @@ void QCanvasBoxShadow::setRadius(float radius)
     \sa setBlur()
 */
 
-float QCanvasBoxShadow::blur() const
+qreal QCanvasBoxShadow::blur() const
 {
     return d->blur;
 }
@@ -329,7 +329,7 @@ float QCanvasBoxShadow::blur() const
     The default value is \c 0.0 meaning no blur.
 */
 
-void QCanvasBoxShadow::setBlur(float blur)
+void QCanvasBoxShadow::setBlur(qreal blur)
 {
     detach();
     d->blur = blur;
@@ -341,7 +341,7 @@ void QCanvasBoxShadow::setBlur(float blur)
     \sa setSpread()
 */
 
-float QCanvasBoxShadow::spread() const
+qreal QCanvasBoxShadow::spread() const
 {
     return d->spread;
 }
@@ -351,7 +351,7 @@ float QCanvasBoxShadow::spread() const
     The default value is \c 0.0 meaning no spread.
 */
 
-void QCanvasBoxShadow::setSpread(float spread)
+void QCanvasBoxShadow::setSpread(qreal spread)
 {
     detach();
     d->spread = spread;
@@ -387,7 +387,7 @@ void QCanvasBoxShadow::setColor(const QColor &color)
     The default value is \c -1.
 */
 
-float QCanvasBoxShadow::topLeftRadius() const
+qreal QCanvasBoxShadow::topLeftRadius() const
 {
     return d->topLeftRadius;
 }
@@ -399,7 +399,7 @@ float QCanvasBoxShadow::topLeftRadius() const
     is used instead.
 */
 
-void QCanvasBoxShadow::setTopLeftRadius(float radius)
+void QCanvasBoxShadow::setTopLeftRadius(qreal radius)
 {
     detach();
     d->topLeftRadius = radius;
@@ -413,7 +413,7 @@ void QCanvasBoxShadow::setTopLeftRadius(float radius)
     The default value is \c -1.
 */
 
-float QCanvasBoxShadow::topRightRadius() const
+qreal QCanvasBoxShadow::topRightRadius() const
 {
     return d->topRightRadius;
 }
@@ -425,7 +425,7 @@ float QCanvasBoxShadow::topRightRadius() const
     is used instead.
 */
 
-void QCanvasBoxShadow::setTopRightRadius(float radius)
+void QCanvasBoxShadow::setTopRightRadius(qreal radius)
 {
     detach();
     d->topRightRadius = radius;
@@ -439,7 +439,7 @@ void QCanvasBoxShadow::setTopRightRadius(float radius)
     The default value is \c -1.
 */
 
-float QCanvasBoxShadow::bottomLeftRadius() const
+qreal QCanvasBoxShadow::bottomLeftRadius() const
 {
     return d->bottomLeftRadius;
 }
@@ -451,7 +451,7 @@ float QCanvasBoxShadow::bottomLeftRadius() const
     is used instead.
 */
 
-void QCanvasBoxShadow::setBottomLeftRadius(float radius)
+void QCanvasBoxShadow::setBottomLeftRadius(qreal radius)
 {
     detach();
     d->bottomLeftRadius = radius;
@@ -465,7 +465,7 @@ void QCanvasBoxShadow::setBottomLeftRadius(float radius)
     The default value is \c -1.
 */
 
-float QCanvasBoxShadow::bottomRightRadius() const
+qreal QCanvasBoxShadow::bottomRightRadius() const
 {
     return d->bottomRightRadius;
 }
@@ -477,7 +477,7 @@ float QCanvasBoxShadow::bottomRightRadius() const
     is used instead.
 */
 
-void QCanvasBoxShadow::setBottomRightRadius(float radius)
+void QCanvasBoxShadow::setBottomRightRadius(qreal radius)
 {
     detach();
     d->bottomRightRadius = radius;
@@ -497,47 +497,48 @@ QCPaint QCanvasBoxShadowPrivate::createPaint(QCanvasPainter *painter) const
     auto *d = this;
     if (d->changed) {
         // TODO: Support non-antialiased shadows?
-        const float aa = 1.0f;
+        const qreal aa = 1.0;
 
         // Adjust blur to grow equally towards in & out.
-        const float blurIn = QCPAINTER_BOX_SHADOW_MULTIPLIER * d->blur + 0.5 * aa;
-        const float blurOut = 2 * QCPAINTER_BOX_SHADOW_MULTIPLIER * d->blur + aa;
+        const qreal blurIn = QCPAINTER_BOX_SHADOW_MULTIPLIER * d->blur + 0.5 * aa;
+        const qreal blurOut = 2 * QCPAINTER_BOX_SHADOW_MULTIPLIER * d->blur + aa;
 
-        float extendX = d->spread - blurIn;
-        float extendY = d->spread - blurIn;
+        qreal extendX = d->spread - blurIn;
+        qreal extendY = d->spread - blurIn;
 
         // Limit max extends when width & height are < 0.
         // This reduces rendering issues of thin rects with big blur
         // values being to sharp at center (smoothstep is clipped),
         // but causes some extra blurriness to those.
-        if (extendX <  -0.5f * d->width) {
-            float diff = extendX + 0.5f * d->width;
+        if (extendX <  -0.5 * d->width) {
+            const qreal diff = extendX + 0.5 * d->width;
             extendX -= 0.25 * diff;
         }
-        if (extendY <  -0.5f * d->height) {
-            float diff = extendY + 0.5f * d->height;
+        if (extendY <  -0.5 * d->height) {
+            const qreal diff = extendY + 0.5 * d->height;
             extendY -= 0.25 * diff;
         }
 
-        float x = d->x - extendX;
-        float y = d->y - extendY;
-        float width = d->width + 2 * extendX;
-        float height = d->height + 2 * extendY;
+        const qreal x = d->x - extendX;
+        const qreal y = d->y - extendY;
+        const qreal width = d->width + 2 * extendX;
+        const qreal height = d->height + 2 * extendY;
 
         QColor color = d->clampedColor();
 
         // Use adjusted width & height extended with blur & spread.
-        float commonRadius = d->clampedRadius(d->radius, width, height);
+        // QVector4D is float-based, so the corner radii are truncated here.
+        const float commonRadius = float(d->clampedRadius(d->radius, width, height));
         QVector4D radius { commonRadius, commonRadius, commonRadius, commonRadius };
 
         if (d->topLeftRadius >= 0)
-            radius.setX(d->clampedRadius(d->topLeftRadius, width, height));
+            radius.setX(float(d->clampedRadius(d->topLeftRadius, width, height)));
         if (d->topRightRadius >= 0)
-            radius.setY(d->clampedRadius(d->topRightRadius, width, height));
+            radius.setY(float(d->clampedRadius(d->topRightRadius, width, height)));
         if (d->bottomLeftRadius >= 0)
-            radius.setZ(d->clampedRadius(d->bottomLeftRadius, width, height));
+            radius.setZ(float(d->clampedRadius(d->bottomLeftRadius, width, height)));
         if (d->bottomRightRadius >= 0)
-            radius.setW(d->clampedRadius(d->bottomRightRadius, width, height));
+            radius.setW(float(d->clampedRadius(d->bottomRightRadius, width, height)));
 
         createBoxShadow(x, y, width, height, radius, blurOut, color);
 
@@ -547,22 +548,24 @@ QCPaint QCanvasBoxShadowPrivate::createPaint(QCanvasPainter *painter) const
     return d->paint;
 }
 
-void QCanvasBoxShadowPrivate::createBoxShadow(float x, float y, float width, float height,
+void QCanvasBoxShadowPrivate::createBoxShadow(qreal x, qreal y, qreal width, qreal height,
                                   const QVector4D &radius,
-                                  float blur, const QColor &color) const
+                                  qreal blur, const QColor &color) const
 {
+    // QCPaint is the engine-side representation, so the values are
+    // truncated to float here.
     QCPaint &p = const_cast<QCanvasBoxShadowPrivate *>(this)->paint;
     p.brushType = BrushBoxShadow;
 
-    p.transform = QTransform::fromTranslate(x + (width * 0.5f), y + (height * 0.5f));
+    p.transform = QTransform::fromTranslate(x + (width * 0.5), y + (height * 0.5));
 
-    p.extent[0] = width * 0.5f;
-    p.extent[1] = height * 0.5f;
+    p.extent[0] = float(width * 0.5);
+    p.extent[1] = float(height * 0.5);
 
     // Unused, individual corner radius in outerColor
     //p.radius = radius;
 
-    p.feather = blur;
+    p.feather = float(blur);
 
     p.innerColor = { color.redF(), color.greenF(), color.blueF(), color.alphaF() };
     p.outerColor = { radius.x(), radius.y(), radius.z(), radius.w() };
@@ -574,19 +577,19 @@ QCanvasBrushPrivate *QCanvasBoxShadowPrivate::clone()
     return new QCanvasBoxShadowPrivate(*this);
 }
 
-float QCanvasBoxShadowPrivate::clampedRadius(float rad, float width, float height) const
+qreal QCanvasBoxShadowPrivate::clampedRadius(qreal rad, qreal width, qreal height) const
 {
-    float maxRadius = qMin(width, height) * 0.5f;
-    float spreadRadius = rad + spread;
+    const qreal maxRadius = qMin(width, height) * 0.5;
+    qreal spreadRadius = rad + spread;
     if (radius < spread && !qFuzzyIsNull(spread)) {
         // CSS box-shadow has a specific math to calculate radius with spread
         // https://www.w3.org/TR/css-backgrounds-3/#shadow-shape
         // "the spread distance is first multiplied by the proportion 1 + (r-1)^3,
         // where r is the ratio of the border radius to the spread distance".
-        float r = (rad / spread) - 1;
+        const qreal r = (rad / spread) - 1;
         spreadRadius = rad + spread * (1 + r * r * r);
     }
-    spreadRadius = qMax(0.0f, spreadRadius);
+    spreadRadius = qMax(0.0, spreadRadius);
     return qMin(spreadRadius, maxRadius);
 }
 
@@ -595,10 +598,10 @@ float QCanvasBoxShadowPrivate::clampedRadius(float rad, float width, float heigh
 QColor QCanvasBoxShadowPrivate::clampedColor() const
 {
     QColor c = color;
-    const float minSize = qMin(width + 2 * spread, height + 2 * spread);
-    const float blurTreshold = minSize * 0.5f * QCPAINTER_BOX_SHADOW_MULTIPLIER;
+    const qreal minSize = qMin(width + 2 * spread, height + 2 * spread);
+    const qreal blurTreshold = minSize * 0.5 * QCPAINTER_BOX_SHADOW_MULTIPLIER;
     if (blur > blurTreshold) {
-        float fade = blurTreshold / blur;
+        const qreal fade = blurTreshold / blur;
         c.setAlphaF(color.alphaF() * fade);
     }
     return c;

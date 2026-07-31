@@ -250,7 +250,7 @@ qsizetype QCanvasImage::sizeInBytes() const
 
     \sa QImage
 */
-float QCanvasImage::devicePixelRatio() const
+qreal QCanvasImage::devicePixelRatio() const
 {
     return d->devicePixelRatio;
 }
@@ -306,7 +306,7 @@ QCanvasImagePrivate::QCanvasImagePrivate()
     : id(0)
     , width(0)
     , height(0)
-    , devicePixelRatio(1.0f)
+    , devicePixelRatio(1.0)
     , type(DataType::Unknown)
     , sizeInBytes(0)
     , tintColor(QColorConstants::White)

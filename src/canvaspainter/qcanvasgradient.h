@@ -18,7 +18,7 @@ class QCanvasGradientBrushPrivate;
 
 struct QCanvasGradientStop
 {
-    float position;
+    qreal position;
     QColor color;
 
 private:
@@ -60,11 +60,11 @@ public:
     Q_CANVASPAINTER_EXPORT void setStartColor(const QColor &color);
     Q_CANVASPAINTER_EXPORT QColor endColor() const;
     Q_CANVASPAINTER_EXPORT void setEndColor(const QColor &color);
-    Q_CANVASPAINTER_EXPORT void setColorAt(float position, const QColor &color);
+    Q_CANVASPAINTER_EXPORT void setColorAt(qreal position, const QColor &color);
     Q_CANVASPAINTER_EXPORT void setStops(const QCanvasGradientStops &stops);
     Q_CANVASPAINTER_EXPORT QCanvasGradientStops stops() const;
     Q_CANVASPAINTER_EXPORT void setImage(const QCanvasImage &image, int index = 0);
-    void addColorStop(float position, const QColor &color)
+    void addColorStop(qreal position, const QColor &color)
     {
         setColorAt(position, color);
     }

@@ -219,10 +219,10 @@ QCanvasPainter *QCanvasPainterItemRenderer::painter() const
     \l{QQuickItem::}{width}, unless \l QQuickRhiItem::fixedColorBufferWidth has
     been set.
 */
-float QCanvasPainterItemRenderer::width() const
+qreal QCanvasPainterItemRenderer::width() const
 {
     Q_D(const QCanvasPainterItemRenderer);
-    return float(d->m_itemData.width);
+    return d->m_itemData.width;
 }
 
 /*!
@@ -232,10 +232,10 @@ float QCanvasPainterItemRenderer::width() const
     \l{QQuickItem::}{height}, unless \l QQuickRhiItem::fixedColorBufferHeight has
     been set.
 */
-float QCanvasPainterItemRenderer::height() const
+qreal QCanvasPainterItemRenderer::height() const
 {
     Q_D(const QCanvasPainterItemRenderer);
-    return float(d->m_itemData.height);
+    return d->m_itemData.height;
 }
 
 /*!
@@ -393,7 +393,7 @@ void QCanvasPainterItemRenderer::render(QRhiCommandBuffer *cb)
             // This will show the numbers from the previous frame, because
             // m_debugCounters only gets the new numbers from the above prePaint()
             // and paint() once the content is rendered in endPaint()...
-            d->m_debugVis.paint(painter, width(), height(), d->m_debugCounters);
+            d->m_debugVis.paint(painter, float(width()), float(height()), d->m_debugCounters);
             // ...so make it render continously to remedy this.
             update();
         }

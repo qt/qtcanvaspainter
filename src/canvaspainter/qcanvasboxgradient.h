@@ -17,10 +17,9 @@ class QCanvasBoxGradient : public QCanvasGradient
 {
 public:
     Q_CANVASPAINTER_EXPORT QCanvasBoxGradient();
-    Q_CANVASPAINTER_EXPORT QCanvasBoxGradient(float x, float y, float width, float height);
+    Q_CANVASPAINTER_EXPORT QCanvasBoxGradient(qreal x, qreal y, qreal width, qreal height);
     QCanvasBoxGradient(const QRectF &rect)
-        : QCanvasBoxGradient(float(rect.x()), float(rect.y()),
-                             float(rect.width()), float(rect.height()))
+        : QCanvasBoxGradient(rect.x(), rect.y(), rect.width(), rect.height())
     {}
     QCanvasBoxGradient(const QCanvasBoxGradient &) = default;
     QCanvasBoxGradient &operator=(const QCanvasBoxGradient &) = default;
@@ -29,12 +28,12 @@ public:
     ~QCanvasBoxGradient() = default;
 
     Q_CANVASPAINTER_EXPORT QRectF rect() const;
-    Q_CANVASPAINTER_EXPORT void setRect(float x, float y, float width, float height);
+    Q_CANVASPAINTER_EXPORT void setRect(qreal x, qreal y, qreal width, qreal height);
     inline void setRect(const QRectF &rect);
-    Q_CANVASPAINTER_EXPORT float feather() const;
-    Q_CANVASPAINTER_EXPORT void setFeather(float feather);
-    Q_CANVASPAINTER_EXPORT float radius() const;
-    Q_CANVASPAINTER_EXPORT void setRadius(float radius);
+    Q_CANVASPAINTER_EXPORT qreal feather() const;
+    Q_CANVASPAINTER_EXPORT void setFeather(qreal feather);
+    Q_CANVASPAINTER_EXPORT qreal radius() const;
+    Q_CANVASPAINTER_EXPORT void setRadius(qreal radius);
 
 private:
     explicit QCanvasBoxGradient(const QCanvasBrush &brush) : QCanvasGradient(brush) {}
@@ -44,7 +43,7 @@ private:
 
 void QCanvasBoxGradient::setRect(const QRectF &rect)
 {
-    setRect(float(rect.x()), float(rect.y()), float(rect.width()), float(rect.height()));
+    setRect(rect.x(), rect.y(), rect.width(), rect.height());
 }
 
 template<> Q_CANVASPAINTER_EXPORT QCanvasBoxGradient QCanvasBrush::as<QCanvasBoxGradient>() const;

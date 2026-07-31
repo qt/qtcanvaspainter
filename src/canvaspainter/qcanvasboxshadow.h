@@ -26,10 +26,9 @@ class QCanvasBoxShadow
 {
 public:
     Q_CANVASPAINTER_EXPORT QCanvasBoxShadow();
-    Q_CANVASPAINTER_EXPORT QCanvasBoxShadow(float x, float y, float width, float height);
+    Q_CANVASPAINTER_EXPORT QCanvasBoxShadow(qreal x, qreal y, qreal width, qreal height);
     explicit QCanvasBoxShadow(const QRectF &rect)
-        : QCanvasBoxShadow(float(rect.x()), float(rect.y()),
-                           float(rect.width()), float(rect.height()))
+        : QCanvasBoxShadow(rect.x(), rect.y(), rect.width(), rect.height())
     {}
     Q_CANVASPAINTER_EXPORT QCanvasBoxShadow(const QCanvasBoxShadow &);
     Q_CANVASPAINTER_EXPORT QCanvasBoxShadow &operator=(const QCanvasBoxShadow &);
@@ -42,25 +41,25 @@ public:
 
     Q_CANVASPAINTER_EXPORT QRectF rect() const;
     inline void setRect(const QRectF &rect);
-    Q_CANVASPAINTER_EXPORT void setRect(float x, float y, float width, float height);
+    Q_CANVASPAINTER_EXPORT void setRect(qreal x, qreal y, qreal width, qreal height);
     Q_CANVASPAINTER_EXPORT QRectF boundingRect() const;
-    Q_CANVASPAINTER_EXPORT float radius() const;
-    Q_CANVASPAINTER_EXPORT void setRadius(float radius);
-    Q_CANVASPAINTER_EXPORT float blur() const;
-    Q_CANVASPAINTER_EXPORT void setBlur(float blur);
-    Q_CANVASPAINTER_EXPORT float spread() const;
-    Q_CANVASPAINTER_EXPORT void setSpread(float spread);
+    Q_CANVASPAINTER_EXPORT qreal radius() const;
+    Q_CANVASPAINTER_EXPORT void setRadius(qreal radius);
+    Q_CANVASPAINTER_EXPORT qreal blur() const;
+    Q_CANVASPAINTER_EXPORT void setBlur(qreal blur);
+    Q_CANVASPAINTER_EXPORT qreal spread() const;
+    Q_CANVASPAINTER_EXPORT void setSpread(qreal spread);
     Q_CANVASPAINTER_EXPORT QColor color() const;
     Q_CANVASPAINTER_EXPORT void setColor(const QColor &color);
 
-    Q_CANVASPAINTER_EXPORT float topLeftRadius() const;
-    Q_CANVASPAINTER_EXPORT void setTopLeftRadius(float radius);
-    Q_CANVASPAINTER_EXPORT float topRightRadius() const;
-    Q_CANVASPAINTER_EXPORT void setTopRightRadius(float radius);
-    Q_CANVASPAINTER_EXPORT float bottomLeftRadius() const;
-    Q_CANVASPAINTER_EXPORT void setBottomLeftRadius(float radius);
-    Q_CANVASPAINTER_EXPORT float bottomRightRadius() const;
-    Q_CANVASPAINTER_EXPORT void setBottomRightRadius(float radius);
+    Q_CANVASPAINTER_EXPORT qreal topLeftRadius() const;
+    Q_CANVASPAINTER_EXPORT void setTopLeftRadius(qreal radius);
+    Q_CANVASPAINTER_EXPORT qreal topRightRadius() const;
+    Q_CANVASPAINTER_EXPORT void setTopRightRadius(qreal radius);
+    Q_CANVASPAINTER_EXPORT qreal bottomLeftRadius() const;
+    Q_CANVASPAINTER_EXPORT void setBottomLeftRadius(qreal radius);
+    Q_CANVASPAINTER_EXPORT qreal bottomRightRadius() const;
+    Q_CANVASPAINTER_EXPORT void setBottomRightRadius(qreal radius);
     void swap(QCanvasBoxShadow &other) noexcept { d.swap(other.d); }
 
 private:
@@ -86,7 +85,7 @@ private:
 
 void QCanvasBoxShadow::setRect(const QRectF &rect)
 {
-    setRect(float(rect.x()), float(rect.y()), float(rect.width()), float(rect.height()));
+    setRect(rect.x(), rect.y(), rect.width(), rect.height());
 }
 
 template<> Q_CANVASPAINTER_EXPORT QCanvasBoxShadow QCanvasBrush::as<QCanvasBoxShadow>() const;

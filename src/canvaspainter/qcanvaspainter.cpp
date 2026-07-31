@@ -657,10 +657,10 @@ void QCanvasPainter::setFillStyle(const QCanvasBrush &brush)
     \sa setLineJoin()
 */
 
-void QCanvasPainter::setMiterLimit(float limit)
+void QCanvasPainter::setMiterLimit(qreal limit)
 {
     Q_D(QCanvasPainter);
-    d->m_e->setMiterLimit(limit);
+    d->m_e->setMiterLimit(float(limit));
 }
 
 /*!
@@ -690,10 +690,10 @@ void QCanvasPainter::setMiterLimit(float limit)
     \sa stroke()
 */
 
-void QCanvasPainter::setLineWidth(float width)
+void QCanvasPainter::setLineWidth(qreal width)
 {
     Q_D(QCanvasPainter);
-    d->m_e->setLineWidth(width);
+    d->m_e->setLineWidth(float(width));
 }
 
 /*!
@@ -777,8 +777,8 @@ void QCanvasPainter::setLineJoin(LineJoin join)
     QCanvasImage image = p->addImage(logo);
     p->setFillStyle("#d9f720");
     for (int i = 0; i < 4; i++) {
-        float x = 100 * (i % 2);
-        float y = 100 * (i / 2);
+        qreal x = 100 * (i % 2);
+        qreal y = 100 * (i / 2);
         QRectF rect(x, y, 100, 100);
         p->setGlobalAlpha(1.0 - i * 0.3);
         p->fillRect(rect);
@@ -788,10 +788,10 @@ void QCanvasPainter::setLineJoin(LineJoin join)
     \endtable
 */
 
-void QCanvasPainter::setGlobalAlpha(float alpha)
+void QCanvasPainter::setGlobalAlpha(qreal alpha)
 {
     Q_D(QCanvasPainter);
-    d->m_e->setGlobalAlpha(alpha);
+    d->m_e->setGlobalAlpha(float(alpha));
 }
 
 /*!
@@ -815,7 +815,7 @@ void QCanvasPainter::setGlobalAlpha(float alpha)
     for (int i = 0; i < modes.size(); i++) {
         // First item - SourceOver mode
         p->setGlobalCompositeOperation(QCanvasPainter::CompositeOperation::SourceOver);
-        float y = 5 + i * 65;
+        qreal y = 5 + i * 65;
         p->setFillStyle("#D9F720");
         p->fillRect(20, y, 140, 40);
         // Second item - Different modes
@@ -854,8 +854,8 @@ void QCanvasPainter::setGlobalCompositeOperation(CompositeOperation operation)
     QCanvasImage image = p->addImage(logo);
     p->setFillStyle("#d9f720");
     for (int i = 0; i < 4; i++) {
-        float x = 100 * (i % 2);
-        float y = 100 * (i / 2);
+        qreal x = 100 * (i % 2);
+        qreal y = 100 * (i / 2);
         QRectF rect(x, y, 100, 100);
         p->setGlobalBrightness(1.5 - i * 0.45);
         p->fillRect(rect);
@@ -865,10 +865,10 @@ void QCanvasPainter::setGlobalCompositeOperation(CompositeOperation operation)
     \endtable
 */
 
-void QCanvasPainter::setGlobalBrightness(float value)
+void QCanvasPainter::setGlobalBrightness(qreal value)
 {
     Q_D(QCanvasPainter);
-    d->m_e->setGlobalBrightness(value);
+    d->m_e->setGlobalBrightness(float(value));
 }
 
 /*!
@@ -888,8 +888,8 @@ void QCanvasPainter::setGlobalBrightness(float value)
     QCanvasImage image = p->addImage(logo);
     p->setFillStyle("#d9f720");
     for (int i = 0; i < 4; i++) {
-        float x = 100 * (i % 2);
-        float y = 100 * (i / 2);
+        qreal x = 100 * (i % 2);
+        qreal y = 100 * (i / 2);
         QRectF rect(x, y, 100, 100);
         p->setGlobalContrast(1.5 - i * 0.45);
         p->fillRect(rect);
@@ -899,10 +899,10 @@ void QCanvasPainter::setGlobalBrightness(float value)
     \endtable
 */
 
-void QCanvasPainter::setGlobalContrast(float value)
+void QCanvasPainter::setGlobalContrast(qreal value)
 {
     Q_D(QCanvasPainter);
-    d->m_e->setGlobalContrast(value);
+    d->m_e->setGlobalContrast(float(value));
 }
 
 /*!
@@ -922,8 +922,8 @@ void QCanvasPainter::setGlobalContrast(float value)
     QCanvasImage image = p->addImage(logo);
     p->setFillStyle("#d9f720");
     for (int i = 0; i < 4; i++) {
-        float x = 100 * (i % 2);
-        float y = 100 * (i / 2);
+        qreal x = 100 * (i % 2);
+        qreal y = 100 * (i / 2);
         QRectF rect(x, y, 100, 100);
         p->setGlobalSaturation(1.5 - i * 0.5);
         p->fillRect(rect);
@@ -933,10 +933,10 @@ void QCanvasPainter::setGlobalContrast(float value)
     \endtable
 */
 
-void QCanvasPainter::setGlobalSaturation(float value)
+void QCanvasPainter::setGlobalSaturation(qreal value)
 {
     Q_D(QCanvasPainter);
-    d->m_e->setGlobalSaturation(value);
+    d->m_e->setGlobalSaturation(float(value));
 }
 
 /*!
@@ -1072,10 +1072,10 @@ void QCanvasPainter::transform(const QTransform &transform)
     \endtable
 */
 
-void QCanvasPainter::translate(float x, float y)
+void QCanvasPainter::translate(qreal x, qreal y)
 {
     Q_D(QCanvasPainter);
-    d->m_e->translate(x, y);
+    d->m_e->translate(float(x), float(y));
 }
 
 /*!
@@ -1111,10 +1111,10 @@ void QCanvasPainter::translate(float x, float y)
     \endtable
 */
 
-void QCanvasPainter::rotate(float angle)
+void QCanvasPainter::rotate(qreal angle)
 {
     Q_D(QCanvasPainter);
-    d->m_e->rotate(angle);
+    d->m_e->rotate(float(angle));
 }
 
 /*!
@@ -1140,10 +1140,10 @@ void QCanvasPainter::rotate(float angle)
     \endtable
 */
 
-void QCanvasPainter::skew(float angleX, float angleY)
+void QCanvasPainter::skew(qreal angleX, qreal angleY)
 {
     Q_D(QCanvasPainter);
-    d->m_e->skew(angleX, angleY);
+    d->m_e->skew(float(angleX), float(angleY));
 }
 
 /*!
@@ -1169,10 +1169,10 @@ void QCanvasPainter::skew(float angleX, float angleY)
     \endtable
 */
 
-void QCanvasPainter::scale(float scale)
+void QCanvasPainter::scale(qreal scale)
 {
     Q_D(QCanvasPainter);
-    d->m_e->scale(scale, scale);
+    d->m_e->scale(float(scale), float(scale));
 }
 
 /*!
@@ -1181,10 +1181,10 @@ void QCanvasPainter::scale(float scale)
     Scales the current coordinate system by \a scaleX and \a scaleY.
 */
 
-void QCanvasPainter::scale(float scaleX, float scaleY)
+void QCanvasPainter::scale(qreal scaleX, qreal scaleY)
 {
     Q_D(QCanvasPainter);
-    d->m_e->scale(scaleX, scaleY);
+    d->m_e->scale(float(scaleX), float(scaleY));
 }
 
 /*!
@@ -1239,7 +1239,7 @@ void QCanvasPainterPrivate::setBrushTransform(const QTransform &transform)
     \sa resetClipping()
 */
 
-void QCanvasPainter::setClipRect(float x, float y, float width, float height)
+void QCanvasPainter::setClipRect(qreal x, qreal y, qreal width, qreal height)
 {
     Q_D(QCanvasPainter);
     d->m_e->setClipRect(QRectF(x, y, width, height));
@@ -1294,10 +1294,10 @@ void QCanvasPainter::closePath()
     Starts a new sub-path with ( \a x, \a y) as the first point.
 */
 
-void QCanvasPainter::moveTo(float x, float y)
+void QCanvasPainter::moveTo(qreal x, qreal y)
 {
     Q_D(QCanvasPainter);
-    d->m_e->moveTo(x, y);
+    d->m_e->moveTo(float(x), float(y));
 }
 
 /*!
@@ -1324,10 +1324,10 @@ void QCanvasPainter::moveTo(float x, float y)
     \endtable
 */
 
-void QCanvasPainter::lineTo(float x, float y)
+void QCanvasPainter::lineTo(qreal x, qreal y)
 {
     Q_D(QCanvasPainter);
-    d->m_e->lineTo(x, y);
+    d->m_e->lineTo(float(x), float(y));
 }
 
 /*!
@@ -1354,10 +1354,10 @@ void QCanvasPainter::lineTo(float x, float y)
     \endtable
 */
 
-void QCanvasPainter::bezierCurveTo(float cp1X, float cp1Y, float cp2X, float cp2Y, float x, float y)
+void QCanvasPainter::bezierCurveTo(qreal cp1X, qreal cp1Y, qreal cp2X, qreal cp2Y, qreal x, qreal y)
 {
     Q_D(QCanvasPainter);
-    d->m_e->bezierTo(cp1X, cp1Y, cp2X, cp2Y, x, y);
+    d->m_e->bezierTo(float(cp1X), float(cp1Y), float(cp2X), float(cp2Y), float(x), float(y));
 }
 
 /*!
@@ -1387,10 +1387,10 @@ void QCanvasPainter::bezierCurveTo(float cp1X, float cp1Y, float cp2X, float cp2
     \endtable
 */
 
-void QCanvasPainter::quadraticCurveTo(float cpX, float cpY, float x, float y)
+void QCanvasPainter::quadraticCurveTo(qreal cpX, qreal cpY, qreal x, qreal y)
 {
     Q_D(QCanvasPainter);
-    d->m_e->quadTo(cpX, cpY, x, y);
+    d->m_e->quadTo(float(cpX), float(cpY), float(x), float(y));
 }
 
 /*!
@@ -1422,14 +1422,14 @@ void QCanvasPainter::quadraticCurveTo(float cpX, float cpY, float x, float y)
     \endtable
 */
 
-void QCanvasPainter::arcTo(float x1, float y1, float x2, float y2, float radius)
+void QCanvasPainter::arcTo(qreal x1, qreal y1, qreal x2, qreal y2, qreal radius)
 {
     Q_D(QCanvasPainter);
-    d->m_e->arcTo(x1, y1, x2, y2, radius);
+    d->m_e->arcTo(float(x1), float(y1), float(x2), float(y2), float(radius));
 }
 
 /*!
-    \fn void QCanvasPainter::arcTo(QPointF controlPoint1, QPointF controlPoint2, float radius)
+    \fn void QCanvasPainter::arcTo(QPointF controlPoint1, QPointF controlPoint2, qreal radius)
     \overload
 
     Adds an arc segment at the corner defined by the last path point,
@@ -1465,15 +1465,16 @@ void QCanvasPainter::arcTo(float x1, float y1, float x2, float y2, float radius)
     QCanvasPainter it is recommended to use \l circle() or \l ellipse() for those.
 */
 
-void QCanvasPainter::arc(float centerX, float centerY, float radius, float a0, float a1, PathWinding direction, PathConnection connection)
+void QCanvasPainter::arc(qreal centerX, qreal centerY, qreal radius, qreal a0, qreal a1, PathWinding direction, PathConnection connection)
 {
     Q_D(QCanvasPainter);
     const bool isConnected = connection == PathConnection::Connected;
-    d->m_e->addArc(centerX, centerY, radius, a0, a1, direction, isConnected);
+    d->m_e->addArc(float(centerX), float(centerY), float(radius), float(a0), float(a1),
+                   direction, isConnected);
 }
 
 /*!
-    \fn void QCanvasPainter::arc(QPointF centerPoint, float radius, float a0, float a1, PathWinding direction, PathConnection connection)
+    \fn void QCanvasPainter::arc(QPointF centerPoint, qreal radius, qreal a0, qreal a1, PathWinding direction, PathConnection connection)
     \overload
 
     Creates a new circle arc shaped sub-path. The arc center is at \a centerPoint,
@@ -1504,7 +1505,7 @@ void QCanvasPainter::arc(float centerX, float centerY, float radius, float a0, f
     \endtable
 */
 
-void QCanvasPainter::rect(float x, float y, float width, float height)
+void QCanvasPainter::rect(qreal x, qreal y, qreal width, qreal height)
 {
     Q_D(QCanvasPainter);
     d->m_e->addRect(x, y, width, height);
@@ -1535,14 +1536,14 @@ void QCanvasPainter::rect(float x, float y, float width, float height)
     \endtable
 */
 
-void QCanvasPainter::roundRect(float x, float y, float width, float height, float radius)
+void QCanvasPainter::roundRect(qreal x, qreal y, qreal width, qreal height, qreal radius)
 {
     Q_D(QCanvasPainter);
-    d->m_e->addRoundRect(x, y, width, height, radius);
+    d->m_e->addRoundRect(float(x), float(y), float(width), float(height), float(radius));
 }
 
 /*!
-    \fn void QCanvasPainter::roundRect(const QRectF &rect, float radius)
+    \fn void QCanvasPainter::roundRect(const QRectF &rect, qreal radius)
     \overload
 
     Creates a new rounded rectangle shaped sub-path at \a rect with \a radius corners.
@@ -1571,14 +1572,16 @@ void QCanvasPainter::roundRect(float x, float y, float width, float height, floa
     \endtable
 */
 
-void QCanvasPainter::roundRect(float x, float y, float width, float height, float radiusTopLeft, float radiusTopRight, float radiusBottomRight, float radiusBottomLeft)
+void QCanvasPainter::roundRect(qreal x, qreal y, qreal width, qreal height, qreal radiusTopLeft, qreal radiusTopRight, qreal radiusBottomRight, qreal radiusBottomLeft)
 {
     Q_D(QCanvasPainter);
-    d->m_e->addRoundRect(x, y, width, height, radiusTopLeft, radiusTopRight, radiusBottomRight, radiusBottomLeft);
+    d->m_e->addRoundRect(float(x), float(y), float(width), float(height),
+                         float(radiusTopLeft), float(radiusTopRight),
+                         float(radiusBottomRight), float(radiusBottomLeft));
 }
 
 /*!
-    \fn void QCanvasPainter::roundRect(const QRectF &rect, float radiusTopLeft, float radiusTopRight, float radiusBottomRight, float radiusBottomLeft)
+    \fn void QCanvasPainter::roundRect(const QRectF &rect, qreal radiusTopLeft, qreal radiusTopRight, qreal radiusBottomRight, qreal radiusBottomLeft)
     \overload
 
     Creates a new rounded rectangle shaped sub-path at \a rect. Corners rounding can be
@@ -1602,14 +1605,14 @@ void QCanvasPainter::roundRect(float x, float y, float width, float height, floa
     \endtable
 */
 
-void QCanvasPainter::ellipse(float centerX, float centerY, float radiusX, float radiusY)
+void QCanvasPainter::ellipse(qreal centerX, qreal centerY, qreal radiusX, qreal radiusY)
 {
     Q_D(QCanvasPainter);
-    d->m_e->addEllipse(centerX, centerY, radiusX, radiusY);
+    d->m_e->addEllipse(float(centerX), float(centerY), float(radiusX), float(radiusY));
 }
 
 /*!
-    \fn void QCanvasPainter::ellipse(QPointF centerPoint, float radiusX, float radiusY)
+    \fn void QCanvasPainter::ellipse(QPointF centerPoint, qreal radiusX, qreal radiusY)
     \overload
 
     Creates a new ellipse shaped sub-path centered at \a centerPoint with \a radiusX and \a radiusY.
@@ -1652,14 +1655,14 @@ void QCanvasPainter::ellipse(float centerX, float centerY, float radiusX, float 
     \endtable
 */
 
-void QCanvasPainter::circle(float centerX, float centerY, float radius)
+void QCanvasPainter::circle(qreal centerX, qreal centerY, qreal radius)
 {
     Q_D(QCanvasPainter);
-    d->m_e->addCircle(centerX, centerY, radius);
+    d->m_e->addCircle(float(centerX), float(centerY), float(radius));
 }
 
 /*!
-    \fn void QCanvasPainter::circle(QPointF centerPoint, float radius)
+    \fn void QCanvasPainter::circle(QPointF centerPoint, qreal radius)
     \overload
 
     Creates a new circle shaped sub-path centered at \a centerPoint with \a radius.
@@ -1909,7 +1912,7 @@ void QCanvasPainter::stroke()
     // m_path is QCanvasPath
     if (m_path.isEmpty()) {
         for (int i = 0; i < 16; i++) {
-            float w = 100 + 60 * sin(i);
+            qreal w = 100 + 60 * sin(i);
             m_path.rect(100 - w * 0.5,
                         22 + i * 10,
                         w, 6);
@@ -2032,7 +2035,7 @@ void QCanvasPainterPrivate::setStencilClip(const QVectorPath &clipPath)
     \endtable
 */
 
-void QCanvasPainter::fillRect(float x, float y, float width, float height)
+void QCanvasPainter::fillRect(qreal x, qreal y, qreal width, qreal height)
 {
     Q_D(QCanvasPainter);
     d->m_e->beginPath();
@@ -2069,7 +2072,7 @@ void QCanvasPainter::fillRect(float x, float y, float width, float height)
     \endtable
 */
 
-void QCanvasPainter::clearRect(float x, float y, float width, float height)
+void QCanvasPainter::clearRect(qreal x, qreal y, qreal width, qreal height)
 {
     Q_D(QCanvasPainter);
     d->m_e->beginPath();
@@ -2105,7 +2108,7 @@ void QCanvasPainter::clearRect(float x, float y, float width, float height)
     \endtable
 */
 
-void QCanvasPainter::strokeRect(float x, float y, float width, float height)
+void QCanvasPainter::strokeRect(qreal x, qreal y, qreal width, qreal height)
 {
     Q_D(QCanvasPainter);
     d->m_e->beginPath();
@@ -2177,14 +2180,15 @@ void QCanvasPainter::drawBoxShadow(const QCanvasBoxShadow &shadow)
     \sa addImage()
 */
 
-void QCanvasPainter::drawImage(const QCanvasImage &image, float x, float y)
+void QCanvasPainter::drawImage(const QCanvasImage &image, qreal x, qreal y)
 {
     Q_D(QCanvasPainter);
     if (image.isNull())
         return;
 
-    const float dpr = image.devicePixelRatio();
-    d->m_e->drawImageId(image.id(), x, y, image.width() / dpr, image.height() / dpr, image.tintColor());
+    const float dpr = float(image.devicePixelRatio());
+    d->m_e->drawImageId(image.id(), float(x), float(y),
+                        image.width() / dpr, image.height() / dpr, image.tintColor());
     d->markTextureIdUsed(image.id());
 }
 
@@ -2207,13 +2211,14 @@ void QCanvasPainter::drawImage(const QCanvasImage &image, float x, float y)
     \sa addImage()
 */
 
-void QCanvasPainter::drawImage(const QCanvasImage &image, float x, float y, float width, float height)
+void QCanvasPainter::drawImage(const QCanvasImage &image, qreal x, qreal y, qreal width, qreal height)
 {
     Q_D(QCanvasPainter);
     if (image.isNull())
         return;
 
-    d->m_e->drawImageId(image.id(), x, y, width, height, image.tintColor());
+    d->m_e->drawImageId(image.id(), float(x), float(y), float(width), float(height),
+                        image.tintColor());
     d->markTextureIdUsed(image.id());
 }
 
@@ -2252,20 +2257,20 @@ void QCanvasPainter::drawImage(const QCanvasImage &image, const QRectF &sourceRe
     if (image.isNull())
         return;
 
-    float sx = float(sourceRect.x());
-    float sy = float(sourceRect.y());
-    float sw = float(sourceRect.width());
-    float sh = float(sourceRect.height());
-    float dx = float(destinationRect.x());
-    float dy = float(destinationRect.y());
-    float dw = float(destinationRect.width());
-    float dh = float(destinationRect.height());
-    float startX = dx - sx * (dw/sw);
-    float startY = dy - sy * (dh/sh);
-    float endX = dw * image.width() / sw;
-    float endY = dh * image.height() / sh;
-    d->m_e->drawImageIdAt(image.id(), startX, startY, endX, endY,
-                          dx, dy, dw, dh, image.tintColor());
+    const qreal sx = sourceRect.x();
+    const qreal sy = sourceRect.y();
+    const qreal sw = sourceRect.width();
+    const qreal sh = sourceRect.height();
+    const qreal dx = destinationRect.x();
+    const qreal dy = destinationRect.y();
+    const qreal dw = destinationRect.width();
+    const qreal dh = destinationRect.height();
+    const qreal startX = dx - sx * (dw/sw);
+    const qreal startY = dy - sy * (dh/sh);
+    const qreal endX = dw * image.width() / sw;
+    const qreal endY = dh * image.height() / sh;
+    d->m_e->drawImageIdAt(image.id(), float(startX), float(startY), float(endX), float(endY),
+                          float(dx), float(dy), float(dw), float(dh), image.tintColor());
     d->markTextureIdUsed(image.id());
 }
 
@@ -2437,10 +2442,10 @@ void QCanvasPainter::setTextWrapMode(QCanvasPainter::WrapMode wrapMode)
     \endtable
 */
 
-void QCanvasPainter::setTextLineHeight(float height)
+void QCanvasPainter::setTextLineHeight(qreal height)
 {
     Q_D(QCanvasPainter);
-    d->engine()->setTextLineHeight(height);
+    d->engine()->setTextLineHeight(float(height));
 }
 
 /*!
@@ -2472,10 +2477,10 @@ void QCanvasPainter::setTextLineHeight(float height)
     \endtable
 */
 
-void QCanvasPainter::setTextAntialias(float antialias)
+void QCanvasPainter::setTextAntialias(qreal antialias)
 {
     Q_D(QCanvasPainter);
-    d->engine()->setTextAntialias(antialias);
+    d->engine()->setTextAntialias(float(antialias));
 }
 
 /*!
@@ -2503,14 +2508,14 @@ void QCanvasPainter::setTextAntialias(float antialias)
 
     \sa setTextAlign(), setTextBaseline(), setTextWrapMode()
 */
-void QCanvasPainter::fillText(const QString &text, float x, float y, float maxWidth)
+void QCanvasPainter::fillText(const QString &text, qreal x, qreal y, qreal maxWidth)
 {
     Q_D(QCanvasPainter);
-    d->fillText(text, x, y, maxWidth);
+    d->fillText(text, float(x), float(y), float(maxWidth));
 }
 
 /*!
-    \fn void QCanvasPainter::fillText(const QString &text, QPointF point, float maxWidth)
+    \fn void QCanvasPainter::fillText(const QString &text, QPointF point, qreal maxWidth)
     \overload
 
     Draws \a text string at the specified \a point, with
@@ -2592,14 +2597,14 @@ void QCanvasPainter::fillText(const QString &text, const QRectF &rect)
     \endtable
 */
 
-QRectF QCanvasPainter::textBoundingBox(const QString &text, float x, float y, float maxWidth)
+QRectF QCanvasPainter::textBoundingBox(const QString &text, qreal x, qreal y, qreal maxWidth)
 {
     Q_D(QCanvasPainter);
-    return d->textBoundingBox(text, x, y, maxWidth);
+    return d->textBoundingBox(text, float(x), float(y), float(maxWidth));
 }
 
 /*!
-    \fn QRectF QCanvasPainter::textBoundingBox(const QString &text, QPointF point, float maxWidth)
+    \fn QRectF QCanvasPainter::textBoundingBox(const QString &text, QPointF point, qreal maxWidth)
     \overload
 
     Measures bounding box of a \a text string at \a point.
@@ -2657,10 +2662,10 @@ QRectF QCanvasPainter::textBoundingBox(const QString &text, const QRectF &rect)
     \sa setTextAntialias()
 */
 
-void QCanvasPainter::setAntialias(float antialias)
+void QCanvasPainter::setAntialias(qreal antialias)
 {
     Q_D(QCanvasPainter);
-    d->m_e->setAntialias(antialias);
+    d->m_e->setAntialias(float(antialias));
 }
 
 /*!
@@ -3096,7 +3101,7 @@ QCanvasImage QCanvasPainterPrivate::getQCanvasImage(const QImage &image, QCanvas
             ip->id = m_e->createImage(image.width(), image.height(), flags, convertedImage.constBits());
             ip->width = convertedImage.width();
             ip->height = convertedImage.height();
-            ip->devicePixelRatio = float(convertedImage.devicePixelRatio());
+            ip->devicePixelRatio = convertedImage.devicePixelRatio();
             ip->sizeInBytes = convertedImage.sizeInBytes();
             ip->type = type;
             m_imageTracker.insert(key, qcimage);

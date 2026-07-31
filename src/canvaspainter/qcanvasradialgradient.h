@@ -17,14 +17,14 @@ class QCanvasRadialGradient : public QCanvasGradient
 {
 public:
     Q_CANVASPAINTER_EXPORT QCanvasRadialGradient();
-    Q_CANVASPAINTER_EXPORT QCanvasRadialGradient(float centerX, float centerY,
-                                                 float innerRadius, float outerRadius);
+    Q_CANVASPAINTER_EXPORT QCanvasRadialGradient(qreal centerX, qreal centerY,
+                                                 qreal innerRadius, qreal outerRadius);
     Q_CANVASPAINTER_EXPORT QCanvasRadialGradient(QPointF centerPosition,
-                                                 float innerRadius, float outerRadius);
-    Q_CANVASPAINTER_EXPORT QCanvasRadialGradient(float innerCenterX, float innerCenterY, float innerRadius,
-                                                 float outerCenterX, float outerCenterY, float outerRadius);
-    Q_CANVASPAINTER_EXPORT QCanvasRadialGradient(QPointF innerCenterPosition, float innerRadius,
-                                                 QPointF outerCenterPosition, float outerRadius);
+                                                 qreal innerRadius, qreal outerRadius);
+    Q_CANVASPAINTER_EXPORT QCanvasRadialGradient(qreal innerCenterX, qreal innerCenterY, qreal innerRadius,
+                                                 qreal outerCenterX, qreal outerCenterY, qreal outerRadius);
+    Q_CANVASPAINTER_EXPORT QCanvasRadialGradient(QPointF innerCenterPosition, qreal innerRadius,
+                                                 QPointF outerCenterPosition, qreal outerRadius);
     QCanvasRadialGradient(const QCanvasRadialGradient &) = default;
     QCanvasRadialGradient &operator=(const QCanvasRadialGradient &) = default;
     QCanvasRadialGradient(QCanvasRadialGradient &&) = default;
@@ -32,19 +32,19 @@ public:
     ~QCanvasRadialGradient() = default;
 
     Q_CANVASPAINTER_EXPORT QPointF centerPosition() const;
-    Q_CANVASPAINTER_EXPORT void setCenterPosition(float x, float y);
+    Q_CANVASPAINTER_EXPORT void setCenterPosition(qreal x, qreal y);
     inline void setCenterPosition(QPointF center);
     Q_CANVASPAINTER_EXPORT QPointF innerCenterPosition() const;
-    Q_CANVASPAINTER_EXPORT void setInnerCenterPosition(float x, float y);
+    Q_CANVASPAINTER_EXPORT void setInnerCenterPosition(qreal x, qreal y);
     inline void setInnerCenterPosition(QPointF center);
     Q_CANVASPAINTER_EXPORT QPointF outerCenterPosition() const;
-    Q_CANVASPAINTER_EXPORT void setOuterCenterPosition(float x, float y);
+    Q_CANVASPAINTER_EXPORT void setOuterCenterPosition(qreal x, qreal y);
     inline void setOuterCenterPosition(QPointF center);
 
-    Q_CANVASPAINTER_EXPORT float outerRadius() const;
-    Q_CANVASPAINTER_EXPORT void setOuterRadius(float radius);
-    Q_CANVASPAINTER_EXPORT float innerRadius() const;
-    Q_CANVASPAINTER_EXPORT void setInnerRadius(float radius);
+    Q_CANVASPAINTER_EXPORT qreal outerRadius() const;
+    Q_CANVASPAINTER_EXPORT void setOuterRadius(qreal radius);
+    Q_CANVASPAINTER_EXPORT qreal innerRadius() const;
+    Q_CANVASPAINTER_EXPORT void setInnerRadius(qreal radius);
 
 private:
     explicit QCanvasRadialGradient(const QCanvasBrush &brush) : QCanvasGradient(brush) {}
@@ -54,17 +54,17 @@ private:
 
 void QCanvasRadialGradient::setCenterPosition(QPointF center)
 {
-    setCenterPosition(float(center.x()), float(center.y()));
+    setCenterPosition(center.x(), center.y());
 }
 
 void QCanvasRadialGradient::setInnerCenterPosition(QPointF center)
 {
-    setInnerCenterPosition(float(center.x()), float(center.y()));
+    setInnerCenterPosition(center.x(), center.y());
 }
 
 void QCanvasRadialGradient::setOuterCenterPosition(QPointF center)
 {
-    setOuterCenterPosition(float(center.x()), float(center.y()));
+    setOuterCenterPosition(center.x(), center.y());
 }
 
 template<> Q_CANVASPAINTER_EXPORT QCanvasRadialGradient QCanvasBrush::as<QCanvasRadialGradient>() const;

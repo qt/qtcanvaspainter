@@ -88,7 +88,7 @@ QCanvasImagePattern::QCanvasImagePattern(const QCanvasImage &image)
     : d(new QCanvasImagePatternPrivate)
 {
     d->image = image;
-    const float dpr = d->image.devicePixelRatio();
+    const qreal dpr = d->image.devicePixelRatio();
     d->width = d->image.width() / dpr;
     d->height = d->image.height() / dpr;
 }
@@ -113,8 +113,8 @@ QCanvasImagePattern::QCanvasImagePattern(const QCanvasImage &image)
 */
 
 QCanvasImagePattern::QCanvasImagePattern(const QCanvasImage &image,
-                                         float startX, float startY,
-                                         float imageWidth, float imageHeight)
+                                         qreal startX, qreal startY,
+                                         qreal imageWidth, qreal imageHeight)
     : d(new QCanvasImagePatternPrivate)
 {
     d->image = image;
@@ -253,7 +253,7 @@ QDataStream &operator<<(QDataStream &s, const QCanvasImagePattern &p)
 
 QDataStream &operator>>(QDataStream &s, QCanvasImagePattern &p)
 {
-    float x, y, width, height, angle;
+    qreal x, y, width, height, angle;
     QColor tintColor;
     s >> x >> y >> width >> height >> angle>> tintColor;
     p.setStartPosition(x, y);
@@ -287,7 +287,7 @@ QPointF QCanvasImagePattern::startPosition() const
     (if image \c Repeat flag has been set).
 */
 
-void QCanvasImagePattern::setStartPosition(float x, float y)
+void QCanvasImagePattern::setStartPosition(qreal x, qreal y)
 {
     detach();
     d->x = x;
@@ -320,7 +320,7 @@ QSizeF QCanvasImagePattern::imageSize() const
     Sets the size of a single image in pattern to ( \a width, \a height).
 */
 
-void QCanvasImagePattern::setImageSize(float width, float height)
+void QCanvasImagePattern::setImageSize(qreal width, qreal height)
 {
     detach();
     d->width = width;
@@ -361,7 +361,7 @@ void QCanvasImagePattern::setImage(const QCanvasImage &image)
     Returns the pattern rotation in radians.
 */
 
-float QCanvasImagePattern::rotation() const
+qreal QCanvasImagePattern::rotation() const
 {
     return d->angle;
 }
@@ -372,7 +372,7 @@ float QCanvasImagePattern::rotation() const
     The default value is \c 0.0, meaning the image is not rotated.
 */
 
-void QCanvasImagePattern::setRotation(float rotation)
+void QCanvasImagePattern::setRotation(qreal rotation)
 {
     detach();
     d->angle = rotation;
@@ -428,8 +428,9 @@ QCPaint QCanvasImagePatternPrivate::createPaint(QCanvasPainter *painter) const
         if (d->image.isNull()) {
             qWarning() << "No image set for pattern, please use setImage()";
         } else {
-            DECONST(d)->paint = e->createImagePattern(d->x, d->y, d->width, d->height,
-                                             d->image.id(), d->angle, d->tintColor);
+            DECONST(d)->paint = e->createImagePattern(float(d->x), float(d->y),
+                                             float(d->width), float(d->height),
+                                             d->image.id(), float(d->angle), d->tintColor);
         }
         DECONST(d)->changed = false;
     }

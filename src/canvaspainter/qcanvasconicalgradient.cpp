@@ -54,7 +54,7 @@ QT_BEGIN_NAMESPACE
 */
 
 QCanvasConicalGradient::QCanvasConicalGradient()
-    : QCanvasConicalGradient(0.0f, 0.0f, 0.0f)
+    : QCanvasConicalGradient(0.0, 0.0, 0.0)
 {
 }
 
@@ -64,7 +64,7 @@ QCanvasConicalGradient::QCanvasConicalGradient()
     Gradient start angle is \a startAngle.
 */
 
-QCanvasConicalGradient::QCanvasConicalGradient(float centerX, float centerY, float startAngle)
+QCanvasConicalGradient::QCanvasConicalGradient(qreal centerX, qreal centerY, qreal startAngle)
     : QCanvasGradient(QCanvasBrush::BrushType::ConicalGradient)
 {
     auto &conical = QCanvasGradientBrushPrivate::get(*this)->data.conical;
@@ -79,8 +79,8 @@ QCanvasConicalGradient::QCanvasConicalGradient(float centerX, float centerY, flo
     Gradient start angle is \a startAngle.
 */
 
-QCanvasConicalGradient::QCanvasConicalGradient(QPointF center, float startAngle)
-    : QCanvasConicalGradient(float(center.x()), float(center.y()), startAngle)
+QCanvasConicalGradient::QCanvasConicalGradient(QPointF center, qreal startAngle)
+    : QCanvasConicalGradient(center.x(), center.y(), startAngle)
 {
 }
 
@@ -98,7 +98,7 @@ QPointF QCanvasConicalGradient::centerPosition() const
 /*!
     Sets the center point of conical gradient to ( \a x, \a y).
 */
-void QCanvasConicalGradient::setCenterPosition(float x, float y)
+void QCanvasConicalGradient::setCenterPosition(qreal x, qreal y)
 {
     auto *d = QCanvasGradientBrushPrivate::get(*this);
     d->data.conical.cx = x;
@@ -117,7 +117,7 @@ void QCanvasConicalGradient::setCenterPosition(float x, float y)
     Returns the start angle of conical gradient in radians.
 */
 
-float QCanvasConicalGradient::startAngle() const
+qreal QCanvasConicalGradient::startAngle() const
 {
     return QCanvasGradientBrushPrivate::get(*this)->data.conical.angle;
 }
@@ -128,7 +128,7 @@ float QCanvasConicalGradient::startAngle() const
     center, and proceeds clockwise.
 */
 
-void QCanvasConicalGradient::setStartAngle(float angle)
+void QCanvasConicalGradient::setStartAngle(qreal angle)
 {
     auto *d = QCanvasGradientBrushPrivate::get(*this);
     d->data.conical.angle = angle;
@@ -188,7 +188,7 @@ void QCanvasConicalGradientBrushPrivate::createConicalGradient(const QColor &iCo
     if (imageId != 0) {
         // Multistop gradient
         p.imageId = imageId;
-        p.innerColor.a = d->imageY;
+        p.innerColor.a = float(d->imageY);
     } else {
         // 2 stops gradient
         p.innerColor = { iColor.redF(), iColor.greenF(), iColor.blueF(), iColor.alphaF() };

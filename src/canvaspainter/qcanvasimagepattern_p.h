@@ -51,14 +51,17 @@ public:
     { return brush->d.data(); }
     static QCanvasImagePattern create(QCanvasImagePatternPrivate *p) { return QCanvasImagePattern(p); }
 
+    // The values are stored in qreal precision so that the QCanvasImagePattern
+    // getters return exactly what was passed to the setters. They are
+    // truncated to float when the engine-side QCPaint is created.
     QCanvasImage image;
     QCPaint paint;
     QColor tintColor = QColorConstants::White;
-    float x = 0.0f;
-    float y = 0.0f;
-    float width = 100.0f;
-    float height = 100.0f;
-    float angle = 0.0f;
+    qreal x = 0.0;
+    qreal y = 0.0;
+    qreal width = 100.0;
+    qreal height = 100.0;
+    qreal angle = 0.0;
     bool changed = true;
     uint serialNumber = 0; // Unique id
 };

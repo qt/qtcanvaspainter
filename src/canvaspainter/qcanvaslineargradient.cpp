@@ -53,7 +53,7 @@ QT_BEGIN_NAMESPACE
 */
 
 QCanvasLinearGradient::QCanvasLinearGradient()
-    : QCanvasLinearGradient(0.0f, 0.0f, 0.0f, 100.0f)
+    : QCanvasLinearGradient(0.0, 0.0, 0.0, 100.0)
 {
 }
 
@@ -63,7 +63,7 @@ QCanvasLinearGradient::QCanvasLinearGradient()
     end color position (\a endX, \a endY).
 */
 
-QCanvasLinearGradient::QCanvasLinearGradient(float startX, float startY, float endX, float endY)
+QCanvasLinearGradient::QCanvasLinearGradient(qreal startX, qreal startY, qreal endX, qreal endY)
     : QCanvasGradient(QCanvasBrush::BrushType::LinearGradient)
 {
     auto &linear = QCanvasGradientBrushPrivate::get(*this)->data.linear;
@@ -79,8 +79,7 @@ QCanvasLinearGradient::QCanvasLinearGradient(float startX, float startY, float e
 */
 
 QCanvasLinearGradient::QCanvasLinearGradient(QPointF start, QPointF end)
-    : QCanvasLinearGradient(float(start.x()), float(start.y()),
-                            float(end.x()), float(end.y()))
+    : QCanvasLinearGradient(start.x(), start.y(), end.x(), end.y())
 {
 }
 
@@ -98,7 +97,7 @@ QPointF QCanvasLinearGradient::startPosition() const
     Sets the start point of linear gradient to ( \a x, \a y).
 */
 
-void QCanvasLinearGradient::setStartPosition(float x, float y)
+void QCanvasLinearGradient::setStartPosition(qreal x, qreal y)
 {
     auto *d = QCanvasGradientBrushPrivate::get(*this);
     d->data.linear.sx = x;
@@ -127,7 +126,7 @@ QPointF QCanvasLinearGradient::endPosition() const
     Sets the end point of linear gradient to ( \a x, \a y).
 */
 
-void QCanvasLinearGradient::setEndPosition(float x, float y)
+void QCanvasLinearGradient::setEndPosition(qreal x, qreal y)
 {
     auto *d = QCanvasGradientBrushPrivate::get(*this);
     d->data.linear.ex = x;
@@ -187,10 +186,10 @@ void QCanvasLinearGradientBrushPrivate::createLinearGradient(const QColor &iColo
     QCPaint &p = DECONST(d)->paint;
     p.brushType = BrushLinearGradient;
 
-    float dx = dd.ex - dd.sx;
-    float dy = dd.ey - dd.sy;
-    float dist = std::sqrt(dx*dx + dy*dy);
-    constexpr float small = 0.0001f;
+    qreal dx = dd.ex - dd.sx;
+    qreal dy = dd.ey - dd.sy;
+    qreal dist = std::sqrt(dx*dx + dy*dy);
+    constexpr qreal small = 0.0001;
     if (dist > small) {
         dx /= dist;
         dy /= dist;
@@ -201,14 +200,14 @@ void QCanvasLinearGradientBrushPrivate::createLinearGradient(const QColor &iColo
     p.transform.setMatrix(dy, -dx, 0,
                           dx, dy, 0,
                           dd.sx, dd.sy, 1);
-    p.feather = qMax(small, dist);
+    p.feather = float(qMax(small, dist));
 
     // Note: extent and radius not used.
 
     if (imageId != 0) {
         // Multistop gradient
         p.imageId = imageId;
-        p.innerColor.a = d->imageY;
+        p.innerColor.a = float(d->imageY);
     } else {
         // 2 stops gradient
         p.innerColor = { iColor.redF(), iColor.greenF(), iColor.blueF(), iColor.alphaF() };

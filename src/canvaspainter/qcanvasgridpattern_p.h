@@ -42,16 +42,19 @@ public:
 
     void createGridPattern() const;
 
+    // The values are stored in qreal precision so that the QCanvasGridPattern
+    // getters return exactly what was passed to the setters. They are
+    // truncated to float when the engine-side QCPaint is created.
     QCPaint paint;
     QColor lineColor = QColorConstants::White;
     QColor backgroundColor = QColorConstants::Black;
-    float x = 0.0f;
-    float y = 0.0f;
-    float width = 10.0f;
-    float height = 10.0f;
-    float feather = 1.0f;
-    float angle = 0.0f;
-    float lineWidth = 1.0f;
+    qreal x = 0.0;
+    qreal y = 0.0;
+    qreal width = 10.0;
+    qreal height = 10.0;
+    qreal feather = 1.0;
+    qreal angle = 0.0;
+    qreal lineWidth = 1.0;
     bool changed = true;
 };
 

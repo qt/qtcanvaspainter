@@ -87,8 +87,8 @@ private:
     float m_viewAlpha = 1.0f;
     float m_viewSaturation = 1.0f;
     int m_viewIndex = 0;
-    float m_previousWidth = 0;
-    float m_previousHeight = 0;
+    qreal m_previousWidth = 0;
+    qreal m_previousHeight = 0;
     bool m_sizeChanged = false;
     float m_topMargin = 0;
     QCanvasRadialGradient m_radGrad;

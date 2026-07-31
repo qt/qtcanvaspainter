@@ -27,12 +27,12 @@ public:
     Q_CANVASPAINTER_EXPORT QCanvasImagePattern();
     Q_CANVASPAINTER_EXPORT QCanvasImagePattern(const QCanvasImage &image);
     QCanvasImagePattern(const QCanvasImage &image, QPointF startPosition, QSizeF imageSize)
-        : QCanvasImagePattern(image, float(startPosition.x()), float(startPosition.y()),
-                              float(imageSize.width()), float(imageSize.height()))
+        : QCanvasImagePattern(image, startPosition.x(), startPosition.y(),
+                              imageSize.width(), imageSize.height())
     {}
     Q_CANVASPAINTER_EXPORT QCanvasImagePattern(const QCanvasImage &image,
-                                               float startX, float startY,
-                                               float imageWidth, float imageHeight);
+                                               qreal startX, qreal startY,
+                                               qreal imageWidth, qreal imageHeight);
     Q_CANVASPAINTER_EXPORT QCanvasImagePattern(const QCanvasImagePattern &);
     Q_CANVASPAINTER_EXPORT QCanvasImagePattern &operator=(const QCanvasImagePattern &);
     QCanvasImagePattern(QCanvasImagePattern &&) = default;
@@ -43,15 +43,15 @@ public:
     Q_CANVASPAINTER_EXPORT Q_IMPLICIT operator QVariant() const;
 
     Q_CANVASPAINTER_EXPORT QPointF startPosition() const;
-    Q_CANVASPAINTER_EXPORT void setStartPosition(float x, float y);
+    Q_CANVASPAINTER_EXPORT void setStartPosition(qreal x, qreal y);
     inline void setStartPosition(QPointF point);
     Q_CANVASPAINTER_EXPORT QSizeF imageSize() const;
-    Q_CANVASPAINTER_EXPORT void setImageSize(float width, float height);
+    Q_CANVASPAINTER_EXPORT void setImageSize(qreal width, qreal height);
     inline void setImageSize(QSizeF size);
     Q_CANVASPAINTER_EXPORT QCanvasImage image() const;
     Q_CANVASPAINTER_EXPORT void setImage(const QCanvasImage &image);
-    Q_CANVASPAINTER_EXPORT float rotation() const;
-    Q_CANVASPAINTER_EXPORT void setRotation(float rotation);
+    Q_CANVASPAINTER_EXPORT qreal rotation() const;
+    Q_CANVASPAINTER_EXPORT void setRotation(qreal rotation);
     Q_CANVASPAINTER_EXPORT QColor tintColor() const;
     Q_CANVASPAINTER_EXPORT void setTintColor(const QColor &color);
     Q_CANVASPAINTER_EXPORT uint serialNumber() const;
@@ -77,12 +77,12 @@ private:
 
 void QCanvasImagePattern::setStartPosition(QPointF point)
 {
-    setStartPosition(float(point.x()), float(point.y()));
+    setStartPosition(point.x(), point.y());
 }
 
 void QCanvasImagePattern::setImageSize(QSizeF size)
 {
-    setImageSize(float(size.width()), float(size.height()));
+    setImageSize(size.width(), size.height());
 }
 
 template<> Q_CANVASPAINTER_EXPORT QCanvasImagePattern QCanvasBrush::as<QCanvasImagePattern>() const;
