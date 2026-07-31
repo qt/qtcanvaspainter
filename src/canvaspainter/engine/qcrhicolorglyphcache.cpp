@@ -28,8 +28,7 @@ QCRhiColorGlyphCache::~QCRhiColorGlyphCache()
 
 bool QCRhiColorGlyphCache::useTextureResizeWorkaround() const
 {
-    static bool useWorkaround = m_rhi->backend() == QRhi::OpenGLES2;
-    return useWorkaround;
+    return m_rhi->backend() == QRhi::OpenGLES2;
 }
 
 void QCRhiColorGlyphCache::ensureAtlas()
