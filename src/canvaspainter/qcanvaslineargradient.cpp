@@ -96,10 +96,6 @@ QCanvasLinearGradient::QCanvasLinearGradient(QPointF start, QPointF end)
     m_data.linear.ey = float(end.y());
 }
 
-QCanvasLinearGradient::~QCanvasLinearGradient()
-{
-}
-
 /*!
     Returns the start point of linear gradient.
 */

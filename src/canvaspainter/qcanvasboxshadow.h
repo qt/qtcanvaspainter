@@ -80,16 +80,7 @@ private:
 
 };
 
-#ifndef QT_NO_DATASTREAM
-Q_CANVASPAINTER_EXPORT QDataStream &operator<<(QDataStream &, const QCanvasBoxShadow &);
-Q_CANVASPAINTER_EXPORT QDataStream &operator>>(QDataStream &, QCanvasBoxShadow &);
-#endif
-
-#ifndef QT_NO_DEBUG_STREAM
-Q_CANVASPAINTER_EXPORT QDebug operator<<(QDebug, const QCanvasBoxShadow &);
-#endif
-
-inline void QCanvasBoxShadow::setRect(const QRectF &rect)
+void QCanvasBoxShadow::setRect(const QRectF &rect)
 {
     setRect(float(rect.x()), float(rect.y()), float(rect.width()), float(rect.height()));
 }

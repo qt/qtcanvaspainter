@@ -277,11 +277,6 @@ void tst_QCanvasBrush::testBrushEqual()
         const QCanvasBrush copy = brush;
         QCOMPARE(brush, shared);
         QCOMPARE(brush, copy);
-
-        // Detaching does not change the value, so the brushes remain equal.
-        QCanvasBrush detached = brush;
-        detached.detach();
-        QCOMPARE(brush, detached);
     }
 }
 

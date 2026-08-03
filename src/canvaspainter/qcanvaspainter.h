@@ -255,12 +255,12 @@ private:
 
 Q_DECLARE_OPERATORS_FOR_FLAGS(QCanvasPainter::ImageFlags)
 
-inline void QCanvasPainter::translate(QPointF point)
+void QCanvasPainter::translate(QPointF point)
 {
     translate(float(point.x()), float(point.y()));
 }
 
-inline void QCanvasPainter::setClipRect(const QRectF &rect)
+void QCanvasPainter::setClipRect(const QRectF &rect)
 {
     setClipRect(float(rect.x()),
                 float(rect.y()),
@@ -268,17 +268,17 @@ inline void QCanvasPainter::setClipRect(const QRectF &rect)
                 float(rect.height()));
 }
 
-inline void QCanvasPainter::moveTo(QPointF point)
+void QCanvasPainter::moveTo(QPointF point)
 {
     moveTo(float(point.x()), float(point.y()));
 }
 
-inline void QCanvasPainter::lineTo(QPointF point)
+void QCanvasPainter::lineTo(QPointF point)
 {
     lineTo(float(point.x()), float(point.y()));
 }
 
-inline void QCanvasPainter::bezierCurveTo(QPointF controlPoint1, QPointF controlPoint2, QPointF endPoint)
+void QCanvasPainter::bezierCurveTo(QPointF controlPoint1, QPointF controlPoint2, QPointF endPoint)
 {
     bezierCurveTo(float(controlPoint1.x()),
                   float(controlPoint1.y()),
@@ -288,7 +288,7 @@ inline void QCanvasPainter::bezierCurveTo(QPointF controlPoint1, QPointF control
                   float(endPoint.y()));
 }
 
-inline void QCanvasPainter::quadraticCurveTo(QPointF controlPoint, QPointF endPoint)
+void QCanvasPainter::quadraticCurveTo(QPointF controlPoint, QPointF endPoint)
 {
     quadraticCurveTo(float(controlPoint.x()),
                      float(controlPoint.y()),
@@ -296,7 +296,7 @@ inline void QCanvasPainter::quadraticCurveTo(QPointF controlPoint, QPointF endPo
                      float(endPoint.y()));
 }
 
-inline void QCanvasPainter::arcTo(QPointF controlPoint1, QPointF controlPoint2, float radius)
+void QCanvasPainter::arcTo(QPointF controlPoint1, QPointF controlPoint2, float radius)
 {
     arcTo(float(controlPoint1.x()),
           float(controlPoint1.y()),
@@ -305,7 +305,7 @@ inline void QCanvasPainter::arcTo(QPointF controlPoint1, QPointF controlPoint2, 
           radius);
 }
 
-inline void QCanvasPainter::arc(QPointF centerPoint, float radius, float a0, float a1, PathWinding direction, PathConnection connection)
+void QCanvasPainter::arc(QPointF centerPoint, float radius, float a0, float a1, PathWinding direction, PathConnection connection)
 {
     arc(float(centerPoint.x()),
         float(centerPoint.y()),
@@ -313,7 +313,7 @@ inline void QCanvasPainter::arc(QPointF centerPoint, float radius, float a0, flo
         connection);
 }
 
-inline void QCanvasPainter::rect(const QRectF &rect)
+void QCanvasPainter::rect(const QRectF &rect)
 {
     this->rect(float(rect.x()),
                float(rect.y()),
@@ -321,7 +321,7 @@ inline void QCanvasPainter::rect(const QRectF &rect)
                float(rect.height()));
 }
 
-inline void QCanvasPainter::roundRect(const QRectF &rect, float radius)
+void QCanvasPainter::roundRect(const QRectF &rect, float radius)
 {
     roundRect(float(rect.x()),
               float(rect.y()),
@@ -330,7 +330,7 @@ inline void QCanvasPainter::roundRect(const QRectF &rect, float radius)
               radius);
 }
 
-inline void QCanvasPainter::roundRect(const QRectF &rect, float radiusTopLeft, float radiusTopRight, float radiusBottomRight, float radiusBottomLeft)
+void QCanvasPainter::roundRect(const QRectF &rect, float radiusTopLeft, float radiusTopRight, float radiusBottomRight, float radiusBottomLeft)
 {
     roundRect(float(rect.x()),
               float(rect.y()),
@@ -339,7 +339,7 @@ inline void QCanvasPainter::roundRect(const QRectF &rect, float radiusTopLeft, f
               radiusTopLeft, radiusTopRight, radiusBottomRight, radiusBottomLeft);
 }
 
-inline void QCanvasPainter::ellipse(QPointF centerPoint, float radiusX, float radiusY)
+void QCanvasPainter::ellipse(QPointF centerPoint, float radiusX, float radiusY)
 {
     ellipse(float(centerPoint.x()),
             float(centerPoint.y()),
@@ -347,7 +347,7 @@ inline void QCanvasPainter::ellipse(QPointF centerPoint, float radiusX, float ra
             radiusY);
 }
 
-inline void QCanvasPainter::ellipse(const QRectF &rect)
+void QCanvasPainter::ellipse(const QRectF &rect)
 {
     ellipse(float(rect.x() + rect.width() * 0.5),
             float(rect.y() + rect.height() * 0.5),
@@ -355,13 +355,13 @@ inline void QCanvasPainter::ellipse(const QRectF &rect)
             float(rect.height() * 0.5));
 }
 
-inline void QCanvasPainter::circle(QPointF centerPoint, float radius)
+void QCanvasPainter::circle(QPointF centerPoint, float radius)
 {
     circle(float(centerPoint.x()),
            float(centerPoint.y()), radius);
 }
 
-inline void QCanvasPainter::fillRect(const QRectF &rect)
+void QCanvasPainter::fillRect(const QRectF &rect)
 {
     fillRect(float(rect.x()),
              float(rect.y()),
@@ -369,7 +369,7 @@ inline void QCanvasPainter::fillRect(const QRectF &rect)
              float(rect.height()));
 }
 
-inline void QCanvasPainter::clearRect(const QRectF &rect)
+void QCanvasPainter::clearRect(const QRectF &rect)
 {
     clearRect(float(rect.x()),
               float(rect.y()),
@@ -377,7 +377,7 @@ inline void QCanvasPainter::clearRect(const QRectF &rect)
               float(rect.height()));
 }
 
-inline void QCanvasPainter::strokeRect(const QRectF &rect)
+void QCanvasPainter::strokeRect(const QRectF &rect)
 {
     strokeRect(float(rect.x()),
                float(rect.y()),
@@ -385,7 +385,7 @@ inline void QCanvasPainter::strokeRect(const QRectF &rect)
                float(rect.height()));
 }
 
-inline void QCanvasPainter::drawImage(const QCanvasImage &image, const QRectF &destinationRect)
+void QCanvasPainter::drawImage(const QCanvasImage &image, const QRectF &destinationRect)
 {
     drawImage(image,
               float(destinationRect.x()),
@@ -394,12 +394,12 @@ inline void QCanvasPainter::drawImage(const QCanvasImage &image, const QRectF &d
               float(destinationRect.height()));
 }
 
-inline void QCanvasPainter::fillText(const QString &text, QPointF point, float maxWidth)
+void QCanvasPainter::fillText(const QString &text, QPointF point, float maxWidth)
 {
     fillText(text, float(point.x()), float(point.y()), maxWidth);
 }
 
-inline QRectF QCanvasPainter::textBoundingBox(const QString &text, QPointF point, float maxWidth)
+QRectF QCanvasPainter::textBoundingBox(const QString &text, QPointF point, float maxWidth)
 {
     return textBoundingBox(text, float(point.x()), float(point.y()), maxWidth);
 }

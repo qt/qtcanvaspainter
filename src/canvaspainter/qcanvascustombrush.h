@@ -66,15 +66,6 @@ private:
 #endif
 };
 
-#ifndef QT_NO_DATASTREAM
-Q_CANVASPAINTER_EXPORT QDataStream &operator<<(QDataStream &, const QCanvasCustomBrush &);
-Q_CANVASPAINTER_EXPORT QDataStream &operator>>(QDataStream &, QCanvasCustomBrush &);
-#endif
-
-#ifndef QT_NO_DEBUG_STREAM
-Q_CANVASPAINTER_EXPORT QDebug operator<<(QDebug, const QCanvasCustomBrush &);
-#endif
-
 template<> Q_CANVASPAINTER_EXPORT QCanvasCustomBrush QCanvasBrush::as<QCanvasCustomBrush>() const;
 
 QT_END_NAMESPACE

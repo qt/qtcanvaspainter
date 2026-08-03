@@ -22,7 +22,7 @@ public:
     QCanvasConicalGradient &operator=(const QCanvasConicalGradient &) = default;
     QCanvasConicalGradient(QCanvasConicalGradient &&) = default;
     QCanvasConicalGradient &operator=(QCanvasConicalGradient &&) = default;
-    Q_CANVASPAINTER_EXPORT ~QCanvasConicalGradient();
+    ~QCanvasConicalGradient() = default;
 
     Q_CANVASPAINTER_EXPORT QPointF centerPosition() const;
     Q_CANVASPAINTER_EXPORT void setCenterPosition(float x, float y);
@@ -32,7 +32,7 @@ public:
 
 };
 
-inline void QCanvasConicalGradient::setCenterPosition(QPointF center)
+void QCanvasConicalGradient::setCenterPosition(QPointF center)
 {
     setCenterPosition(float(center.x()), float(center.y()));
 }

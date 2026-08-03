@@ -23,7 +23,7 @@ public:
     QCanvasLinearGradient &operator=(const QCanvasLinearGradient &) = default;
     QCanvasLinearGradient(QCanvasLinearGradient &&) = default;
     QCanvasLinearGradient &operator=(QCanvasLinearGradient &&) = default;
-    Q_CANVASPAINTER_EXPORT ~QCanvasLinearGradient();
+    ~QCanvasLinearGradient() = default;
 
     Q_CANVASPAINTER_EXPORT QPointF startPosition() const;
     Q_CANVASPAINTER_EXPORT void setStartPosition(float x, float y);
@@ -34,12 +34,12 @@ public:
 
 };
 
-inline void QCanvasLinearGradient::setStartPosition(QPointF start)
+void QCanvasLinearGradient::setStartPosition(QPointF start)
 {
     setStartPosition(float(start.x()), float(start.y()));
 }
 
-inline void QCanvasLinearGradient::setEndPosition(QPointF end)
+void QCanvasLinearGradient::setEndPosition(QPointF end)
 {
     setEndPosition(float(end.x()), float(end.y()));
 }

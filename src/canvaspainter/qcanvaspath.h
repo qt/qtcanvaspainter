@@ -119,37 +119,37 @@ private:
     QCanvasPathPrivate *d_ptr;
 };
 
-inline void QCanvasPath::moveTo(QPointF point)
+void QCanvasPath::moveTo(QPointF point)
 {
     moveTo(float(point.x()), float(point.y()));
 }
 
-inline void QCanvasPath::lineTo(QPointF point)
+void QCanvasPath::lineTo(QPointF point)
 {
     lineTo(float(point.x()), float(point.y()));
 }
 
-inline void QCanvasPath::bezierCurveTo(QPointF controlPoint1, QPointF controlPoint2, QPointF endPoint)
+void QCanvasPath::bezierCurveTo(QPointF controlPoint1, QPointF controlPoint2, QPointF endPoint)
 {
     bezierCurveTo(float(controlPoint1.x()), float(controlPoint1.y()),
                   float(controlPoint2.x()), float(controlPoint2.y()),
                   float(endPoint.x()), float(endPoint.y()));
 }
 
-inline void QCanvasPath::quadraticCurveTo(QPointF controlPoint, QPointF endPoint)
+void QCanvasPath::quadraticCurveTo(QPointF controlPoint, QPointF endPoint)
 {
     quadraticCurveTo(float(controlPoint.x()), float(controlPoint.y()),
                      float(endPoint.x()), float(endPoint.y()));
 }
 
-inline void QCanvasPath::arcTo(QPointF point1, QPointF point2, float radius)
+void QCanvasPath::arcTo(QPointF point1, QPointF point2, float radius)
 {
     arcTo(float(point1.x()), float(point1.y()),
           float(point2.x()), float(point2.y()),
           radius);
 }
 
-inline void QCanvasPath::arc(
+void QCanvasPath::arc(
     QPointF centerPoint,
     float radius,
     float a0,
@@ -161,7 +161,7 @@ inline void QCanvasPath::arc(
         radius, a0, a1, direction, connection);
 }
 
-inline void QCanvasPath::rect(const QRectF &rect)
+void QCanvasPath::rect(const QRectF &rect)
 {
     this->rect(float(rect.x()),
                float(rect.y()),
@@ -169,7 +169,7 @@ inline void QCanvasPath::rect(const QRectF &rect)
                float(rect.height()));
 }
 
-inline void QCanvasPath::roundRect(const QRectF &rect, float radius)
+void QCanvasPath::roundRect(const QRectF &rect, float radius)
 {
     roundRect(float(rect.x()),
               float(rect.y()),
@@ -178,7 +178,7 @@ inline void QCanvasPath::roundRect(const QRectF &rect, float radius)
               radius);
 }
 
-inline void QCanvasPath::roundRect(
+void QCanvasPath::roundRect(
     const QRectF &rect,
     float radiusTopLeft,
     float radiusTopRight,
@@ -193,7 +193,7 @@ inline void QCanvasPath::roundRect(
               radiusBottomRight, radiusBottomLeft);
 }
 
-inline void QCanvasPath::ellipse(const QRectF &rect)
+void QCanvasPath::ellipse(const QRectF &rect)
 {
     ellipse(float(rect.x() + rect.width() * 0.5),
             float(rect.y() + rect.height() * 0.5),
@@ -201,7 +201,7 @@ inline void QCanvasPath::ellipse(const QRectF &rect)
             float(rect.height() * 0.5));
 }
 
-inline void QCanvasPath::circle(QPointF centerPoint, float radius)
+void QCanvasPath::circle(QPointF centerPoint, float radius)
 {
     circle(float(centerPoint.x()), float(centerPoint.y()), radius);
 }

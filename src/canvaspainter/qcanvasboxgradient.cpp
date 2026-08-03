@@ -111,10 +111,6 @@ QCanvasBoxGradient::QCanvasBoxGradient(const QRectF &rect, float feather, float 
     m_data.box.radius = radius;
 }
 
-QCanvasBoxGradient::~QCanvasBoxGradient()
-{
-}
-
 /*!
     Returns the rectangle area of the box gradient.
     \sa setRect()

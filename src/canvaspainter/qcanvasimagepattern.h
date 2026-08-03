@@ -70,21 +70,12 @@ private:
 #endif
 };
 
-#ifndef QT_NO_DATASTREAM
-Q_CANVASPAINTER_EXPORT QDataStream &operator<<(QDataStream &, const QCanvasImagePattern &);
-Q_CANVASPAINTER_EXPORT QDataStream &operator>>(QDataStream &, QCanvasImagePattern &);
-#endif
-
-#ifndef QT_NO_DEBUG_STREAM
-Q_CANVASPAINTER_EXPORT QDebug operator<<(QDebug, const QCanvasImagePattern &);
-#endif
-
-inline void QCanvasImagePattern::setStartPosition(QPointF point)
+void QCanvasImagePattern::setStartPosition(QPointF point)
 {
     setStartPosition(float(point.x()), float(point.y()));
 }
 
-inline void QCanvasImagePattern::setImageSize(QSizeF size)
+void QCanvasImagePattern::setImageSize(QSizeF size)
 {
     setImageSize(float(size.width()), float(size.height()));
 }
