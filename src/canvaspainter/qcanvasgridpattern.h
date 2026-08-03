@@ -77,21 +77,12 @@ private:
 #endif
 };
 
-#ifndef QT_NO_DATASTREAM
-Q_CANVASPAINTER_EXPORT QDataStream &operator<<(QDataStream &, const QCanvasGridPattern &);
-Q_CANVASPAINTER_EXPORT QDataStream &operator>>(QDataStream &, QCanvasGridPattern &);
-#endif
-
-#ifndef QT_NO_DEBUG_STREAM
-Q_CANVASPAINTER_EXPORT QDebug operator<<(QDebug, const QCanvasGridPattern &);
-#endif
-
-inline void QCanvasGridPattern::setStartPosition(QPointF point)
+void QCanvasGridPattern::setStartPosition(QPointF point)
 {
     setStartPosition(float(point.x()), float(point.y()));
 }
 
-inline void QCanvasGridPattern::setCellSize(QSizeF size)
+void QCanvasGridPattern::setCellSize(QSizeF size)
 {
     setCellSize(float(size.width()), float(size.height()));
 }

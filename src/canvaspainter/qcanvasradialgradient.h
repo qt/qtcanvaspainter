@@ -25,7 +25,7 @@ public:
     QCanvasRadialGradient &operator=(const QCanvasRadialGradient &) = default;
     QCanvasRadialGradient(QCanvasRadialGradient &&) = default;
     QCanvasRadialGradient &operator=(QCanvasRadialGradient &&) = default;
-    Q_CANVASPAINTER_EXPORT ~QCanvasRadialGradient();
+    ~QCanvasRadialGradient() = default;
 
     Q_CANVASPAINTER_EXPORT QPointF centerPosition() const;
     Q_CANVASPAINTER_EXPORT void setCenterPosition(float x, float y);
@@ -44,17 +44,17 @@ public:
 
 };
 
-inline void QCanvasRadialGradient::setCenterPosition(QPointF center)
+void QCanvasRadialGradient::setCenterPosition(QPointF center)
 {
     setCenterPosition(float(center.x()), float(center.y()));
 }
 
-inline void QCanvasRadialGradient::setInnerCenterPosition(QPointF center)
+void QCanvasRadialGradient::setInnerCenterPosition(QPointF center)
 {
     setInnerCenterPosition(float(center.x()), float(center.y()));
 }
 
-inline void QCanvasRadialGradient::setOuterCenterPosition(QPointF center)
+void QCanvasRadialGradient::setOuterCenterPosition(QPointF center)
 {
     setOuterCenterPosition(float(center.x()), float(center.y()));
 }

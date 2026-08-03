@@ -59,11 +59,7 @@ private:
 
 Q_DECLARE_SHARED(QCanvasImage)
 
-#ifndef QT_NO_DEBUG_STREAM
-Q_CANVASPAINTER_EXPORT QDebug operator<<(QDebug, const QCanvasImage &);
-#endif
-
-inline QSize QCanvasImage::size() const
+QSize QCanvasImage::size() const
 {
     return QSize(width(), height());
 }

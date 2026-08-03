@@ -93,7 +93,7 @@ private:
 #endif
 };
 
-inline void QCanvasGradient::addColorStop(float position, const QColor &color)
+void QCanvasGradient::addColorStop(float position, const QColor &color)
 {
     setColorAt(position, color);
 }

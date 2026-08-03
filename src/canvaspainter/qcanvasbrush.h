@@ -54,7 +54,6 @@ public:
     Q_ENUM(BrushType)
 
     Q_CANVASPAINTER_EXPORT BrushType type() const;
-    Q_CANVASPAINTER_EXPORT void detach();
 
     template<typename T>
     T as() const
@@ -80,10 +79,6 @@ private:
 };
 
 Q_DECLARE_SHARED(QCanvasBrush)
-
-#ifndef QT_NO_DEBUG_STREAM
-Q_CANVASPAINTER_EXPORT QDebug operator<<(QDebug, const QCanvasBrush &);
-#endif
 
 QT_END_NAMESPACE
 

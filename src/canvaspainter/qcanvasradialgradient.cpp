@@ -145,10 +145,6 @@ QCanvasRadialGradient::QCanvasRadialGradient(QPointF innerCenter, float innerRad
     m_data.radial.oRadius = outerRadius;
 }
 
-QCanvasRadialGradient::~QCanvasRadialGradient()
-{
-}
-
 /*!
     Returns the center point of radial gradient.
     This is the same as \l outerCenterPosition().

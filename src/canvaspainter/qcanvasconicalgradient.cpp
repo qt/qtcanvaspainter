@@ -95,10 +95,6 @@ QCanvasConicalGradient::QCanvasConicalGradient(QPointF center, float startAngle)
     m_data.conical.angle = startAngle;
 }
 
-QCanvasConicalGradient::~QCanvasConicalGradient()
-{
-}
-
 /*!
     Returns the center point of conical gradient.
     \sa setCenterPosition()

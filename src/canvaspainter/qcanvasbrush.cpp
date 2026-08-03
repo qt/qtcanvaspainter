@@ -144,15 +144,6 @@ bool comparesEqual(const QCanvasBrush &lhs, const QCanvasBrush &rhs) noexcept
 
 // ***** Private *****
 
-/*!
-   \internal
-*/
-void QCanvasBrush::detach()
-{
-    if (baseData)
-        baseData.detach();
-}
-
 QCanvasBrush::QCanvasBrush(QCanvasBrushPrivate *priv)
     : baseData(priv)
 {

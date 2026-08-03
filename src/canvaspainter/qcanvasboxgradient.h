@@ -23,7 +23,7 @@ public:
     QCanvasBoxGradient &operator=(const QCanvasBoxGradient &) = default;
     QCanvasBoxGradient(QCanvasBoxGradient &&) = default;
     QCanvasBoxGradient &operator=(QCanvasBoxGradient &&) = default;
-    Q_CANVASPAINTER_EXPORT ~QCanvasBoxGradient();
+    ~QCanvasBoxGradient() = default;
 
     Q_CANVASPAINTER_EXPORT QRectF rect() const;
     Q_CANVASPAINTER_EXPORT void setRect(float x, float y, float width, float height);
@@ -35,7 +35,7 @@ public:
 
 };
 
-inline void QCanvasBoxGradient::setRect(const QRectF &rect)
+void QCanvasBoxGradient::setRect(const QRectF &rect)
 {
     setRect(float(rect.x()), float(rect.y()), float(rect.width()), float(rect.height()));
 }
