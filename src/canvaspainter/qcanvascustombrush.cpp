@@ -278,38 +278,13 @@ QCanvasCustomBrush::QCanvasCustomBrush()
 }
 
 /*!
-    Constructs a custom brush.
-
-    The fragment shader is \a fragmentShader and the vertex shader is \a
-    vertexShader. This constructor takes two filenames, where both files are
-    expected to be \c{.qsb} files that are read and deserialized into QShader
-    objects. The files can be a local file or embedded in the application via
-    the \l{The Qt Resource System}.
-
-    When not specified, \a vertexShader defaults to an empty string, which
-    implies that the default, standard shader is used for the vertex stage. It
-    is also possible to pass an empty string as \a fragmentShader, and only
-    provide a custom shader for \a vertexShader.
-
-    \sa setFragmentShader, setVertexShader
-*/
-
-QCanvasCustomBrush::QCanvasCustomBrush(const QString &fragmentShader,
-                             const QString &vertexShader)
-    : d(new QCanvasCustomBrushPrivate)
-{
-    setFragmentShader(fragmentShader);
-    setVertexShader(vertexShader);
-}
-
-
-/*!
     Destroys the custom brush.
 */
 
+QCanvasCustomBrush::~QCanvasCustomBrush() = default;
+
 QCanvasCustomBrush::QCanvasCustomBrush(const QCanvasCustomBrush &) = default;
 QCanvasCustomBrush &QCanvasCustomBrush::operator=(const QCanvasCustomBrush &) = default;
-QCanvasCustomBrush::~QCanvasCustomBrush() = default;
 
 QCanvasCustomBrush::operator QCanvasBrush() const
 {
