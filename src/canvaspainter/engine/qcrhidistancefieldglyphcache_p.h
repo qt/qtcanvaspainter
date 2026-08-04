@@ -180,6 +180,7 @@ private:
     QList<TextureInfo> m_textures;
     QDataBuffer<glyph_t> m_pendingGlyphs;
     QHash<QRawFont, ReferenceFont> m_rawFontCache;
+    ReferenceFont m_currentReferenceFont;
 
     TexCoord m_solidTileTexCoord;
     TextureInfo *m_solidTileTexture = nullptr;
@@ -194,13 +195,13 @@ private:
     void releaseGlyphs(const QSet<glyph_t> &glyphs);
     bool useTextureResizeWorkaround() const;
     void updateRhiTexture(QRhiTexture *oldTex, QRhiTexture *newTex, QSize newTexSize);
-    Metrics glyphMetrics(glyph_t glyph, qreal pixelSize);
+    Metrics glyphMetrics(const GlyphData &gd, qreal pixelSize) const;
 
     qreal fontScale(qreal pixelSize) const;
 
     qreal distanceFieldRadius() const
     {
-        auto doubleRes = m_rawFontCache[m_referenceFont].doubleGlyphResolution;
+        auto doubleRes = m_currentReferenceFont.doubleGlyphResolution;
 
         return QT_DISTANCEFIELD_RADIUS(doubleRes)
                / qreal(QT_DISTANCEFIELD_SCALE(doubleRes));
@@ -216,8 +217,6 @@ private:
     }
 
     bool ensureUpdateBatch();
-
-    TexCoord glyphTexCoord(glyph_t glyph) { return glyphData(glyph).texCoord; };
 };
 
 QT_END_NAMESPACE
