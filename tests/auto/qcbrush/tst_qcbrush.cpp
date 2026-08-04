@@ -469,6 +469,17 @@ void tst_QCanvasBrush::testDebugs()
     qDebug() << bs1;
     QCanvasGridPattern gp1;
     qDebug() << gp1;
+
+    const QCanvasGradientStop stop { 0.25f, QColorConstants::Red };
+    QString stopText;
+    QDebug(&stopText) << stop;
+    QVERIFY(stopText.contains(u"QCanvasGradientStop("));
+    QVERIFY(stopText.contains(u"0.25"));
+
+    const QCanvasGradientStops stops = { stop, { 0.75f, QColorConstants::Blue } };
+    QString stopsText;
+    QDebug(&stopsText) << stops;
+    QCOMPARE(stopsText.count(u"QCanvasGradientStop("), 2);
 }
 
 void tst_QCanvasBrush::testTypes()
