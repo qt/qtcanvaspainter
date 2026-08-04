@@ -24,8 +24,6 @@ class QCanvasCustomBrush
 {
 public:
     Q_CANVASPAINTER_EXPORT QCanvasCustomBrush();
-    Q_CANVASPAINTER_EXPORT QCanvasCustomBrush(const QString &fragmentShader,
-                                              const QString &vertexShader = {});
     Q_CANVASPAINTER_EXPORT QCanvasCustomBrush(const QCanvasCustomBrush &);
     Q_CANVASPAINTER_EXPORT QCanvasCustomBrush &operator=(const QCanvasCustomBrush &);
     QCanvasCustomBrush(QCanvasCustomBrush &&) = default;
