@@ -64,7 +64,7 @@ private:
     friend Q_CANVASPAINTER_EXPORT bool comparesEqual(const QCanvasGridPattern &lhs, const QCanvasGridPattern &rhs) noexcept;
     Q_DECLARE_EQUALITY_COMPARABLE(QCanvasGridPattern)
 
-    Q_CANVASPAINTER_EXPORT void detach();
+    void detach();
     explicit QCanvasGridPattern(QCanvasGridPatternPrivate *p);
     friend class QCanvasGridPatternPrivate;
     QExplicitlySharedDataPointer<QCanvasGridPatternPrivate> d;

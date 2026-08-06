@@ -37,8 +37,6 @@ public:
     QT_MOVE_ASSIGNMENT_OPERATOR_IMPL_VIA_PURE_SWAP(QCanvasOffscreenCanvas)
     void swap(QCanvasOffscreenCanvas &other) noexcept { d.swap(other.d); }
 
-    Q_CANVASPAINTER_EXPORT void detach();
-
     Q_CANVASPAINTER_EXPORT bool isNull() const;
 
     Q_CANVASPAINTER_EXPORT int width() const;
@@ -55,6 +53,7 @@ public:
 private:
     friend Q_CANVASPAINTER_EXPORT bool comparesEqual(const QCanvasOffscreenCanvas &lhs, const QCanvasOffscreenCanvas &rhs) noexcept;
     Q_DECLARE_EQUALITY_COMPARABLE(QCanvasOffscreenCanvas)
+    void detach();
 
     QExplicitlySharedDataPointer<QCanvasOffscreenCanvasPrivate> d;
     friend class QCanvasOffscreenCanvasPrivate;

@@ -53,7 +53,7 @@ private:
     friend Q_CANVASPAINTER_EXPORT bool comparesEqual(const QCanvasCustomBrush &lhs, const QCanvasCustomBrush &rhs) noexcept;
     Q_DECLARE_EQUALITY_COMPARABLE(QCanvasCustomBrush)
 
-    Q_CANVASPAINTER_EXPORT void detach();
+    void detach();
     explicit QCanvasCustomBrush(QCanvasCustomBrushPrivate *p);
     friend class QCanvasCustomBrushPrivate;
     QExplicitlySharedDataPointer<QCanvasCustomBrushPrivate> d;

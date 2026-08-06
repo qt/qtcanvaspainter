@@ -64,7 +64,7 @@ private:
     friend Q_CANVASPAINTER_EXPORT bool comparesEqual(const QCanvasBoxShadow &lhs, const QCanvasBoxShadow &rhs) noexcept;
     Q_DECLARE_EQUALITY_COMPARABLE(QCanvasBoxShadow)
 
-    Q_CANVASPAINTER_EXPORT void detach();
+    void detach();
     friend class QCanvasPainter;
     friend class QCanvasPainterPrivate;
     explicit QCanvasBoxShadow(QCanvasBoxShadowPrivate *p);

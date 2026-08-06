@@ -33,8 +33,6 @@ public:
 
     Q_CANVASPAINTER_EXPORT operator QVariant() const;
 
-    Q_CANVASPAINTER_EXPORT void detach();
-
     Q_CANVASPAINTER_EXPORT int id() const;
     Q_CANVASPAINTER_EXPORT int width() const;
     Q_CANVASPAINTER_EXPORT int height() const;
@@ -49,6 +47,7 @@ public:
 private:
     friend Q_CANVASPAINTER_EXPORT bool comparesEqual(const QCanvasImage &lhs, const QCanvasImage &rhs) noexcept;
     Q_DECLARE_EQUALITY_COMPARABLE(QCanvasImage)
+    void detach();
 
     QExplicitlySharedDataPointer<QCanvasImagePrivate> d;
     friend class QCanvasImagePrivate;
