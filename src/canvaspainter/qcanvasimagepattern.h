@@ -57,7 +57,7 @@ private:
     friend Q_CANVASPAINTER_EXPORT bool comparesEqual(const QCanvasImagePattern &lhs, const QCanvasImagePattern &rhs) noexcept;
     Q_DECLARE_EQUALITY_COMPARABLE(QCanvasImagePattern)
 
-    Q_CANVASPAINTER_EXPORT void detach();
+    void detach();
     explicit QCanvasImagePattern(QCanvasImagePatternPrivate *p);
     friend class QCanvasImagePatternPrivate;
     QExplicitlySharedDataPointer<QCanvasImagePatternPrivate> d;
