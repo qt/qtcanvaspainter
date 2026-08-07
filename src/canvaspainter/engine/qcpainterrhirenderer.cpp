@@ -2878,15 +2878,14 @@ int QCPainterRhiRenderer::populateFont(
     QCRHITexture *tex = nullptr;
 
     auto effectiveAlign = m_e->effectiveTextAlign(text);
-    rc->fontCache->generate(text, rect, font, &(m_e->state), effectiveAlign,
+    auto *fontKeyData = rc->fontCache->generate(text, rect, font, &(m_e->state), effectiveAlign,
                             m_e->ctx.devicePxRatio, &vertices, &indices);
 
     QRhiResourceUpdateBatch *u = resourceUpdateBatch();
 
     rc->fontCache->commitResourceUpdates(u);
-    const auto cacheKey = QCDistanceFieldGlyphCache::FontKey(QRawFont::fromFont(font));
-    auto mainTexture = rc->fontCache->getCurrentTextures(cacheKey);
-    auto currentTexture = rc->fontCache->getOldTextures(cacheKey);
+    auto mainTexture = rc->fontCache->getCurrentTextures(fontKeyData);
+    auto currentTexture = rc->fontCache->getOldTextures(fontKeyData);
 
     if (!mainTexture)
         return 0;
@@ -2894,12 +2893,12 @@ int QCPainterRhiRenderer::populateFont(
     // Font texture not created or changed
     if (!currentTexture) {
         tex = renderCreateNativeTexture(mainTexture);
-        rc->fontCache->setOldTexture(cacheKey, tex->tex);
+        rc->fontCache->setOldTexture(fontKeyData, tex->tex);
     }
     // Texture has already been created
     if (!tex && currentTexture != mainTexture) {
         tex = renderUpdateNativeTexture(currentTexture, mainTexture);
-        rc->fontCache->setOldTexture(cacheKey, tex->tex);
+        rc->fontCache->setOldTexture(fontKeyData, tex->tex);
     } else if (!tex) {
         // Find texture
         tex = findTexture(currentTexture);
@@ -2936,31 +2935,25 @@ int QCPainterRhiRenderer::populateFontFromShapedText(
     QCRHIContext *rc = rhiCtx;
     QCRHITexture *tex = nullptr;
 
-    rc->fontCache->generateFromShapedText(fontEngine, glyphIndexes, glyphPositions, glyphCount,
+    auto *fontKeyData = rc->fontCache->generateFromShapedText(fontEngine, glyphIndexes, glyphPositions, glyphCount,
                                         m_e->state, m_e->ctx.devicePxRatio, &vertices, &indices);
 
     QRhiResourceUpdateBatch *u = resourceUpdateBatch();
 
     rc->fontCache->commitResourceUpdates(u);
-    // Must key off the same QRawFont generateFromShapedText() builds (wrapping the
-    // font engine directly) so the two agree on the same FontKey; there is no QFont
-    // available here to derive one from.
-    QRawFont rawFont;
-    QRawFontPrivate::get(rawFont)->setFontEngine(fontEngine);
-    const auto cacheKey = QCDistanceFieldGlyphCache::FontKey(rawFont);
-    auto mainTexture = rc->fontCache->getCurrentTextures(cacheKey);
-    auto currentTexture = rc->fontCache->getOldTextures(cacheKey);
+    auto mainTexture = rc->fontCache->getCurrentTextures(fontKeyData);
+    auto currentTexture = rc->fontCache->getOldTextures(fontKeyData);
 
     if (!mainTexture)
         return 0;
 
     if (!currentTexture) {
         tex = renderCreateNativeTexture(mainTexture);
-        rc->fontCache->setOldTexture(cacheKey, tex->tex);
+        rc->fontCache->setOldTexture(fontKeyData, tex->tex);
     }
     if (!tex && currentTexture != mainTexture) {
         tex = renderUpdateNativeTexture(currentTexture, mainTexture);
-        rc->fontCache->setOldTexture(cacheKey, tex->tex);
+        rc->fontCache->setOldTexture(fontKeyData, tex->tex);
     } else if (!tex) {
         tex = findTexture(currentTexture);
     }

@@ -19,10 +19,8 @@ QCDistanceFieldGlyphCache::QCDistanceFieldGlyphCache(QRhi *rhi /*, QRawFont& fon
 
 QCDistanceFieldGlyphCache::~QCDistanceFieldGlyphCache()
 {
-    for (auto &cache : std::as_const(m_glyphCaches)) {
-        delete cache.nativeGlyphCache;
-        /*delete cache.layout;*/
-    }
+    for (auto &cache : std::as_const(m_glyphCaches))
+        delete cache;
     delete m_colorCache;
 }
 
@@ -59,33 +57,39 @@ QList<QGlyphRun> QCDistanceFieldGlyphCache::generateGlyphRuns(
     return m_layout.glyphRuns();
 }
 
-void QCDistanceFieldGlyphCache::generate(const QString &text, const QRectF &rect, const QFont &font, QCState *state, QCanvasPainter::TextAlign alignment,
+QCDistanceFieldGlyphCache::FontKeyData *QCDistanceFieldGlyphCache::fontKeyDataFor(const QRawFont &rFont)
+{
+    QFontEngine *fe = QRawFontPrivate::get(rFont)->fontEngine;
+    if (fe == m_lastFontEngine && m_lastFontKeyData)
+        return m_lastFontKeyData;
+
+    FontKey key(rFont);
+    auto it = m_glyphCaches.find(key);
+    if (it == m_glyphCaches.end())
+        it = m_glyphCaches.insert(key, new FontKeyData{ nullptr, QCRhiDistanceFieldGlyphCache(m_rhi)});
+
+    m_lastFontEngine = fe;
+    m_lastFontKeyData = it.value();
+    return m_lastFontKeyData;
+}
+
+QCDistanceFieldGlyphCache::FontKeyData *QCDistanceFieldGlyphCache::generate(const QString &text, const QRectF &rect, const QFont &font, QCState *state, QCanvasPainter::TextAlign alignment,
                                          float devicePixelRatio,
                                          QCRhiDistanceFieldGlyphCache::VertexList *verts, QCRhiDistanceFieldGlyphCache::IndexList *indices)
 {
     // Remove raw fonts
     auto rFont = QRawFont::fromFont(font);
-    FontKeyData *data;
     const auto metrics = QFontMetricsF(font);
 
     // Get glyph cache
-    QCRhiDistanceFieldGlyphCache *cache;
-    FontKey key = {rFont};
-    if (m_glyphCaches.contains(key)) {
-        data = &m_glyphCaches[key];
-        cache = data->nativeGlyphCache;
-    } else {
-        cache = new QCRhiDistanceFieldGlyphCache(m_rhi);
-        FontKeyData f{ nullptr, cache, {} };
-        m_glyphCaches.insert(key, std::move(f));
-        data = &m_glyphCaches[key];
-    }
+    FontKeyData *data = fontKeyDataFor(rFont);
+    QCRhiDistanceFieldGlyphCache *cache = &data->nativeGlyphCache;
 
     QList<QGlyphRun> glyphRuns;
     float textY = 0;
 #ifdef QCPAINTER_CACHE_GLYPH_RUNS
     const GlyphCacheKey hashKey {
-        key,
+        FontKey(rFont),
         text,
         state->textAlignment,
         state->textWrapMode,
@@ -159,7 +163,7 @@ void QCDistanceFieldGlyphCache::generate(const QString &text, const QRectF &rect
     const bool fontOverline = font.overline();
     const bool fontStrikeOut = font.strikeOut();
     if (!(fontUnderline || fontOverline || fontStrikeOut))
-        return;
+        return data;
 
     // Decorations are drawn through the SDF solid tile. For text made up solely
     // of color (emoji) glyphs, no monochrome glyph reserved/created it, so force
@@ -167,7 +171,7 @@ void QCDistanceFieldGlyphCache::generate(const QString &text, const QRectF &rect
     cache->ensureSolidTileTexture();
     const QCRhiDistanceFieldGlyphCache::TexCoord solidTC = cache->solidTileTexCoord();
     if (solidTC.isNull())
-        return;
+        return data;
     // Sample from the center of the reserved 0xFF tile so linear filtering
     // never picks up neighbouring atlas content. All four corners of every
     // decoration quad share the same texCoord — the rect is a flat lookup.
@@ -267,9 +271,10 @@ void QCDistanceFieldGlyphCache::generate(const QString &text, const QRectF &rect
         }
         emitLine(lineY, xMin, xMax);
     }
+    return data;
 }
 
-void QCDistanceFieldGlyphCache::generateFromShapedText(
+QCDistanceFieldGlyphCache::FontKeyData *QCDistanceFieldGlyphCache::generateFromShapedText(
     QFontEngine *fontEngine,
     const quint32 *glyphIndexes,
     const QFixedPoint *glyphPositions,
@@ -280,7 +285,7 @@ void QCDistanceFieldGlyphCache::generateFromShapedText(
     QCRhiDistanceFieldGlyphCache::IndexList *indices)
 {
     if (glyphCount == 0)
-        return;
+        return nullptr;
 
     // Build a QRawFont directly from the font engine, matching how Qt's own
     // QTextEngine::createGlyphRun() does it (qtextlayout.cpp). This is the only
@@ -289,15 +294,8 @@ void QCDistanceFieldGlyphCache::generateFromShapedText(
     QRawFont rFont;
     QRawFontPrivate::get(rFont)->setFontEngine(fontEngine);
 
-    QCRhiDistanceFieldGlyphCache *cache;
-    FontKey key = {rFont};
-    if (m_glyphCaches.contains(key)) {
-        cache = m_glyphCaches[key].nativeGlyphCache;
-    } else {
-        cache = new QCRhiDistanceFieldGlyphCache(m_rhi);
-        FontKeyData f{ nullptr, cache, {} };
-        m_glyphCaches.insert(key, std::move(f));
-    }
+    FontKeyData *data = fontKeyDataFor(rFont);
+    QCRhiDistanceFieldGlyphCache *cache = &data->nativeGlyphCache;
 
     verts->clear();
     indices->clear();
@@ -345,22 +343,23 @@ void QCDistanceFieldGlyphCache::generateFromShapedText(
     // ordinary drawLine()/fillRect() calls on the same engine), never through
     // drawStaticTextItem(). Drawing them here too would double-render them for any
     // caller reached through QPainter::drawStaticText()/drawGlyphRun().
+    return data;
 }
 
 void QCDistanceFieldGlyphCache::commitResourceUpdates(QRhiResourceUpdateBatch *batch)
 {
     for (auto it = m_glyphCaches.begin(); it != m_glyphCaches.end(); ++it)
-        it.value().nativeGlyphCache->commitResourceUpdate(batch);
+        it.value()->nativeGlyphCache.commitResourceUpdate(batch);
     if (m_colorCache && !m_colorCache->isEmpty())
         m_colorCache->commitResourceUpdate(batch);
 }
 
-QRhiTexture *QCDistanceFieldGlyphCache::getCurrentTextures(const FontKey &key) const
+QRhiTexture *QCDistanceFieldGlyphCache::getCurrentTextures(const FontKeyData *data) const
 {
-    if (!m_glyphCaches.contains(key))
+    if (!data)
         return nullptr;
 
-    const auto l = m_glyphCaches.value(key).nativeGlyphCache->getTextures();
+    const auto l = data->nativeGlyphCache.getTextures();
 
     if (l.size() == 0)
         return nullptr;
@@ -368,26 +367,21 @@ QRhiTexture *QCDistanceFieldGlyphCache::getCurrentTextures(const FontKey &key) c
     return l.constFirst().texture;
 }
 
-QRhiTexture *QCDistanceFieldGlyphCache::getOldTextures(const FontKey &key) const
+QRhiTexture *QCDistanceFieldGlyphCache::getOldTextures(const FontKeyData *data) const
 {
-    if (!m_glyphCaches.contains(key))
-        return nullptr;
-
-    return m_glyphCaches.value(key).prevTextureState;
+    return data ? data->prevTextureState : nullptr;
 }
 
-void QCDistanceFieldGlyphCache::setOldTexture(FontKey key, QRhiTexture *tex)
+void QCDistanceFieldGlyphCache::setOldTexture(FontKeyData *data, QRhiTexture *tex)
 {
-    if (!m_glyphCaches.contains(key))
-        return;
-
-    m_glyphCaches[key].prevTextureState = tex;
+    if (data)
+        data->prevTextureState = tex;
 }
 
 void QCDistanceFieldGlyphCache::optimizeCacheAfterRendering()
 {
     for (auto it = m_glyphCaches.begin(); it != m_glyphCaches.end(); ++it)
-        it.value().nativeGlyphCache->optimizeAfterRendering();
+        it.value()->nativeGlyphCache.optimizeAfterRendering();
 
     if (m_colorCache)
         m_colorCache->optimizeAfterRendering();
