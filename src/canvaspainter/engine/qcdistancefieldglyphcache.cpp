@@ -346,6 +346,13 @@ QCDistanceFieldGlyphCache::FontKeyData *QCDistanceFieldGlyphCache::generateFromS
     return data;
 }
 
+void QCDistanceFieldGlyphCache::commitResourceUpdates(QRhiResourceUpdateBatch *batch,
+                                                      FontKeyData *data)
+{
+    if (data)
+        data->nativeGlyphCache.commitResourceUpdate(batch);
+}
+
 void QCDistanceFieldGlyphCache::commitResourceUpdates(QRhiResourceUpdateBatch *batch)
 {
     for (auto it = m_glyphCaches.begin(); it != m_glyphCaches.end(); ++it)

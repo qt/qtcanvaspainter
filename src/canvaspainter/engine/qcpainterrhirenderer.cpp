@@ -2122,6 +2122,9 @@ void QCPainterRhiRenderer::endPrepare()
     rhiCtx->cb->debugMarkBegin("QCanvasPainter prep"_ba);
     if (rhiCtx->callsCount > 0) {
         QRhiResourceUpdateBatch *u = resourceUpdateBatch();
+#ifndef QCPAINTER_DISABLE_TEXT_SUPPORT
+        rhiCtx->fontCache->commitResourceUpdates(u);
+#endif
         QCRHIContext::PerPassData *ppd = rhiCtx->currentPerPassData();
 
         if (!ppd->vertexBuffer) {
@@ -2881,9 +2884,8 @@ int QCPainterRhiRenderer::populateFont(
     auto *fontKeyData = rc->fontCache->generate(text, rect, font, &(m_e->state), effectiveAlign,
                             m_e->ctx.devicePxRatio, &vertices, &indices);
 
-    QRhiResourceUpdateBatch *u = resourceUpdateBatch();
+    rc->fontCache->commitResourceUpdates(resourceUpdateBatch(), fontKeyData);
 
-    rc->fontCache->commitResourceUpdates(u);
     auto mainTexture = rc->fontCache->getCurrentTextures(fontKeyData);
     auto currentTexture = rc->fontCache->getOldTextures(fontKeyData);
 
@@ -2938,9 +2940,8 @@ int QCPainterRhiRenderer::populateFontFromShapedText(
     auto *fontKeyData = rc->fontCache->generateFromShapedText(fontEngine, glyphIndexes, glyphPositions, glyphCount,
                                         m_e->state, m_e->ctx.devicePxRatio, &vertices, &indices);
 
-    QRhiResourceUpdateBatch *u = resourceUpdateBatch();
+    rc->fontCache->commitResourceUpdates(resourceUpdateBatch(), fontKeyData);
 
-    rc->fontCache->commitResourceUpdates(u);
     auto mainTexture = rc->fontCache->getCurrentTextures(fontKeyData);
     auto currentTexture = rc->fontCache->getOldTextures(fontKeyData);
 
@@ -2982,8 +2983,9 @@ int QCPainterRhiRenderer::populateColorFont(
     if (!atlas || cache->colorIndices().isEmpty())
         return 0;
 
-    // The atlas uploads were already merged into the frame's resource update
-    // batch by populateFont() -> commitResourceUpdates().
+    // The atlas uploads are merged into the frame's resource update batch by
+    // endPrepare() -> commitResourceUpdates(), before the batch is submitted and
+    // hence before the draw call recorded below runs.
     vertices = cache->colorVertices();
     indices = cache->colorIndices();
 
