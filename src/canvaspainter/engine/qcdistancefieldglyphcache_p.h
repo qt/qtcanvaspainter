@@ -33,8 +33,7 @@ public:
     struct FontKeyData
     {
         QRhiTexture *prevTextureState = nullptr;
-        QCRhiDistanceFieldGlyphCache *nativeGlyphCache = nullptr;
-        QRawFont rawFont;
+        QCRhiDistanceFieldGlyphCache nativeGlyphCache;
     };
 
     struct FontKey
@@ -72,10 +71,10 @@ public:
     QCDistanceFieldGlyphCache(QRhi *rhi);
     ~QCDistanceFieldGlyphCache();
 
-    void generate(const QString &text, const QRectF &rect, const QFont &font, QCState *state, QCanvasPainter::TextAlign alignment,
+    FontKeyData *generate(const QString &text, const QRectF &rect, const QFont &font, QCState *state, QCanvasPainter::TextAlign alignment,
                   float devicePixelRatio,
                   QCRhiDistanceFieldGlyphCache::VertexList *verts, QCRhiDistanceFieldGlyphCache::IndexList *indices);
-    void generateFromShapedText(QFontEngine *fontEngine,
+    FontKeyData *generateFromShapedText(QFontEngine *fontEngine,
                               const quint32 *glyphIndexes,
                               const QFixedPoint *glyphPositions,
                               int glyphCount,
@@ -86,10 +85,10 @@ public:
 
     void commitResourceUpdates(QRhiResourceUpdateBatch *batch);
 
-    QRhiTexture *getCurrentTextures(const FontKey &key) const;
-    QRhiTexture *getOldTextures(const FontKey &key) const;
+    QRhiTexture *getCurrentTextures(const FontKeyData *data) const;
+    QRhiTexture *getOldTextures(const FontKeyData *data) const;
 
-    void setOldTexture(FontKey key, QRhiTexture *tex);
+    void setOldTexture(FontKeyData *data, QRhiTexture *tex);
     void optimizeCacheAfterRendering();
 
     const QCRhiDistanceFieldGlyphCache::VertexList &colorVertices() const { return m_colorVertices; }
@@ -102,7 +101,10 @@ private:
     QList<QGlyphRun> generateGlyphRuns(const QString &text, const QRectF &rect,
                                        const QFont &font, const QFontMetricsF &metrics,
                                        QCState *state, QCanvasPainter::TextAlign alignment);
-    QHash<QCDistanceFieldGlyphCache::FontKey, FontKeyData> m_glyphCaches;
+    FontKeyData *fontKeyDataFor(const QRawFont &rFont);
+    QHash<QCDistanceFieldGlyphCache::FontKey, FontKeyData *> m_glyphCaches;
+    QFontEngine *m_lastFontEngine = nullptr;
+    FontKeyData *m_lastFontKeyData = nullptr; // last resolved entry for m_lastFontEngine
     QRhi *m_rhi;
     QTextLayout m_layout;
     QCRhiColorGlyphCache *m_colorCache = nullptr;

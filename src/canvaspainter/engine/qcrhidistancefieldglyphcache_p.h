@@ -130,6 +130,7 @@ public:
 
     void commitResourceUpdate(QRhiResourceUpdateBatch *batch);
     QList<TextureInfo> &getTextures() { return m_textures; }
+    const QList<TextureInfo> &getTextures() const { return m_textures; }
 
     GlyphData &glyphData(glyph_t glyph);
 
