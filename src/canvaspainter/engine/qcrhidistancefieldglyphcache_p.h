@@ -112,10 +112,10 @@ public:
     void createTexture(TextureInfo *texInfo, int width, int height, const void *pixels);
     void resizeTexture(TextureInfo *texInfo, int width, int height);
 
-    void requestGlyphs(const QSet<glyph_t> &glyphs);
+    void requestGlyphs(const QVarLengthArray<glyph_t, 16> &glyphs);
     void storeGlyphs(const QList<QDistanceField> &glyphs);
     void setGlyphsPosition(const QList<GlyphPosition> &glyphs);
-    void referenceGlyphs(const QSet<glyph_t> &glyphs);
+    void referenceGlyphs(const QVarLengthArray<glyph_t, 16> &glyphs);
 
     void optimizeAfterRendering();
 
