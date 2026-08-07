@@ -83,6 +83,7 @@ public:
                               QCRhiDistanceFieldGlyphCache::VertexList *verts,
                               QCRhiDistanceFieldGlyphCache::IndexList *indices);
 
+    void commitResourceUpdates(QRhiResourceUpdateBatch *batch, FontKeyData *data);
     void commitResourceUpdates(QRhiResourceUpdateBatch *batch);
 
     QRhiTexture *getCurrentTextures(const FontKeyData *data) const;
