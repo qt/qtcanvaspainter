@@ -404,8 +404,8 @@ qreal QCRhiDistanceFieldGlyphCache::fontScale(qreal pixelSize) const
 
 bool QCRhiDistanceFieldGlyphCache::populate(const QList<glyph_t> &glyphs)
 {
-    QSet<glyph_t> referencedGlyphs;
-    QSet<glyph_t> newGlyphs;
+    QVarLengthArray<glyph_t, 16> referencedGlyphs;
+    QVarLengthArray<glyph_t, 16> newGlyphs;
     int count = glyphs.size();
 
     const auto glyphCount = m_currentReferenceFont.glyphCount;
@@ -422,7 +422,7 @@ bool QCRhiDistanceFieldGlyphCache::populate(const QList<glyph_t> &glyphs)
             ++gd.ref;
             m_referencedThisFrame.insert(glyphIndex);
         }
-        referencedGlyphs.insert(glyphIndex);
+        referencedGlyphs.append(glyphIndex);
 
         if (gd.texCoord.isValid() || m_populatingGlyphs.contains(glyphIndex))
             continue;
@@ -433,7 +433,7 @@ bool QCRhiDistanceFieldGlyphCache::populate(const QList<glyph_t> &glyphs)
             gd.texCoord.width = 0;
             gd.texCoord.height = 0;
         } else {
-            newGlyphs.insert(glyphIndex);
+            newGlyphs.append(glyphIndex);
         }
     }
 
@@ -509,7 +509,7 @@ void QCRhiDistanceFieldGlyphCache::setRawFont(const QRawFont &font)
     Q_ASSERT(m_referenceFont.isValid());
 }
 
-void QCRhiDistanceFieldGlyphCache::requestGlyphs(const QSet<glyph_t> &glyphs)
+void QCRhiDistanceFieldGlyphCache::requestGlyphs(const QVarLengthArray<glyph_t, 16> &glyphs)
 {
     QList<GlyphPosition> glyphPositions;
     QList<glyph_t> glyphsToRender;
@@ -518,9 +518,7 @@ void QCRhiDistanceFieldGlyphCache::requestGlyphs(const QSet<glyph_t> &glyphs)
         m_areaAllocator = new QCAreaAllocator(
             QSize(maxTextureSize(), m_maxTextureCount * maxTextureSize()));
 
-    for (QSet<glyph_t>::const_iterator it = glyphs.constBegin(); it != glyphs.constEnd(); ++it) {
-        glyph_t glyphIndex = *it;
-
+    for (glyph_t glyphIndex : glyphs) {
         int padding = RHI_DISTANCEFIELD_GLYPH_CACHE_PADDING;
         QRectF boundingRect = glyphData(glyphIndex).boundingRect;
         int glyphWidth = qCeil(boundingRect.width() + distanceFieldRadius() * 2);
@@ -604,9 +602,10 @@ void QCRhiDistanceFieldGlyphCache::setGlyphsPosition(const QList<GlyphPosition> 
     }
 }
 
-void QCRhiDistanceFieldGlyphCache::referenceGlyphs(const QSet<glyph_t> &glyphs)
+void QCRhiDistanceFieldGlyphCache::referenceGlyphs(const QVarLengthArray<glyph_t, 16> &glyphs)
 {
-    m_unusedGlyphs -= glyphs;
+    for (glyph_t glyph : glyphs)
+        m_unusedGlyphs.remove(glyph);
 }
 
 void QCRhiDistanceFieldGlyphCache::releaseGlyphs(const QSet<glyph_t> &glyphs)
