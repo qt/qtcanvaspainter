@@ -13,6 +13,7 @@
 #include <QCanvasRhiPaintDriver>
 #include <QCanvasOffscreenCanvas>
 #include <QCanvasImagePattern>
+#include <private/qcanvaspainter_p.h>
 
 #include "canvaspainting_cpptests.h"
 
@@ -422,7 +423,8 @@ void tst_CanvasPainterLancelot::runTestSuite(QRhi::Implementation api, QImage::F
     if (isOffscreen) {
         painter->reset();
         QList<QRectF> emptyRectList; // passing {} to setStencilClip would be ambiguous with some compilers
-        painter->setStencilClip(emptyRectList); // internal feature so not included in reset(), but some tests set it
+        auto *painterPriv = QCanvasPainterPrivate::get(painter);
+        painterPriv->setStencilClip(emptyRectList); // internal feature so not included in reset(), but some tests set it
 
         painter->setStrokeStyle(Qt::red);
         painter->setLineWidth(4);
