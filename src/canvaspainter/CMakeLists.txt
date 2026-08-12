@@ -22,7 +22,6 @@ qt_internal_add_module(CanvasPainter
         qcanvasoffscreencanvas.cpp qcanvasoffscreencanvas.h qcanvasoffscreencanvas_p.h
         qcanvaspainterfactory.cpp qcanvaspainterfactory.h qcanvaspainterfactory_p.h
         qcanvasrhipaintdriver.cpp qcanvasrhipaintdriver.h qcanvasrhipaintdriver_p.h
-        qcanvassvgparser.cpp qcanvassvgparser_p.h
 
         engine/qcpainterengine.cpp engine/qcpainterengine_p.h engine/qcpainterengineutils_p.h
         engine/qcpainterrhirenderer.cpp engine/qcpainterrhirenderer_p.h

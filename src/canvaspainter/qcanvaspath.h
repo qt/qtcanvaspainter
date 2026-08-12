@@ -91,6 +91,7 @@ public:
     Q_CANVASPAINTER_EXPORT void addPath(const QCanvasPath &path, const QTransform &transform = QTransform());
     Q_CANVASPAINTER_EXPORT void addPath(const QCanvasPath &path, qsizetype start, qsizetype count, const QTransform &transform = QTransform());
     Q_CANVASPAINTER_EXPORT void addPath(QStringView svgPath, const QTransform &transform = QTransform());
+    Q_CANVASPAINTER_EXPORT void addPath(const QPainterPath &path);
 
     // Memory and size management
     Q_CANVASPAINTER_EXPORT bool isEmpty() const;
