@@ -5,9 +5,9 @@
 
 #include "qcanvaspath.h"
 #include "qcanvaspath_p.h"
-#include "qcanvassvgparser_p.h"
 #include "engine/qcpainterengineutils_p.h"
-#include <QTransform>
+#include <QtGui/qtransform.h>
+#include <QtGui/private/qguisvg_p.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -956,7 +956,8 @@ void QCanvasPath::addPath(const QCanvasPath &path, qsizetype start, qsizetype co
 /*!
     \since 6.12
     Adds \a svgPath into this path, optionally using \a transform to
-    alter the path points.
+    alter the path points. If the estimated size of the path is known,
+    consider calling \l reserve() before this.
 
     \table
     \row
@@ -981,9 +982,51 @@ void QCanvasPath::addPath(const QCanvasPath &path, qsizetype start, qsizetype co
 */
 void QCanvasPath::addPath(QStringView svgPath, const QTransform &transform)
 {
-    QCanvasPath path;
-    QCanvasSvgParser::parsePathDataFast(svgPath, path);
-    addPath(path, transform);
+    std::optional<QPainterPath> qpath = QGuiSvg::parsePath(svgPath);
+    if (qpath) {
+        // Convert QPainterPath into a separate QCanvasPath
+        // and add that into this to take transform into account.
+        QCanvasPath p(qpath.value().elementCount());
+        p.addPath(qpath.value());
+        addPath(p, transform);
+    }
+}
+
+/*!
+   \internal
+*/
+
+void QCanvasPath::addPath(const QPainterPath &path)
+{
+    const int eCount = path.elementCount();
+    for (int i = 0; i < eCount; i++) {
+        const auto &element = path.elementAt(i);
+        switch (element.type) {
+        case QPainterPath::MoveToElement:
+        {
+            moveTo(element.x, element.y);
+            break;
+        }
+        case QPainterPath::LineToElement:
+        {
+            lineTo(element.x, element.y);
+            break;
+        }
+        case QPainterPath::CurveToElement:
+        {
+            // 2 CurveToDataElements always follow the CurveToElement
+            Q_ASSERT(path.elementAt(i+1).type == QPainterPath::CurveToDataElement);
+            Q_ASSERT(path.elementAt(i+2).type == QPainterPath::CurveToDataElement);
+            const auto &data1 = path.elementAt(++i);
+            const auto &data2 = path.elementAt(++i);
+            bezierCurveTo(element.x, element.y, data1.x, data1.y, data2.x, data2.y);
+            break;
+        }
+        case QPainterPath::CurveToDataElement:
+            // Handled in CurveToElement
+            break;
+        }
+    }
 }
 
 /*!
