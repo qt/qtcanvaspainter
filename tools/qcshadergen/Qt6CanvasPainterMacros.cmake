@@ -101,7 +101,7 @@ function(_qt_internal_add_custom_brush_shaders_impl target resourcename)
                 output_targets
         )
     else()
-        qt_add_shaders(${target} ${resourcename}
+        qt6_add_shaders(${target} ${resourcename}
             GLSL
                 ${opengl_glsl_versions}
             PREFIX
@@ -124,13 +124,23 @@ function(_qt_internal_add_custom_brush_shaders_impl target resourcename)
     endif()
 endfunction()
 
-function(qt_add_custom_brush_shaders)
+function(qt6_add_custom_brush_shaders)
     _qt_internal_add_custom_brush_shaders_impl(${ARGV})
     cmake_parse_arguments(PARSE_ARGV 1 arg "" "OUTPUT_TARGETS" "")
     if (arg_OUTPUT_TARGETS)
         set(${arg_OUTPUT_TARGETS} ${${arg_OUTPUT_TARGETS}} PARENT_SCOPE)
     endif()
 endfunction()
+
+if(NOT QT_NO_CREATE_VERSIONLESS_FUNCTIONS)
+    function(qt_add_custom_brush_shaders)
+        qt6_add_custom_brush_shaders(${ARGV})
+        cmake_parse_arguments(PARSE_ARGV 1 arg "" "OUTPUT_TARGETS" "")
+        if(arg_OUTPUT_TARGETS)
+            set(${arg_OUTPUT_TARGETS} ${${arg_OUTPUT_TARGETS}} PARENT_SCOPE)
+        endif()
+    endfunction()
+endif()
 
 # for use by Qt modules that need qt_internal_add_resource
 function(qt_internal_add_custom_brush_shaders)
