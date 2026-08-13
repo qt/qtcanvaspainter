@@ -141,12 +141,3 @@ if(NOT QT_NO_CREATE_VERSIONLESS_FUNCTIONS)
         endif()
     endfunction()
 endif()
-
-# for use by Qt modules that need qt_internal_add_resource
-function(qt_internal_add_custom_brush_shaders)
-    _qt_internal_add_custom_brush_shaders_impl(${ARGV} _QT_INTERNAL)
-    cmake_parse_arguments(PARSE_ARGV 1 arg "" "OUTPUT_TARGETS" "")
-    if (arg_OUTPUT_TARGETS)
-        set(${arg_OUTPUT_TARGETS} ${${arg_OUTPUT_TARGETS}} PARENT_SCOPE)
-    endif()
-endfunction()
