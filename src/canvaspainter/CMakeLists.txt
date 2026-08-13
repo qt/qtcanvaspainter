@@ -1,6 +1,8 @@
 # Copyright (C) 2025 The Qt Company Ltd.
 # SPDX-License-Identifier: BSD-3-Clause
 
+include(QtCanvasPainterBuildInternals.cmake)
+
 qt_internal_add_module(CanvasPainter
     SOURCES
         qcanvaspainter.cpp qcanvaspainter.h qcanvaspainter_p.h
