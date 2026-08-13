@@ -245,7 +245,6 @@ public:
 
     Q_CANVASPAINTER_EXPORT QCanvasOffscreenCanvas createCanvas(QSize pixelSize, int sampleCount = 1, QCanvasOffscreenCanvas::Flags flags = {});
     Q_CANVASPAINTER_EXPORT void destroyCanvas(QCanvasOffscreenCanvas &canvas);
-    Q_CANVASPAINTER_EXPORT void grabCanvas(const QCanvasOffscreenCanvas &canvas, std::function<void(const QImage &)> callback);
 
 private:
     Q_DISABLE_COPY_MOVE(QCanvasPainter)
