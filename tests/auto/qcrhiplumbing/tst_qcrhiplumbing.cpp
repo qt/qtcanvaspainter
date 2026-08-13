@@ -8,6 +8,7 @@
 //#define FRAME_CAPTURE
 
 #include <QTest>
+#include <algorithm>
 #include <memory>
 #include <rhi/qrhi.h>
 #include <QFont>
@@ -69,6 +70,10 @@ private slots:
     void renderWithDepthTest();
     void canvasRender_data();
     void canvasRender();
+    void canvasGrab_data();
+    void canvasGrab();
+    void canvasGrabContext_data();
+    void canvasGrabContext();
     void canvasRenderMipMap_data();
     void canvasRenderMipMap();
     void canvasRenderHqStroking_data();
@@ -725,6 +730,317 @@ void tst_CanvasRhiRendering::canvasRender()
 #ifdef FRAME_CAPTURE
     endFrameCapture(m_cap.get());
 #endif
+}
+
+void tst_CanvasRhiRendering::canvasGrab_data()
+{
+    rhiTestData();
+}
+
+void tst_CanvasRhiRendering::canvasGrab()
+{
+    QFETCH(QRhi::Implementation, impl);
+    QFETCH(QRhiInitParams *, initParams);
+
+    std::unique_ptr<QRhi> rhi(QRhi::create(impl, initParams, rhiCreateFlags));
+    if (!rhi)
+        QSKIP("Failed to create QRhi, skip");
+
+    std::unique_ptr<QCanvasPainterFactory> factory(new QCanvasPainterFactory);
+    QCanvasPainter *painter = factory->create(rhi.get());
+    QCanvasRhiPaintDriver *pd = factory->paintDriver();
+    QVERIFY(pd && painter);
+
+    QCanvasOffscreenCanvas canvas = painter->createCanvas(QSize(RT_WIDTH, RT_HEIGHT));
+    QVERIFY(!canvas.isNull());
+    canvas.setFillColor(Qt::black);
+
+    QRhiCommandBuffer *cb;
+    rhi->beginOffscreenFrame(&cb);
+    pd->resetForNewFrame();
+    pd->beginPaint(canvas, cb);
+    drawCircleInCenter(painter);
+    pd->endPaint();
+    rhi->endOffscreenFrame();
+
+    const QSize expectedSize(RT_WIDTH, RT_HEIGHT);
+
+    // A context object is mandatory. This one outlives every grab issued below,
+    // so it never cancels anything. See canvasGrabContext() for cancellation.
+    QObject context;
+
+    // Grabbing outside of a frame. The callback is invoked before grabCanvas() returns.
+    {
+        int calls = 0;
+        QImage grabbed;
+        pd->grabCanvas(canvas, &context, [&calls, &grabbed](const QImage &image) {
+            ++calls;
+            // the QImage only references the readback data, which is gone once
+            // the callback returns
+            grabbed = image.copy();
+        });
+        QCOMPARE(calls, 1);
+        QCOMPARE(grabbed.size(), expectedSize);
+        if (impl != QRhi::Null) {
+            QVERIFY(testColor(grabbed, 1, 1, Qt::black));
+            QVERIFY(testColor(grabbed, RT_WIDTH / 2, RT_HEIGHT / 2, Qt::red));
+        }
+    }
+
+    // A move-only callable. Does not compile with a std::function based API.
+    {
+        auto moveOnlyState = std::make_unique<QSize>(expectedSize);
+        bool called = false;
+        QSize stateSeenInCallback;
+        QImage grabbed;
+        pd->grabCanvas(canvas, &context, [state = std::move(moveOnlyState), &called,
+                                          &stateSeenInCallback, &grabbed](const QImage &image) {
+            called = true;
+            // the captured move-only state must have survived the type erasure
+            stateSeenInCallback = *state;
+            grabbed = image.copy();
+        });
+        QVERIFY(called);
+        QCOMPARE(stateSeenInCallback, expectedSize);
+        QCOMPARE(grabbed.size(), expectedSize);
+        if (impl != QRhi::Null) {
+            QVERIFY(testColor(grabbed, 1, 1, Qt::black));
+            QVERIFY(testColor(grabbed, RT_WIDTH / 2, RT_HEIGHT / 2, Qt::red));
+        }
+    }
+
+    RenderTargetPtr rt = createRenderTarget(rhi.get());
+    QVERIFY(rt);
+
+    // Grabbing while a frame is being recorded. The callback is invoked later,
+    // by the time endOffscreenFrame() returns. Paint to the render target, not
+    // to the canvas, so that the canvas contents are the ones drawn above.
+    {
+        int calls = 0;
+        QImage grabbed;
+        rhi->beginOffscreenFrame(&cb);
+        pd->resetForNewFrame();
+        pd->beginPaint(cb, rt->rt);
+        pd->grabCanvas(canvas, &context, [&calls, &grabbed](const QImage &image) {
+            ++calls;
+            grabbed = image.copy();
+        });
+        // Null performs resource updates immediately, so there the grab has
+        // already completed at this point. Every other backend defers it.
+        if (impl != QRhi::Null)
+            QCOMPARE(calls, 0);
+        pd->endPaint();
+        rhi->endOffscreenFrame();
+
+        QCOMPARE(calls, 1);
+        QCOMPARE(grabbed.size(), expectedSize);
+        if (impl != QRhi::Null) {
+            QVERIFY(testColor(grabbed, 1, 1, Qt::black));
+            QVERIFY(testColor(grabbed, RT_WIDTH / 2, RT_HEIGHT / 2, Qt::red));
+        }
+    }
+
+    // Multiple grabs pending at the same time must each invoke their own
+    // callback. Completing one must not disturb the ones still outstanding.
+    {
+        QList<int> completed;
+        QList<QImage> grabbed;
+        rhi->beginOffscreenFrame(&cb);
+        pd->resetForNewFrame();
+        pd->beginPaint(cb, rt->rt);
+        for (int i = 1; i <= 3; ++i) {
+            pd->grabCanvas(canvas, &context, [&completed, &grabbed, i](const QImage &image) {
+                completed.append(i);
+                grabbed.append(image.copy());
+            });
+        }
+        pd->endPaint();
+        rhi->endOffscreenFrame();
+
+        // The order in which simultaneous readbacks complete is up to the
+        // backend, some of them run their completion callbacks in reverse.
+        std::sort(completed.begin(), completed.end());
+        QCOMPARE(completed, QList<int>({ 1, 2, 3 }));
+
+        // All three grabbed the same canvas, so each must have gotten its own
+        // copy of the same contents.
+        QCOMPARE(grabbed.size(), 3);
+        for (const QImage &image : std::as_const(grabbed)) {
+            QCOMPARE(image.size(), expectedSize);
+            if (impl != QRhi::Null) {
+                QVERIFY(testColor(image, 1, 1, Qt::black));
+                QVERIFY(testColor(image, RT_WIDTH / 2, RT_HEIGHT / 2, Qt::red));
+            }
+        }
+    }
+
+    // Grabbing a null canvas is a no-op apart from the warning.
+    {
+        int calls = 0;
+        QCanvasOffscreenCanvas nullCanvas;
+        QVERIFY(nullCanvas.isNull());
+        QTest::ignoreMessage(QtWarningMsg, "Cannot grab null canvas");
+        pd->grabCanvas(nullCanvas, &context, [&calls](const QImage &) { ++calls; });
+        QCOMPARE(calls, 0);
+    }
+}
+
+// Not a Q_OBJECT, none of this needs moc, but it has to be a QObject to serve
+// as a context object.
+class GrabReceiver : public QObject
+{
+public:
+    void onGrabbed(const QImage &image)
+    {
+        ++calls;
+        grabbed = image.copy();
+    }
+
+    int calls = 0;
+    QImage grabbed;
+};
+
+void tst_CanvasRhiRendering::canvasGrabContext_data()
+{
+    rhiTestData();
+}
+
+void tst_CanvasRhiRendering::canvasGrabContext()
+{
+    QFETCH(QRhi::Implementation, impl);
+    QFETCH(QRhiInitParams *, initParams);
+
+    std::unique_ptr<QRhi> rhi(QRhi::create(impl, initParams, rhiCreateFlags));
+    if (!rhi)
+        QSKIP("Failed to create QRhi, skip");
+
+    std::unique_ptr<QCanvasPainterFactory> factory(new QCanvasPainterFactory);
+    QCanvasPainter *painter = factory->create(rhi.get());
+    QCanvasRhiPaintDriver *pd = factory->paintDriver();
+    QVERIFY(pd && painter);
+
+    QCanvasOffscreenCanvas canvas = painter->createCanvas(QSize(RT_WIDTH, RT_HEIGHT));
+    QVERIFY(!canvas.isNull());
+    canvas.setFillColor(Qt::black);
+
+    QRhiCommandBuffer *cb;
+    rhi->beginOffscreenFrame(&cb);
+    pd->resetForNewFrame();
+    pd->beginPaint(canvas, cb);
+    drawCircleInCenter(painter);
+    pd->endPaint();
+    rhi->endOffscreenFrame();
+
+    RenderTargetPtr rt = createRenderTarget(rhi.get());
+    QVERIFY(rt);
+
+    const QSize expectedSize(RT_WIDTH, RT_HEIGHT);
+
+    // A context object that outlives the readback changes nothing.
+    {
+        QObject context;
+        int calls = 0;
+        QImage grabbed;
+        rhi->beginOffscreenFrame(&cb);
+        pd->resetForNewFrame();
+        pd->beginPaint(cb, rt->rt);
+        pd->grabCanvas(canvas, &context, [&calls, &grabbed](const QImage &image) {
+            ++calls;
+            grabbed = image.copy();
+        });
+        pd->endPaint();
+        rhi->endOffscreenFrame();
+
+        QCOMPARE(calls, 1);
+        QCOMPARE(grabbed.size(), expectedSize);
+        if (impl != QRhi::Null) {
+            QVERIFY(testColor(grabbed, 1, 1, Qt::black));
+            QVERIFY(testColor(grabbed, RT_WIDTH / 2, RT_HEIGHT / 2, Qt::red));
+        }
+    }
+
+    // Cancelling a grab that is still pending needs a backend that actually
+    // defers the readback. Null completes it right away, within grabCanvas().
+    if (impl != QRhi::Null) {
+        // Destroying the context object before the readback completes cancels
+        // the grab, the callback is not invoked.
+        {
+            auto context = std::make_unique<QObject>();
+            int calls = 0;
+            rhi->beginOffscreenFrame(&cb);
+            pd->resetForNewFrame();
+            pd->beginPaint(cb, rt->rt);
+            pd->grabCanvas(canvas, context.get(), [&calls](const QImage &) { ++calls; });
+            pd->endPaint();
+            context.reset();
+            rhi->endOffscreenFrame();
+
+            QCOMPARE(calls, 0);
+        }
+
+        // Cancelling one grab must leave the others alone.
+        {
+            auto context = std::make_unique<QObject>();
+            QObject survivingContext;
+            int cancelledCalls = 0;
+            QList<int> completed;
+            QList<QImage> grabbed;
+            rhi->beginOffscreenFrame(&cb);
+            pd->resetForNewFrame();
+            pd->beginPaint(cb, rt->rt);
+            auto surviving = [&completed, &grabbed](int id) {
+                return [&completed, &grabbed, id](const QImage &image) {
+                    completed.append(id);
+                    grabbed.append(image.copy());
+                };
+            };
+            pd->grabCanvas(canvas, &survivingContext, surviving(1));
+            pd->grabCanvas(canvas, context.get(),
+                           [&cancelledCalls](const QImage &) { ++cancelledCalls; });
+            pd->grabCanvas(canvas, &survivingContext, surviving(3));
+            pd->endPaint();
+            context.reset();
+            rhi->endOffscreenFrame();
+
+            QCOMPARE(cancelledCalls, 0);
+            std::sort(completed.begin(), completed.end());
+            QCOMPARE(completed, QList<int>({ 1, 3 }));
+
+            // Cancelling the middle grab must not corrupt what the other two get.
+            QCOMPARE(grabbed.size(), 2);
+            for (const QImage &image : std::as_const(grabbed)) {
+                QCOMPARE(image.size(), expectedSize);
+                QVERIFY(testColor(image, 1, 1, Qt::black));
+                QVERIFY(testColor(image, RT_WIDTH / 2, RT_HEIGHT / 2, Qt::red));
+            }
+        }
+
+        // The same, with a member function pointer, cancelled by destroying
+        // the receiver.
+        {
+            auto receiver = std::make_unique<GrabReceiver>();
+            rhi->beginOffscreenFrame(&cb);
+            pd->resetForNewFrame();
+            pd->beginPaint(cb, rt->rt);
+            pd->grabCanvas(canvas, receiver.get(), &GrabReceiver::onGrabbed);
+            pd->endPaint();
+            QCOMPARE(receiver->calls, 0);
+            receiver.reset();
+            rhi->endOffscreenFrame();
+        }
+    }
+
+    // A member function pointer, with the receiver acting as the context.
+    {
+        GrabReceiver receiver;
+        pd->grabCanvas(canvas, &receiver, &GrabReceiver::onGrabbed);
+        QCOMPARE(receiver.calls, 1);
+        QCOMPARE(receiver.grabbed.size(), expectedSize);
+        if (impl != QRhi::Null) {
+            QVERIFY(testColor(receiver.grabbed, 1, 1, Qt::black));
+            QVERIFY(testColor(receiver.grabbed, RT_WIDTH / 2, RT_HEIGHT / 2, Qt::red));
+        }
+    }
 }
 
 void tst_CanvasRhiRendering::canvasRenderMipMap_data()

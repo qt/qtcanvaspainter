@@ -3764,49 +3764,61 @@ void QCPainterRhiRenderer::recordCanvasRenderPass(QRhiCommandBuffer *cb, const Q
     cb->debugMarkEnd();
 }
 
-void QCPainterRhiRenderer::grabCanvas(const QCanvasOffscreenCanvas &canvas, std::function<void(const QImage &)> callback, QRhiCommandBuffer *maybeCb)
+void QCPainterRhiRenderer::grabCanvas(const QCanvasOffscreenCanvas &canvas, const QObject *context,
+                                      QtPrivate::SlotObjUniquePtr callback, QRhiCommandBuffer *maybeCb)
 {
     if (canvas.isNull()) {
         qWarning("Cannot grab null canvas");
         return;
     }
 
-    m_canvasGrabs.append({ {}, callback });
-    const int grabIndex = m_canvasGrabs.count() - 1;
-    auto &grabInfo = m_canvasGrabs.last();
+    m_canvasGrabs.push_back(std::make_unique<QCRhiCanvasGrab>());
+    QCRhiCanvasGrab *grab = m_canvasGrabs.back().get();
+    grab->callback = std::move(callback);
+    grab->context = context;
+    grab->hasContext = context != nullptr;
 
-    // ### there's probably an issue when the vector changes (due to remove or growing),
-    // the QRhiReadbackResult refs the QRhi may hold could become invalid...
-    // The ctor does reserve(4) atm.
-
-    auto callbackInvoker = [this, grabIndex] {
-        QRhiReadbackResult &readbackResult(m_canvasGrabs[grabIndex].first);
-        // assume QRhiTexture::RGBA8
-        QImage image(reinterpret_cast<const uchar *>(readbackResult.data.constData()),
-                        readbackResult.pixelSize.width(),
-                        readbackResult.pixelSize.height(),
-                        QImage::Format_RGBA8888);
-        if (rhiCtx->rhi->isYUpInFramebuffer())
-            image.flip();
-        m_canvasGrabs[grabIndex].second(image); // invoke the callback
-        m_canvasGrabs.removeAt(grabIndex);
+    auto callbackInvoker = [this, grab] {
+        // When a context object was given and it got destroyed in the meantime,
+        // the grab is cancelled: the callback is not invoked. The node itself
+        // must be kept alive until this point regardless, because the QRhi may
+        // still be writing to grab->readbackResult.
+        if (!grab->hasContext || !grab->context.isNull()) {
+            const QRhiReadbackResult &readbackResult(grab->readbackResult);
+            // assume QRhiTexture::RGBA8
+            QImage image(reinterpret_cast<const uchar *>(readbackResult.data.constData()),
+                            readbackResult.pixelSize.width(),
+                            readbackResult.pixelSize.height(),
+                            QImage::Format_RGBA8888);
+            if (rhiCtx->rhi->isYUpInFramebuffer())
+                image.flip();
+            void *args[] = { nullptr, &image };
+            // image may still reference the readback data, so invoke before dropping the node
+            grab->callback->call(const_cast<QObject *>(grab->context.data()), args);
+        }
+        for (auto it = m_canvasGrabs.begin(); it != m_canvasGrabs.end(); ++it) {
+            if (it->get() == grab) {
+                m_canvasGrabs.erase(it);
+                break;
+            }
+        }
     };
 
     QRhi *rhi = rhiCtx->rhi;
     if (maybeCb) {
         // A frame is being recorded already.
-        grabInfo.first.completed = callbackInvoker;
+        grab->readbackResult.completed = callbackInvoker;
         QRhiResourceUpdateBatch *u = rhi->nextResourceUpdateBatch();
-        u->readBackTexture({ canvas.texture() }, &grabInfo.first);
+        u->readBackTexture({ canvas.texture() }, &grab->readbackResult);
         maybeCb->resourceUpdate(u);
         // callback might be invoked later. In a future frame, possibly.
     } else {
         // Outside a frame.
-        grabInfo.first.completed = nullptr;
+        grab->readbackResult.completed = nullptr;
         QRhiCommandBuffer *cb;
         rhi->beginOffscreenFrame(&cb);
         QRhiResourceUpdateBatch *u = rhi->nextResourceUpdateBatch();
-        u->readBackTexture({ canvas.texture() }, &grabInfo.first);
+        u->readBackTexture({ canvas.texture() }, &grab->readbackResult);
         cb->resourceUpdate(u);
         rhi->endOffscreenFrame();
 

@@ -318,21 +318,43 @@ void QCanvasRhiPaintDriver::renderPaint()
 }
 
 /*!
-    Issues a texture readback request for \a canvas.
+    \fn template <typename Functor> void QCanvasRhiPaintDriver::grabCanvas(const QCanvasOffscreenCanvas &canvas, const QObject *context, Functor &&callback)
+
+    Issues a texture readback request for \a canvas, associating it with
+    \a context.
 
     \a callback is invoked either before the function returns, or later,
     depending on the underlying QRhi and 3D API implementation. Reading back
     texture contents may involve a GPU->CPU copy, depending on the GPU
-    architecture.
+    architecture. It takes a single \c{const QImage &} argument, and can be any
+    functor, including move-only ones.
+
+    If \a context is destroyed before the readback completes, the grab is
+    cancelled and \a callback is not invoked. This makes it safe for the
+    callback to reference objects that may not outlive the pending readback.
 
     This function can be called both within a beginPaint() - endPaint() block,
     and outside. When called outside, it will internally invoke \l
     QRhi::beginOffscreenFrame() etc., allowing grabs to be performed at any
     time.
+
+    For example, the following would save the contents of an offscreen canvas to
+    a PNG file:
+
+    \code
+        grabCanvas(offscreenCanvas, qGuiApp, [](const QImage &image) {
+            image.save("result.png");
+        });
+    \endcode
  */
-void QCanvasRhiPaintDriver::grabCanvas(const QCanvasOffscreenCanvas &canvas, std::function<void(const QImage &)> callback)
+void QCanvasRhiPaintDriver::grabCanvasImpl(const QCanvasOffscreenCanvas &canvas,
+                                           const QObject *context,
+                                           QtPrivate::QSlotObjectBase *slotObj)
 {
-    d->renderer->grabCanvas(canvas, callback, d->currentCb ? d->currentCb : nullptr);
+    QtPrivate::SlotObjUniquePtr callback(slotObj);
+    Q_ASSERT_X(callback, "QCanvasRhiPaintDriver::grabCanvas",
+               "Internal error, caller must not pass a null slot object");
+    d->renderer->grabCanvas(canvas, context, std::move(callback), d->currentCb);
 }
 
 QT_END_NAMESPACE

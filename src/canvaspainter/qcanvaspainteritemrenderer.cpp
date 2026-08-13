@@ -453,17 +453,35 @@ void QCanvasPainterItemRenderer::endCanvasPainting()
 }
 
 /*!
-    Issues a texture readback request for \a canvas.
+    \fn template <typename Functor> void QCanvasPainterItemRenderer::grabCanvas(const QCanvasOffscreenCanvas &canvas, const QObject *context, Functor &&callback)
 
-    \a callback is invoked either before the function returns, or later,
-    depending on the underlying QRhi and 3D API implementation. Reading back
-    texture contents may involve a GPU->CPU copy, depending on the GPU
-    architecture.
+    Issues a texture readback request for \a canvas, associating it with
+    \a context.
+
+    \a callback is invoked on the render thread either before the function
+    returns, or later, depending on the underlying QRhi and 3D API
+    implementation. Reading back texture contents may involve a GPU->CPU copy,
+    depending on the GPU architecture. It takes a single \c{const QImage &}
+    argument, and can be any functor, including move-only ones.
+
+    If \a context is destroyed before the readback completes, the grab is
+    cancelled and \a callback is not invoked. This makes it safe for the
+    callback to reference objects that may not outlive the pending readback.
+
+    For example, the following would save the contents of an offscreen canvas to
+    a PNG file:
+
+    \code
+        grabCanvas(offscreenCanvas, item, [](const QImage &image) {
+            image.save("result.png");
+        });
+    \endcode
  */
-void QCanvasPainterItemRenderer::grabCanvas(const QCanvasOffscreenCanvas &canvas, std::function<void(const QImage &)> callback)
+void QCanvasPainterItemRenderer::grabCanvasImpl(const QCanvasOffscreenCanvas &canvas, const QObject *context,
+                                                QtPrivate::QSlotObjectBase *slotObj)
 {
     Q_D(QCanvasPainterItemRenderer);
-    d->m_factory->paintDriver()->grabCanvas(canvas, callback);
+    d->m_factory->paintDriver()->grabCanvasImpl(canvas, context, slotObj);
 }
 
 QT_END_NAMESPACE

@@ -8,10 +8,11 @@
 #define QCANVASRHIPAINTDRIVER_H
 
 #include <QtCanvasPainter/qtcanvaspainterglobal.h>
+#include <QtCore/qobject.h>
 #include <QtCore/qsize.h>
+#include <QtGui/qimage.h>
 #include <QtGui/qmatrix4x4.h>
 #include <QtCanvasPainter/qcanvasoffscreencanvas.h>
-#include <functional>
 
 QT_BEGIN_NAMESPACE
 
@@ -43,12 +44,32 @@ public:
     Q_CANVASPAINTER_EXPORT void beginPaint(QCanvasOffscreenCanvas &canvas, QRhiCommandBuffer *cb, BeginPaintFlags flags = {});
     Q_CANVASPAINTER_EXPORT void endPaint(EndPaintFlags flags = {});
     Q_CANVASPAINTER_EXPORT void renderPaint();
-    Q_CANVASPAINTER_EXPORT void grabCanvas(const QCanvasOffscreenCanvas &canvas, std::function<void(const QImage &)> callback);
+
+#ifdef Q_QDOC
+    template <typename Functor>
+    void grabCanvas(const QCanvasOffscreenCanvas &canvas, const QObject *context, Functor &&callback);
+#else
+    template <typename Functor>
+    void grabCanvas(const QCanvasOffscreenCanvas &canvas,
+                    const typename QtPrivate::ContextTypeForFunctor<Functor>::ContextType *context,
+                    Functor &&callback)
+    {
+        using Prototype = void (*)(const QImage &);
+        QtPrivate::AssertCompatibleFunctions<Prototype, Functor>();
+        grabCanvasImpl(canvas, context,
+                       QtPrivate::makeCallableObject<Prototype>(std::forward<Functor>(callback)));
+    }
+#endif
 
 private:
     Q_DISABLE_COPY_MOVE(QCanvasRhiPaintDriver)
+    Q_CANVASPAINTER_EXPORT void grabCanvasImpl(const QCanvasOffscreenCanvas &canvas,
+                                               const QObject *context,
+                                               QtPrivate::QSlotObjectBase *slotObj);
     QCanvasRhiPaintDriverPrivate *d = nullptr;
     friend class QCanvasRhiPaintDriverPrivate;
+    friend class QCanvasPainterWidget;
+    friend class QCanvasPainterItemRenderer;
 };
 
 Q_DECLARE_OPERATORS_FOR_FLAGS(QCanvasRhiPaintDriver::BeginPaintFlags)

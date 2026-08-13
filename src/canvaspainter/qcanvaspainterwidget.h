@@ -10,7 +10,7 @@
 #include <QtCanvasPainter/qtcanvaspainterglobal.h>
 #include <QtWidgets/qrhiwidget.h>
 #include <QtGui/qcolor.h>
-#include <functional>
+#include <QtGui/qimage.h>
 #include <QtCanvasPainter/qcanvasoffscreencanvas.h>
 
 QT_BEGIN_NAMESPACE
@@ -31,7 +31,21 @@ public:
     bool hasSharedPainter() const;
     void setSharedPainter(bool enable);
 
-    void grabCanvas(const QCanvasOffscreenCanvas &canvas, std::function<void(const QImage &)> callback);
+#ifdef Q_QDOC
+    template <typename Functor>
+    void grabCanvas(const QCanvasOffscreenCanvas &canvas, const QObject *context, Functor &&callback);
+#else
+    template <typename Functor>
+    void grabCanvas(const QCanvasOffscreenCanvas &canvas,
+                    const typename QtPrivate::ContextTypeForFunctor<Functor>::ContextType *context,
+                    Functor &&callback)
+    {
+        using Prototype = void (*)(const QImage &);
+        QtPrivate::AssertCompatibleFunctions<Prototype, Functor>();
+        grabCanvasImpl(canvas, context,
+                       QtPrivate::makeCallableObject<Prototype>(std::forward<Functor>(callback)));
+    }
+#endif
 
 protected:
     virtual void initializeResources(QCanvasPainter *painter);
@@ -48,6 +62,8 @@ protected:
 
 private:
     Q_DECLARE_PRIVATE(QCanvasPainterWidget)
+    void grabCanvasImpl(const QCanvasOffscreenCanvas &canvas, const QObject *context,
+                        QtPrivate::QSlotObjectBase *slotObj);
 };
 
 QT_END_NAMESPACE

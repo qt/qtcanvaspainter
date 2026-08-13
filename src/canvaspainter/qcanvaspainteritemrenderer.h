@@ -44,7 +44,21 @@ protected:
     void render(QRhiCommandBuffer *cb) override;
     void synchronize(QQuickRhiItem *item) override;
 
-    void grabCanvas(const QCanvasOffscreenCanvas &canvas, std::function<void(const QImage &)> callback);
+#ifdef Q_QDOC
+    template <typename Functor>
+    void grabCanvas(const QCanvasOffscreenCanvas &canvas, const QObject *context, Functor &&callback);
+#else
+    template <typename Functor>
+    void grabCanvas(const QCanvasOffscreenCanvas &canvas,
+                    const typename QtPrivate::ContextTypeForFunctor<Functor>::ContextType *context,
+                    Functor &&callback)
+    {
+        using Prototype = void (*)(const QImage &);
+        QtPrivate::AssertCompatibleFunctions<Prototype, Functor>();
+        grabCanvasImpl(canvas, context,
+                       QtPrivate::makeCallableObject<Prototype>(std::forward<Functor>(callback)));
+    }
+#endif
 
     void beginCanvasPainting(QCanvasOffscreenCanvas &canvas);
     void endCanvasPainting();
@@ -52,6 +66,8 @@ protected:
 private:
     friend class QCanvasPainterItem;
     Q_DECLARE_PRIVATE(QCanvasPainterItemRenderer)
+    void grabCanvasImpl(const QCanvasOffscreenCanvas &canvas, const QObject *context,
+                        QtPrivate::QSlotObjectBase *slotObj);
     QCanvasPainterItemRendererPrivate *d_ptr;
 };
 
