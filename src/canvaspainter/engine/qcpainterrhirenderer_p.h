@@ -21,8 +21,12 @@
 #include "qcpainterengineutils_p.h"
 #include "qcanvascustombrush_p.h"
 #include "qcanvasoffscreencanvas.h"
+#include <QtCore/qobject.h>
+#include <QtCore/qpointer.h>
 #include <functional>
+#include <memory>
 #include <optional>
+#include <vector>
 
 QT_BEGIN_NAMESPACE
 
@@ -61,6 +65,14 @@ struct QCRhiCanvas
 
 bool operator==(const QCRhiCanvas &a, const QCRhiCanvas &b) noexcept;
 bool operator!=(const QCRhiCanvas &a, const QCRhiCanvas &b) noexcept;
+
+struct QCRhiCanvasGrab
+{
+    QRhiReadbackResult readbackResult;
+    QtPrivate::SlotObjUniquePtr callback;
+    QPointer<const QObject> context;
+    bool hasContext = false;
+};
 
 struct QCRhiUncachedPathDrawArgs
 {
@@ -201,7 +213,8 @@ public:
     void destroyCanvas(QCanvasOffscreenCanvas &canvas);
     QRhiRenderTarget *canvasRenderTarget(const QCanvasOffscreenCanvas &canvas);
     void recordCanvasRenderPass(QRhiCommandBuffer *cb, const QCanvasOffscreenCanvas &canvas);
-    void grabCanvas(const QCanvasOffscreenCanvas &canvas, std::function<void(const QImage &)> callback, QRhiCommandBuffer *maybeCb);
+    void grabCanvas(const QCanvasOffscreenCanvas &canvas, const QObject *context,
+                    QtPrivate::SlotObjUniquePtr callback, QRhiCommandBuffer *maybeCb);
 
     void recordRenderPass(QRhiCommandBuffer *cb, QRhiRenderTarget *rt, const QColor &clearColor);
 
@@ -262,7 +275,7 @@ private:
     QCPainterEngine *m_e = nullptr;
     QVector<QCRhiCanvas> m_canvases;
 
-    QVector<std::pair<QRhiReadbackResult, std::function<void(const QImage &)>>> m_canvasGrabs;
+    std::vector<std::unique_ptr<QCRhiCanvasGrab>> m_canvasGrabs;
 
     // Log draw calls and triangle amounts for each painting type.
     int logFillDrawCallCount = 0;
