@@ -2,13 +2,12 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 function(_qt_internal_add_custom_brush_shaders_impl target resourcename)
-    cmake_parse_arguments(
-        arg
+    cmake_parse_arguments(PARSE_ARGV 2 arg
         "_QT_INTERNAL"
         "PREFIX;BASE;OUTPUT_TARGETS"
         "FILES;OUTPUTS;DEFINES"
-        ${ARGN}
     )
+    _qt_internal_validate_all_args_are_parsed(arg)
 
     set(qsb_outputs ${arg_OUTPUTS})
     set(processed_files "")
@@ -126,7 +125,7 @@ endfunction()
 
 function(qt6_add_custom_brush_shaders)
     _qt_internal_add_custom_brush_shaders_impl(${ARGV})
-    cmake_parse_arguments(PARSE_ARGV 1 arg "" "OUTPUT_TARGETS" "")
+    cmake_parse_arguments(PARSE_ARGV 2 arg "" "OUTPUT_TARGETS" "")
     if (arg_OUTPUT_TARGETS)
         set(${arg_OUTPUT_TARGETS} ${${arg_OUTPUT_TARGETS}} PARENT_SCOPE)
     endif()
@@ -135,7 +134,7 @@ endfunction()
 if(NOT QT_NO_CREATE_VERSIONLESS_FUNCTIONS)
     function(qt_add_custom_brush_shaders)
         qt6_add_custom_brush_shaders(${ARGV})
-        cmake_parse_arguments(PARSE_ARGV 1 arg "" "OUTPUT_TARGETS" "")
+        cmake_parse_arguments(PARSE_ARGV 2 arg "" "OUTPUT_TARGETS" "")
         if(arg_OUTPUT_TARGETS)
             set(${arg_OUTPUT_TARGETS} ${${arg_OUTPUT_TARGETS}} PARENT_SCOPE)
         endif()
