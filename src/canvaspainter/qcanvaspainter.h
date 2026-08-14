@@ -227,11 +227,6 @@ public:
     Q_CANVASPAINTER_EXPORT void setWindingEnforce(bool enabled);
     Q_CANVASPAINTER_EXPORT void setHighQualityStroking(bool enabled);
 
-    // *** Static methods ***
-
-    Q_CANVASPAINTER_EXPORT static float mmToPx(float mm);
-    Q_CANVASPAINTER_EXPORT static float ptToPx(float pt);
-
     // *** Image & path cache handling ***
 
     Q_CANVASPAINTER_EXPORT QCanvasImage addImage(const QImage &image, QCanvasPainter::ImageFlags flags = {});

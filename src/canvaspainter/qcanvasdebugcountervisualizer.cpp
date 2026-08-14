@@ -43,7 +43,6 @@ void QCanvasDebugCounterVisualizer::paint(QCanvasPainter *painter, float width, 
         m_debugCounter = 0;
         m_debugUpdateTimer.start();
     }
-    //float fontSize = qMin(QCanvasPainter::ptToPx(14), width*0.04f);
     float fontSize = 14.0f;
     float margin = fontSize * 0.2f;
     float debugHeight = fontSize * 7.0f + margin * 3.0f;

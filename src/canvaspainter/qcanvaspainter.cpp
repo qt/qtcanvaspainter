@@ -16,8 +16,6 @@
 #include "qcanvasimage_p.h"
 #include "qcanvasboxshadow.h"
 
-#include <QtGui/QScreen>
-#include <QtGui/qguiapplication.h> // Used by mmToPx & ptToPx
 #include <QLoggingCategory>
 
 QT_BEGIN_NAMESPACE
@@ -2722,44 +2720,6 @@ void QCanvasPainter::setHighQualityStroking(bool enabled)
 {
     Q_D(QCanvasPainter);
     d->m_e->setHighQualityStrokingEnabled(enabled);
-}
-
-// ***** Static methods *****
-
-/*!
-    Static helper method to convert millimeters \a mm into pixels.
-    This allows doing resolution independent drawing. For example to set
-    the line width to 2mm use:
-
-    painter->setLineWidth(QCanvasPainter::mmToPx(2));
-*/
-
-float QCanvasPainter::mmToPx(float mm)
-{
-    float ldp = 72.0f;
-    QScreen *screen = QGuiApplication::primaryScreen();
-    if (screen) {
-        ldp = float(screen->physicalDotsPerInch());
-    } else {
-        qWarning() << "QScreen required for mmToPx";
-    }
-    return ldp * mm / 25.4f;
-}
-
-/*!
-    Static helper method to convert points \a pt into pixels.
-*/
-
-float QCanvasPainter::ptToPx(float pt)
-{
-    float ldp = 72.0f;
-    QScreen *screen = QGuiApplication::primaryScreen();
-    if (screen) {
-        ldp = float(screen->physicalDotsPerInch());
-    } else {
-        qWarning() << "QScreen required for ptToPx";
-    }
-    return pt * (ldp / 72.0f);
 }
 
 /*!
