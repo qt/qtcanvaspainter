@@ -165,7 +165,7 @@ void QCPainterEngine::reset()
     state.alpha = 1.0f;
     state.brightness = 1.0f;
     state.contrast = 1.0f;
-    state.saturate = 1.0f;
+    state.saturation = 1.0f;
     state.transform.reset();
     state.brushTransform.reset();
     state.clip.extent[0] = -1.0f;
@@ -276,9 +276,9 @@ void QCPainterEngine::setGlobalContrast(float value)
     state.contrast = value;
 }
 
-void QCPainterEngine::setGlobalSaturate(float value)
+void QCPainterEngine::setGlobalSaturation(float value)
 {
-    state.saturate = value;
+    state.saturation = value;
 }
 
 void QCPainterEngine::setFillRule(QCanvasPainter::FillRule fillRule)

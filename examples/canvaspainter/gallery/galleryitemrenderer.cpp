@@ -125,9 +125,9 @@ void GalleryItemRenderer::paint(QCanvasPainter *painter)
     // Views not currently centered to have reduced
     // alpha and saturation.
     m_viewAlpha = 0.2 + 0.8 * m_animState;
-    m_viewSaturate = m_animState;
+    m_viewSaturation = m_animState;
     painter->setGlobalAlpha(m_viewAlpha);
-    painter->setGlobalSaturate(m_viewSaturate);
+    painter->setGlobalSaturation(m_viewSaturation);
     m_topMargin = height() * 0.02f;
     switch (m_viewIndex) {
     case 0:
@@ -1165,9 +1165,9 @@ void GalleryItemRenderer::drawColorEffects() {
     drawButton(posX, posY, w, h, "OPACITY");
     painter()->setGlobalAlpha(m_viewAlpha);
     posY += h + margin;
-    painter()->setGlobalSaturate(3 * effectAnim * m_viewSaturate);
-    drawButton(posX, posY, w, h, "SATURATE");
-    painter()->setGlobalSaturate(m_viewSaturate);
+    painter()->setGlobalSaturation(3 * effectAnim * m_viewSaturation);
+    drawButton(posX, posY, w, h, "SATURATION");
+    painter()->setGlobalSaturation(m_viewSaturation);
     posY += h + margin;
     painter()->setGlobalBrightness(2 * effectAnim);
     drawButton(posX, posY, w, h, "BRIGHTNESS");
@@ -1178,7 +1178,7 @@ void GalleryItemRenderer::drawColorEffects() {
     painter()->setGlobalContrast(1);
     posY += h + margin;
     painter()->setGlobalAlpha(effectAnim * m_viewAlpha);
-    painter()->setGlobalSaturate((8 - 8 * effectAnim) * m_viewSaturate);
+    painter()->setGlobalSaturation((8 - 8 * effectAnim) * m_viewSaturation);
     painter()->setGlobalContrast(2 * effectAnim);
     drawButton(posX, posY, w, h, "MULTIPLE");
 }

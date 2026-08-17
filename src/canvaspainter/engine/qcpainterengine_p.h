@@ -62,7 +62,7 @@ public:
     void setGlobalAlpha(float alpha);
     void setGlobalBrightness(float value);
     void setGlobalContrast(float value);
-    void setGlobalSaturate(float value);
+    void setGlobalSaturation(float value);
 
     void setFillRule(QCanvasPainter::FillRule fillRule);
     QCanvasPainter::FillRule fillRule() const;

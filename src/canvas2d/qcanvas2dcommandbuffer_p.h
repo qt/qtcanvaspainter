@@ -47,10 +47,10 @@ public:
         reals << contrast;
     }
 
-    inline void setGlobalSaturate(qreal saturate)
+    inline void setGlobalSaturation(qreal saturation)
     {
-        commands << QCanvas2DContext::GlobalSaturate;
-        reals << saturate;
+        commands << QCanvas2DContext::GlobalSaturation;
+        reals << saturation;
     }
 
     inline void setGlobalCompositeOperation(QCanvasPainter::CompositeOperation co)

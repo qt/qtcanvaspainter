@@ -851,9 +851,9 @@ Item {
         drawButton(ctx, posX, posY, sizeW, sizeH, "OPACITY");
         ctx.globalAlpha = 1.0;
         posY += sizeH + margin;
-        ctx.globalSaturate = 3 * animationSine;
-        drawButton(ctx, posX, posY, sizeW, sizeH, "SATURATE");
-        ctx.globalSaturate = 1.0;
+        ctx.globalSaturation = 3 * animationSine;
+        drawButton(ctx, posX, posY, sizeW, sizeH, "SATURATION");
+        ctx.globalSaturation = 1.0;
         posY += sizeH + margin;
         ctx.globalBrightness = 2 * animationSine;
         drawButton(ctx, posX, posY, sizeW, sizeH, "BRIGHTNESS");
@@ -864,7 +864,7 @@ Item {
         ctx.globalContrast = 1.0;
         posY += sizeH + margin;
         ctx.globalAlpha = animationSine;
-        ctx.globalSaturate = 8 - 8 * animationSine;
+        ctx.globalSaturation = 8 - 8 * animationSine;
         ctx.globalContrast = 2 * animationSine;
         drawButton(ctx, posX, posY, sizeW, sizeH, "MULTIPLE");
     }

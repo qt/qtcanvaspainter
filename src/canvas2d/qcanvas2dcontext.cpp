@@ -205,8 +205,8 @@ struct QCanvasJSContext2D : public QV4::Object
     static QV4::ReturnedValue method_set_globalBrightness(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc);
     static QV4::ReturnedValue method_get_globalContrast(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc);
     static QV4::ReturnedValue method_set_globalContrast(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc);
-    static QV4::ReturnedValue method_get_globalSaturate(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc);
-    static QV4::ReturnedValue method_set_globalSaturate(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc);
+    static QV4::ReturnedValue method_get_globalSaturation(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc);
+    static QV4::ReturnedValue method_set_globalSaturation(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc);
     static QV4::ReturnedValue method_get_globalCompositeOperation(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc);
     static QV4::ReturnedValue method_set_globalCompositeOperation(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc);
     static QV4::ReturnedValue method_get_fillStyle(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc);
@@ -1761,9 +1761,9 @@ QV4::ReturnedValue QCanvasJSContext2D::method_set_globalContrast(const QV4::Func
 }
 
 /*!
-    \qmlproperty real Canvas2DContext::globalSaturate
+    \qmlproperty real Canvas2DContext::globalSaturation
 
-    Holds the current saturate value applied to rendering
+    Holds the current saturation value applied to rendering
     operations. This saturations is
     applied to all rendered shapes. A value of 0 will disable saturation
     and cause painting to be completely grayscale. Value can also be bigger
@@ -1771,44 +1771,44 @@ QV4::ReturnedValue QCanvasJSContext2D::method_set_globalContrast(const QV4::Func
     By default, saturation is \c 1.0.
     \table
     \row
-    \li \inlineimage canvas2d-globalsaturate.webp
+    \li \inlineimage canvas2d-globalsaturation.webp
     \li
     \code
     ctx.fillStyle = "#d9f720";
     for (let i = 0; i < 4; i++) {
         let x = 100 * (i % 2);
         let y = 100 * Math.floor(i / 2);
-        ctx.globalSaturate = 1.5 - i * 0.5;
+        ctx.globalSaturation = 1.5 - i * 0.5;
         ctx.fillRect(x, y, 100, 100);
         ctx.drawImage("qt_logo2.png", x, y, 100, 100);
     }
     \endcode
     \endtable
 */
-QV4::ReturnedValue QCanvasJSContext2D::method_get_globalSaturate(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *, int)
+QV4::ReturnedValue QCanvasJSContext2D::method_get_globalSaturation(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *, int)
 {
     QV4::Scope scope(b);
     QV4::Scoped<QCanvasJSContext2D> r(scope, *thisObject);
     CHECK_CONTEXT(r)
 
-    RETURN_RESULT(QV4::Encode(r->d()->context()->state.globalSaturate));
+    RETURN_RESULT(QV4::Encode(r->d()->context()->state.globalSaturation));
 }
 
-QV4::ReturnedValue QCanvasJSContext2D::method_set_globalSaturate(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc)
+QV4::ReturnedValue QCanvasJSContext2D::method_set_globalSaturation(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc)
 {
     QV4::Scope scope(b);
     QV4::Scoped<QCanvasJSContext2D> r(scope, *thisObject);
     CHECK_CONTEXT(r)
 
-    double globalSaturate = argc ? argv[0].toNumber() : qt_qnan();
+    double globalSaturation = argc ? argv[0].toNumber() : qt_qnan();
 
 
-    if (!qt_is_finite(globalSaturate))
+    if (!qt_is_finite(globalSaturation))
         RETURN_UNDEFINED();
 
-    if (globalSaturate >= 0.0 && r->d()->context()->state.globalSaturate != globalSaturate) {
-        r->d()->context()->state.globalSaturate = globalSaturate;
-        r->d()->context()->buffer()->setGlobalSaturate(globalSaturate);
+    if (globalSaturation >= 0.0 && r->d()->context()->state.globalSaturation != globalSaturation) {
+        r->d()->context()->state.globalSaturation = globalSaturation;
+        r->d()->context()->buffer()->setGlobalSaturation(globalSaturation);
     }
     RETURN_UNDEFINED();
 }
@@ -4778,7 +4778,7 @@ QCanvas2DContextEngineData::QCanvas2DContextEngineData(QV4::ExecutionEngine *v4)
     proto->defineAccessorProperty(QStringLiteral("globalAlpha"), QCanvasJSContext2D::method_get_globalAlpha, QCanvasJSContext2D::method_set_globalAlpha);
     proto->defineAccessorProperty(QStringLiteral("globalBrightness"), QCanvasJSContext2D::method_get_globalBrightness, QCanvasJSContext2D::method_set_globalBrightness);
     proto->defineAccessorProperty(QStringLiteral("globalContrast"), QCanvasJSContext2D::method_get_globalContrast, QCanvasJSContext2D::method_set_globalContrast);
-    proto->defineAccessorProperty(QStringLiteral("globalSaturate"), QCanvasJSContext2D::method_get_globalSaturate, QCanvasJSContext2D::method_set_globalSaturate);
+    proto->defineAccessorProperty(QStringLiteral("globalSaturation"), QCanvasJSContext2D::method_get_globalSaturation, QCanvasJSContext2D::method_set_globalSaturation);
     proto->defineAccessorProperty(QStringLiteral("lineCap"), QCanvasJSContext2D::method_get_lineCap, QCanvasJSContext2D::method_set_lineCap);
     proto->defineAccessorProperty(QStringLiteral("globalCompositeOperation"), QCanvasJSContext2D::method_get_globalCompositeOperation, QCanvasJSContext2D::method_set_globalCompositeOperation);
     proto->defineAccessorProperty(QStringLiteral("miterLimit"), QCanvasJSContext2D::method_get_miterLimit, QCanvasJSContext2D::method_set_miterLimit);
@@ -4818,8 +4818,8 @@ void QCanvas2DContext::popState()
     if (newState.globalContrast != state.globalContrast)
         buffer()->setGlobalContrast(newState.globalContrast);
 
-    if (newState.globalSaturate != state.globalSaturate)
-        buffer()->setGlobalSaturate(newState.globalSaturate);
+    if (newState.globalSaturation != state.globalSaturation)
+        buffer()->setGlobalSaturation(newState.globalSaturation);
 
     if (newState.globalCompositeOperation != state.globalCompositeOperation)
         buffer()->setGlobalCompositeOperation(newState.globalCompositeOperation);

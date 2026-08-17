@@ -1236,14 +1236,14 @@ void QCPainterRhiRenderer::preparePaint(QCRHICommonUniforms *frag, const QCPaint
     // Apply color effects
     if (qFuzzyCompare(state.brightness, 1.0f) &&
         qFuzzyCompare(state.contrast, 1.0f) &&
-        qFuzzyCompare(state.saturate, 1.0f)) {
+        qFuzzyCompare(state.saturation, 1.0f)) {
         // No color effects enabled
         frag->colorEffects[0] = -1.0f;
     } else {
         frag->colorEffects[0] = 1.0f; // Enabled
         frag->colorEffects[1] = state.brightness - 1.0f; // Brightness, default 0.0
         frag->colorEffects[2] = state.contrast; // Contrast, default 1.0
-        frag->colorEffects[3] = state.saturate; // Saturation, default 1.0
+        frag->colorEffects[3] = state.saturation; // Saturation, default 1.0
     }
 
     if (paint.imageId != 0) {
@@ -1340,14 +1340,14 @@ void QCPainterRhiRenderer::prepareCustomPaint(QCanvasCustomBrushPrivate::CommonU
     // Apply color effects
     if (qFuzzyCompare(state.brightness, 1.0f) &&
         qFuzzyCompare(state.contrast, 1.0f) &&
-        qFuzzyCompare(state.saturate, 1.0f)) {
+        qFuzzyCompare(state.saturation, 1.0f)) {
         // No color effects enabled
         frag->colorEffects[0] = -1.0f;
     } else {
         frag->colorEffects[0] = 1.0f; // Enabled
         frag->colorEffects[1] = state.brightness - 1.0f; // Brightness, default 0.0
         frag->colorEffects[2] = state.contrast; // Contrast, default 1.0
-        frag->colorEffects[3] = state.saturate; // Saturation, default 1.0
+        frag->colorEffects[3] = state.saturation; // Saturation, default 1.0
     }
 }
 
