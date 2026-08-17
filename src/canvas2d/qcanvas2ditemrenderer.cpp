@@ -372,10 +372,10 @@ void QCanvas2DItemRenderer::paint(QCanvasPainter *painter)
             m_painter->setGlobalContrast(m_state.globalContrast);
             break;
         }
-        case QCanvas2DContext::GlobalSaturate:
+        case QCanvas2DContext::GlobalSaturation:
         {
-            m_state.globalSaturate = takeReal();
-            m_painter->setGlobalSaturate(m_state.globalSaturate);
+            m_state.globalSaturation = takeReal();
+            m_painter->setGlobalSaturation(m_state.globalSaturation);
             break;
         }
         case QCanvas2DContext::GlobalCompositeOperation:

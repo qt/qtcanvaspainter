@@ -85,7 +85,7 @@ public:
     Q_CANVASPAINTER_EXPORT void setGlobalCompositeOperation(CompositeOperation operation);
     Q_CANVASPAINTER_EXPORT void setGlobalBrightness(float value);
     Q_CANVASPAINTER_EXPORT void setGlobalContrast(float value);
-    Q_CANVASPAINTER_EXPORT void setGlobalSaturate(float value);
+    Q_CANVASPAINTER_EXPORT void setGlobalSaturation(float value);
     Q_CANVASPAINTER_EXPORT void setFillRule(FillRule fillRule);
 
     // *** Transforms ***

@@ -903,7 +903,7 @@ void QCanvasPainter::setGlobalContrast(float value)
     By default, saturation is \c 1.0.
     \table
     \row
-    \li \inlineimage qcpainter-globalsaturate.webp
+    \li \inlineimage qcpainter-globalsaturation.webp
         {Four Qt logos on green tiles fading from vivid color to grayscale
         across the grid}
     \li
@@ -915,7 +915,7 @@ void QCanvasPainter::setGlobalContrast(float value)
         float x = 100 * (i % 2);
         float y = 100 * (i / 2);
         QRectF rect(x, y, 100, 100);
-        p->setGlobalSaturate(1.5 - i * 0.5);
+        p->setGlobalSaturation(1.5 - i * 0.5);
         p->fillRect(rect);
         p->drawImage(image, rect);
     }
@@ -923,10 +923,10 @@ void QCanvasPainter::setGlobalContrast(float value)
     \endtable
 */
 
-void QCanvasPainter::setGlobalSaturate(float value)
+void QCanvasPainter::setGlobalSaturation(float value)
 {
     Q_D(QCanvasPainter);
-    d->m_e->setGlobalSaturate(value);
+    d->m_e->setGlobalSaturation(value);
 }
 
 /*!

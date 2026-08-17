@@ -85,7 +85,7 @@ private:
     float m_animationSine = 0.0f;
     float m_animState = 0.0f;
     float m_viewAlpha = 1.0f;
-    float m_viewSaturate = 1.0f;
+    float m_viewSaturation = 1.0f;
     int m_viewIndex = 0;
     float m_previousWidth = 0;
     float m_previousHeight = 0;

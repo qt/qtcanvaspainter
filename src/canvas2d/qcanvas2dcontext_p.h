@@ -96,7 +96,7 @@ public:
         GlobalAlpha,
         GlobalBrightness,
         GlobalContrast,
-        GlobalSaturate,
+        GlobalSaturation,
         GlobalCompositeOperation,
         LineWidth,
         LineCap,
@@ -138,7 +138,7 @@ public:
             , globalAlpha(1.0)
             , globalBrightness(1.0)
             , globalContrast(1.0)
-            , globalSaturate(1.0)
+            , globalSaturation(1.0)
             , lineWidth(1)
             , antialias(1)
             , textAntialias(1)
@@ -170,7 +170,7 @@ public:
         qreal globalAlpha;
         qreal globalBrightness;
         qreal globalContrast;
-        qreal globalSaturate;
+        qreal globalSaturation;
         qreal lineWidth;
         qreal antialias;
         qreal textAntialias;

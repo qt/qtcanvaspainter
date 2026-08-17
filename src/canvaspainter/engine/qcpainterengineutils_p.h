@@ -146,7 +146,7 @@ struct QCState {
     float alpha;
     float brightness;
     float contrast;
-    float saturate;
+    float saturation;
     float textLineHeight;
     float textAntialias;
     QCanvasPainter::CompositeOperation compositeOperation;
