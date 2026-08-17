@@ -61,10 +61,10 @@ void GalleryItemRenderer::initializeResources(QCanvasPainter *painter)
     m_customBrush3.setVertexShader(":/qcgalleryexample/brush3.vert.qsb");
     m_customBrush4.setFragmentShader(":/qcgalleryexample/brush4.frag.qsb");
     // Enable iTime animations
-    m_customBrush.setTimeRunning(true);
-    m_customBrush2.setTimeRunning(true);
-    m_customBrush3.setTimeRunning(true);
-    m_customBrush4.setTimeRunning(true);
+    m_customBrush.setAnimationRunning(true);
+    m_customBrush2.setAnimationRunning(true);
+    m_customBrush3.setAnimationRunning(true);
+    m_customBrush4.setAnimationRunning(true);
 }
 //![initialize]
 
