@@ -40,8 +40,8 @@ public:
     Q_CANVASPAINTER_EXPORT void setVertexShader(const QString &vertexShader);
     Q_CANVASPAINTER_EXPORT void setVertexShader(const QShader &vertexShader);
 
-    Q_CANVASPAINTER_EXPORT bool timeRunning() const;
-    Q_CANVASPAINTER_EXPORT void setTimeRunning(bool running);
+    Q_CANVASPAINTER_EXPORT bool isAnimationRunning() const;
+    Q_CANVASPAINTER_EXPORT void setAnimationRunning(bool running);
 
     Q_CANVASPAINTER_EXPORT void setData1(const QVector4D &data);
     Q_CANVASPAINTER_EXPORT void setData2(const QVector4D &data);

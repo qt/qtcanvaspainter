@@ -43,7 +43,7 @@ static QShader getCustomShader(const QString &name)
     helper functions.
 
     \c iTime is an example of a commonly used member in the built-in uniform
-    block. Calling setTimeRunning() with \c true will make this value update
+    block. Calling setAnimationRunning() with \c true will make this value update
     automatically every frame, and can be used to drive animated content.
 
     \section1 Built-in Shader Inputs, Uniforms, and Helper Functions
@@ -151,8 +151,8 @@ static QShader getCustomShader(const QString &name)
 
     \list
     \li \c{float iTime} - A time value, in seconds, that is updated every frame
-        while timeRunning() is \c true. Use it to drive animations. See
-        setTimeRunning().
+        while isAnimationRunning() is \c true. Use it to drive animations. See
+        setAnimationRunning().
     \li \c{vec4 data1}, \c{vec4 data2}, \c{vec4 data3}, \c{vec4 data4} - Custom
         data exposed to the shader. Set these from C++ via setData1(),
         setData2(), setData3(), and setData4().
@@ -230,7 +230,7 @@ static QShader getCustomShader(const QString &name)
     At run time, the generated \c{.qsb} file can be used for example like this:
     \code
         QCanvasCustomBrush customBrush(":/shaders/brush1.frag.qsb"));
-        customBrush.setTimeRunning(true); // iTime updates automatically
+        customBrush.setAnimationRunning(true); // iTime updates automatically
         // expose custom data to the shader in data1
         customBrush.setData1(QVector4D(1.0, 2.0, 3.0, 4.0));
     \endcode
@@ -504,7 +504,7 @@ void QCanvasCustomBrush::setVertexShader(const QShader &vertexShader)
     Returns true if the time is running.
 */
 
-bool QCanvasCustomBrush::timeRunning() const
+bool QCanvasCustomBrush::isAnimationRunning() const
 {
     return d->timeRunning;
 }
@@ -517,7 +517,7 @@ bool QCanvasCustomBrush::timeRunning() const
     The default value is \c false.
 */
 
-void QCanvasCustomBrush::setTimeRunning(bool running)
+void QCanvasCustomBrush::setAnimationRunning(bool running)
 {
     detach();
     d->timeRunning = running;
