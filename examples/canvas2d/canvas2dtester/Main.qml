@@ -1,6 +1,8 @@
 // Copyright (C) 2026 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR BSD-3-Clause
 
+pragma ComponentBehavior: Bound
+
 import QtQuick
 import QtQuick.Controls.Basic
 
@@ -53,7 +55,7 @@ ApplicationWindow {
                         anchors.verticalCenterOffset: -6
                         font.pixelSize: 12
                         color: "#202020"
-                        text: requestCanvas2D ? "Canvas / <b>Canvas2D</b>" : "<b>Canvas</b> / Canvas2D"
+                        text: mainWindow.requestCanvas2D ? "Canvas / <b>Canvas2D</b>" : "<b>Canvas</b> / Canvas2D"
                     }
                 }
             }
