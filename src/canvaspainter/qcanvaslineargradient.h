@@ -32,6 +32,8 @@ public:
     Q_CANVASPAINTER_EXPORT void setEndPosition(float x, float y);
     inline void setEndPosition(QPointF end);
 
+private:
+    friend size_t qHash(const QCanvasLinearGradient &, size_t seed) = delete;
 };
 
 void QCanvasLinearGradient::setStartPosition(QPointF start)

@@ -62,6 +62,7 @@ private:
 #ifndef QT_NO_DEBUG_STREAM
     friend Q_CANVASPAINTER_EXPORT QDebug operator<<(QDebug, const QCanvasCustomBrush &);
 #endif
+    friend size_t qHash(const QCanvasCustomBrush &, size_t seed) = delete;
 };
 
 template<> Q_CANVASPAINTER_EXPORT QCanvasCustomBrush QCanvasBrush::as<QCanvasCustomBrush>() const;

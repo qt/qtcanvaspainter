@@ -115,6 +115,7 @@ private:
 
     friend class QCPainterEngine;
     friend class QCPainterRhiRenderer;
+    friend size_t qHash(const QCanvasPath &, size_t seed) = delete;
 
     Q_DECLARE_PRIVATE(QCanvasPath)
     QCanvasPathPrivate *d_ptr;

@@ -57,6 +57,7 @@ private:
 
     QExplicitlySharedDataPointer<QCanvasOffscreenCanvasPrivate> d;
     friend class QCanvasOffscreenCanvasPrivate;
+    friend size_t qHash(const QCanvasOffscreenCanvas &, size_t seed) = delete;
 };
 
 Q_DECLARE_OPERATORS_FOR_FLAGS(QCanvasOffscreenCanvas::Flags)

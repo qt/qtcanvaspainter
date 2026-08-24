@@ -30,6 +30,8 @@ public:
     Q_CANVASPAINTER_EXPORT float angle() const;
     Q_CANVASPAINTER_EXPORT void setAngle(float angle);
 
+private:
+    friend size_t qHash(const QCanvasConicalGradient &, size_t seed) = delete;
 };
 
 void QCanvasConicalGradient::setCenterPosition(QPointF center)

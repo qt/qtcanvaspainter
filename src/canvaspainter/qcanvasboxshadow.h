@@ -80,6 +80,7 @@ private:
 #ifndef QT_NO_DEBUG_STREAM
     friend Q_CANVASPAINTER_EXPORT QDebug operator<<(QDebug, const QCanvasBoxShadow &);
 #endif
+    friend size_t qHash(const QCanvasBoxShadow &, size_t seed) = delete;
 
 };
 

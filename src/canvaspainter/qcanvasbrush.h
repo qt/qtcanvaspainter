@@ -71,6 +71,7 @@ private:
 #ifndef QT_NO_DEBUG_STREAM
     friend Q_CANVASPAINTER_EXPORT QDebug operator<<(QDebug, const QCanvasBrush &);
 #endif
+    friend size_t qHash(const QCanvasBrush &, size_t seed) = delete;
 
     QExplicitlySharedDataPointer<QCanvasBrushPrivate> baseData;
 };
