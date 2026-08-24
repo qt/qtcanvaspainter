@@ -46,6 +46,8 @@ public:
     Q_CANVASPAINTER_EXPORT float innerRadius() const;
     Q_CANVASPAINTER_EXPORT void setInnerRadius(float radius);
 
+private:
+    friend size_t qHash(const QCanvasRadialGradient &, size_t seed) = delete;
 };
 
 void QCanvasRadialGradient::setCenterPosition(QPointF center)

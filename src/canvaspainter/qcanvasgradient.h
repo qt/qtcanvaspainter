@@ -33,6 +33,7 @@ private:
     friend Q_CANVASPAINTER_EXPORT QDataStream &operator<<(QDataStream &, const QCanvasGradient &);
     friend Q_CANVASPAINTER_EXPORT QDataStream &operator>>(QDataStream &, QCanvasGradient &);
 #endif
+    friend size_t qHash(const QCanvasGradientStop &, size_t seed) = delete;
 };
 
 typedef QList<QCanvasGradientStop> QCanvasGradientStops;
@@ -91,6 +92,7 @@ private:
     friend Q_CANVASPAINTER_EXPORT QDebug operator<<(QDebug dbg, const QCanvasGradientStop &stop);
     friend Q_CANVASPAINTER_EXPORT QDebug operator<<(QDebug, const QCanvasGradient &);
 #endif
+    friend size_t qHash(const QCanvasGradient &, size_t seed) = delete;
 };
 
 void QCanvasGradient::addColorStop(float position, const QColor &color)

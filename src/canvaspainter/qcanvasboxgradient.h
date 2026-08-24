@@ -36,6 +36,8 @@ public:
     Q_CANVASPAINTER_EXPORT float radius() const;
     Q_CANVASPAINTER_EXPORT void setRadius(float radius);
 
+private:
+    friend size_t qHash(const QCanvasBoxGradient &, size_t seed) = delete;
 };
 
 void QCanvasBoxGradient::setRect(const QRectF &rect)

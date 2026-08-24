@@ -72,6 +72,7 @@ private:
 #ifndef QT_NO_DEBUG_STREAM
     friend Q_CANVASPAINTER_EXPORT QDebug operator<<(QDebug, const QCanvasGridPattern &);
 #endif
+    friend size_t qHash(const QCanvasGridPattern &, size_t seed) = delete;
 };
 
 void QCanvasGridPattern::setStartPosition(QPointF point)

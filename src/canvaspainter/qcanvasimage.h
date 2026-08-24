@@ -54,6 +54,7 @@ private:
 #ifndef QT_NO_DEBUG_STREAM
     friend Q_CANVASPAINTER_EXPORT QDebug operator<<(QDebug, const QCanvasImage &);
 #endif
+    friend size_t qHash(const QCanvasImage &, size_t seed) = delete;
 };
 
 Q_DECLARE_SHARED(QCanvasImage)
