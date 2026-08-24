@@ -43,7 +43,10 @@ Q_LOGGING_CATEGORY(QC_INFO, "qt.qcpainter.general")
     QRectF rect(40, 70, 120, 60);
     QRectF shadowRect = rect.translated(2, 4);
     // Paint shadow
-    QCanvasBoxShadow shadow(shadowRect, 30, 15, "#60373F26");
+    QCanvasBoxShadow shadow(shadowRect);
+    shadow.setRadius(30);
+    shadow.setBlur(15);
+    shadow.setColor("#60373F26");
     p->drawBoxShadow(shadow);
     // Paint rounded rect
     p->beginPath();
@@ -2134,7 +2137,8 @@ void QCanvasPainter::strokeRect(float x, float y, float width, float height)
     \code
     QRectF rect(40, 40, 120, 120);
     QRectF shadowRect = rect.translated(-2, 4);
-    QCanvasBoxShadow shadow(shadowRect, 0, 30);
+    QCanvasBoxShadow shadow(shadowRect);
+    shadow.setBlur(30);
     p->drawBoxShadow(shadow);
     p->beginPath();
     p->roundRect(rect, 30);

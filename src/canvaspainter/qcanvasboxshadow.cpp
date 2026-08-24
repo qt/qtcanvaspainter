@@ -71,41 +71,26 @@ QCanvasBoxShadow::QCanvasBoxShadow()
 }
 
 /*!
-    Constructs a box shadow.
-    The box shadow position and size are defined by \a rect.
-    Shadow corner radius is \a radius and blur \a blur.
-    Shadow color is \a color.
-*/
+    \fn QCanvasBoxShadow::QCanvasBoxShadow(const QRectF &rect)
 
-QCanvasBoxShadow::QCanvasBoxShadow(const QRectF &rect, float radius, float blur, const QColor &color)
-    : d(new QCanvasBoxShadowPrivate)
-{
-    d->x = float(rect.x());
-    d->y = float(rect.y());
-    d->width = float(rect.width());
-    d->height = float(rect.height());
-    d->radius = radius;
-    d->blur = blur;
-    d->color = color;
-}
+    Constructs a black box shadow with position of \a rect, and
+    without corner radius or blur.
+*/
 
 /*!
-    Constructs a box shadow.
-    The box shadow position is \a x, \a y and size \a width, \a height.
-    Shadow corner radius is \a radius and blur \a blur.
-    Shadow color is \a color.
+    Constructs a box shadow with position at \a x, \a y and size
+    \a width, \a height.
+
+    \sa blur(), radius()
 */
 
-QCanvasBoxShadow::QCanvasBoxShadow(float x, float y, float width, float height, float radius, float blur, const QColor &color)
+QCanvasBoxShadow::QCanvasBoxShadow(float x, float y, float width, float height)
     : d(new QCanvasBoxShadowPrivate)
 {
     d->x = x;
     d->y = y;
     d->width = width;
     d->height = height;
-    d->radius = radius;
-    d->blur = blur;
-    d->color = color;
 }
 
 QCanvasBoxShadow::QCanvasBoxShadow(const QCanvasBoxShadow &) = default;

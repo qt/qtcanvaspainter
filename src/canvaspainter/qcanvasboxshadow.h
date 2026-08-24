@@ -26,8 +26,11 @@ class QCanvasBoxShadow
 {
 public:
     Q_CANVASPAINTER_EXPORT QCanvasBoxShadow();
-    Q_CANVASPAINTER_EXPORT QCanvasBoxShadow(const QRectF &rect, float radius = 0.0f, float blur = 0.0f, const QColor &color = QColorConstants::Black);
-    Q_CANVASPAINTER_EXPORT QCanvasBoxShadow(float x, float y, float width, float height, float radius = 0.0f, float blur = 0.0f, const QColor &color = QColorConstants::Black);
+    Q_CANVASPAINTER_EXPORT QCanvasBoxShadow(float x, float y, float width, float height);
+    explicit QCanvasBoxShadow(const QRectF &rect)
+        : QCanvasBoxShadow(float(rect.x()), float(rect.y()),
+                           float(rect.width()), float(rect.height()))
+    {}
     Q_CANVASPAINTER_EXPORT QCanvasBoxShadow(const QCanvasBoxShadow &);
     Q_CANVASPAINTER_EXPORT QCanvasBoxShadow &operator=(const QCanvasBoxShadow &);
     QCanvasBoxShadow(QCanvasBoxShadow &&) = default;
