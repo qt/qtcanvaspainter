@@ -17,8 +17,11 @@ class QCanvasBoxGradient : public QCanvasGradient
 {
 public:
     Q_CANVASPAINTER_EXPORT QCanvasBoxGradient();
-    Q_CANVASPAINTER_EXPORT QCanvasBoxGradient(float x, float y, float width, float height, float feather, float radius = 0.0f);
-    Q_CANVASPAINTER_EXPORT QCanvasBoxGradient(const QRectF &rect, float feather, float radius = 0.0f);
+    Q_CANVASPAINTER_EXPORT QCanvasBoxGradient(float x, float y, float width, float height);
+    QCanvasBoxGradient(const QRectF &rect)
+        : QCanvasBoxGradient(float(rect.x()), float(rect.y()),
+                             float(rect.width()), float(rect.height()))
+    {}
     QCanvasBoxGradient(const QCanvasBoxGradient &) = default;
     QCanvasBoxGradient &operator=(const QCanvasBoxGradient &) = default;
     QCanvasBoxGradient(QCanvasBoxGradient &&) = default;

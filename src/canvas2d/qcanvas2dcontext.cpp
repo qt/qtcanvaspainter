@@ -2460,7 +2460,9 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_createBoxGradient(const Q
             THROW_DOM(DOMEXCEPTION_NOT_SUPPORTED_ERR, "createBoxGradient(): Incorrect arguments")
         }
 
-        QCanvasBoxGradient bg(x, y, w, h, feather, radius);
+        QCanvasBoxGradient bg(x, y, w, h);
+        bg.setFeather(feather);
+        bg.setRadius(radius);
         RETURN_RESULT(scope.engine->fromVariant(QVariant::fromValue(bg)));
     }
 

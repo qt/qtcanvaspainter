@@ -556,7 +556,10 @@ QDataStream &operator>>(QDataStream &s, QCanvasGradient &g)
     } else if (type == QCanvasBrush::BrushType::BoxGradient) {
         float x, y, w, h, feather, radius;
         s >> x >> y >> w >> h >> feather >> radius;
-        g = QCanvasBoxGradient(x, y, w, h, feather, radius);
+        QCanvasBoxGradient bg(x, y, w, h);
+        bg.setFeather(feather);
+        bg.setRadius(radius);
+        g = bg;
     }
     g.setStops(stops);
     return s;

@@ -34,7 +34,9 @@ QT_BEGIN_NAMESPACE
     \li
     \code
     QRectF rect(20, 20, 160, 160);
-    QCanvasBoxGradient bg(rect, 20, 50);
+    QCanvasBoxGradient bg(rect);
+    bg.setFeather(20);
+    bg.setRadius(50);
     bg.setColorAt(0.0, "#1a2a6c");
     bg.setColorAt(0.2, "#fdbb2d");
     bg.setColorAt(1.0, QColorConstants::Transparent);
@@ -74,42 +76,35 @@ QCanvasBoxGradient::QCanvasBoxGradient()
 /*!
     Constructs a box gradient.
     Position of gradient is ( \a x, \a y) and size ( \a width, \a height)
-    Gradient feather is \a feather.
-    Gradient radius is \a radius.
+    Gradient feather is 10.0 and radius is 0.0.
     Gradient start color is white (255, 255, 255) and end color
     transparent black (0, 0, 0, 0).
+
+    \sa setFeather(), setRadius()
 */
 
-QCanvasBoxGradient::QCanvasBoxGradient(float x, float y, float width, float height, float feather, float radius)
+QCanvasBoxGradient::QCanvasBoxGradient(float x, float y, float width, float height)
     : QCanvasGradient(QCanvasBrush::BrushType::BoxGradient)
 {
     m_data.box.x = x;
     m_data.box.y = y;
     m_data.box.width = width;
     m_data.box.height = height;
-    m_data.box.feather = feather;
-    m_data.box.radius = radius;
+    m_data.box.feather = 10.0f;
+    m_data.box.radius = 0.0f;
 }
 
 /*!
+    \fn QCanvasBoxGradient::QCanvasBoxGradient(const QRectF &rect)
+
     Constructs a box gradient.
     Position and size of gradient is \a rect.
-    Gradient feather is \a feather.
-    Gradient radius is \a radius.
+    Gradient feather is 10.0 and radius is 0.0.
     Gradient start color is white (255, 255, 255) and end color
     transparent black (0, 0, 0, 0).
-*/
 
-QCanvasBoxGradient::QCanvasBoxGradient(const QRectF &rect, float feather, float radius)
-    : QCanvasGradient(QCanvasBrush::BrushType::BoxGradient)
-{
-    m_data.box.x = float(rect.x());
-    m_data.box.y = float(rect.y());
-    m_data.box.width = float(rect.width());
-    m_data.box.height = float(rect.height());
-    m_data.box.feather = feather;
-    m_data.box.radius = radius;
-}
+    \sa setFeather(), setRadius()
+*/
 
 /*!
     Returns the rectangle area of the box gradient.
@@ -254,8 +249,9 @@ template<> QCanvasBoxGradient QCanvasBrush::as<QCanvasBoxGradient>() const
     Q_ASSERT(type() == BrushType::BoxGradient);
     const auto *gd = static_cast<const QCanvasGradientBrushPrivate *>(QCanvasBrushPrivate::get(*this));
     QCanvasBoxGradient g(gd->data.box.x, gd->data.box.y,
-                         gd->data.box.width, gd->data.box.height,
-                         gd->data.box.feather, gd->data.box.radius);
+                         gd->data.box.width, gd->data.box.height);
+    g.setFeather(gd->data.box.feather);
+    g.setRadius(gd->data.box.radius);
     g.setStops(gd->gradientStops);
     return g;
 }
