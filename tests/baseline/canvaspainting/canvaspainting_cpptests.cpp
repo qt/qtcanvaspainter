@@ -1012,6 +1012,7 @@ void CanvasPainterLancelotCppTests::testRects()
         float posX = w*0.5 + margin;
         float posY = topMargin;
 
+        // No stops, so transparent
         QRectF rect1(posX,posY,w,w);
         painter->setFillStyle(QCanvasLinearGradient(0, rect1.y(), 0, rect1.y()+rect1.height()));
         painter->fillRect(rect1);
@@ -1060,6 +1061,7 @@ void CanvasPainterLancelotCppTests::testRects()
         float posX = w*0.5 + margin;
         float posY = topMargin + (w+margin);
 
+        // No stops, so transparent
         QRectF rect1(posX,posY,w,w);
         painter->setFillStyle(QCanvasRadialGradient(rect1.x(), rect1.y(), 0, rect1.width()));
         painter->fillRect(rect1);
@@ -1103,6 +1105,7 @@ void CanvasPainterLancelotCppTests::testRects()
         float posX = w*0.5 + margin;
         float posY = topMargin + 2*(w+margin);
 
+        // No stops, so transparent
         QRectF rect1(posX,posY,w,w);
         QCanvasBoxGradient g0(rect1);
         g0.setFeather(w/2);
@@ -1152,6 +1155,7 @@ void CanvasPainterLancelotCppTests::testRects()
         float posX = w*0.5 + margin;
         float posY = topMargin + 3*(w+margin);
 
+        // No stops, so transparent
         QRectF rect1(posX,posY,w,w);
         QCanvasConicalGradient g1;
         g1.setCenterPosition(rect1.center());

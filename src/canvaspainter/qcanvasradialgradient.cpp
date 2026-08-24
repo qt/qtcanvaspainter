@@ -50,8 +50,6 @@ QT_BEGIN_NAMESPACE
     Constructs a default radial gradient.
     Gradient center position is (0, 0).
     Gradient outer radius is 100.0 and inner radius is 0.0.
-    Gradient start color is white (255, 255, 255) and end color
-    transparent black (0, 0, 0, 0).
 */
 
 QCanvasRadialGradient::QCanvasRadialGradient()
@@ -69,8 +67,6 @@ QCanvasRadialGradient::QCanvasRadialGradient()
     Constructs a radial gradient.
     Gradient center position is ( \a centerX, \a centerY).
     Gradient inner radius is \a innerRadius and outer radius is \a outerRadius.
-    Gradient start color is white (255, 255, 255) and end color
-    transparent black (0, 0, 0, 0).
 */
 
 QCanvasRadialGradient::QCanvasRadialGradient(float centerX, float centerY,
@@ -89,8 +85,6 @@ QCanvasRadialGradient::QCanvasRadialGradient(float centerX, float centerY,
     Constructs a radial gradient.
     Gradient center position is \a centerPosition.
     Gradient inner radius is \a innerRadius and outer radius is \a outerRadius.
-    Gradient start color is white (255,255,255) and end color
-    transparent black (0, 0, 0, 0).
 */
 
 QCanvasRadialGradient::QCanvasRadialGradient(QPointF centerPosition,
@@ -111,8 +105,6 @@ QCanvasRadialGradient::QCanvasRadialGradient(QPointF centerPosition,
     Gradient inner center position is (\a innerCenterX, \a innerCenterY).
     Gradient outer center position is ( \a outerCenterX, \a outerCenterY).
     Gradient inner radius is \a innerRadius and outer radius is \a outerRadius.
-    Gradient start color is white (255, 255, 255) and end color
-    transparent black (0, 0, 0, 0).
 */
 
 QCanvasRadialGradient::QCanvasRadialGradient(float innerCenterX, float innerCenterY, float innerRadius,
@@ -133,8 +125,6 @@ QCanvasRadialGradient::QCanvasRadialGradient(float innerCenterX, float innerCent
     Gradient inner center position is \a innerCenterPosition.
     Gradient outer center position is \a outerCenterPosition.
     Gradient inner radius is \a innerRadius and outer radius is \a outerRadius.
-    Gradient start color is white (255, 255, 255) and end color
-    transparent black (0, 0, 0, 0).
 */
 
 QCanvasRadialGradient::QCanvasRadialGradient(QPointF innerCenterPosition, float innerRadius,
@@ -310,7 +300,7 @@ QCPaint QCanvasRadialGradientBrushPrivate::createPaint(QCanvasPainter *painter) 
     auto *d = this;
     if (d->dirty) {
         if (d->gradientStops.size() == 0) {
-            QColor icol = { 255, 255, 255, 255 };
+            QColor icol = { 0, 0, 0, 0 };
             QColor ocol = { 0, 0, 0, 0 };
             // Note: Without stops, custom image might be used.
             createRadialGradient(icol, ocol, d->imageId);
