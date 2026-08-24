@@ -31,7 +31,7 @@ QT_BEGIN_NAMESPACE
     \l QCanvasRadialGradient, \l QCanvasConicalGradient and \l QCanvasBoxGradient.
 
     If no stops are provided with \l setStartColor, \l setEndColor, \l setColorAt or \l setStops,
-    the gragient is rendered as start color white (255,255,255) and end color transparent (0,0,0,0).
+    the gradient is rendered as transparent black (0,0,0,0).
     If only a single stop is provided, the gradient is filled with this color.
 
     QCanvasPainter uses two different approaches for painting gradients.
@@ -85,15 +85,14 @@ QCanvasBrush::BrushType QCanvasGradient::type() const
 
 /*!
     Returns the gradient start color or the color at the smallest position.
-    If the start color has not been set, returns the default
-    start color white (255, 255, 255).
+    If any stops have not been set, returns transparent black (0, 0, 0, 0).
     \sa setStartColor()
 */
 
 QColor QCanvasGradient::startColor() const
 {
     if (m_stops.isEmpty())
-        return QColor(255, 255, 255);
+        return QColorConstants::Transparent;
     return m_stops.constFirst().color;
 }
 
@@ -109,15 +108,14 @@ void QCanvasGradient::setStartColor(const QColor &color)
 
 /*!
     Returns the gradient end color or the color at the largest position.
-    If the end color has not been set, returns the default
-    end color transparent black (0, 0, 0, 0).
+    If any stops have not been set, returns transparent black (0, 0, 0, 0).
     \sa setEndColor()
 */
 
 QColor QCanvasGradient::endColor() const
 {
     if (m_stops.isEmpty())
-        return QColor(0, 0, 0, 0);
+        return QColorConstants::Transparent;
     return m_stops.constLast().color;
 }
 

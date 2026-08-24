@@ -22,6 +22,7 @@ Rectangle {
             let posX = size * 0.5 + margin;
             let posY = size * 0.5;
 
+            // No stops, so transparent
             const g1 = ctx.createBoxGradient(posX, posY, size, size, size / 2);
             ctx.fillStyle = g1;
             ctx.fillRect(posX, posY, size, size);

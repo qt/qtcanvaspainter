@@ -197,7 +197,10 @@ void GalleryItemRenderer::drawRectsWithLinearGradient() {
     float posY = m_topMargin;
 
     QRectF rect1(posX,posY,w,w);
-    painter()->setFillStyle(QCanvasLinearGradient(0, rect1.y(), 0, rect1.y()+rect1.height()));
+    QCanvasLinearGradient g0(0, rect1.y(), 0, rect1.y()+rect1.height());
+    g0.setStartColor(QColorConstants::White);
+    g0.setEndColor(QColorConstants::Transparent);
+    painter()->setFillStyle(g0);
     painter()->fillRect(rect1);
     posX += w + margin;
 
@@ -245,7 +248,10 @@ void GalleryItemRenderer::drawRectsWithRadialGradient() {
     float posY = m_topMargin + (w+margin);
 
     QRectF rect1(posX,posY,w,w);
-    painter()->setFillStyle(QCanvasRadialGradient(rect1.x(), rect1.y(), 0, rect1.width()));
+    QCanvasRadialGradient g0(rect1.x(), rect1.y(), 0, rect1.width());
+    g0.setStartColor(QColorConstants::White);
+    g0.setEndColor(QColorConstants::Transparent);
+    painter()->setFillStyle(g0);
     painter()->fillRect(rect1);
     posX += w + margin;
 
@@ -299,6 +305,8 @@ void GalleryItemRenderer::drawRectsWithBoxGradient() {
     QRectF rect1(posX,posY,w,w);
     QCanvasBoxGradient g0(rect1);
     g0.setFeather(w/2);
+    g0.setStartColor(QColorConstants::White);
+    g0.setEndColor(QColorConstants::Transparent);
     painter()->setFillStyle(g0);
     painter()->fillRect(rect1);
     posX += w + margin;
@@ -356,6 +364,8 @@ void GalleryItemRenderer::drawRectsWithConicalGradients() {
 
     QRectF rect1(posX,posY,w,w);
     QCanvasConicalGradient g1;
+    g1.setStartColor(QColorConstants::White);
+    g1.setEndColor(QColorConstants::Transparent);
     g1.setCenterPosition(rect1.center());
     painter()->setFillStyle(g1);
     painter()->fillRect(rect1);

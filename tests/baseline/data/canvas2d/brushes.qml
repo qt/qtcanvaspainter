@@ -162,6 +162,8 @@ Rectangle {
             // property
             bg1.setRect(posX, posY, sizeW, sizeH);
             bg1.setFeather(sizeH / 3);
+            bg1.addColorStop(0, Qt.rgba(1, 1, 1, 1));
+            bg1.addColorStop(1, Qt.rgba(0, 0, 0, 0));
             ctx.fillStyle = bg1;
             ctx.fillRect(posX, posY, sizeW, sizeH);
             posX += sizeW + margin;

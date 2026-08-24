@@ -50,8 +50,6 @@ QT_BEGIN_NAMESPACE
 /*!
     Constructs a default linear gradient.
     Gradient start color position is (0, 0) and end color position (0, 100).
-    Gradient start color is white (255, 255, 255) and end color
-    transparent black (0, 0, 0, 0).
 */
 
 QCanvasLinearGradient::QCanvasLinearGradient()
@@ -67,8 +65,6 @@ QCanvasLinearGradient::QCanvasLinearGradient()
     Constructs a linear gradient.
     Gradient start color position is (\a startX, \a startY) and
     end color position (\a endX, \a endY).
-    Gradient start color is white (255, 255, 255) and end color
-    transparent black (0, 0, 0, 0).
 */
 
 QCanvasLinearGradient::QCanvasLinearGradient(float startX, float startY, float endX, float endY)
@@ -83,8 +79,6 @@ QCanvasLinearGradient::QCanvasLinearGradient(float startX, float startY, float e
 /*!
     Constructs a linear gradient.
     Gradient start color position is \a start and end color position \a end.
-    Gradient start color is white (255, 255, 255) and end color
-    transparent black (0, 0, 0, 0).
 */
 
 QCanvasLinearGradient::QCanvasLinearGradient(QPointF start, QPointF end)
@@ -161,7 +155,7 @@ QCPaint QCanvasLinearGradientBrushPrivate::createPaint(QCanvasPainter *painter) 
     auto *d = this;
     if (d->dirty) {
         if (d->gradientStops.size() == 0) {
-            QColor icol = { 255, 255, 255, 255 };
+            QColor icol = { 0, 0, 0, 0 };
             QColor ocol = { 0, 0, 0, 0 };
             // Note: Without stops, custom image might be used.
             createLinearGradient(icol, ocol, d->imageId);

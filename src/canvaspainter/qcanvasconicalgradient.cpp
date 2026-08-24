@@ -51,8 +51,6 @@ QT_BEGIN_NAMESPACE
     Constructs a default conical gradient.
     Gradient center position is (0, 0).
     Gradient angle is 0.0.
-    Gradient start color is white (255, 255, 255) and end color
-    transparent black (0, 0, 0, 0).
 */
 
 QCanvasConicalGradient::QCanvasConicalGradient()
@@ -67,8 +65,6 @@ QCanvasConicalGradient::QCanvasConicalGradient()
     Constructs a conical gradient.
     Gradient center position is ( \a centerX, \a centerY).
     Gradient start angle is \a startAngle.
-    Gradient start color is white (255, 255, 255) and end color
-    transparent black (0, 0, 0, 0).
 */
 
 QCanvasConicalGradient::QCanvasConicalGradient(float centerX, float centerY, float startAngle)
@@ -83,8 +79,6 @@ QCanvasConicalGradient::QCanvasConicalGradient(float centerX, float centerY, flo
     Constructs a conical gradient.
     Gradient center position is \a center.
     Gradient start angle is \a startAngle.
-    Gradient start color is white (255, 255, 255) and end color
-    transparent black (0, 0, 0, 0).
 */
 
 QCanvasConicalGradient::QCanvasConicalGradient(QPointF center, float startAngle)
@@ -154,7 +148,7 @@ QCPaint QCanvasConicalGradientBrushPrivate::createPaint(QCanvasPainter *painter)
     auto *d = this;
     if (d->dirty) {
         if (d->gradientStops.size() == 0) {
-            QColor icol = { 255, 255, 255, 255 };
+            QColor icol = { 0, 0, 0, 0 };
             QColor ocol = { 0, 0, 0, 0 };
             // Note: Without stops, custom image might be used.
             createConicalGradient(icol, ocol, d->imageId);

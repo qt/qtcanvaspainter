@@ -58,8 +58,6 @@ QT_BEGIN_NAMESPACE
     Position of gradient is (0, 0) and size (100, 100)
     Gradient feather is 10.0.
     Gradient radius is 0.0.
-    Gradient start color is white (255, 255, 255) and end color
-    transparent black (0, 0, 0, 0).
 */
 
 QCanvasBoxGradient::QCanvasBoxGradient()
@@ -77,8 +75,6 @@ QCanvasBoxGradient::QCanvasBoxGradient()
     Constructs a box gradient.
     Position of gradient is ( \a x, \a y) and size ( \a width, \a height)
     Gradient feather is 10.0 and radius is 0.0.
-    Gradient start color is white (255, 255, 255) and end color
-    transparent black (0, 0, 0, 0).
 
     \sa setFeather(), setRadius()
 */
@@ -100,8 +96,6 @@ QCanvasBoxGradient::QCanvasBoxGradient(float x, float y, float width, float heig
     Constructs a box gradient.
     Position and size of gradient is \a rect.
     Gradient feather is 10.0 and radius is 0.0.
-    Gradient start color is white (255, 255, 255) and end color
-    transparent black (0, 0, 0, 0).
 
     \sa setFeather(), setRadius()
 */
@@ -189,7 +183,7 @@ QCPaint QCanvasBoxGradientBrushPrivate::createPaint(QCanvasPainter *painter) con
     auto *d = this;
     if (d->dirty) {
         if (d->gradientStops.size() == 0) {
-            QColor icol = { 255, 255, 255, 255 };
+            QColor icol = { 0, 0, 0, 0 };
             QColor ocol = { 0, 0, 0, 0 };
             // Note: Without stops, custom image might be used.
             createBoxGradient(icol, ocol, d->imageId);
@@ -229,7 +223,6 @@ void QCanvasBoxGradientBrushPrivate::createBoxGradient(const QColor &iColor, con
     p.radius = qMin(dd.radius, qMin(dd.width, dd.height) * 0.5f);
     constexpr float small = 0.0001f;
     p.feather = qMax(small, dd.feather);
-
     if (imageId != 0) {
         // Multistop gradient
         p.imageId = imageId;
