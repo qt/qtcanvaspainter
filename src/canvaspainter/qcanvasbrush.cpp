@@ -144,11 +144,6 @@ bool comparesEqual(const QCanvasBrush &lhs, const QCanvasBrush &rhs) noexcept
 
 // ***** Private *****
 
-QCanvasBrush::QCanvasBrush(QCanvasBrushPrivate *priv)
-    : baseData(priv)
-{
-}
-
 QT_DEFINE_QESDP_SPECIALIZATION_DTOR(QCanvasBrushPrivate);
 
 #ifndef QT_NO_DEBUG_STREAM
