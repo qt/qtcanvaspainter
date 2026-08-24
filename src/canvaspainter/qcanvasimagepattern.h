@@ -39,8 +39,8 @@ public:
     QT_MOVE_ASSIGNMENT_OPERATOR_IMPL_VIA_PURE_SWAP(QCanvasImagePattern)
     Q_CANVASPAINTER_EXPORT ~QCanvasImagePattern();
 
-    Q_CANVASPAINTER_EXPORT operator QCanvasBrush() const;
-    Q_CANVASPAINTER_EXPORT operator QVariant() const;
+    Q_CANVASPAINTER_EXPORT Q_IMPLICIT operator QCanvasBrush() const;
+    Q_CANVASPAINTER_EXPORT Q_IMPLICIT operator QVariant() const;
 
     Q_CANVASPAINTER_EXPORT QPointF startPosition() const;
     Q_CANVASPAINTER_EXPORT void setStartPosition(float x, float y);

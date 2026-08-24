@@ -30,7 +30,7 @@ public:
     QT_MOVE_ASSIGNMENT_OPERATOR_IMPL_VIA_PURE_SWAP(QCanvasPath)
     void swap(QCanvasPath &other) noexcept { qt_ptr_swap(d_ptr, other.d_ptr); }
 
-    Q_CANVASPAINTER_EXPORT operator QVariant() const;
+    Q_CANVASPAINTER_EXPORT Q_IMPLICIT operator QVariant() const;
 
     // Path commands
     // These should match to path methods of QCanvasPainter for consistency.

@@ -31,7 +31,7 @@ public:
     QT_MOVE_ASSIGNMENT_OPERATOR_IMPL_VIA_PURE_SWAP(QCanvasImage)
     void swap(QCanvasImage &other) noexcept { d.swap(other.d); }
 
-    Q_CANVASPAINTER_EXPORT operator QVariant() const;
+    Q_CANVASPAINTER_EXPORT Q_IMPLICIT operator QVariant() const;
 
     Q_CANVASPAINTER_EXPORT int id() const;
     Q_CANVASPAINTER_EXPORT int width() const;
