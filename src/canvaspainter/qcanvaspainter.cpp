@@ -520,6 +520,13 @@ void QCanvasPainter::setStrokeStyle(const QColor &color)
     d->m_e->setStrokeColor(color);
 }
 
+static QCPaint paintFromBrush(const QCanvasBrush &brush, QCanvasPainter *painter)
+{
+    if (const auto *brushPrivate = QCanvasBrushPrivate::get(brush))
+        return brushPrivate->createPaint(painter);
+    return QCPaint{};
+}
+
 /*!
     \overload
 
@@ -547,11 +554,10 @@ void QCanvasPainter::setStrokeStyle(const QColor &color)
 void QCanvasPainter::setStrokeStyle(const QCanvasBrush &brush)
 {
     Q_D(QCanvasPainter);
-    if (brush.type() == QCanvasBrush::BrushType::Custom) {
+    if (brush.type() == QCanvasBrush::BrushType::Custom)
         d->m_e->setCustomStrokeBrush(brush);
-    } else {
-        d->m_e->setStrokePaint(brush.createPaint(this));
-    }
+    else
+        d->m_e->setStrokePaint(paintFromBrush(brush, this));
 }
 
 /*!
@@ -606,11 +612,10 @@ void QCanvasPainter::setFillStyle(const QColor &color)
 void QCanvasPainter::setFillStyle(const QCanvasBrush &brush)
 {
     Q_D(QCanvasPainter);
-    if (brush.type() == QCanvasBrush::BrushType::Custom) {
+    if (brush.type() == QCanvasBrush::BrushType::Custom)
         d->m_e->setCustomFillBrush(brush);
-    } else {
-        d->m_e->setFillPaint(brush.createPaint(this));
-    }
+    else
+        d->m_e->setFillPaint(paintFromBrush(brush, this));
 }
 
 /*!
@@ -3177,7 +3182,7 @@ QRectF QCanvasPainterPrivate::textBoundingBox(const QString &text, const QRectF 
 void QCanvasPainterPrivate::drawBoxShadow(QCanvasPainter *painter, const QCanvasBoxShadow &shadow)
 {
     QCanvasBrush shadowBrush = shadow;
-    const auto paint = shadowBrush.createPaint(painter);
+    const auto paint = paintFromBrush(shadowBrush, painter);
     const auto r = shadow.boundingRect();
     m_e->fillPlainRect(paint, r.x(), r.y(), r.width(), r.height());
     static bool shadowRectDebug = qEnvironmentVariableIsSet("QCPAINTER_DEBUG_SHADOW_RECT");
