@@ -37,8 +37,8 @@ public:
     QT_MOVE_ASSIGNMENT_OPERATOR_IMPL_VIA_PURE_SWAP(QCanvasBoxShadow)
     Q_CANVASPAINTER_EXPORT ~QCanvasBoxShadow();
 
-    Q_CANVASPAINTER_EXPORT operator QCanvasBrush() const;
-    Q_CANVASPAINTER_EXPORT operator QVariant() const;
+    Q_CANVASPAINTER_EXPORT Q_IMPLICIT operator QCanvasBrush() const;
+    Q_CANVASPAINTER_EXPORT Q_IMPLICIT operator QVariant() const;
 
     Q_CANVASPAINTER_EXPORT QRectF rect() const;
     inline void setRect(const QRectF &rect);

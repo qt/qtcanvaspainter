@@ -30,8 +30,8 @@ public:
     QT_MOVE_ASSIGNMENT_OPERATOR_IMPL_VIA_PURE_SWAP(QCanvasCustomBrush)
     Q_CANVASPAINTER_EXPORT ~QCanvasCustomBrush();
 
-    Q_CANVASPAINTER_EXPORT operator QCanvasBrush() const;
-    Q_CANVASPAINTER_EXPORT operator QVariant() const;
+    Q_CANVASPAINTER_EXPORT Q_IMPLICIT operator QCanvasBrush() const;
+    Q_CANVASPAINTER_EXPORT Q_IMPLICIT operator QVariant() const;
 
     Q_CANVASPAINTER_EXPORT void setFragmentShader(const QString &fragmentShader);
     Q_CANVASPAINTER_EXPORT void setFragmentShader(const QShader &fragmentShader);
