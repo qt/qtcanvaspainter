@@ -94,43 +94,34 @@ QCanvasImagePattern::QCanvasImagePattern(const QCanvasImage &image)
 }
 
 /*!
-    Constructs an image pattern.
-    Pattern will use \a image. Please note that \a image should usually
-    have at least \l QCanvasPainter::ImageFlag::Repeat flag set.
-    Pattern image position position and size is defined with \a rect.
-    Pattern angle is \a angle and tint color is \a tintColor.
-*/
+    \fn QCanvasImagePattern::QCanvasImagePattern(const QCanvasImage &image, QPointF startPosition, QSizeF imageSize)
 
-QCanvasImagePattern::QCanvasImagePattern(const QCanvasImage &image, const QRectF &rect, float angle, const QColor &tintColor)
-    : d(new QCanvasImagePatternPrivate)
-{
-    d->image = image;
-    d->x = float(rect.x());
-    d->y = float(rect.y());
-    d->width = float(rect.width());
-    d->height = float(rect.height());
-    d->angle = angle;
-    d->tintColor = tintColor;
-}
+    Constructs an image pattern using \a image, starting at \a startPosition
+    and with the image drawn at \a imageSize. Please note that \a image should
+    usually have at least \l QCanvasPainter::ImageFlag::Repeat flag set.
+
+    \sa setStartPosition(), setImageSize()
+*/
 
 /*!
-    Constructs an image pattern.
-    Pattern will use \a image. Please note that \a image should usually
-    have at least \l QCanvasPainter::ImageFlag::Repeat flag set.
-    Pattern image start position position is ( \a x, \a y) and pattern size ( \a width, \a height).
-    Pattern angle is \a angle and tint color is \a tintColor.
+    Constructs an image pattern using \a image, starting at \a startX, \a startY
+    and with the image drawn at \a imageWidth, \a imageHeight. Please note that
+    \a image should usually have at least \l QCanvasPainter::ImageFlag::Repeat
+    flag set.
+
+    \sa setRotation(), setTintColor()
 */
 
-QCanvasImagePattern::QCanvasImagePattern(const QCanvasImage &image, float x, float y, float width, float height, float angle, const QColor &tintColor)
+QCanvasImagePattern::QCanvasImagePattern(const QCanvasImage &image,
+                                         float startX, float startY,
+                                         float imageWidth, float imageHeight)
     : d(new QCanvasImagePatternPrivate)
 {
     d->image = image;
-    d->x = x;
-    d->y = y;
-    d->width = width;
-    d->height = height;
-    d->angle = angle;
-    d->tintColor = tintColor;
+    d->x = startX;
+    d->y = startY;
+    d->width = imageWidth;
+    d->height = imageHeight;
 }
 
 /*!

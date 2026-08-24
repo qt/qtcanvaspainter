@@ -11,7 +11,6 @@
 #include <QtCanvasPainter/qcanvasbrush.h>
 #include <QtCanvasPainter/qcanvasimage.h>
 #include <QtCore/qpoint.h>
-#include <QtCore/qrect.h>
 #include <QtCore/qsize.h>
 #include <QtCore/qdebug.h>
 
@@ -27,8 +26,13 @@ class QCanvasImagePattern
 public:
     Q_CANVASPAINTER_EXPORT QCanvasImagePattern();
     Q_CANVASPAINTER_EXPORT QCanvasImagePattern(const QCanvasImage &image);
-    Q_CANVASPAINTER_EXPORT QCanvasImagePattern(const QCanvasImage &image, const QRectF &rect, float angle = 0.0f, const QColor &tintColor = QColorConstants::White);
-    Q_CANVASPAINTER_EXPORT QCanvasImagePattern(const QCanvasImage &image, float x, float y, float width, float height, float angle = 0.0f, const QColor &tintColor = QColorConstants::White);
+    QCanvasImagePattern(const QCanvasImage &image, QPointF startPosition, QSizeF imageSize)
+        : QCanvasImagePattern(image, float(startPosition.x()), float(startPosition.y()),
+                              float(imageSize.width()), float(imageSize.height()))
+    {}
+    Q_CANVASPAINTER_EXPORT QCanvasImagePattern(const QCanvasImage &image,
+                                               float startX, float startY,
+                                               float imageWidth, float imageHeight);
     Q_CANVASPAINTER_EXPORT QCanvasImagePattern(const QCanvasImagePattern &);
     Q_CANVASPAINTER_EXPORT QCanvasImagePattern &operator=(const QCanvasImagePattern &);
     QCanvasImagePattern(QCanvasImagePattern &&) = default;
