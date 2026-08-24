@@ -43,7 +43,7 @@ static void testGradients(QCanvasPainter *p)
     p->fillRect(rect2);
 
     p->save();
-    QCanvasRadialGradient radialGradCentered(200, 100, 50);
+    QCanvasRadialGradient radialGradCentered(200, 100, 0, 50);
     radialGradCentered.setColorAt(0, Qt::red);
     radialGradCentered.setColorAt(0.35, QColor("pink"));
     radialGradCentered.setColorAt(1, Qt::white);
@@ -62,7 +62,7 @@ static void testGradients(QCanvasPainter *p)
     p->restore();
 
     QRectF objRect{10, 200, 100, 150};
-    QCanvasRadialGradient radialGradObjRect(0.5, 0.5, 0.5);
+    QCanvasRadialGradient radialGradObjRect(0.5, 0.5, 0, 0.5);
     radialGradObjRect.setColorAt(0, Qt::blue);
     radialGradObjRect.setColorAt(0.33, Qt::white);
     radialGradObjRect.setColorAt(0.66, Qt::red);

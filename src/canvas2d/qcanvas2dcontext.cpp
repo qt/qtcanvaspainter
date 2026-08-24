@@ -2337,7 +2337,7 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_createRadialGradient(cons
         if (extended)
             rg = QCanvasRadialGradient(icx, icy, iRad, ocx, ocy, oRad);
         else
-            rg = QCanvasRadialGradient(icx, icy, oRad, iRad);
+            rg = QCanvasRadialGradient(icx, icy, iRad, oRad);
         RETURN_RESULT(scope.engine->fromVariant(QVariant::fromValue(rg)));
     }
 

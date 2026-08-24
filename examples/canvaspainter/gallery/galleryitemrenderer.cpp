@@ -245,7 +245,7 @@ void GalleryItemRenderer::drawRectsWithRadialGradient() {
     float posY = m_topMargin + (w+margin);
 
     QRectF rect1(posX,posY,w,w);
-    painter()->setFillStyle(QCanvasRadialGradient(rect1.x(), rect1.y(), rect1.width()));
+    painter()->setFillStyle(QCanvasRadialGradient(rect1.x(), rect1.y(), 0, rect1.width()));
     painter()->fillRect(rect1);
     posX += w + margin;
 
@@ -261,7 +261,7 @@ void GalleryItemRenderer::drawRectsWithRadialGradient() {
     posX += w + margin;
 
     QRectF rect3(posX,posY,w,w);
-    QCanvasRadialGradient g3(rect3.x() + rect3.width()/2, rect3.y() + rect3.height()/2, w/2, w/4);
+    QCanvasRadialGradient g3(rect3.x() + rect3.width()/2, rect3.y() + rect3.height()/2, w/4, w/2);
     g3.setStartColor(QColor(m_animationSine*255, 255, 255));
     g3.setEndColor(QColor(255, m_animationSine*255, 255, 255-m_animationSine*255));
     painter()->setFillStyle(g3);
@@ -283,7 +283,7 @@ void GalleryItemRenderer::drawRectsWithRadialGradient() {
     posX += w + margin;
 
     QRectF rect5(posX,posY,w,w);
-    QCanvasRadialGradient g4(rect5.center(), rect5.width() / 2, rect5.width() * 0.1f);
+    QCanvasRadialGradient g4(rect5.center(), rect5.width() * 0.1f, rect5.width() / 2);
     g4.setImage(m_gradientImage3, m_animationSine * 128);
     painter()->setFillStyle(g4);
     painter()->fillRect(rect5);
@@ -475,7 +475,7 @@ void GalleryItemRenderer::drawRectsWithBrushStroke()
     posX += w + margin;
 
     QRectF rect3(posX,posY,w2,w2);
-    QCanvasRadialGradient g2(posX+w2/4, posY+w2/4, w2);
+    QCanvasRadialGradient g2(posX+w2/4, posY+w2/4, 0, w2);
     g2.setStartColor("#900000ff");
     g2.setEndColor("#90ff0000");
     painter()->setStrokeStyle(g2);
@@ -674,7 +674,7 @@ void GalleryItemRenderer::drawPainterPaths()
     transform.scale(s, s);
     transform.translate(-center.x(), -center.y());
     painter()->setStrokeStyle("#ff0000");
-    QCanvasRadialGradient rg(center, hSize);
+    QCanvasRadialGradient rg(center, 0, hSize);
     rg.setStops({{0.0f, QColor(255, 50 + 50 * sin(10.0 * m_animationTime), 0)},
                  {1.0f, QColor(100, 0, 0)}});
     painter()->setFillStyle(rg);

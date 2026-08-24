@@ -332,7 +332,7 @@ void tst_QCanvasBrush::testDataStreams()
     QCOMPARE(lc1, lcStreamed);
 
     // QCanvasRadialGradient
-    QCanvasRadialGradient rc1(50, 100, 80, 40);
+    QCanvasRadialGradient rc1(50, 100, 40, 80);
     rc1.setStops(stops);
     QCanvasRadialGradient rc2(rc1);
     QCOMPARE(rc1, rc2);
@@ -517,7 +517,7 @@ void tst_QCanvasBrush::testTypes()
     QList<QCanvasBrush> brushes;
     brushes.append(QCanvasBrush());
     brushes.append(QCanvasLinearGradient(10, 20, 30, 40));
-    brushes.append(QCanvasRadialGradient(11, 21, 31, 41));
+    brushes.append(QCanvasRadialGradient(11, 21, 41, 31));
     brushes.append(QCanvasConicalGradient(12, 22, 23));
     brushes.append(QCanvasBoxGradient(13, 23, 33, 43));
     QCanvasImage image;
@@ -849,7 +849,7 @@ void tst_QCanvasBrush::testCopyIsolation()
 
     // QCanvasRadialGradient
     {
-        QCanvasRadialGradient a(50, 60, 80, 40);
+        QCanvasRadialGradient a(50, 60, 40, 80);
         a.setStartColor(QColorConstants::Red);
 
         QCanvasRadialGradient b = a;
@@ -979,7 +979,7 @@ void tst_QCanvasBrush::testBrushRoundtrip()
 
     // QCanvasRadialGradient (simple)
     {
-        QCanvasRadialGradient a(50, 100, 80, 40);
+        QCanvasRadialGradient a(50, 100, 40, 80);
         a.setStops(stops);
         QCanvasBrush brush = a;
         QCOMPARE(a, brush.as<QCanvasRadialGradient>());

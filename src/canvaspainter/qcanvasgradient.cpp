@@ -269,7 +269,7 @@ QCanvasGradientStops QCanvasGradient::stops() const
     static QImage image(":/gradient1.png");
     QCanvasImage gradImage = p->addImage(image);
     QRectF rect(0, 0, 200, 200);
-    QCanvasRadialGradient rg(rect.center(), 150, 20);
+    QCanvasRadialGradient rg(rect.center(), 20, 150);
     rg.setImage(gradImage);
     p->setFillStyle(rg);
     p->fillRect(rect);

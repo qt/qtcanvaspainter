@@ -602,7 +602,7 @@ void QCanvasPainter::setFillStyle(const QColor &color)
         edges}
     \li
     \code
-    QCanvasRadialGradient g2(140, 40, 300);
+    QCanvasRadialGradient g2(140, 40, 0, 300);
     g2.setStartColor(QColor(44, 222, 133));
     g2.setEndColor(QColor(0, 65, 74));
     p->setFillStyle(g2);

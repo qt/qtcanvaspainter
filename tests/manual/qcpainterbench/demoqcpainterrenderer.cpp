@@ -334,7 +334,7 @@ void DemoQCPainterRenderer::drawFlower(float x, float y, float w, float h, float
 
     m_painter->setStrokeStyle("#40000000");
     m_painter->setLineWidth(4);
-    QCanvasRadialGradient gradient1(cx, cy, leafSize);
+    QCanvasRadialGradient gradient1(cx, cy, 0, leafSize);
     QColor startColor((0.5 + sinf(t * 2) * 0.5) * 255, 0, (0.5 + sinf(t + M_PI) * 0.5) * 255);
     gradient1.setStartColor(startColor);
     gradient1.setEndColor("#ffffff");

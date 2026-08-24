@@ -17,10 +17,14 @@ class QCanvasRadialGradient : public QCanvasGradient
 {
 public:
     Q_CANVASPAINTER_EXPORT QCanvasRadialGradient();
-    Q_CANVASPAINTER_EXPORT QCanvasRadialGradient(float centerX, float centerY, float outerRadius, float innerRadius = 0.0f);
-    Q_CANVASPAINTER_EXPORT QCanvasRadialGradient(QPointF center, float outerRadius, float innerRadius = 0.0f);
-    Q_CANVASPAINTER_EXPORT QCanvasRadialGradient(float innerCenterX, float innerCenterY, float innerRadius, float outerCenterX, float outerCenterY, float outerRadius);
-    Q_CANVASPAINTER_EXPORT QCanvasRadialGradient(QPointF innerCenter, float innerRadius, QPointF outerCenter, float outerRadius);
+    Q_CANVASPAINTER_EXPORT QCanvasRadialGradient(float centerX, float centerY,
+                                                 float innerRadius, float outerRadius);
+    Q_CANVASPAINTER_EXPORT QCanvasRadialGradient(QPointF centerPosition,
+                                                 float innerRadius, float outerRadius);
+    Q_CANVASPAINTER_EXPORT QCanvasRadialGradient(float innerCenterX, float innerCenterY, float innerRadius,
+                                                 float outerCenterX, float outerCenterY, float outerRadius);
+    Q_CANVASPAINTER_EXPORT QCanvasRadialGradient(QPointF innerCenterPosition, float innerRadius,
+                                                 QPointF outerCenterPosition, float outerRadius);
     QCanvasRadialGradient(const QCanvasRadialGradient &) = default;
     QCanvasRadialGradient &operator=(const QCanvasRadialGradient &) = default;
     QCanvasRadialGradient(QCanvasRadialGradient &&) = default;
