@@ -16,7 +16,7 @@ inline void paintHelloItem(QCanvasPainter *p, float width, float height, QCanvas
     float size = std::min(width, height);
     QPointF center(width/2, height/2);
     // Paint the background circle
-    QCanvasRadialGradient gradient1(center.x(), center.y() - size*0.1, size*0.6);
+    QCanvasRadialGradient gradient1(center.x(), center.y() - size*0.1, 0, size*0.6);
     gradient1.setStartColor("#909090");
     gradient1.setEndColor("#404040");
     p->beginPath();

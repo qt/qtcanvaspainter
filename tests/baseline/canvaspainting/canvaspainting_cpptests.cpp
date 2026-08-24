@@ -56,7 +56,7 @@ void CanvasPainterLancelotCppTests::simpleDrawing()
     QPointF center(width()/2, height()/2);
 
     // Paint the background circle
-    QCanvasRadialGradient gradient1(center.x(), center.y() - size*0.1, size*0.6);
+    QCanvasRadialGradient gradient1(center.x(), center.y() - size*0.1, 0, size*0.6);
     gradient1.setStartColor("#909090");
     gradient1.setEndColor("#404040");
     painter->beginPath();
@@ -1061,7 +1061,7 @@ void CanvasPainterLancelotCppTests::testRects()
         float posY = topMargin + (w+margin);
 
         QRectF rect1(posX,posY,w,w);
-        painter->setFillStyle(QCanvasRadialGradient(rect1.x(), rect1.y(), rect1.width()));
+        painter->setFillStyle(QCanvasRadialGradient(rect1.x(), rect1.y(), 0, rect1.width()));
         painter->fillRect(rect1);
         posX += w + margin;
 
@@ -1077,7 +1077,7 @@ void CanvasPainterLancelotCppTests::testRects()
         posX += w + margin;
 
         QRectF rect3(posX,posY,w,w);
-        QCanvasRadialGradient g3(rect3.x() + rect3.width()/2, rect3.y() + rect3.height()/2, w/2, w/4);
+        QCanvasRadialGradient g3(rect3.x() + rect3.width()/2, rect3.y() + rect3.height()/2, w/4, w/2);
         g3.setStartColor(QColor(anim*255, 255, 255));
         g3.setEndColor(QColor(255, anim*255, 255, 255-anim*255));
         painter->setFillStyle(g3);
@@ -1274,7 +1274,7 @@ void CanvasPainterLancelotCppTests::testRects2()
         posX += w + margin;
 
         QRectF rect3(posX,posY,w2,w2);
-        QCanvasRadialGradient g2(posX+w2/4, posY+w2/4, w2);
+        QCanvasRadialGradient g2(posX+w2/4, posY+w2/4, 0, w2);
         g2.setStartColor("#900000ff");
         g2.setEndColor("#90ff0000");
         painter->setStrokeStyle(g2);

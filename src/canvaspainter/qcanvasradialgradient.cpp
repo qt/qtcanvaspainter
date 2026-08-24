@@ -34,7 +34,7 @@ QT_BEGIN_NAMESPACE
     \li
     \code
     QRectF rect1(0, 0, 200, 200);
-    QCanvasRadialGradient rg(rect1.center(), 100, 0);
+    QCanvasRadialGradient rg(rect1.center(), 0, 100);
     rg.setColorAt(0.0, "#fdbb2d");
     rg.setColorAt(0.6, "#b21f1f");
     rg.setColorAt(1.0, "#1a2a6c");
@@ -68,12 +68,13 @@ QCanvasRadialGradient::QCanvasRadialGradient()
 /*!
     Constructs a radial gradient.
     Gradient center position is ( \a centerX, \a centerY).
-    Gradient outer radius is \a outerRadius and inner radius is \a innerRadius.
+    Gradient inner radius is \a innerRadius and outer radius is \a outerRadius.
     Gradient start color is white (255, 255, 255) and end color
     transparent black (0, 0, 0, 0).
 */
 
-QCanvasRadialGradient::QCanvasRadialGradient(float centerX, float centerY, float outerRadius, float innerRadius)
+QCanvasRadialGradient::QCanvasRadialGradient(float centerX, float centerY,
+                                             float innerRadius, float outerRadius)
     : QCanvasGradient(QCanvasBrush::BrushType::RadialGradient)
 {
     m_data.radial.icx = centerX;
@@ -86,20 +87,21 @@ QCanvasRadialGradient::QCanvasRadialGradient(float centerX, float centerY, float
 
 /*!
     Constructs a radial gradient.
-    Gradient center position is \a center.
-    Gradient outer radius is \a outerRadius and inner radius is \a innerRadius.
+    Gradient center position is \a centerPosition.
+    Gradient inner radius is \a innerRadius and outer radius is \a outerRadius.
     Gradient start color is white (255,255,255) and end color
     transparent black (0, 0, 0, 0).
 */
 
-QCanvasRadialGradient::QCanvasRadialGradient(QPointF center, float outerRadius, float innerRadius)
+QCanvasRadialGradient::QCanvasRadialGradient(QPointF centerPosition,
+                                             float innerRadius, float outerRadius)
     : QCanvasGradient(QCanvasBrush::BrushType::RadialGradient)
 {
-    m_data.radial.icx = float(center.x());
-    m_data.radial.icy = float(center.y());
+    m_data.radial.icx = float(centerPosition.x());
+    m_data.radial.icy = float(centerPosition.y());
     m_data.radial.iRadius = innerRadius;
-    m_data.radial.ocx = float(center.x());
-    m_data.radial.ocy = float(center.y());
+    m_data.radial.ocx = float(centerPosition.x());
+    m_data.radial.ocy = float(centerPosition.y());
     m_data.radial.oRadius = outerRadius;
 }
 
@@ -108,12 +110,13 @@ QCanvasRadialGradient::QCanvasRadialGradient(QPointF center, float outerRadius, 
     Constructs a radial gradient.
     Gradient inner center position is (\a innerCenterX, \a innerCenterY).
     Gradient outer center position is ( \a outerCenterX, \a outerCenterY).
-    Gradient outer radius is \a outerRadius and inner radius is \a innerRadius.
+    Gradient inner radius is \a innerRadius and outer radius is \a outerRadius.
     Gradient start color is white (255, 255, 255) and end color
     transparent black (0, 0, 0, 0).
 */
 
-QCanvasRadialGradient::QCanvasRadialGradient(float innerCenterX, float innerCenterY, float innerRadius, float outerCenterX, float outerCenterY, float outerRadius)
+QCanvasRadialGradient::QCanvasRadialGradient(float innerCenterX, float innerCenterY, float innerRadius,
+                                             float outerCenterX, float outerCenterY, float outerRadius)
     : QCanvasGradient(QCanvasBrush::BrushType::RadialGradient)
 {
     m_data.radial.icx = innerCenterX;
@@ -127,21 +130,22 @@ QCanvasRadialGradient::QCanvasRadialGradient(float innerCenterX, float innerCent
 /*!
     \since 6.12
     Constructs a radial gradient.
-    Gradient inner center position is \a innerCenter.
-    Gradient outer center position is \a outerCenter.
-    Gradient outer radius is \a outerRadius and inner radius is \a innerRadius.
+    Gradient inner center position is \a innerCenterPosition.
+    Gradient outer center position is \a outerCenterPosition.
+    Gradient inner radius is \a innerRadius and outer radius is \a outerRadius.
     Gradient start color is white (255, 255, 255) and end color
     transparent black (0, 0, 0, 0).
 */
 
-QCanvasRadialGradient::QCanvasRadialGradient(QPointF innerCenter, float innerRadius, QPointF outerCenter, float outerRadius)
+QCanvasRadialGradient::QCanvasRadialGradient(QPointF innerCenterPosition, float innerRadius,
+                                             QPointF outerCenterPosition, float outerRadius)
     : QCanvasGradient(QCanvasBrush::BrushType::RadialGradient)
 {
-    m_data.radial.icx = float(innerCenter.x());
-    m_data.radial.icy = float(innerCenter.y());
+    m_data.radial.icx = float(innerCenterPosition.x());
+    m_data.radial.icy = float(innerCenterPosition.y());
     m_data.radial.iRadius = innerRadius;
-    m_data.radial.ocx = float(outerCenter.x());
-    m_data.radial.ocy = float(outerCenter.y());
+    m_data.radial.ocx = float(outerCenterPosition.x());
+    m_data.radial.ocy = float(outerCenterPosition.y());
     m_data.radial.oRadius = outerRadius;
 }
 
