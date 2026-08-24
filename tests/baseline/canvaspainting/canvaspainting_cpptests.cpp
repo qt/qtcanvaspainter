@@ -1204,7 +1204,7 @@ void CanvasPainterLancelotCppTests::testRects2()
         float posY = topMargin;
 
         QRectF rect1(posX,posY,w,w);
-        QCanvasImagePattern g4(patternImage2, rect1);
+        QCanvasImagePattern g4(patternImage2, rect1.topLeft(), rect1.size());
         QColor aColor = QColor::fromRgbF(1.0f,
                                         0.5f + 0.5f * sin(anim),
                                         0.5f + 0.5f * sin(anim * 2 + M_PI),

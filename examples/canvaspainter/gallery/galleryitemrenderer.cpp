@@ -400,7 +400,7 @@ void GalleryItemRenderer::drawRectsWithImagePattern() {
     float posY = m_topMargin + 4*(w+margin);
 
     QRectF rect1(posX,posY,w,w);
-    QCanvasImagePattern g4(m_patternImage2, rect1);
+    QCanvasImagePattern g4(m_patternImage2, rect1.topLeft(), rect1.size());
     QColor aColor = QColor::fromRgbF(1.0f,
                                      0.5f + 0.5f * sin(m_animationTime),
                                      0.5f + 0.5f * sin(m_animationTime * 2 + M_PI),

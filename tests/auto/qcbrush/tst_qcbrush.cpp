@@ -248,8 +248,12 @@ void tst_QCanvasBrush::testBrushEqual()
     // QCanvasImagePattern
     {
         QCanvasImage image;
-        QCanvasImagePattern a(image, 10, 20, 30, 40, 0.5f, QColorConstants::Red);
-        QCanvasImagePattern b(image, 10, 20, 30, 40, 0.5f, QColorConstants::Red);
+        QCanvasImagePattern a(image, 10, 20, 30, 40);
+        a.setRotation(0.5f);
+        a.setTintColor(QColorConstants::Red);
+        QCanvasImagePattern b(image, 10, 20, 30, 40);
+        b.setRotation(0.5f);
+        b.setTintColor(QColorConstants::Red);
         QCOMPARE(a, b);
         QCOMPARE(QCanvasBrush(a), QCanvasBrush(b));
 
@@ -390,7 +394,9 @@ void tst_QCanvasBrush::testDataStreams()
     // QCanvasImagePattern
     QCanvasImage image;
     QRectF rect(10, 20, 30, 40);
-    QCanvasImagePattern ip1(image, rect, 0.5f, QColorConstants::Red);
+    QCanvasImagePattern ip1(image, rect.topLeft(), rect.size());
+    ip1.setRotation(0.5f);
+    ip1.setTintColor(QColorConstants::Red);
     QCanvasImagePattern ip2 = ip1;
     QCOMPARE(ip1, ip2);
     {
