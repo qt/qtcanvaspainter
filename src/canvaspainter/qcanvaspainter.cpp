@@ -72,7 +72,9 @@ Q_LOGGING_CATEGORY(QC_INFO, "qt.qcpainter.general")
     \li
     \code
     // Paint grid
-    QCanvasGridPattern grid(0, 0, 10, 10, "#404040", "#202020");
+    QCanvasGridPattern grid(0, 0, 10, 10);
+    grid.setLineColor("#404040");
+    grid.setBackgroundColor("#202020");
     p->setFillStyle(grid);
     p->fillRect(0, 0, width(), height());
     // Paint axis
