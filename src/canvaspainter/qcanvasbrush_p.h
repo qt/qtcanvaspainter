@@ -21,6 +21,8 @@
 
 QT_BEGIN_NAMESPACE
 
+struct QCPaint;
+
 class QCanvasBrushPrivate : public QSharedData
 {
 public:

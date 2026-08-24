@@ -151,18 +151,6 @@ QCanvasBrush::QCanvasBrush(QCanvasBrushPrivate *priv)
 
 QT_DEFINE_QESDP_SPECIALIZATION_DTOR(QCanvasBrushPrivate);
 
-/*!
-   \internal
-*/
-QCPaint QCanvasBrush::createPaint(QCanvasPainter *painter) const
-{
-    Q_UNUSED(painter)
-    if (baseData)
-        return baseData->createPaint(painter);
-    QCPaint empty;
-    return empty;
-}
-
 #ifndef QT_NO_DEBUG_STREAM
 /*!
   \internal

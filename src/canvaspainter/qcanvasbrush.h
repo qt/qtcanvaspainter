@@ -14,7 +14,6 @@
 QT_BEGIN_NAMESPACE
 
 class QCanvasPainter;
-struct QCPaint;
 
 class QCanvasGradient;
 class QCanvasBoxShadow;
@@ -69,7 +68,6 @@ private:
     friend Q_CANVASPAINTER_EXPORT bool comparesEqual(const QCanvasBrush &lhs, const QCanvasBrush &rhs) noexcept;
     Q_DECLARE_EQUALITY_COMPARABLE(QCanvasBrush)
 
-    QCPaint createPaint(QCanvasPainter *painter) const;
     friend class QCanvasBrushPrivate;
     friend class QCanvasPainter;
     friend class QCanvasPainterPrivate;
