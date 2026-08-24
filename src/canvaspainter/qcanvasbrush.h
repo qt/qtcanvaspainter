@@ -61,9 +61,6 @@ public:
         return T{};
     }
 
-protected:
-    Q_CANVASPAINTER_EXPORT explicit QCanvasBrush(QCanvasBrushPrivate *priv);
-    QExplicitlySharedDataPointer<QCanvasBrushPrivate> baseData;
 private:
     friend Q_CANVASPAINTER_EXPORT bool comparesEqual(const QCanvasBrush &lhs, const QCanvasBrush &rhs) noexcept;
     Q_DECLARE_EQUALITY_COMPARABLE(QCanvasBrush)
@@ -74,6 +71,8 @@ private:
 #ifndef QT_NO_DEBUG_STREAM
     friend Q_CANVASPAINTER_EXPORT QDebug operator<<(QDebug, const QCanvasBrush &);
 #endif
+
+    QExplicitlySharedDataPointer<QCanvasBrushPrivate> baseData;
 };
 
 Q_DECLARE_SHARED(QCanvasBrush)
