@@ -200,8 +200,12 @@ void tst_QCanvasBrush::testBrushEqual()
 
     // QCanvasBoxGradient
     {
-        QCanvasBoxGradient a(10, 20, 30, 40, 15, 5);
-        QCanvasBoxGradient b(10, 20, 30, 40, 15, 5);
+        QCanvasBoxGradient a(10, 20, 30, 40);
+        a.setFeather(15);
+        a.setRadius(5);
+        QCanvasBoxGradient b(10, 20, 30, 40);
+        b.setFeather(15);
+        b.setRadius(5);
         QCOMPARE(QCanvasBrush(a), QCanvasBrush(b));
         b.setFeather(16);
         QVERIFY(QCanvasBrush(a) != QCanvasBrush(b));
@@ -280,7 +284,7 @@ void tst_QCanvasBrush::testBrushEqual()
     // type specific values would match.
     {
         const QCanvasBrush linear = QCanvasLinearGradient(10, 20, 30, 40);
-        const QCanvasBrush box = QCanvasBoxGradient(10, 20, 30, 40, 0);
+        const QCanvasBrush box = QCanvasBoxGradient(10, 20, 30, 40);
         const QCanvasBrush grid = QCanvasGridPattern(10, 20, 30, 40);
         const QCanvasBrush shadow = QCanvasBoxShadow(10, 20, 30, 40);
         QVERIFY(linear != box);
@@ -376,7 +380,9 @@ void tst_QCanvasBrush::testDataStreams()
     QCOMPARE(cc1, ccStreamed);
 
     // QCanvasBoxGradient
-    QCanvasBoxGradient bc1(10, 20, 30, 40, 15, 5);
+    QCanvasBoxGradient bc1(10, 20, 30, 40);
+    bc1.setFeather(15);
+    bc1.setRadius(5);
     bc1.setStops(stops);
     QCanvasBoxGradient bc2 = bc1;
     QCOMPARE(bc1, bc2);
@@ -513,7 +519,7 @@ void tst_QCanvasBrush::testTypes()
     brushes.append(QCanvasLinearGradient(10, 20, 30, 40));
     brushes.append(QCanvasRadialGradient(11, 21, 31, 41));
     brushes.append(QCanvasConicalGradient(12, 22, 23));
-    brushes.append(QCanvasBoxGradient(13, 23, 33, 43, 10));
+    brushes.append(QCanvasBoxGradient(13, 23, 33, 43));
     QCanvasImage image;
     brushes.append(QCanvasImagePattern(image, 14, 24, 34, 44));
     QCanvasBoxShadow boxShadow(51, 52, 53, 54);
@@ -898,7 +904,9 @@ void tst_QCanvasBrush::testCopyIsolation()
 
     // QCanvasBoxGradient
     {
-        QCanvasBoxGradient a(10, 20, 30, 40, 5, 2);
+        QCanvasBoxGradient a(10, 20, 30, 40);
+        a.setFeather(5);
+        a.setRadius(2);
         a.setStartColor(QColorConstants::Red);
 
         QCanvasBoxGradient b = a;
@@ -995,7 +1003,9 @@ void tst_QCanvasBrush::testBrushRoundtrip()
 
     // QCanvasBoxGradient
     {
-        QCanvasBoxGradient a(10, 20, 30, 40, 15, 5);
+        QCanvasBoxGradient a(10, 20, 30, 40);
+        a.setFeather(15);
+        a.setRadius(5);
         a.setStops(stops);
         QCanvasBrush brush = a;
         QCOMPARE(a, brush.as<QCanvasBoxGradient>());

@@ -297,7 +297,9 @@ void GalleryItemRenderer::drawRectsWithBoxGradient() {
     float posY = m_topMargin + 2*(w+margin);
 
     QRectF rect1(posX,posY,w,w);
-    painter()->setFillStyle(QCanvasBoxGradient(rect1, w/2));
+    QCanvasBoxGradient g0(rect1);
+    g0.setFeather(w/2);
+    painter()->setFillStyle(g0);
     painter()->fillRect(rect1);
     posX += w + margin;
 
@@ -313,7 +315,9 @@ void GalleryItemRenderer::drawRectsWithBoxGradient() {
     posX += w + margin;
 
     QRectF rect3(posX,posY,w,w);
-    QCanvasBoxGradient g3(rect3, w/4, w/4);
+    QCanvasBoxGradient g3(rect3);
+    g3.setFeather(w/4);
+    g3.setRadius(w/4);
     g3.setStartColor(QColor(m_animationSine*255, 255, 255));
     g3.setEndColor(QColor(255, m_animationSine*255, 255, 255-m_animationSine*255));
     painter()->setFillStyle(g3);
@@ -321,7 +325,9 @@ void GalleryItemRenderer::drawRectsWithBoxGradient() {
     posX += w + margin;
 
     QRectF rect4(posX,posY,w,w);
-    QCanvasBoxGradient g4(rect4, w/4, w/3);
+    QCanvasBoxGradient g4(rect4);
+    g4.setFeather(w/4);
+    g4.setRadius(w/3);
     g4.setColorAt(0.0f, QColor(255, 255, 255, 255));
     g4.setColorAt(0.2f, QColor(0, 0, 0, 255));
     g4.setColorAt(0.4f, QColor(255, m_animationSine*255, 0, 255));
@@ -333,7 +339,9 @@ void GalleryItemRenderer::drawRectsWithBoxGradient() {
     posX += w + margin;
 
     QRectF rect5(posX,posY,w,w);
-    QCanvasBoxGradient g5(rect5, w * 0.4f, w * 0.4f);
+    QCanvasBoxGradient g5(rect5);
+    g5.setFeather(w * 0.4f);
+    g5.setRadius(w * 0.4f);
     g5.setImage(m_gradientImage3, m_animationSine * 128);
     painter()->setFillStyle(g5);
     painter()->fillRect(rect5);

@@ -1104,7 +1104,9 @@ void CanvasPainterLancelotCppTests::testRects()
         float posY = topMargin + 2*(w+margin);
 
         QRectF rect1(posX,posY,w,w);
-        painter->setFillStyle(QCanvasBoxGradient(rect1, w/2));
+        QCanvasBoxGradient g0(rect1);
+        g0.setFeather(w/2);
+        painter->setFillStyle(g0);
         painter->fillRect(rect1);
         posX += w + margin;
 
@@ -1120,7 +1122,9 @@ void CanvasPainterLancelotCppTests::testRects()
         posX += w + margin;
 
         QRectF rect3(posX,posY,w,w);
-        QCanvasBoxGradient g3(rect3, w/4, w/4);
+        QCanvasBoxGradient g3(rect3);
+        g3.setFeather(w/4);
+        g3.setRadius(w/4);
         g3.setStartColor(QColor(anim*255, 255, 255));
         g3.setEndColor(QColor(255, anim*255, 255, 255-anim*255));
         painter->setFillStyle(g3);
@@ -1128,7 +1132,9 @@ void CanvasPainterLancelotCppTests::testRects()
         posX += w + margin;
 
         QRectF rect4(posX,posY,w,w);
-        QCanvasBoxGradient g4(rect4, w/4, w/3);
+        QCanvasBoxGradient g4(rect4);
+        g4.setFeather(w/4);
+        g4.setRadius(w/3);
         g4.setColorAt(0.0f, QColor(255, 255, 255, 255));
         g4.setColorAt(0.2f, QColor(0, 0, 0, 255));
         g4.setColorAt(0.4f, QColor(255, anim*255, 0, 255));
