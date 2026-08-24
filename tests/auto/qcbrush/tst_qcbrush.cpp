@@ -121,8 +121,14 @@ void tst_QCanvasBrush::testEqual()
     gp1.setLineColor(gp2.lineColor());
     QVERIFY(gp1 == gp2);
 
-    QCanvasBoxShadow bs1(10, 20, 30, 40, 2, 5, QColorConstants::Red);
-    QCanvasBoxShadow bs2(10, 20, 30, 40, 2, 5, QColorConstants::Red);
+    QCanvasBoxShadow bs1(10, 20, 30, 40);
+    bs1.setRadius(2);
+    bs1.setBlur(5);
+    bs1.setColor(QColorConstants::Red);
+    QCanvasBoxShadow bs2(10, 20, 30, 40);
+    bs2.setRadius(2);
+    bs2.setBlur(5);
+    bs2.setColor(QColorConstants::Red);
     QVERIFY(bs1 == bs2);
     bs2.setSpread(7);
     QVERIFY(bs1 != bs2);
@@ -203,9 +209,15 @@ void tst_QCanvasBrush::testBrushEqual()
 
     // QCanvasBoxShadow
     {
-        QCanvasBoxShadow a(10, 20, 30, 40, 2, 5, QColorConstants::Red);
+        QCanvasBoxShadow a(10, 20, 30, 40);
+        a.setRadius(2);
+        a.setBlur(5);
+        a.setColor(QColorConstants::Red);
         a.setTopLeftRadius(1);
-        QCanvasBoxShadow b(10, 20, 30, 40, 2, 5, QColorConstants::Red);
+        QCanvasBoxShadow b(10, 20, 30, 40);
+        b.setRadius(2);
+        b.setBlur(5);
+        b.setColor(QColorConstants::Red);
         b.setTopLeftRadius(1);
         QCOMPARE(a, b);
         QCOMPARE(QCanvasBrush(a), QCanvasBrush(b));
@@ -387,7 +399,10 @@ void tst_QCanvasBrush::testDataStreams()
     QCOMPARE(ip1, ipStreamed);
 
     // QCanvasBoxShadow
-    QCanvasBoxShadow bs1(10, 20, 30, 40, 15, 5, QColorConstants::Red);
+    QCanvasBoxShadow bs1(10, 20, 30, 40);
+    bs1.setRadius(15);
+    bs1.setBlur(5);
+    bs1.setColor(QColorConstants::Red);
     bs1.setTopLeftRadius(2);
     bs1.setTopRightRadius(3);
     bs1.setBottomLeftRadius(4);
@@ -487,7 +502,11 @@ void tst_QCanvasBrush::testTypes()
     brushes.append(QCanvasBoxGradient(13, 23, 33, 43, 10));
     QCanvasImage image;
     brushes.append(QCanvasImagePattern(image, 14, 24, 34, 44));
-    brushes.append(QCanvasBoxShadow(51, 52, 53, 54, 21, 22, QColorConstants::Black));
+    QCanvasBoxShadow boxShadow(51, 52, 53, 54);
+    boxShadow.setRadius(21);
+    boxShadow.setBlur(22);
+    boxShadow.setColor(QColorConstants::Black);
+    brushes.append(boxShadow);
     brushes.append(QCanvasGridPattern(61, 62, 63, 64, QColorConstants::Green, QColorConstants::Yellow));
 
     int gradients = 0;
@@ -623,7 +642,10 @@ void tst_QCanvasBrush::testCopyIsolation()
 
     // QCanvasBoxShadow
     {
-        QCanvasBoxShadow a(10, 20, 30, 40, 2, 5, QColorConstants::Red);
+        QCanvasBoxShadow a(10, 20, 30, 40);
+        a.setRadius(2);
+        a.setBlur(5);
+        a.setColor(QColorConstants::Red);
         a.setSpread(7);
         a.setTopLeftRadius(1);
         a.setTopRightRadius(2);
@@ -962,7 +984,10 @@ void tst_QCanvasBrush::testBrushRoundtrip()
 
     // QCanvasBoxShadow
     {
-        QCanvasBoxShadow a(10, 20, 30, 40, 2, 5, QColorConstants::Red);
+        QCanvasBoxShadow a(10, 20, 30, 40);
+        a.setRadius(2);
+        a.setBlur(5);
+        a.setColor(QColorConstants::Red);
         a.setSpread(7);
         a.setTopLeftRadius(1);
         a.setTopRightRadius(2);

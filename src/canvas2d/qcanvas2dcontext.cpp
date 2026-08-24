@@ -2566,7 +2566,9 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_createBoxShadow(const QV4
             THROW_DOM(DOMEXCEPTION_NOT_SUPPORTED_ERR, "createBoxShadow(): Incorrect arguments")
         }
 
-        QCanvasBoxShadow b(x, y, w, h, 0, blur, color);
+        QCanvasBoxShadow b(x, y, w, h);
+        b.setBlur(blur);
+        b.setColor(color);
         b.setTopLeftRadius(radiusTL);
         b.setTopRightRadius(radiusTR);
         b.setBottomRightRadius(radiusBR);
