@@ -22,9 +22,9 @@ QT_BEGIN_NAMESPACE
     \code
     // Rotated grid into background
     QRectF rect(20, 20, 180, 180);
-    QCanvasGridPattern gp1(rect, "#DBEB00", "#373F26");
-    gp1.setCellSize(16, 16);
-    gp1.setStartPosition(rect.topLeft());
+    QCanvasGridPattern gp1(rect.topLeft(), QSizeF(16, 16));
+    gp1.setLineColor("#DBEB00");
+    gp1.setBackgroundColor("#373F26");
     gp1.setLineWidth(2.0f);
     gp1.setRotation(M_PI / 4);
     gp1.setFeather(5.0f);
@@ -80,52 +80,30 @@ QCanvasGridPattern::QCanvasGridPattern()
 
 
 /*!
-    Constructs an grid pattern.
-    Pattern start position position and size is defined with \a rect.
-    Grid line color is \a lineColor and background color is \a backgroundColor.
-    Grid line width is \a lineWidth, feather (antialiasing) is \a feather and
-    angle is \a angle.
-*/
+    \fn QCanvasGridPattern::QCanvasGridPattern(QPointF startPosition, QSizeF cellSize)
 
-QCanvasGridPattern::QCanvasGridPattern(const QRectF &rect,
-                             const QColor &lineColor,
-                             const QColor &backgroundColor,
-                             float lineWidth, float feather, float angle)
-    : d(new QCanvasGridPatternPrivate)
-{
-    d->x = float(rect.x());
-    d->y = float(rect.y());
-    d->width = float(rect.width());
-    d->height = float(rect.height());
-    d->lineColor = lineColor;
-    d->backgroundColor = backgroundColor;
-    d->lineWidth = lineWidth;
-    d->feather = feather;
-    d->angle = angle;
-}
+    Constructs a grid pattern starting at \a startPosition, with a single
+    cell sized \a cellSize.
+
+    \sa setStartPosition(), setCellSize()
+*/
 
 /*!
-    Constructs an grid pattern.
-    Pattern start position is ( \a x, \a y) and pattern size ( \a width, \a height).
-    Grid line color is \a lineColor and background color is \a backgroundColor.
-    Pattern angle is \a angle.
+    Constructs a grid pattern starting at \a startX, \a startY, with a single
+    cell sized \a cellWidth, \a cellHeight.
+
+    \sa setLineColor(), setBackgroundColor(), setLineWidth(), setFeather(),
+        setRotation()
 */
 
-QCanvasGridPattern::QCanvasGridPattern(float x, float y, float width, float height,
-                             const QColor &lineColor,
-                             const QColor &backgroundColor,
-                             float lineWidth, float feather, float angle)
+QCanvasGridPattern::QCanvasGridPattern(float startX, float startY,
+                                       float cellWidth, float cellHeight)
     : d(new QCanvasGridPatternPrivate)
 {
-    d->x = x;
-    d->y = y;
-    d->width = width;
-    d->height = height;
-    d->lineColor = lineColor;
-    d->backgroundColor = backgroundColor;
-    d->lineWidth = lineWidth;
-    d->feather = feather;
-    d->angle = angle;
+    d->x = startX;
+    d->y = startY;
+    d->width = cellWidth;
+    d->height = cellHeight;
 }
 
 /*!

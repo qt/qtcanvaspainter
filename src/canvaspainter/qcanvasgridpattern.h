@@ -10,7 +10,6 @@
 #include <QtCanvasPainter/qtcanvaspainterglobal.h>
 #include <QtCanvasPainter/qcanvasbrush.h>
 #include <QtCore/qpoint.h>
-#include <QtCore/qrect.h>
 #include <QtCore/qsize.h>
 #include <QtCore/qdebug.h>
 #include <QtGui/qcolor.h>
@@ -25,14 +24,12 @@ class QCanvasGridPattern
 {
 public:
     Q_CANVASPAINTER_EXPORT QCanvasGridPattern();
-    Q_CANVASPAINTER_EXPORT QCanvasGridPattern(const QRectF &rect,
-                  const QColor &lineColor = QColorConstants::White,
-                  const QColor &backgroundColor = QColorConstants::Black,
-                  float lineWidth = 1.0f, float feather = 1.0f, float angle = 0.0f);
-    Q_CANVASPAINTER_EXPORT QCanvasGridPattern(float x, float y, float width, float height,
-                  const QColor &lineColor = QColorConstants::White,
-                  const QColor &backgroundColor = QColorConstants::Black,
-                  float lineWidth = 1.0f, float feather = 1.0f, float angle = 0.0f);
+    QCanvasGridPattern(QPointF startPosition, QSizeF cellSize)
+        : QCanvasGridPattern(float(startPosition.x()), float(startPosition.y()),
+                             float(cellSize.width()), float(cellSize.height()))
+    {}
+    Q_CANVASPAINTER_EXPORT QCanvasGridPattern(float startX, float startY,
+                                              float cellWidth, float cellHeight);
     Q_CANVASPAINTER_EXPORT QCanvasGridPattern(const QCanvasGridPattern &);
     Q_CANVASPAINTER_EXPORT QCanvasGridPattern &operator=(const QCanvasGridPattern &);
     QCanvasGridPattern(QCanvasGridPattern &&) = default;

@@ -229,9 +229,13 @@ void tst_QCanvasBrush::testBrushEqual()
 
     // QCanvasGridPattern
     {
-        QCanvasGridPattern a(10, 20, 30, 40, QColorConstants::Red, QColorConstants::Blue);
+        QCanvasGridPattern a(10, 20, 30, 40);
+        a.setLineColor(QColorConstants::Red);
+        a.setBackgroundColor(QColorConstants::Blue);
         a.setLineWidth(3.0f);
-        QCanvasGridPattern b(10, 20, 30, 40, QColorConstants::Red, QColorConstants::Blue);
+        QCanvasGridPattern b(10, 20, 30, 40);
+        b.setLineColor(QColorConstants::Red);
+        b.setBackgroundColor(QColorConstants::Blue);
         b.setLineWidth(3.0f);
         QCOMPARE(a, b);
         QCOMPARE(QCanvasBrush(a), QCanvasBrush(b));
@@ -283,7 +287,9 @@ void tst_QCanvasBrush::testBrushEqual()
 
     // Copies and brushes sharing their data stay equal.
     {
-        QCanvasGridPattern gp(10, 20, 30, 40, QColorConstants::Red, QColorConstants::Blue);
+        QCanvasGridPattern gp(10, 20, 30, 40);
+        gp.setLineColor(QColorConstants::Red);
+        gp.setBackgroundColor(QColorConstants::Blue);
         const QCanvasBrush brush = gp;
         const QCanvasBrush shared = gp;
         const QCanvasBrush copy = brush;
@@ -421,7 +427,9 @@ void tst_QCanvasBrush::testDataStreams()
     QCOMPARE(bs1, bsStreamed);
 
     // QCanvasGridPattern
-    QCanvasGridPattern gp1(10, 20, 30, 40, QColorConstants::Red, QColorConstants::Blue);
+    QCanvasGridPattern gp1(10, 20, 30, 40);
+    gp1.setLineColor(QColorConstants::Red);
+    gp1.setBackgroundColor(QColorConstants::Blue);
     gp1.setFeather(2.0f);
     gp1.setRotation(0.5f);
     gp1.setLineWidth(3.0f);
@@ -507,7 +515,10 @@ void tst_QCanvasBrush::testTypes()
     boxShadow.setBlur(22);
     boxShadow.setColor(QColorConstants::Black);
     brushes.append(boxShadow);
-    brushes.append(QCanvasGridPattern(61, 62, 63, 64, QColorConstants::Green, QColorConstants::Yellow));
+    QCanvasGridPattern gridPattern(61, 62, 63, 64);
+    gridPattern.setLineColor(QColorConstants::Green);
+    gridPattern.setBackgroundColor(QColorConstants::Yellow);
+    brushes.append(gridPattern);
 
     int gradients = 0;
     int patterns = 0;
@@ -694,7 +705,9 @@ void tst_QCanvasBrush::testCopyIsolation()
 
     // QCanvasGridPattern
     {
-        QCanvasGridPattern a(10, 20, 30, 40, QColorConstants::Red, QColorConstants::Blue);
+        QCanvasGridPattern a(10, 20, 30, 40);
+        a.setLineColor(QColorConstants::Red);
+        a.setBackgroundColor(QColorConstants::Blue);
         a.setLineWidth(3.0f);
         a.setFeather(2.0f);
         a.setRotation(0.5f);
@@ -1004,7 +1017,9 @@ void tst_QCanvasBrush::testBrushRoundtrip()
 
     // QCanvasGridPattern
     {
-        QCanvasGridPattern a(10, 20, 30, 40, QColorConstants::Red, QColorConstants::Blue);
+        QCanvasGridPattern a(10, 20, 30, 40);
+        a.setLineColor(QColorConstants::Red);
+        a.setBackgroundColor(QColorConstants::Blue);
         a.setLineWidth(3.0f);
         a.setFeather(2.0f);
         a.setRotation(0.5f);

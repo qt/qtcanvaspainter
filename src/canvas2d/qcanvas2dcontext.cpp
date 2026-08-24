@@ -2644,7 +2644,12 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_createGridPattern(const Q
             THROW_DOM(DOMEXCEPTION_NOT_SUPPORTED_ERR, "createGridPattern(): Incorrect arguments")
         }
 
-        QCanvasGridPattern gp(x, y, w, h, lineColor, backgroundColor, lineWidth, feather, angle);
+        QCanvasGridPattern gp(x, y, w, h);
+        gp.setLineColor(lineColor);
+        gp.setBackgroundColor(backgroundColor);
+        gp.setLineWidth(lineWidth);
+        gp.setFeather(feather);
+        gp.setRotation(angle);
         RETURN_RESULT(scope.engine->fromVariant(QVariant::fromValue(gp)));
     }
 
