@@ -509,7 +509,7 @@ QDataStream &operator<<(QDataStream &s, const QCanvasGradient &g)
         const auto &cg = static_cast<const QCanvasConicalGradient &>(g);
         const auto &cp = cg.centerPosition();
         s << cp.x() << cp.y();
-        s << cg.angle();
+        s << cg.startAngle();
     } else if (g.type() == QCanvasBrush::BrushType::BoxGradient) {
         const auto &bg = static_cast<const QCanvasBoxGradient &>(g);
         const auto &r = bg.rect();

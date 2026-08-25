@@ -132,7 +132,7 @@ Rectangle {
             cg1.setCenterPosition(cX, cY);
             cg1.addColorStop(0, Qt.rgba(1, 1, 1, 1));
             cg1.addColorStop(1, Qt.rgba(0, 0, 0, 0));
-            cg1.setAngle(Math.PI);
+            cg1.setStartAngle(Math.PI);
             ctx.fillStyle = cg1;
             ctx.fillRect(posX, posY, sizeW, sizeH);
             posX += sizeW + margin;

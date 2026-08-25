@@ -27,8 +27,8 @@ public:
     Q_CANVASPAINTER_EXPORT QPointF centerPosition() const;
     Q_CANVASPAINTER_EXPORT void setCenterPosition(float x, float y);
     inline void setCenterPosition(QPointF center);
-    Q_CANVASPAINTER_EXPORT float angle() const;
-    Q_CANVASPAINTER_EXPORT void setAngle(float angle);
+    Q_CANVASPAINTER_EXPORT float startAngle() const;
+    Q_CANVASPAINTER_EXPORT void setStartAngle(float angle);
 
 private:
     friend size_t qHash(const QCanvasConicalGradient &, size_t seed) = delete;

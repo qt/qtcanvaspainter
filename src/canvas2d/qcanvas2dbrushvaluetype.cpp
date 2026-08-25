@@ -356,27 +356,27 @@ void QCanvas2DConicalGradientValueType::setCenterPosition(float x, float y)
 }
 
 /*!
-    \qmlmethod real conicalgradient2d::angle()
+    \qmlmethod real conicalgradient2d::startAngle()
 
     Returns the start angle of conical gradient in radians.
 */
 
-float QCanvas2DConicalGradientValueType::angle() const
+float QCanvas2DConicalGradientValueType::startAngle() const
 {
-    return QCanvasConicalGradient::angle();
+    return QCanvasConicalGradient::startAngle();
 }
 
 /*!
-    \qmlmethod void conicalgradient2d::setAngle(real angle)
+    \qmlmethod void conicalgradient2d::setStartAngle(real angle)
 
     Sets the start angle of conical gradient to \a angle in radians.
     The angle starts from a line going horizontally right from the
     center, and proceeds clockwise.
 */
 
-void QCanvas2DConicalGradientValueType::setAngle(float angle)
+void QCanvas2DConicalGradientValueType::setStartAngle(float angle)
 {
-    QCanvasConicalGradient::setAngle(angle);
+    QCanvasConicalGradient::setStartAngle(angle);
 }
 
 // ***** Box Gradient *****
