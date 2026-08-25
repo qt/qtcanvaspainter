@@ -1175,7 +1175,7 @@ void CanvasPainterLancelotCppTests::testRects()
         QRectF rect3(posX,posY,w,w);
         QCanvasConicalGradient g3;
         g3.setCenterPosition(rect3.center());
-        g3.setAngle(-0.5f * float(M_PI));
+        g3.setStartAngle(-0.5f * float(M_PI));
         g3.setStartColor(QColor(anim*255, 255, 255));
         g3.setEndColor(QColor(255, anim*255, 255, 255-anim*255));
         painter->setFillStyle(g3);
@@ -1185,7 +1185,7 @@ void CanvasPainterLancelotCppTests::testRects()
         QRectF rect4(posX,posY,w,w);
         QCanvasConicalGradient g4;
         g4.setCenterPosition(rect4.x() + anim * rect4.width(), rect4.y() + rect4.height()/2);
-        g4.setAngle(anim);
+        g4.setStartAngle(anim);
         g4.setStartColor(QColor(255, 255, 0, 255));
         g4.setColorAt(0.25, QColor(0, 255, 0, 255));
         g4.setColorAt(0.5, QColor(0, 0, 255, 255));
@@ -2594,7 +2594,7 @@ void CanvasPainterLancelotCppTests::testTextBrushes()
         posY += margin + fontSize2;
         QCanvasConicalGradient g4;
         g4.setCenterPosition(width() * 0.5, posY - fontSize2 * 0.5);
-        g4.setAngle(anim);
+        g4.setStartAngle(anim);
         g4.setStartColor(QColor(255, 255, 0, 255));
         g4.setColorAt(0.25, QColor(0, 255, 0, 255));
         g4.setColorAt(0.5, QColor(0, 0, 255, 255));
@@ -2930,7 +2930,7 @@ void CanvasPainterLancelotCppTests::testTextDecorationsBrushes()
     posY += margin + fontSize2;
     QCanvasConicalGradient g4;
     g4.setCenterPosition(width() * 0.5, posY - fontSize2 * 0.5);
-    g4.setAngle(anim);
+    g4.setStartAngle(anim);
     g4.setStartColor(QColor(255, 255, 0, 255));
     g4.setColorAt(0.25, QColor(0, 255, 0, 255));
     g4.setColorAt(0.5, QColor(0, 0, 255, 255));

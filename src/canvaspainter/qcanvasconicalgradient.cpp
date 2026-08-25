@@ -120,7 +120,7 @@ void QCanvasConicalGradient::setCenterPosition(float x, float y)
     Returns the start angle of conical gradient in radians.
 */
 
-float QCanvasConicalGradient::angle() const
+float QCanvasConicalGradient::startAngle() const
 {
     return m_data.conical.angle;
 }
@@ -131,7 +131,7 @@ float QCanvasConicalGradient::angle() const
     center, and proceeds clockwise.
 */
 
-void QCanvasConicalGradient::setAngle(float angle)
+void QCanvasConicalGradient::setStartAngle(float angle)
 {
     m_data.conical.angle = angle;
     m_cachedBrush = {};

@@ -194,7 +194,7 @@ void tst_QCanvasBrush::testBrushEqual()
         QCanvasConicalGradient a(100, 200, float(M_PI));
         QCanvasConicalGradient b(100, 200, float(M_PI));
         QCOMPARE(QCanvasBrush(a), QCanvasBrush(b));
-        b.setAngle(1.5f);
+        b.setStartAngle(1.5f);
         QVERIFY(QCanvasBrush(a) != QCanvasBrush(b));
     }
 
@@ -893,9 +893,9 @@ void tst_QCanvasBrush::testCopyIsolation()
         QCOMPARE(a.centerPosition(), QPointF(10, 20));
         QCOMPARE(b.centerPosition(), QPointF(1, 2));
 
-        b.setAngle(0);
-        QCOMPARE(a.angle(), float(M_PI));
-        QCOMPARE(b.angle(), 0.0f);
+        b.setStartAngle(0);
+        QCOMPARE(a.startAngle(), float(M_PI));
+        QCOMPARE(b.startAngle(), 0.0f);
 
         b.setEndColor(QColorConstants::Blue);
         QCOMPARE(a.endColor(), QColorConstants::Red);

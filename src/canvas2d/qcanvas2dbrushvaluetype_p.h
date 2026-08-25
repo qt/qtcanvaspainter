@@ -122,8 +122,8 @@ public:
     Q_INVOKABLE QPointF centerPosition() const;
     Q_INVOKABLE void setCenterPosition(float x, float y);
     Q_INVOKABLE inline void setCenterPosition(QPointF center);
-    Q_INVOKABLE float angle() const;
-    Q_INVOKABLE void setAngle(float angle);
+    Q_INVOKABLE float startAngle() const;
+    Q_INVOKABLE void setStartAngle(float angle);
 };
 
 inline void QCanvas2DConicalGradientValueType::setCenterPosition(QPointF center)
