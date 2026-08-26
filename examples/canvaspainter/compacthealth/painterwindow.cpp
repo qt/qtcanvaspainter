@@ -9,10 +9,6 @@
 #include <QCanvasPainter>
 #include <QCanvasPainterFactory>
 
-#if QT_CONFIG(vulkan)
-static QVulkanInstance g_vulkanInstance;
-#endif
-
 PainterWindow::PainterWindow(QRhi::Implementation api)
 {
     m_graphicsApi = api;
@@ -110,26 +106,27 @@ void PainterWindow::init()
 {
     QRhi::Flags rhiFlags = QRhi::EnableDebugMarkers | QRhi::EnableTimestamps;
 
-    // Create QRhi instance for the graphics API.
     if (m_graphicsApi == QRhi::Null) {
         QRhiNullInitParams params;
         m_rhi.reset(QRhi::create(QRhi::Null, &params, rhiFlags));
     }
 
+#if QT_CONFIG(opengl)
+    if (m_graphicsApi == QRhi::OpenGLES2) {
+        m_fallbackSurface.reset(QRhiGles2InitParams::newFallbackSurface());
+        QRhiGles2InitParams params;
+        params.fallbackSurface = m_fallbackSurface.get();
+        params.window = this;
+        m_rhi.reset(QRhi::create(QRhi::OpenGLES2, &params, rhiFlags));
+    }
+#endif
+
 #if QT_CONFIG(vulkan)
     if (m_graphicsApi == QRhi::Vulkan) {
-        if (!g_vulkanInstance.isValid()) {
-            g_vulkanInstance.setExtensions(QRhiVulkanInitParams::preferredInstanceExtensions());
-            if (!g_vulkanInstance.create())
-                qWarning("Failed to create Vulkan instance");
-        }
-        if (g_vulkanInstance.isValid()) {
-            setVulkanInstance(&g_vulkanInstance);
-            QRhiVulkanInitParams params;
-            params.inst = &g_vulkanInstance;
-            params.window = this;
-            m_rhi.reset(QRhi::create(QRhi::Vulkan, &params, rhiFlags));
-        }
+        QRhiVulkanInitParams params;
+        params.inst = vulkanInstance();
+        params.window = this;
+        m_rhi.reset(QRhi::create(QRhi::Vulkan, &params, rhiFlags));
     }
 #endif
 
@@ -150,20 +147,8 @@ void PainterWindow::init()
     }
 #endif
 
-    if (!m_rhi) {
-#if QT_CONFIG(opengl)
-        m_fallbackSurface.reset(QRhiGles2InitParams::newFallbackSurface());
-        QRhiGles2InitParams params;
-        params.fallbackSurface = m_fallbackSurface.get();
-        params.window = this;
-        m_rhi.reset(QRhi::create(QRhi::OpenGLES2, &params, rhiFlags));
-        if (m_rhi)
-            m_graphicsApi = QRhi::OpenGLES2;
-#endif
-    }
-
     if (!m_rhi)
-        qFatal("Failed to create RHI backend");
+        qFatal("Failed to create RHI backend for graphics API %d", int(m_graphicsApi));
     //![painterfactory]
     if (!m_factory) {
         m_factory = new QCanvasPainterFactory;
