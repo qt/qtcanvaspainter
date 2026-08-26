@@ -325,13 +325,10 @@ void QCanvasGradient::setImage(const QCanvasImage &image, int index)
 }
 
 /*!
-   Returns the gradient as a \l QCanvasBrush.
+    \fn QCanvasGradient::operator QCanvasBrush() const &
+    \overload QCanvasGradient::operator QCanvasBrush() &&
+    \return the gradient as a \l QCanvasBrush.
 */
-
-QCanvasGradient::operator QCanvasBrush() const
-{
-    return m_brush;
-}
 
 /*!
    Returns the gradient as a \l QVariant.

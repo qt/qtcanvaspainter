@@ -75,7 +75,8 @@ public:
     Q_CANVASPAINTER_EXPORT void setImage(const QCanvasImage &image, int index = 0);
     inline void addColorStop(float position, const QColor &color);
 
-    Q_CANVASPAINTER_EXPORT Q_IMPLICIT operator QCanvasBrush() const;
+    Q_IMPLICIT operator QCanvasBrush() const & { return m_brush; }
+    Q_IMPLICIT operator QCanvasBrush() && noexcept { return std::move(m_brush); }
     Q_CANVASPAINTER_EXPORT Q_IMPLICIT operator QVariant() const;
 
 protected:
