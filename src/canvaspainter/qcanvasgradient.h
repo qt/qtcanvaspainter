@@ -68,7 +68,10 @@ public:
     Q_CANVASPAINTER_EXPORT void setStops(const QCanvasGradientStops &stops);
     Q_CANVASPAINTER_EXPORT QCanvasGradientStops stops() const;
     Q_CANVASPAINTER_EXPORT void setImage(const QCanvasImage &image, int index = 0);
-    inline void addColorStop(float position, const QColor &color);
+    void addColorStop(float position, const QColor &color)
+    {
+        setColorAt(position, color);
+    }
 
     Q_IMPLICIT operator QCanvasBrush() const & { return m_brush; }
     Q_IMPLICIT operator QCanvasBrush() && noexcept { return std::move(m_brush); }
@@ -96,11 +99,6 @@ private:
 #endif
     friend size_t qHash(const QCanvasGradient &, size_t seed) = delete;
 };
-
-void QCanvasGradient::addColorStop(float position, const QColor &color)
-{
-    setColorAt(position, color);
-}
 
 QT_END_NAMESPACE
 
