@@ -53,10 +53,6 @@ class QCanvasGradient
 {
 public:
     QCanvasGradient() = delete;
-    QCanvasGradient(const QCanvasGradient &) = default;
-    QCanvasGradient &operator=(const QCanvasGradient &) = default;
-    QCanvasGradient(QCanvasGradient &&) = default;
-    QCanvasGradient &operator=(QCanvasGradient &&) = default;
 
     Q_CANVASPAINTER_EXPORT QCanvasBrush::BrushType type() const;
 
@@ -80,6 +76,12 @@ public:
 protected:
     Q_CANVASPAINTER_EXPORT explicit QCanvasGradient(QCanvasBrush::BrushType type);
     Q_CANVASPAINTER_EXPORT explicit QCanvasGradient(const QCanvasBrush &brush);
+
+    QCanvasGradient(const QCanvasGradient &) = default;
+    QCanvasGradient &operator=(const QCanvasGradient &) = default;
+    QCanvasGradient(QCanvasGradient &&) = default;
+    QCanvasGradient &operator=(QCanvasGradient &&) = default;
+
     ~QCanvasGradient() = default;
 
 private:
