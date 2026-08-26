@@ -36,23 +36,18 @@ QT_WARNING_POP
         return qFuzzyCompare(1 + lhs.position, 1 + rhs.position) && lhs.color == rhs.color;
     }
 
+#ifndef QT_NO_DEBUG_STREAM
+    friend Q_CANVASPAINTER_EXPORT QDebug operator<<(QDebug dbg, const QCanvasGradientStop &stop);
+#endif
+
 #ifndef QT_NO_DATASTREAM
     friend Q_CANVASPAINTER_EXPORT QDataStream &operator<<(QDataStream &, const QCanvasGradientStop &);
     friend Q_CANVASPAINTER_EXPORT QDataStream &operator>>(QDataStream &, QCanvasGradientStop &);
-    friend Q_CANVASPAINTER_EXPORT QDataStream &operator<<(QDataStream &, const QCanvasGradient &);
-    friend Q_CANVASPAINTER_EXPORT QDataStream &operator>>(QDataStream &, QCanvasGradient &);
 #endif
     friend size_t qHash(const QCanvasGradientStop &, size_t seed) = delete;
 };
 
 typedef QList<QCanvasGradientStop> QCanvasGradientStops;
-
-#ifndef QT_NO_DATASTREAM
-Q_CANVASPAINTER_EXPORT QDataStream &operator<<(QDataStream &, const QCanvasGradientStop &);
-Q_CANVASPAINTER_EXPORT QDataStream &operator>>(QDataStream &, QCanvasGradientStop &);
-Q_CANVASPAINTER_EXPORT QDataStream &operator<<(QDataStream &, const QCanvasGradient &);
-Q_CANVASPAINTER_EXPORT QDataStream &operator>>(QDataStream &, QCanvasGradient &);
-#endif
 
 class QCanvasGradient
 {
@@ -90,9 +85,14 @@ private:
     friend class QCanvasGradientBrushPrivate;
     friend Q_CANVASPAINTER_EXPORT bool comparesEqual(const QCanvasGradient &lhs, const QCanvasGradient &rhs) noexcept;
     Q_DECLARE_EQUALITY_COMPARABLE(QCanvasGradient)
+
 #ifndef QT_NO_DEBUG_STREAM
-    friend Q_CANVASPAINTER_EXPORT QDebug operator<<(QDebug dbg, const QCanvasGradientStop &stop);
     friend Q_CANVASPAINTER_EXPORT QDebug operator<<(QDebug, const QCanvasGradient &);
+#endif
+
+#ifndef QT_NO_DATASTREAM
+    friend Q_CANVASPAINTER_EXPORT QDataStream &operator<<(QDataStream &, const QCanvasGradient &);
+    friend Q_CANVASPAINTER_EXPORT QDataStream &operator>>(QDataStream &, QCanvasGradient &);
 #endif
     friend size_t qHash(const QCanvasGradient &, size_t seed) = delete;
 };
@@ -101,11 +101,6 @@ void QCanvasGradient::addColorStop(float position, const QColor &color)
 {
     setColorAt(position, color);
 }
-
-#ifndef QT_NO_DEBUG_STREAM
-Q_CANVASPAINTER_EXPORT QDebug operator<<(QDebug dbg, const QCanvasGradientStop &stop);
-Q_CANVASPAINTER_EXPORT QDebug operator<<(QDebug, const QCanvasGradient &);
-#endif
 
 QT_END_NAMESPACE
 
