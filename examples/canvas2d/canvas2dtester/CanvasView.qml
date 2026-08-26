@@ -717,6 +717,8 @@ Item {
         let posY = size * 0.5;
 
         const g1 = ctx.createBoxGradient(posX, posY, size, size, size/2);
+        g1.addColorStop(0.0, Qt.rgba(1, 1, 1, 1));
+        g1.addColorStop(1.0, Qt.rgba(0, 0, 0, 0));
         ctx.fillStyle = g1;
         ctx.fillRect(posX, posY, size, size);
         posX += size + margin;

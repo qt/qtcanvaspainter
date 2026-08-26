@@ -1932,7 +1932,7 @@ QV4::ReturnedValue QCanvasJSContext2D::method_set_globalCompositeOperation(const
     \li \inlineimage canvas2d-fillstyle2.webp
     \li
     \code
-    const g2 = ctx.createRadialGradient(140, 40, 300);
+    const g2 = ctx.createRadialGradient(140, 40, 0, 300);
     g2.addColorStop(0, Qt.rgba(0.2, 0.8, 0.6));
     g2.addColorStop(1, Qt.rgba(0, 0.25, 0.3, 1));
     ctx.fillStyle = g2;
@@ -2271,15 +2271,32 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_createLinearGradient(cons
     and radius \a r0, and the end circle with origin (\a x1, \a y1) and radius
     \a r1.
 
+    With only 4 parameters, the parameters are used as (x, y, r0, r1), where
+    the center position is the same for both inner and outer radius.
+
     \table
     \row
     \li \inlineimage radialgradient-example.webp
     \li
     \code
-    const rg = ctx.createRadialGradient(100, 100, 100, 0);
+    const rg = ctx.createRadialGradient(100, 100, 0, 100);
     rg.addColorStop(0.0, "#fdbb2d");
     rg.addColorStop(0.6, "#b21f1f");
     rg.addColorStop(1.0, "#1a2a6c");
+    ctx.fillStyle = rg;
+    ctx.fillRect(0, 0, 200, 200);
+    \endcode
+    \endtable
+
+    \table
+    \row
+    \li \inlineimage radialgradient-example2.webp
+    \li
+    \code
+    const rg = ctx.createRadialGradient(50, 50, 0,
+                                        100, 100, 90);
+    rg.addColorStop(0.0, "black");
+    rg.addColorStop(1.0, "white");
     ctx.fillStyle = rg;
     ctx.fillRect(0, 0, 200, 200);
     \endcode
@@ -2298,7 +2315,7 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_createRadialGradient(cons
     QV4::Scope scope(b);
     Q_UNUSED(thisObject);
 
-    if (argc >= 3) {
+    if (argc >= 4) {
         qreal icx, icy, iRad, ocx, ocy, oRad;
         icx = argv[0].toNumber();
         icy = argv[1].toNumber();
@@ -2313,9 +2330,9 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_createRadialGradient(cons
             // 3th is the inner radius and 6th is the outer radius.
             oRad = argv[5].toNumber();
         } else {
-            // With 3-4 parameters, order is: (cx, cy, oRad, iRad).
-            oRad = argv[2].toNumber();
-            iRad = (argc >= 4) ? argv[3].toNumber() : 0;
+            // With 4 parameters, order is: (cx, cy, iRad, oRad).
+            iRad = argv[2].toNumber();
+            oRad = argv[3].toNumber();
             // Inner and outer centers are the same.
             ocx = icx;
             ocy = icy;
