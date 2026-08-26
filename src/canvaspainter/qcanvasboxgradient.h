@@ -37,6 +37,8 @@ public:
     Q_CANVASPAINTER_EXPORT void setRadius(float radius);
 
 private:
+    explicit QCanvasBoxGradient(const QCanvasBrush &brush) : QCanvasGradient(brush) {}
+    friend class QCanvasGradientBrushPrivate;
     friend size_t qHash(const QCanvasBoxGradient &, size_t seed) = delete;
 };
 

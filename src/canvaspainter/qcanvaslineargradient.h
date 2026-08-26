@@ -33,6 +33,8 @@ public:
     inline void setEndPosition(QPointF end);
 
 private:
+    explicit QCanvasLinearGradient(const QCanvasBrush &brush) : QCanvasGradient(brush) {}
+    friend class QCanvasGradientBrushPrivate;
     friend size_t qHash(const QCanvasLinearGradient &, size_t seed) = delete;
 };
 

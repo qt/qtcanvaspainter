@@ -34,6 +34,10 @@ public:
     virtual bool equals(const QCanvasBrushPrivate &other) const noexcept = 0;
 
     static QCanvasBrushPrivate *get(const QCanvasBrush &brush) { return brush.baseData.data(); }
+    static QCanvasBrushPrivate *get(QCanvasBrush &brush) {
+        brush.baseData.detach();
+        return brush.baseData.data();
+    }
     static QCanvasBrush create(QCanvasBrushPrivate *p)
     {
         QCanvasBrush brush;
