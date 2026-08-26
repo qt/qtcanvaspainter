@@ -31,6 +31,8 @@ public:
     Q_CANVASPAINTER_EXPORT void setStartAngle(float angle);
 
 private:
+    explicit QCanvasConicalGradient(const QCanvasBrush &brush) : QCanvasGradient(brush) {}
+    friend class QCanvasGradientBrushPrivate;
     friend size_t qHash(const QCanvasConicalGradient &, size_t seed) = delete;
 };
 

@@ -14,6 +14,7 @@
 QT_BEGIN_NAMESPACE
 
 class QCanvasImage;
+class QCanvasGradientBrushPrivate;
 
 struct QCanvasGradientStop
 {
@@ -79,21 +80,13 @@ public:
 
 protected:
     Q_CANVASPAINTER_EXPORT explicit QCanvasGradient(QCanvasBrush::BrushType type);
+    Q_CANVASPAINTER_EXPORT explicit QCanvasGradient(const QCanvasBrush &brush);
     ~QCanvasGradient() = default;
 
-    QCanvasBrush::BrushType m_type = QCanvasBrush::BrushType::Invalid;
-    QCanvasGradientStops m_stops;
-    int m_imageId = 0;
-    float m_imageY = 0.5f;
-    union {
-        struct { float sx, sy, ex, ey; } linear;
-        struct { float icx, icy, iRadius, ocx, ocy, oRadius; } radial;
-        struct { float cx, cy, angle; } conical;
-        struct { float x, y, width, height, feather, radius; } box;
-    } m_data {};
-    mutable QCanvasBrush m_cachedBrush;
-
 private:
+    QCanvasBrush m_brush;
+
+    friend class QCanvasGradientBrushPrivate;
     friend Q_CANVASPAINTER_EXPORT bool comparesEqual(const QCanvasGradient &lhs, const QCanvasGradient &rhs) noexcept;
     Q_DECLARE_EQUALITY_COMPARABLE(QCanvasGradient)
 #ifndef QT_NO_DEBUG_STREAM

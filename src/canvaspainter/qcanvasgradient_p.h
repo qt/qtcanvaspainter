@@ -78,6 +78,25 @@ public:
     };
     Q_DECLARE_FLAGS(DirtyFlags, DirtyFlag)
 
+    // Returns the data of gradient for reading.
+    static const QCanvasGradientBrushPrivate *get(const QCanvasGradient &gradient)
+    {
+        return static_cast<const QCanvasGradientBrushPrivate *>(
+                    QCanvasBrushPrivate::get(gradient.m_brush));
+    }
+
+    // Returns the data of gradient for writing, detaching it from any copy or
+    // brush it might share the data with.
+    static QCanvasGradientBrushPrivate *get(QCanvasGradient &gradient)
+    {
+        return static_cast<QCanvasGradientBrushPrivate *>(
+                    QCanvasBrushPrivate::get(gradient.m_brush));
+    }
+
+    // Constructs a gradient of type Gradient sharing the data of brush.
+    template <typename Gradient>
+    static Gradient create(const QCanvasBrush &brush) { return Gradient(brush); }
+
     // Variables specific to gradient types
     union QCanvasGradientData {
         QCanvasGradientData() {}
@@ -94,12 +113,17 @@ public:
             float x, y, width, height, feather, radius;
         } box;
     };
+
+    // The gradient's data; all of it participates in equality comparison.
     QCanvasGradientStops gradientStops;
     QCanvasGradientData data;
-    QCPaint paint;
-    DirtyFlags dirty;
     int imageId;
     float imageY;
+
+    // Rendering cache, generated from the data above.
+    QCPaint paint;
+    DirtyFlags dirty;
+    int textureId;
 };
 
 class QCanvasLinearGradientBrushPrivate : public QCanvasGradientBrushPrivate

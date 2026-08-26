@@ -54,11 +54,8 @@ QT_BEGIN_NAMESPACE
 */
 
 QCanvasConicalGradient::QCanvasConicalGradient()
-    : QCanvasGradient(QCanvasBrush::BrushType::ConicalGradient)
+    : QCanvasConicalGradient(0.0f, 0.0f, 0.0f)
 {
-    m_data.conical.cx = 0.0f;
-    m_data.conical.cy = 0.0f;
-    m_data.conical.angle = 0.0f;
 }
 
 /*!
@@ -70,9 +67,10 @@ QCanvasConicalGradient::QCanvasConicalGradient()
 QCanvasConicalGradient::QCanvasConicalGradient(float centerX, float centerY, float startAngle)
     : QCanvasGradient(QCanvasBrush::BrushType::ConicalGradient)
 {
-    m_data.conical.cx = centerX;
-    m_data.conical.cy = centerY;
-    m_data.conical.angle = startAngle;
+    auto &conical = QCanvasGradientBrushPrivate::get(*this)->data.conical;
+    conical.cx = centerX;
+    conical.cy = centerY;
+    conical.angle = startAngle;
 }
 
 /*!
@@ -82,11 +80,8 @@ QCanvasConicalGradient::QCanvasConicalGradient(float centerX, float centerY, flo
 */
 
 QCanvasConicalGradient::QCanvasConicalGradient(QPointF center, float startAngle)
-    : QCanvasGradient(QCanvasBrush::BrushType::ConicalGradient)
+    : QCanvasConicalGradient(float(center.x()), float(center.y()), startAngle)
 {
-    m_data.conical.cx = float(center.x());
-    m_data.conical.cy = float(center.y());
-    m_data.conical.angle = startAngle;
 }
 
 /*!
@@ -96,7 +91,8 @@ QCanvasConicalGradient::QCanvasConicalGradient(QPointF center, float startAngle)
 
 QPointF QCanvasConicalGradient::centerPosition() const
 {
-    return QPointF(m_data.conical.cx, m_data.conical.cy);
+    const auto &conical = QCanvasGradientBrushPrivate::get(*this)->data.conical;
+    return QPointF(conical.cx, conical.cy);
 }
 
 /*!
@@ -104,9 +100,10 @@ QPointF QCanvasConicalGradient::centerPosition() const
 */
 void QCanvasConicalGradient::setCenterPosition(float x, float y)
 {
-    m_data.conical.cx = x;
-    m_data.conical.cy = y;
-    m_cachedBrush = {};
+    auto *d = QCanvasGradientBrushPrivate::get(*this);
+    d->data.conical.cx = x;
+    d->data.conical.cy = y;
+    d->dirty |= QCanvasGradientBrushPrivate::DirtyFlag::Values;
 }
 
 /*!
@@ -122,7 +119,7 @@ void QCanvasConicalGradient::setCenterPosition(float x, float y)
 
 float QCanvasConicalGradient::startAngle() const
 {
-    return m_data.conical.angle;
+    return QCanvasGradientBrushPrivate::get(*this)->data.conical.angle;
 }
 
 /*!
@@ -133,8 +130,9 @@ float QCanvasConicalGradient::startAngle() const
 
 void QCanvasConicalGradient::setStartAngle(float angle)
 {
-    m_data.conical.angle = angle;
-    m_cachedBrush = {};
+    auto *d = QCanvasGradientBrushPrivate::get(*this);
+    d->data.conical.angle = angle;
+    d->dirty |= QCanvasGradientBrushPrivate::DirtyFlag::Values;
 }
 
 // ***** Private *****
@@ -162,13 +160,13 @@ QCPaint QCanvasConicalGradientBrushPrivate::createPaint(QCanvasPainter *painter)
         } else {
             DECONST(d)->updateGradientTexture(painter);
             QColor col = { 255, 255, 255, 255 };
-            createConicalGradient(col, col, d->imageId);
+            createConicalGradient(col, col, d->textureId);
         }
         DECONST(d)->dirty = {};
     }
-    if (d->imageId > 0) {
+    if (d->paint.imageId > 0) {
         auto *painterPriv = QCanvasPainterPrivate::get(painter);
-        painterPriv->markTextureIdUsed(d->imageId);
+        painterPriv->markTextureIdUsed(d->paint.imageId);
     }
     return d->paint;
 }
@@ -204,10 +202,7 @@ void QCanvasConicalGradientBrushPrivate::createConicalGradient(const QColor &iCo
 template<> QCanvasConicalGradient QCanvasBrush::as<QCanvasConicalGradient>() const
 {
     Q_ASSERT(type() == BrushType::ConicalGradient);
-    const auto *gd = static_cast<const QCanvasGradientBrushPrivate *>(QCanvasBrushPrivate::get(*this));
-    QCanvasConicalGradient g(gd->data.conical.cx, gd->data.conical.cy, gd->data.conical.angle);
-    g.setStops(gd->gradientStops);
-    return g;
+    return QCanvasGradientBrushPrivate::create<QCanvasConicalGradient>(*this);
 }
 
 QT_END_NAMESPACE
