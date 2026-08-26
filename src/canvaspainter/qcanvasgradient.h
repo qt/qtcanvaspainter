@@ -57,7 +57,7 @@ Q_CANVASPAINTER_EXPORT QDataStream &operator>>(QDataStream &, QCanvasGradient &)
 class QCanvasGradient
 {
 public:
-    QCanvasGradient() = default;
+    QCanvasGradient() = delete;
     QCanvasGradient(const QCanvasGradient &) = default;
     QCanvasGradient &operator=(const QCanvasGradient &) = default;
     QCanvasGradient(QCanvasGradient &&) = default;
