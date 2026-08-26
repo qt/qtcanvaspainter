@@ -8,6 +8,10 @@
 #include <QGuiApplication>
 #include <QSurfaceFormat>
 
+#if QT_CONFIG(vulkan)
+#include <QVulkanInstance>
+#endif
+
 //![main]
 int main(int argc, char *argv[])
 {
@@ -66,7 +70,29 @@ int main(int argc, char *argv[])
     QSurfaceFormat::setDefaultFormat(fmt);
 #endif
 
+#if QT_CONFIG(vulkan)
+    QVulkanInstance vulkanInstance;
+    if (graphicsApi == QRhi::Vulkan) {
+        vulkanInstance.setExtensions(QRhiVulkanInitParams::preferredInstanceExtensions());
+        if (!vulkanInstance.create()) {
+#if QT_CONFIG(opengl)
+            qWarning("Vulkan is not usable, falling back to OpenGL");
+            graphicsApi = QRhi::OpenGLES2;
+#else
+            qWarning("Vulkan is not usable, falling back to the null backend");
+            graphicsApi = QRhi::Null;
+#endif
+        }
+    }
+#endif
+
     MainWindow window(graphicsApi);
+
+#if QT_CONFIG(vulkan)
+    if (graphicsApi == QRhi::Vulkan)
+        window.setVulkanInstance(&vulkanInstance);
+#endif
+
     window.resize(1920 / 2, 1080 / 2);
     window.show();
 
