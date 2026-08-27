@@ -2844,7 +2844,7 @@ void QCPainterRhiRenderer::renderDelete()
         delete it->strokeVertexBuffer;
     }
 
-    for (const QCRHIContext::PerPassData &ppd : rhiCtx->perPassData) {
+    for (const QCRHIContext::PerPassData &ppd : std::as_const(rhiCtx->perPassData)) {
         delete ppd.vertexBuffer;
         delete ppd.indexBuffer;
         delete ppd.uniformBuffer;
