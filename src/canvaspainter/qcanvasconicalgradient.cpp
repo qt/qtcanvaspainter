@@ -199,10 +199,4 @@ void QCanvasConicalGradientBrushPrivate::createConicalGradient(const QColor &iCo
 
 #undef DECONST
 
-template<> QCanvasConicalGradient QCanvasBrush::as<QCanvasConicalGradient>() const
-{
-    Q_ASSERT(type() == BrushType::ConicalGradient);
-    return QCanvasGradientBrushPrivate::create<QCanvasConicalGradient>(*this);
-}
-
 QT_END_NAMESPACE

@@ -43,6 +43,11 @@ public:
     static const QCanvasCustomBrushPrivate *get(const QCanvasCustomBrush &brush)
     { return brush.d.data(); }
     static QCanvasCustomBrush create(QCanvasCustomBrushPrivate *p) { return QCanvasCustomBrush(p); }
+    static QCanvasCustomBrush getFromCanvasBrush(const QCanvasBrush &brush)
+    {
+        Q_ASSERT(brush.type() == QCanvasBrush::BrushType::Custom);
+        return create(static_cast<QCanvasCustomBrushPrivate *>(QCanvasBrushPrivate::get(brush)));
+    }
 
     struct CommonUniforms {
         // Total size 112 + 112 = 224 bytes.

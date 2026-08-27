@@ -17,9 +17,9 @@
 // We mean it.
 //
 
-#include "engine/qcpainterengineutils_p.h"
-#include "engine/qcrhidistancefieldglyphcache_p.h"
-#include "engine/qcrhicolorglyphcache_p.h"
+#include "qcpainterengineutils_p.h"
+#include "qcrhidistancefieldglyphcache_p.h"
+#include "qcrhicolorglyphcache_p.h"
 #include <QFont>
 #include <QRawFont>
 

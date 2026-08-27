@@ -52,7 +52,7 @@ private:
     Q_DECLARE_EQUALITY_COMPARABLE(QCanvasCustomBrush)
 
     void detach();
-    explicit QCanvasCustomBrush(QCanvasCustomBrushPrivate *p);
+    Q_CANVASPAINTER_EXPORT explicit QCanvasCustomBrush(QCanvasCustomBrushPrivate *p);
     friend class QCanvasCustomBrushPrivate;
     QExplicitlySharedDataPointer<QCanvasCustomBrushPrivate> d;
 #ifndef QT_NO_DATASTREAM
@@ -64,8 +64,6 @@ private:
 #endif
     friend size_t qHash(const QCanvasCustomBrush &, size_t seed) = delete;
 };
-
-template<> Q_CANVASPAINTER_EXPORT QCanvasCustomBrush QCanvasBrush::as<QCanvasCustomBrush>() const;
 
 QT_END_NAMESPACE
 

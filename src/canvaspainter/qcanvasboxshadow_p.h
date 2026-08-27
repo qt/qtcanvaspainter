@@ -17,9 +17,9 @@
 // We mean it.
 //
 
-#include "engine/qcpainterengine_p.h"
 #include "qcanvasboxshadow.h"
 #include "qcanvasbrush_p.h"
+#include "qcpaint_p.h"
 #include "qcanvasimage.h"
 #include <QtCore/qshareddata.h>
 #include <QImage>
@@ -39,6 +39,11 @@ public:
     static const QCanvasBoxShadowPrivate *get(const QCanvasBoxShadow *brush)
     { return brush->d.data(); }
     static QCanvasBoxShadow create(QCanvasBoxShadowPrivate *p) { return QCanvasBoxShadow(p); }
+    static QCanvasBoxShadow getFromCanvasBrush(const QCanvasBrush &brush)
+    {
+        Q_ASSERT(brush.type() == QCanvasBrush::BrushType::BoxShadow);
+        return create(static_cast<QCanvasBoxShadowPrivate *>(QCanvasBrushPrivate::get(brush)));
+    }
 
     QCPaint createPaint(QCanvasPainter *painter) const override;
     void createBoxShadow(qreal x, qreal y, qreal width, qreal height,

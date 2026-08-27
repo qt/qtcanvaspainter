@@ -41,8 +41,6 @@ void QCanvasConicalGradient::setCenterPosition(QPointF center)
     setCenterPosition(center.x(), center.y());
 }
 
-template<> Q_CANVASPAINTER_EXPORT QCanvasConicalGradient QCanvasBrush::as<QCanvasConicalGradient>() const;
-
 QT_END_NAMESPACE
 
 #endif // QCANVASCONICALGRADIENT_H

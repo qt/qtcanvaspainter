@@ -19,7 +19,7 @@
 
 #include "qcanvasbrush_p.h"
 #include "qcanvasgradient.h"
-#include "engine/qcpainterengineutils_p.h"
+#include "qcpaint_p.h"
 #include <QImage>
 #include <QColor>
 

@@ -17,8 +17,8 @@
 #ifndef QCANVASGRIDPATTERN_P_H
 #define QCANVASGRIDPATTERN_P_H
 
-#include "engine/qcpainterengine_p.h"
 #include "qcanvasbrush_p.h"
+#include "qcpaint_p.h"
 #include <QtCore/qshareddata.h>
 #include <QtGui/qcolor.h>
 #include <qcanvasgridpattern.h>
@@ -39,6 +39,11 @@ public:
     static const QCanvasGridPatternPrivate *get(const QCanvasGridPattern *brush)
     { return brush->d.data(); }
     static QCanvasGridPattern create(QCanvasGridPatternPrivate *p) { return QCanvasGridPattern(p); }
+    static QCanvasGridPattern getFromCanvasBrush(const QCanvasBrush &brush)
+    {
+        Q_ASSERT(brush.type() == QCanvasBrush::BrushType::GridPattern);
+        return create(static_cast<QCanvasGridPatternPrivate *>(QCanvasBrushPrivate::get(brush)));
+    }
 
     void createGridPattern() const;
 

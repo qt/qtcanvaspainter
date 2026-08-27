@@ -17,7 +17,7 @@
 // We mean it.
 //
 
-#include "engine/qcpainterengineutils_p.h"
+#include "qcpainterengineutils_p.h"
 #include <QFontMetricsF>
 
 QT_BEGIN_NAMESPACE

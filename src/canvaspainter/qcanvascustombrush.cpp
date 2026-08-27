@@ -291,13 +291,6 @@ QCanvasCustomBrush::operator QCanvasBrush() const
     return QCanvasBrushPrivate::create(d.get());
 }
 
-template<> QCanvasCustomBrush QCanvasBrush::as<QCanvasCustomBrush>() const
-{
-    Q_ASSERT(type() == BrushType::Custom);
-    return QCanvasCustomBrushPrivate::create(
-        static_cast<QCanvasCustomBrushPrivate *>(QCanvasBrushPrivate::get(*this)));
-}
-
 /*!
    Returns the custom brush as a QVariant.
 */

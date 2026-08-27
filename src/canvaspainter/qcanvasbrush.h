@@ -54,13 +54,6 @@ public:
 
     Q_CANVASPAINTER_EXPORT BrushType type() const;
 
-    template<typename T>
-    T as() const
-    {
-        static_assert(!sizeof(T), "QCanvasBrush::as<T>() is not supported for this brush type");
-        return T{};
-    }
-
 private:
     friend Q_CANVASPAINTER_EXPORT bool comparesEqual(const QCanvasBrush &lhs, const QCanvasBrush &rhs) noexcept;
     Q_DECLARE_EQUALITY_COMPARABLE(QCanvasBrush)

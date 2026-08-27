@@ -17,9 +17,9 @@
 #ifndef QCANVASIMAGEPATTERN_P_H
 #define QCANVASIMAGEPATTERN_P_H
 
-#include "engine/qcpainterengine_p.h"
 #include "qcanvasbrush_p.h"
 #include "qcanvasimage.h"
+#include "qcpaint_p.h"
 #include "qcanvasimagepattern.h"
 #include <QtCore/qshareddata.h>
 #include <QImage>
@@ -50,6 +50,11 @@ public:
     static const QCanvasImagePatternPrivate *get(const QCanvasImagePattern *brush)
     { return brush->d.data(); }
     static QCanvasImagePattern create(QCanvasImagePatternPrivate *p) { return QCanvasImagePattern(p); }
+    static QCanvasImagePattern getFromCanvasBrush(const QCanvasBrush &brush)
+    {
+        Q_ASSERT(brush.type() == QCanvasBrush::BrushType::ImagePattern);
+        return create(static_cast<QCanvasImagePatternPrivate *>(QCanvasBrushPrivate::get(brush)));
+    }
 
     // The values are stored in qreal precision so that the QCanvasImagePattern
     // getters return exactly what was passed to the setters. They are

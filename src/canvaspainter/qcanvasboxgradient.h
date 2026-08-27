@@ -46,8 +46,6 @@ void QCanvasBoxGradient::setRect(const QRectF &rect)
     setRect(rect.x(), rect.y(), rect.width(), rect.height());
 }
 
-template<> Q_CANVASPAINTER_EXPORT QCanvasBoxGradient QCanvasBrush::as<QCanvasBoxGradient>() const;
-
 QT_END_NAMESPACE
 
 #endif // QCANVASBOXGRADIENT_H

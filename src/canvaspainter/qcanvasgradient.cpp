@@ -16,6 +16,7 @@
 #include "qvariant.h"
 #include <qdebug.h>
 #include <limits>
+#include <QtGui/private/qtguiglobal_p.h> // for qpixellayout_p.h's QT_CONFIG(raster_fp) check
 #include <QtGui/private/qpixellayout_p.h>
 
 QT_BEGIN_NAMESPACE

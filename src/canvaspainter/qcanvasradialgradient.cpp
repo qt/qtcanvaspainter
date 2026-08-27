@@ -352,10 +352,4 @@ void QCanvasRadialGradientBrushPrivate::createRadialGradient(const QColor &iColo
 
 #undef DECONST
 
-template<> QCanvasRadialGradient QCanvasBrush::as<QCanvasRadialGradient>() const
-{
-    Q_ASSERT(type() == BrushType::RadialGradient);
-    return QCanvasGradientBrushPrivate::create<QCanvasRadialGradient>(*this);
-}
-
 QT_END_NAMESPACE
