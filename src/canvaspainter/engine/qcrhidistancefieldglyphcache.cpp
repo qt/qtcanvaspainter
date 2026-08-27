@@ -635,7 +635,6 @@ void QCRhiDistanceFieldGlyphCache::storeGlyphs(const QList<QDistanceField> &glyp
 
     GlyphTextureHash glyphTextures;
 
-    QVarLengthArray<QRhiTextureUploadEntry, 32> uploads;
     for (int i = 0; i < glyphs.size(); ++i) {
         QDistanceField glyph = glyphs.at(i);
         glyph_t glyphIndex = glyph.glyph();
