@@ -62,7 +62,7 @@ private:
     Q_DECLARE_EQUALITY_COMPARABLE(QCanvasImagePattern)
 
     void detach();
-    explicit QCanvasImagePattern(QCanvasImagePatternPrivate *p);
+    Q_CANVASPAINTER_EXPORT explicit QCanvasImagePattern(QCanvasImagePatternPrivate *p);
     friend class QCanvasImagePatternPrivate;
     QExplicitlySharedDataPointer<QCanvasImagePatternPrivate> d;
 #ifndef QT_NO_DATASTREAM
@@ -84,8 +84,6 @@ void QCanvasImagePattern::setImageSize(QSizeF size)
 {
     setImageSize(size.width(), size.height());
 }
-
-template<> Q_CANVASPAINTER_EXPORT QCanvasImagePattern QCanvasBrush::as<QCanvasImagePattern>() const;
 
 QT_END_NAMESPACE
 

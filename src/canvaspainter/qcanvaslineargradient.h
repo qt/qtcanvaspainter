@@ -48,8 +48,6 @@ void QCanvasLinearGradient::setEndPosition(QPointF end)
     setEndPosition(end.x(), end.y());
 }
 
-template<> Q_CANVASPAINTER_EXPORT QCanvasLinearGradient QCanvasBrush::as<QCanvasLinearGradient>() const;
-
 QT_END_NAMESPACE
 
 #endif // QCANVASLINEARGRADIENT_H

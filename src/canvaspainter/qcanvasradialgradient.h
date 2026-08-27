@@ -67,8 +67,6 @@ void QCanvasRadialGradient::setOuterCenterPosition(QPointF center)
     setOuterCenterPosition(center.x(), center.y());
 }
 
-template<> Q_CANVASPAINTER_EXPORT QCanvasRadialGradient QCanvasBrush::as<QCanvasRadialGradient>() const;
-
 QT_END_NAMESPACE
 
 #endif // QCANVASRADIALGRADIENT_H

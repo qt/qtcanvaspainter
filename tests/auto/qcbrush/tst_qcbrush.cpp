@@ -14,6 +14,11 @@
 #include "qcanvasimagepattern.h"
 #include "qcanvasimage.h"
 #include "qcanvascustombrush.h"
+#include <QtCanvasPainter/private/qcanvasgradient_p.h>
+#include <QtCanvasPainter/private/qcanvasboxshadow_p.h>
+#include <QtCanvasPainter/private/qcanvasgridpattern_p.h>
+#include <QtCanvasPainter/private/qcanvasimagepattern_p.h>
+#include <QtCanvasPainter/private/qcanvascustombrush_p.h>
 
 class tst_QCanvasBrush : public QObject
 {
@@ -539,31 +544,31 @@ void tst_QCanvasBrush::testTypes()
         if (brush.type() == QCanvasBrush::BrushType::Invalid) {
             // Base brush type
         } else if (brush.type() == QCanvasBrush::BrushType::LinearGradient) {
-            auto b = brush.as<QCanvasLinearGradient>();
+            auto b = QCanvasGradientBrushPrivate::create<QCanvasLinearGradient>(brush);
             QCOMPARE(b.startPosition().x(), 10);
             gradients++;
         } else if (brush.type() == QCanvasBrush::BrushType::RadialGradient) {
-            auto b = brush.as<QCanvasRadialGradient>();
+            auto b = QCanvasGradientBrushPrivate::create<QCanvasRadialGradient>(brush);
             QCOMPARE(b.centerPosition().x(), 11);
             gradients++;
         } else if (brush.type() == QCanvasBrush::BrushType::ConicalGradient) {
-            auto b = brush.as<QCanvasConicalGradient>();
+            auto b = QCanvasGradientBrushPrivate::create<QCanvasConicalGradient>(brush);
             QCOMPARE(b.centerPosition().x(), 12);
             gradients++;
         } else if (brush.type() == QCanvasBrush::BrushType::BoxGradient) {
-            auto b = brush.as<QCanvasBoxGradient>();
+            auto b = QCanvasGradientBrushPrivate::create<QCanvasBoxGradient>(brush);
             QCOMPARE(b.rect().x(), 13);
             gradients++;
         } else if (brush.type() == QCanvasBrush::BrushType::ImagePattern) {
-            auto b = brush.as<QCanvasImagePattern>();
+            auto b = QCanvasImagePatternPrivate::getFromCanvasBrush(brush);
             QCOMPARE(b.startPosition().x(), 14);
             patterns++;
         } else if (brush.type() == QCanvasBrush::BrushType::BoxShadow) {
-            auto b = brush.as<QCanvasBoxShadow>();
+            auto b = QCanvasBoxShadowPrivate::getFromCanvasBrush(brush);
             QCOMPARE(b.rect().x(), 51);
             shadows++;
         } else if (brush.type() == QCanvasBrush::BrushType::GridPattern) {
-            auto b = brush.as<QCanvasGridPattern>();
+            auto b = QCanvasGridPatternPrivate::getFromCanvasBrush(brush);
             QCOMPARE(b.startPosition().x(), 61);
             patterns++;
         }
@@ -974,7 +979,7 @@ void tst_QCanvasBrush::testBrushRoundtrip()
         QCanvasLinearGradient a(10, 20, 30, 40);
         a.setStops(stops);
         QCanvasBrush brush = a;
-        QCOMPARE(a, brush.as<QCanvasLinearGradient>());
+        QCOMPARE(a, QCanvasGradientBrushPrivate::create<QCanvasLinearGradient>(brush));
     }
 
     // QCanvasRadialGradient (simple)
@@ -982,7 +987,7 @@ void tst_QCanvasBrush::testBrushRoundtrip()
         QCanvasRadialGradient a(50, 100, 40, 80);
         a.setStops(stops);
         QCanvasBrush brush = a;
-        QCOMPARE(a, brush.as<QCanvasRadialGradient>());
+        QCOMPARE(a, QCanvasGradientBrushPrivate::create<QCanvasRadialGradient>(brush));
     }
 
     // QCanvasRadialGradient (extended, inner/outer centers distinct)
@@ -990,7 +995,7 @@ void tst_QCanvasBrush::testBrushRoundtrip()
         QCanvasRadialGradient a(50, 100, 40, 60, 90, 80);
         a.setStops(stops);
         QCanvasBrush brush = a;
-        QCOMPARE(a, brush.as<QCanvasRadialGradient>());
+        QCOMPARE(a, QCanvasGradientBrushPrivate::create<QCanvasRadialGradient>(brush));
     }
 
     // QCanvasConicalGradient
@@ -998,7 +1003,7 @@ void tst_QCanvasBrush::testBrushRoundtrip()
         QCanvasConicalGradient a(100, 200, float(M_PI));
         a.setStops(stops);
         QCanvasBrush brush = a;
-        QCOMPARE(a, brush.as<QCanvasConicalGradient>());
+        QCOMPARE(a, QCanvasGradientBrushPrivate::create<QCanvasConicalGradient>(brush));
     }
 
     // QCanvasBoxGradient
@@ -1008,7 +1013,7 @@ void tst_QCanvasBrush::testBrushRoundtrip()
         a.setRadius(5);
         a.setStops(stops);
         QCanvasBrush brush = a;
-        QCOMPARE(a, brush.as<QCanvasBoxGradient>());
+        QCOMPARE(a, QCanvasGradientBrushPrivate::create<QCanvasBoxGradient>(brush));
     }
 
     // QCanvasBoxShadow
@@ -1023,7 +1028,7 @@ void tst_QCanvasBrush::testBrushRoundtrip()
         a.setBottomLeftRadius(3);
         a.setBottomRightRadius(4);
         QCanvasBrush brush = a;
-        QCOMPARE(a, brush.as<QCanvasBoxShadow>());
+        QCOMPARE(a, QCanvasBoxShadowPrivate::getFromCanvasBrush(brush));
 
         QCanvasBoxShadow b = a;
         b.setSpread(8);
@@ -1040,7 +1045,7 @@ void tst_QCanvasBrush::testBrushRoundtrip()
         a.setFeather(2.0f);
         a.setRotation(0.5f);
         QCanvasBrush brush = a;
-        QCOMPARE(a, brush.as<QCanvasGridPattern>());
+        QCOMPARE(a, QCanvasGridPatternPrivate::getFromCanvasBrush(brush));
     }
 
     // QCanvasImagePattern
@@ -1051,7 +1056,7 @@ void tst_QCanvasBrush::testBrushRoundtrip()
         a.setRotation(0.5f);
         a.setTintColor(QColorConstants::Red);
         QCanvasBrush brush = a;
-        QCOMPARE(a, brush.as<QCanvasImagePattern>());
+        QCOMPARE(a, QCanvasImagePatternPrivate::getFromCanvasBrush(brush));
     }
 
     // QCanvasCustomBrush
@@ -1063,7 +1068,7 @@ void tst_QCanvasBrush::testBrushRoundtrip()
         a.setData3(QVector4D(9, 10, 11, 12));
         a.setData4(QVector4D(13, 14, 15, 16));
         QCanvasBrush brush = a;
-        QCOMPARE(a, brush.as<QCanvasCustomBrush>());
+        QCOMPARE(a, QCanvasCustomBrushPrivate::getFromCanvasBrush(brush));
     }
 }
 QTEST_MAIN(tst_QCanvasBrush)

@@ -236,10 +236,4 @@ void QCanvasBoxGradientBrushPrivate::createBoxGradient(const QColor &iColor, con
 
 #undef DECONST
 
-template<> QCanvasBoxGradient QCanvasBrush::as<QCanvasBoxGradient>() const
-{
-    Q_ASSERT(type() == BrushType::BoxGradient);
-    return QCanvasGradientBrushPrivate::create<QCanvasBoxGradient>(*this);
-}
-
 QT_END_NAMESPACE

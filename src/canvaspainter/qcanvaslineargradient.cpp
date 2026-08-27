@@ -218,10 +218,4 @@ void QCanvasLinearGradientBrushPrivate::createLinearGradient(const QColor &iColo
 
 #undef DECONST
 
-template<> QCanvasLinearGradient QCanvasBrush::as<QCanvasLinearGradient>() const
-{
-    Q_ASSERT(type() == BrushType::LinearGradient);
-    return QCanvasGradientBrushPrivate::create<QCanvasLinearGradient>(*this);
-}
-
 QT_END_NAMESPACE

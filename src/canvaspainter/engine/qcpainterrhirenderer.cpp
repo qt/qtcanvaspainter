@@ -1606,7 +1606,7 @@ void QCPainterRhiRenderer::renderFill(const QCPaint &paint, const QCState &state
     call->renderFlags.setFlag(QCPainterRhiRenderer::Antialiasing, aaEnabled);
 
     if (state.customFill.type() == QCanvasBrush::BrushType::Custom) {
-        auto *customBrushPriv = QCanvasCustomBrushPrivate::get(state.customFill.as<QCanvasCustomBrush>());
+        auto *customBrushPriv = static_cast<QCanvasCustomBrushPrivate *>(QCanvasBrushPrivate::get(state.customFill));
         call->customFragShader = customBrushPriv->fragmentShader;
         call->customVertShader = customBrushPriv->vertexShader;
     }

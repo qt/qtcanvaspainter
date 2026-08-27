@@ -62,7 +62,7 @@ private:
     Q_DECLARE_EQUALITY_COMPARABLE(QCanvasGridPattern)
 
     void detach();
-    explicit QCanvasGridPattern(QCanvasGridPatternPrivate *p);
+    Q_CANVASPAINTER_EXPORT explicit QCanvasGridPattern(QCanvasGridPatternPrivate *p);
     friend class QCanvasGridPatternPrivate;
     QExplicitlySharedDataPointer<QCanvasGridPatternPrivate> d;
 #ifndef QT_NO_DATASTREAM
@@ -84,8 +84,6 @@ void QCanvasGridPattern::setCellSize(QSizeF size)
 {
     setCellSize(size.width(), size.height());
 }
-
-template<> Q_CANVASPAINTER_EXPORT QCanvasGridPattern QCanvasBrush::as<QCanvasGridPattern>() const;
 
 QT_END_NAMESPACE
 

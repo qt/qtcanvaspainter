@@ -7,6 +7,7 @@
 #include "qcanvasgridpattern.h"
 #include "qcanvasgridpattern_p.h"
 #include "qcanvaspainter_p.h"
+#include <QVariant>
 
 QT_BEGIN_NAMESPACE
 
@@ -117,13 +118,6 @@ QCanvasGridPattern::~QCanvasGridPattern() = default;
 QCanvasGridPattern::operator QCanvasBrush() const
 {
     return QCanvasBrushPrivate::create(d.get());
-}
-
-template<> QCanvasGridPattern QCanvasBrush::as<QCanvasGridPattern>() const
-{
-    Q_ASSERT(type() == BrushType::GridPattern);
-    return QCanvasGridPatternPrivate::create(
-        static_cast<QCanvasGridPatternPrivate *>(QCanvasBrushPrivate::get(*this)));
 }
 
 /*!

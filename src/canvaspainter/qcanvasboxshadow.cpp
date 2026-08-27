@@ -6,6 +6,8 @@
 #include "qcanvasboxshadow.h"
 #include "qcanvasboxshadow_p.h"
 #include "qcanvaspainter_p.h"
+#include <QVariant>
+#include <QVector4D>
 
 QT_BEGIN_NAMESPACE
 
@@ -100,13 +102,6 @@ QCanvasBoxShadow::~QCanvasBoxShadow() = default;
 QCanvasBoxShadow::operator QCanvasBrush() const
 {
     return QCanvasBrushPrivate::create(d.get());
-}
-
-template<> QCanvasBoxShadow QCanvasBrush::as<QCanvasBoxShadow>() const
-{
-    Q_ASSERT(type() == BrushType::BoxShadow);
-    return QCanvasBoxShadowPrivate::create(
-        static_cast<QCanvasBoxShadowPrivate *>(QCanvasBrushPrivate::get(*this)));
 }
 
 QCanvasBoxShadow::operator QVariant() const

@@ -69,7 +69,7 @@ private:
     void detach();
     friend class QCanvasPainter;
     friend class QCanvasPainterPrivate;
-    explicit QCanvasBoxShadow(QCanvasBoxShadowPrivate *p);
+    Q_CANVASPAINTER_EXPORT explicit QCanvasBoxShadow(QCanvasBoxShadowPrivate *p);
     friend class QCanvasBoxShadowPrivate;
     QExplicitlySharedDataPointer<QCanvasBoxShadowPrivate> d;
 #ifndef QT_NO_DATASTREAM
@@ -87,8 +87,6 @@ void QCanvasBoxShadow::setRect(const QRectF &rect)
 {
     setRect(rect.x(), rect.y(), rect.width(), rect.height());
 }
-
-template<> Q_CANVASPAINTER_EXPORT QCanvasBoxShadow QCanvasBrush::as<QCanvasBoxShadow>() const;
 
 QT_END_NAMESPACE
 

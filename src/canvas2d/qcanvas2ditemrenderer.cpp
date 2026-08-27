@@ -13,6 +13,8 @@
 #include <QtCanvasPainter/qcanvasimagepattern.h>
 #include <QtCanvasPainter/qcanvasgridpattern.h>
 #include <QtCanvasPainter/qcanvascustombrush.h>
+#include <QtCanvasPainter/private/qcanvasboxshadow_p.h>
+#include <QtCanvasPainter/private/qcanvasimagepattern_p.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -530,7 +532,7 @@ void QCanvas2DItemRenderer::paint(QCanvasPainter *painter)
         {
             const auto &brush = takeBrush();
             if (brush.type() == QCanvasBrush::BrushType::BoxShadow)
-                m_painter->drawBoxShadow(brush.as<QCanvasBoxShadow>());
+                m_painter->drawBoxShadow(QCanvasBoxShadowPrivate::getFromCanvasBrush(brush));
             break;
         }
         case QCanvas2DContext::Antialias: {
@@ -598,7 +600,7 @@ void QCanvas2DItemRenderer::setPaintStyle(const QCanvasBrush &brush, bool fill)
 
     if (brush.type() == QCanvasBrush::BrushType::ImagePattern) {
         // Image patterns require setting the matching QCanvasImage.
-        auto b = brush.as<QCanvasImagePattern>();
+        auto b = QCanvasImagePatternPrivate::getFromCanvasBrush(brush);
         for (const auto &iData : std::as_const(imageData)) {
             if (b.serialNumber() == iData.pattern.serialNumber()) {
                 auto qcImage = getCachedImage(iData.image, iData.url, iData.flags);

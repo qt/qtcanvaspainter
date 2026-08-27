@@ -7,6 +7,7 @@
 #include "qcanvasimagepattern.h"
 #include "qcanvasimagepattern_p.h"
 #include "qcanvaspainter_p.h"
+#include "engine/qcpainterengine_p.h"
 
 QT_BEGIN_NAMESPACE
 
@@ -137,13 +138,6 @@ QT_DEFINE_QESDP_SPECIALIZATION_DTOR(QCanvasImagePatternPrivate)
 QCanvasImagePattern::operator QCanvasBrush() const
 {
     return QCanvasBrushPrivate::create(d.get());
-}
-
-template<> QCanvasImagePattern QCanvasBrush::as<QCanvasImagePattern>() const
-{
-    Q_ASSERT(type() == BrushType::ImagePattern);
-    return QCanvasImagePatternPrivate::create(
-        static_cast<QCanvasImagePatternPrivate *>(QCanvasBrushPrivate::get(*this)));
 }
 
 /*!
