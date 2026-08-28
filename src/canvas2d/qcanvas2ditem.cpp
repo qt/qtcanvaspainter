@@ -105,7 +105,6 @@ QCanvas2DItemPrivate::~QCanvas2DItemPrivate()
 
 /*!
     \qmltype Canvas2D
-    \nativetype QCanvas2DItem
     \inqmlmodule QtCanvas2D
     \since 6.12
     \brief Provides a 2D canvas item enabling drawing via JavaScript.
