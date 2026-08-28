@@ -2130,7 +2130,7 @@ void CanvasPainterLancelotCppTests::testHighDpiImages()
     QCanvasImage pattern1x = painter->addImage(QImage(":/images/pattern2.png"), repeatFlags);
     QCanvasImage pattern2x = painter->addImage(QImage(":/images/pattern2@2x.png"), repeatFlags);
 
-    if (logo2x.size() != logo1x.size() || !qFuzzyCompare(logo2x.devicePixelRatio(), 2.0f)) {
+    if (logo2x.size() != logo1x.size() || !qFuzzyCompare(logo2x.devicePixelRatio(), 2.0)) {
         qWarning("Something is wrong with @2 image loading");
         painter->setFillStyle(Qt::red);
         painter->fillRect(0, 0, width(), height());
