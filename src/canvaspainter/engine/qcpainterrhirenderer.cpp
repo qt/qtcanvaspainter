@@ -3040,7 +3040,7 @@ void QCPainterRhiRenderer::create(QRhi *rhi, QCanvasPainter *painter)
     // One painter -> one engine -> one renderer at a time.
     m_painter = painter;
     auto *painterPriv = QCanvasPainterPrivate::get(m_painter);
-    m_e = painterPriv->m_e;
+    m_e = painterPriv->engine();
     painterPriv->m_renderer = this;
 
     ctx = createRhiContext(rhi);

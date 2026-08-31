@@ -25,6 +25,7 @@
 #include <QtCore/qhash.h>
 #include <QtCore/qset.h>
 #include <QtCore/qloggingcategory.h>
+#include <memory>
 
 QT_BEGIN_NAMESPACE
 
@@ -75,7 +76,7 @@ class Q_CANVASPAINTER_EXPORT QCanvasPainterPrivate
 public:
     QCanvasPainterPrivate();
     ~QCanvasPainterPrivate();
-    QCPainterEngine *engine() const;
+    QCPainterEngine *engine() const { return m_e.get(); }
 
     static QCanvasPainterPrivate *get(QCanvasPainter *painter) { return painter->d_func(); }
     static const QCanvasPainterPrivate *get(const QCanvasPainter *painter) { return painter->d_func(); }
@@ -107,7 +108,7 @@ public:
     QHash<quint64, QCanvasImage> m_nativeTextureCache; // QRhiTexture::globalResourceId -> QCanvasImage
     QSet<int> m_pendingNativeTextureDelete;
     QCPainterRhiRenderer *m_renderer = nullptr;
-    QCPainterEngine *m_e = nullptr;
+    std::unique_ptr<QCPainterEngine> m_e;
     int m_maxTextures = 0;
     bool m_trackingDisabled = false;
 };
