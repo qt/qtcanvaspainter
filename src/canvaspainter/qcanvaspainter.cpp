@@ -2354,7 +2354,7 @@ void QCanvasPainter::setTextAlign(QCanvasPainter::TextAlign align)
 void QCanvasPainter::setTextBaseline(QCanvasPainter::TextBaseline baseline)
 {
     Q_D(QCanvasPainter);
-    d->engine()->setTextBaseline(baseline);
+    d->m_e->setTextBaseline(baseline);
 }
 
 /*!
@@ -2380,7 +2380,7 @@ void QCanvasPainter::setTextBaseline(QCanvasPainter::TextBaseline baseline)
 void QCanvasPainter::setTextDirection(QCanvasPainter::TextDirection direction)
 {
     Q_D(QCanvasPainter);
-    d->engine()->setTextDirection(direction);
+    d->m_e->setTextDirection(direction);
 }
 
 /*!
@@ -2413,7 +2413,7 @@ void QCanvasPainter::setTextDirection(QCanvasPainter::TextDirection direction)
 void QCanvasPainter::setTextWrapMode(QCanvasPainter::WrapMode wrapMode)
 {
     Q_D(QCanvasPainter);
-    d->engine()->setTextWrapMode(wrapMode);
+    d->m_e->setTextWrapMode(wrapMode);
 }
 
 /*!
@@ -2445,7 +2445,7 @@ void QCanvasPainter::setTextWrapMode(QCanvasPainter::WrapMode wrapMode)
 void QCanvasPainter::setTextLineHeight(qreal height)
 {
     Q_D(QCanvasPainter);
-    d->engine()->setTextLineHeight(float(height));
+    d->m_e->setTextLineHeight(float(height));
 }
 
 /*!
@@ -2480,7 +2480,7 @@ void QCanvasPainter::setTextLineHeight(qreal height)
 void QCanvasPainter::setTextAntialias(qreal antialias)
 {
     Q_D(QCanvasPainter);
-    d->engine()->setTextAntialias(float(antialias));
+    d->m_e->setTextAntialias(float(antialias));
 }
 
 /*!
@@ -2924,7 +2924,7 @@ qsizetype QCanvasPainter::activeImageCount() const
 void QCanvasPainter::removePathGroup(int pathGroup)
 {
     Q_D(QCanvasPainter);
-    d->engine()->removePathGroup(pathGroup);
+    d->m_e->removePathGroup(pathGroup);
 }
 
 // ***** Private *****
@@ -2996,7 +2996,7 @@ void QCanvasImageTracker::markTextureIdUsed(int imageId)
 QCanvasPainterPrivate::QCanvasPainterPrivate()
 {
     m_imageTracker.m_painterPrivate = this;
-    m_e = new QCPainterEngine();
+    m_e = std::make_unique<QCPainterEngine>();
     const int defaultMaxTextures = 1024;
     static int maxTexturesEnv = qEnvironmentVariableIntValue("QCPAINTER_MAX_TEXTURES");
     m_maxTextures = maxTexturesEnv > 0 ? maxTexturesEnv : defaultMaxTextures;
@@ -3007,15 +3007,7 @@ QCanvasPainterPrivate::~QCanvasPainterPrivate()
 {
     // Cleanup possible pending textures
     handleCleanupTextures();
-
-    delete m_e;
 }
-
-QCPainterEngine *QCanvasPainterPrivate::engine() const
-{
-    return m_e;
-}
-
 
 static QRectF textAlignedRectFromPoint(QCanvasPainter::TextAlign textAlignment, qreal x, qreal y, qreal maxWidth)
 {
