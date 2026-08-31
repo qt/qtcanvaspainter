@@ -20,7 +20,7 @@ class QShader;
 
 QT_DECLARE_QESDP_SPECIALIZATION_DTOR(QCanvasCustomBrushPrivate)
 
-class QCanvasCustomBrush
+class QT_TECH_PREVIEW_API QCanvasCustomBrush
 {
 public:
     Q_CANVASPAINTER_EXPORT QCanvasCustomBrush();
