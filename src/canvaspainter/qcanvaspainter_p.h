@@ -94,11 +94,11 @@ public:
 
 
     void setFont(const QFont &font);
-    void fillText(const QString &text, float x, float y, float maxWidth = -1);
+    void fillText(const QString &text, qreal x, qreal y, qreal maxWidth = -1);
     void fillText(const QString &text, const QRectF &rect);
     void fillShapedText(QFontEngine *fontEngine, const quint32 *glyphIndexes,
                       const QFixedPoint *glyphPositions, int glyphCount);
-    QRectF textBoundingBox(const QString &text, float x, float y, float maxWidth = -1);
+    QRectF textBoundingBox(const QString &text, qreal x, qreal y, qreal maxWidth = -1);
     QRectF textBoundingBox(const QString &text, const QRectF &rect);
     void drawBoxShadow(QCanvasPainter *painter, const QCanvasBoxShadow &shadow);
     void setAntialiasingEnabled(bool enabled);
