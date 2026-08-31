@@ -68,8 +68,8 @@ public:
     QCanvasPainter::FillRule fillRule() const;
 
     // Custom paints
-    void setCustomStrokeBrush(QCanvasBrush brush);
-    void setCustomFillBrush(QCanvasBrush brush);
+    void setCustomStrokeBrush(const QCanvasBrush &brush);
+    void setCustomFillBrush(const QCanvasBrush &brush);
 
     // Transform
     QTransform currentTransform() const;
