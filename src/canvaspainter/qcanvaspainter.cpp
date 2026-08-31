@@ -2511,7 +2511,7 @@ void QCanvasPainter::setTextAntialias(qreal antialias)
 void QCanvasPainter::fillText(const QString &text, qreal x, qreal y, qreal maxWidth)
 {
     Q_D(QCanvasPainter);
-    d->fillText(text, float(x), float(y), float(maxWidth));
+    d->fillText(text, x, y, maxWidth);
 }
 
 /*!
@@ -2600,7 +2600,7 @@ void QCanvasPainter::fillText(const QString &text, const QRectF &rect)
 QRectF QCanvasPainter::textBoundingBox(const QString &text, qreal x, qreal y, qreal maxWidth)
 {
     Q_D(QCanvasPainter);
-    return d->textBoundingBox(text, float(x), float(y), float(maxWidth));
+    return d->textBoundingBox(text, x, y, maxWidth);
 }
 
 /*!
@@ -3017,13 +3017,13 @@ QCPainterEngine *QCanvasPainterPrivate::engine() const
 }
 
 
-static QRectF textAlignedRectFromPoint(QCanvasPainter::TextAlign textAlignment, float x, float y, float maxWidth)
+static QRectF textAlignedRectFromPoint(QCanvasPainter::TextAlign textAlignment, qreal x, qreal y, qreal maxWidth)
 {
     QRectF rect;
     if (textAlignment == QCanvasPainter::TextAlign::Left) {
         rect.setRect(x, y, maxWidth, 0);
     } else if (textAlignment == QCanvasPainter::TextAlign::Center) {
-        const float hWidth = maxWidth * 0.5f;
+        const qreal hWidth = maxWidth * 0.5;
         rect.setRect(x - hWidth, y, maxWidth, 0);
     } else {
         rect.setRect(x - maxWidth, y, maxWidth, 0);
@@ -3160,7 +3160,7 @@ void QCanvasPainterPrivate::setFont(const QFont &font)
     m_e->state.font = font;
 }
 
-void QCanvasPainterPrivate::fillText(const QString &text, float x, float y, float maxWidth)
+void QCanvasPainterPrivate::fillText(const QString &text, qreal x, qreal y, qreal maxWidth)
 {
     // Unify point & rect APIs behavior.
     const QRectF rect = textAlignedRectFromPoint(m_e->state.textAlignment, x, y, maxWidth);
@@ -3178,7 +3178,7 @@ void QCanvasPainterPrivate::fillShapedText(QFontEngine *fontEngine, const quint3
     m_e->fillShapedText(fontEngine, glyphIndexes, glyphPositions, glyphCount);
 }
 
-QRectF QCanvasPainterPrivate::textBoundingBox(const QString &text, float x, float y, float maxWidth)
+QRectF QCanvasPainterPrivate::textBoundingBox(const QString &text, qreal x, qreal y, qreal maxWidth)
 {
     // Unify point & rect APIs behavior.
     const QRectF rect = textAlignedRectFromPoint(m_e->state.textAlignment, x, y, maxWidth);
