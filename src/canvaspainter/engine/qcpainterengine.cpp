@@ -293,12 +293,12 @@ QCanvasPainter::FillRule QCPainterEngine::fillRule() const
 
 // ***** Custom paints *****
 
-void QCPainterEngine::setCustomStrokeBrush(QCanvasBrush brush)
+void QCPainterEngine::setCustomStrokeBrush(const QCanvasBrush &brush)
 {
     state.customStroke = brush;
 }
 
-void QCPainterEngine::setCustomFillBrush(QCanvasBrush brush)
+void QCPainterEngine::setCustomFillBrush(const QCanvasBrush &brush)
 {
     state.customFill = brush;
 }
@@ -1143,12 +1143,12 @@ void QCPainterEngine::renderFilledText(int fontTex)
         // textVertices/textIndices by the glyph cache with a texCoord pointing
         // into a reserved 0xFF region of the SDF atlas, so they participate in
         // this same draw call and pick up the same shader as the glyphs.
-        QCanvasCustomBrushPrivate *customPriv = nullptr;
-        if (state.customFill.type() == QCanvasBrush::BrushType::Custom)
-            customPriv = static_cast<QCanvasCustomBrushPrivate *>(QCanvasBrushPrivate::get(state.customFill));
-        if (!customPriv) {
+        if (state.customFill.type() != QCanvasBrush::BrushType::Custom) {
             m_renderer->renderTextFill(p, state, textVertices, textIndices);
         } else {
+            // Using custom brush. Avoid detaching the brush.
+            auto *customPriv = static_cast<QCanvasCustomBrushPrivate *>(
+                    QCanvasBrushPrivate::get(std::as_const(state.customFill)));
             m_renderer->renderTextFillCustom(
                     p, state, customPriv, textVertices, textIndices);
         }
