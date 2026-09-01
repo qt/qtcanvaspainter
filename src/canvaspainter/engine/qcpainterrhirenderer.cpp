@@ -1426,7 +1426,7 @@ void QCPainterRhiRenderer::renderStencil(const QCState &state, const QList<QRect
 
     int i = 0;
 
-    auto addVert = [&quad, &i, &state](const QPointF &p){
+    auto addVert = [&quad, &i, &state](QPointF p){
         const auto t = state.transform.map(p);
         setVert(&quad[i++], t.x(), t.y());
     };
@@ -1505,7 +1505,7 @@ void QCPainterRhiRenderer::renderStencil(const QCState &state, const QVectorPath
     QCVertex* quad = &rhiCtx->verts[call->triangleOffset];
     int i = 0;
 
-    auto addVert = [&quad, &i, &state](const QPointF &p){
+    auto addVert = [&quad, &i, &state](QPointF p){
         const auto t = state.transform.map(p);
         setVert(&quad[i++], t.x(), t.y());
     };

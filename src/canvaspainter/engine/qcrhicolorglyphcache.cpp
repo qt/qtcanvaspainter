@@ -229,7 +229,7 @@ void QCRhiColorGlyphCache::optimizeAfterRendering()
     m_referencedThisFrame.clear();
 }
 
-void QCRhiColorGlyphCache::addGlyphRun(const QPointF &glyphPos,
+void QCRhiColorGlyphCache::addGlyphRun(QPointF glyphPos,
                                        const QGlyphRun &run,
                                        QColor color,
                                        const QTransform &transform,
