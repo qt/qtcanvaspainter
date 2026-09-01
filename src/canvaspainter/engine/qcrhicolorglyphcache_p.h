@@ -34,7 +34,7 @@ public:
     QCRhiColorGlyphCache(QRhi *rhi);
     ~QCRhiColorGlyphCache();
 
-    void addGlyphRun(const QPointF &glyphPos,
+    void addGlyphRun(QPointF glyphPos,
                      const QGlyphRun &run,
                      QColor color,
                      const QTransform &transform,
