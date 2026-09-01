@@ -45,17 +45,14 @@ QT_BEGIN_NAMESPACE
     \internal
 */
 QCanvasRhiPaintDriver::QCanvasRhiPaintDriver()
-    : d(new QCanvasRhiPaintDriverPrivate)
+    : d(std::make_unique<QCanvasRhiPaintDriverPrivate>())
 {
 }
 
 /*!
     \internal
 */
-QCanvasRhiPaintDriver::~QCanvasRhiPaintDriver()
-{
-    delete d;
-}
+QCanvasRhiPaintDriver::~QCanvasRhiPaintDriver() = default;
 
 /*!
     Resets the painter engine state. This function is expected to be called once
