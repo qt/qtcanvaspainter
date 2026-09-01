@@ -311,7 +311,7 @@ QCPaint QCanvasRadialGradientBrushPrivate::createPaint(QCanvasPainter *painter) 
     return d->paint;
 }
 
-void QCanvasRadialGradientBrushPrivate::createRadialGradient(const QColor &iColor, const QColor &oColor,
+void QCanvasRadialGradientBrushPrivate::createRadialGradient(QColor iColor, QColor oColor,
                                                int imageId) const
 {
     auto *d = this;

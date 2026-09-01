@@ -136,7 +136,7 @@ public:
     QCanvasLinearGradientBrushPrivate() : QCanvasGradientBrushPrivate(QCanvasBrush::BrushType::LinearGradient) {}
     QCanvasLinearGradientBrushPrivate(const QCanvasLinearGradientBrushPrivate &) = default;
     QCPaint createPaint(QCanvasPainter *painter) const override;
-    void createLinearGradient(const QColor &iColor, const QColor &oColor, int imageId) const;
+    void createLinearGradient(QColor iColor, QColor oColor, int imageId) const;
     QCanvasBrushPrivate *clone() override { return new QCanvasLinearGradientBrushPrivate(*this); }
 };
 
@@ -146,7 +146,7 @@ public:
     QCanvasRadialGradientBrushPrivate() : QCanvasGradientBrushPrivate(QCanvasBrush::BrushType::RadialGradient) {}
     QCanvasRadialGradientBrushPrivate(const QCanvasRadialGradientBrushPrivate &) = default;
     QCPaint createPaint(QCanvasPainter *painter) const override;
-    void createRadialGradient(const QColor &iColor, const QColor &oColor, int imageId) const;
+    void createRadialGradient(QColor iColor, QColor oColor, int imageId) const;
     QCanvasBrushPrivate *clone() override { return new QCanvasRadialGradientBrushPrivate(*this); }
 };
 
@@ -156,7 +156,7 @@ public:
     QCanvasConicalGradientBrushPrivate() : QCanvasGradientBrushPrivate(QCanvasBrush::BrushType::ConicalGradient) {}
     QCanvasConicalGradientBrushPrivate(const QCanvasConicalGradientBrushPrivate &) = default;
     QCPaint createPaint(QCanvasPainter *painter) const override;
-    void createConicalGradient(const QColor &iColor, const QColor &oColor, int imageId) const;
+    void createConicalGradient(QColor iColor, QColor oColor, int imageId) const;
     QCanvasBrushPrivate *clone() override { return new QCanvasConicalGradientBrushPrivate(*this); }
 };
 
@@ -166,7 +166,7 @@ public:
     QCanvasBoxGradientBrushPrivate() : QCanvasGradientBrushPrivate(QCanvasBrush::BrushType::BoxGradient) {}
     QCanvasBoxGradientBrushPrivate(const QCanvasBoxGradientBrushPrivate &) = default;
     QCPaint createPaint(QCanvasPainter *painter) const override;
-    void createBoxGradient(const QColor &iColor, const QColor &oColor, int imageId) const;
+    void createBoxGradient(QColor iColor, QColor oColor, int imageId) const;
     QCanvasBrushPrivate *clone() override { return new QCanvasBoxGradientBrushPrivate(*this); }
 };
 

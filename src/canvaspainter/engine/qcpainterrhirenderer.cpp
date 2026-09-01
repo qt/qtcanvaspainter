@@ -3831,7 +3831,7 @@ void QCPainterRhiRenderer::grabCanvas(const QCanvasOffscreenCanvas &canvas, cons
     }
 }
 
-void QCPainterRhiRenderer::recordRenderPass(QRhiCommandBuffer *cb, QRhiRenderTarget *rt, const QColor &clearColor)
+void QCPainterRhiRenderer::recordRenderPass(QRhiCommandBuffer *cb, QRhiRenderTarget *rt, QColor clearColor)
 {
     cb->debugMarkBegin("QC render pass"_ba);
     cb->beginPass(rt, clearColor, { 1.0f, 0 });

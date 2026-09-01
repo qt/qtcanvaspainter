@@ -65,7 +65,7 @@ public:
         brushes << style;
     }
 
-    inline void setStrokeColor(const QColor &color)
+    inline void setStrokeColor(QColor color)
     {
         commands << QCanvas2DContext::StrokeColor;
         colors << color;
@@ -349,7 +349,7 @@ public:
         brushes << style;
     }
 
-    inline void setFillColor(const QColor &color)
+    inline void setFillColor(QColor color)
     {
         commands << QCanvas2DContext::FillColor;
         colors << color;

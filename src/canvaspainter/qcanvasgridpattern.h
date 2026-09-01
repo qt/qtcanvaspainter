@@ -52,9 +52,9 @@ public:
     Q_CANVASPAINTER_EXPORT qreal rotation() const;
     Q_CANVASPAINTER_EXPORT void setRotation(qreal rotation);
     Q_CANVASPAINTER_EXPORT QColor lineColor() const;
-    Q_CANVASPAINTER_EXPORT void setLineColor(const QColor &color);
+    Q_CANVASPAINTER_EXPORT void setLineColor(QColor color);
     Q_CANVASPAINTER_EXPORT QColor backgroundColor() const;
-    Q_CANVASPAINTER_EXPORT void setBackgroundColor(const QColor &color);
+    Q_CANVASPAINTER_EXPORT void setBackgroundColor(QColor color);
     void swap(QCanvasGridPattern &other) noexcept { d.swap(other.d); }
 
 private:

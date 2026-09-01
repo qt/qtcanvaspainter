@@ -368,7 +368,7 @@ QColor QCanvasBoxShadow::color() const
     The default value is black with full opacity.
 */
 
-void QCanvasBoxShadow::setColor(const QColor &color)
+void QCanvasBoxShadow::setColor(QColor color)
 {
     detach();
     d->color = color;
@@ -545,7 +545,7 @@ QCPaint QCanvasBoxShadowPrivate::createPaint(QCanvasPainter *painter) const
 
 void QCanvasBoxShadowPrivate::createBoxShadow(qreal x, qreal y, qreal width, qreal height,
                                   const QVector4D &radius,
-                                  qreal blur, const QColor &color) const
+                                  qreal blur, QColor color) const
 {
     // QCPaint is the engine-side representation, so the values are
     // truncated to float here.

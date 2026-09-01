@@ -177,7 +177,7 @@ QCPaint QCanvasLinearGradientBrushPrivate::createPaint(QCanvasPainter *painter) 
     return d->paint;
 }
 
-void QCanvasLinearGradientBrushPrivate::createLinearGradient(const QColor &iColor, const QColor &oColor,
+void QCanvasLinearGradientBrushPrivate::createLinearGradient(QColor iColor, QColor oColor,
                                             int imageId) const
 {
     auto *d = this;

@@ -207,7 +207,7 @@ QCPaint QCanvasBoxGradientBrushPrivate::createPaint(QCanvasPainter *painter) con
     return d->paint;
 }
 
-void QCanvasBoxGradientBrushPrivate::createBoxGradient(const QColor &iColor, const QColor &oColor,
+void QCanvasBoxGradientBrushPrivate::createBoxGradient(QColor iColor, QColor oColor,
                                       int imageId) const
 {
     auto *d = this;

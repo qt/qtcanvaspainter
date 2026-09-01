@@ -46,7 +46,7 @@ public:
     Q_CANVASPAINTER_EXPORT Flags flags() const;
 
     Q_CANVASPAINTER_EXPORT QColor fillColor() const;
-    Q_CANVASPAINTER_EXPORT void setFillColor(const QColor &color);
+    Q_CANVASPAINTER_EXPORT void setFillColor(QColor color);
 
     Q_CANVASPAINTER_EXPORT QRhiTexture *texture() const;
 

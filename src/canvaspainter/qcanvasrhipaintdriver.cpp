@@ -104,7 +104,7 @@ static inline void setRendererFlags(QCPainterRhiRenderer *renderer, QCanvasRhiPa
     \overload
  */
 void QCanvasRhiPaintDriver::beginPaint(QRhiCommandBuffer *cb, QRhiRenderTarget *rt,
-                                  const QColor &fillColor, QSize logicalSize, qreal dpr,
+                                  QColor fillColor, QSize logicalSize, qreal dpr,
                                   BeginPaintFlags flags)
 {
     if (d->currentCb) {

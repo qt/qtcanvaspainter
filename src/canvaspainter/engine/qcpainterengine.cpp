@@ -206,7 +206,7 @@ void QCPainterEngine::reset()
 
 // ***** Painting styles *****
 
-void QCPainterEngine::setStrokeColor(const QColor &color)
+void QCPainterEngine::setStrokeColor(QColor color)
 {
     // Reset other variables
     state.stroke.brushType = BrushColor;
@@ -226,7 +226,7 @@ void QCPainterEngine::setStrokePaint(const QCPaint &paint)
     state.customStroke = {};
 }
 
-void QCPainterEngine::setFillColor(const QColor &color)
+void QCPainterEngine::setFillColor(QColor color)
 {
     // Reset other variables
     state.fill.brushType = BrushColor;
@@ -383,7 +383,7 @@ void QCPainterEngine::fillPlainRect(const QCPaint &paint, float x, float y, floa
     state.customFill = prevCustomFill;
 }
 
-void QCPainterEngine::drawImageId(int imageId, float x, float y, float width, float height, const QColor &tintColor)
+void QCPainterEngine::drawImageId(int imageId, float x, float y, float width, float height, QColor tintColor)
 {
     QCPaint ip = createImagePattern(x, y, width, height, imageId, 0.0f, tintColor);
     fillPlainRect(ip, x, y, width, height);
@@ -391,14 +391,14 @@ void QCPainterEngine::drawImageId(int imageId, float x, float y, float width, fl
 
 void QCPainterEngine::drawImageIdAt(int imageId, float x, float y, float width, float height,
                                     float dX, float dY, float dWidth, float dHeight,
-                                    const QColor &tintColor)
+                                    QColor tintColor)
 {
     QCPaint ip = createImagePattern(x, y, width, height, imageId, 0.0f, tintColor);
     fillPlainRect(ip, dX, dY, dWidth, dHeight);
 }
 
 QCPaint QCPainterEngine::createImagePattern(float x, float y, float width, float height,
-                                            int imageId, float angle, const QColor &tintColor)
+                                            int imageId, float angle, QColor tintColor)
 {
     QCPaint p;
     p.brushType = BrushImage;

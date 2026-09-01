@@ -53,7 +53,7 @@ public:
     Q_CANVASPAINTER_EXPORT qreal rotation() const;
     Q_CANVASPAINTER_EXPORT void setRotation(qreal rotation);
     Q_CANVASPAINTER_EXPORT QColor tintColor() const;
-    Q_CANVASPAINTER_EXPORT void setTintColor(const QColor &color);
+    Q_CANVASPAINTER_EXPORT void setTintColor(QColor color);
     Q_CANVASPAINTER_EXPORT uint serialNumber() const;
     void swap(QCanvasImagePattern &other) noexcept { d.swap(other.d); }
 

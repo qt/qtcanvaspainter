@@ -171,7 +171,7 @@ QCPaint QCanvasConicalGradientBrushPrivate::createPaint(QCanvasPainter *painter)
     return d->paint;
 }
 
-void QCanvasConicalGradientBrushPrivate::createConicalGradient(const QColor &iColor, const QColor &oColor,
+void QCanvasConicalGradientBrushPrivate::createConicalGradient(QColor iColor, QColor oColor,
                                               int imageId) const
 {
     auto *d = this;

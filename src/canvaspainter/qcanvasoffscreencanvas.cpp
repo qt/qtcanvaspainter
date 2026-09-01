@@ -224,7 +224,7 @@ QColor QCanvasOffscreenCanvas::fillColor() const
     By default this is set to the value passed to
     \l{QCanvasPainter::}{createCanvas()}.
  */
-void QCanvasOffscreenCanvas::setFillColor(const QColor &color)
+void QCanvasOffscreenCanvas::setFillColor(QColor color)
 {
     if (d->fillColor == color)
         return;

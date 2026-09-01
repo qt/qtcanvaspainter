@@ -391,7 +391,7 @@ QColor QCanvasGridPattern::lineColor() const
     The default value is white.
 */
 
-void QCanvasGridPattern::setLineColor(const QColor &color)
+void QCanvasGridPattern::setLineColor(QColor color)
 {
     detach();
     d->lineColor = color;
@@ -412,7 +412,7 @@ QColor QCanvasGridPattern::backgroundColor() const
     The default value is black.
 */
 
-void QCanvasGridPattern::setBackgroundColor(const QColor &color)
+void QCanvasGridPattern::setBackgroundColor(QColor color)
 {
     detach();
     d->backgroundColor = color;

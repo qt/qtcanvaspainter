@@ -31,7 +31,7 @@ public:
     ~QCanvasPainterItem() override;
 
     QColor fillColor() const;
-    void setFillColor(const QColor &color);
+    void setFillColor(QColor color);
 
     QVariantMap debug();
 

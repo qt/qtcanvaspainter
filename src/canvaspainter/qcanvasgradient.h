@@ -57,14 +57,14 @@ public:
     Q_CANVASPAINTER_EXPORT QCanvasBrush::BrushType type() const;
 
     Q_CANVASPAINTER_EXPORT QColor startColor() const;
-    Q_CANVASPAINTER_EXPORT void setStartColor(const QColor &color);
+    Q_CANVASPAINTER_EXPORT void setStartColor(QColor color);
     Q_CANVASPAINTER_EXPORT QColor endColor() const;
-    Q_CANVASPAINTER_EXPORT void setEndColor(const QColor &color);
-    Q_CANVASPAINTER_EXPORT void setColorAt(qreal position, const QColor &color);
+    Q_CANVASPAINTER_EXPORT void setEndColor(QColor color);
+    Q_CANVASPAINTER_EXPORT void setColorAt(qreal position, QColor color);
     Q_CANVASPAINTER_EXPORT void setStops(const QCanvasGradientStops &stops);
     Q_CANVASPAINTER_EXPORT QCanvasGradientStops stops() const;
     Q_CANVASPAINTER_EXPORT void setImage(const QCanvasImage &image, int index = 0);
-    void addColorStop(qreal position, const QColor &color)
+    void addColorStop(qreal position, QColor color)
     {
         setColorAt(position, color);
     }

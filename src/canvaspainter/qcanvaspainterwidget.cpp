@@ -89,7 +89,7 @@ QColor QCanvasPainterWidget::fillColor() const
 }
 
 /*!
-    \fn void QCanvasPainterWidget::setFillColor (const QColor &color)
+    \fn void QCanvasPainterWidget::setFillColor (QColor color)
 
     Set the fill color to \a color. This color will be used to draw
     the background of the item. The default color is black.
@@ -97,7 +97,7 @@ QColor QCanvasPainterWidget::fillColor() const
     \sa fillColor()
 */
 
-void QCanvasPainterWidget::setFillColor(const QColor &color)
+void QCanvasPainterWidget::setFillColor(QColor color)
 {
     Q_D(QCanvasPainterWidget);
     if (d->m_fillColor == color)
