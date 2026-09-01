@@ -222,12 +222,13 @@ QCanvasPath::QCanvasPath()
 QCanvasPath::QCanvasPath(qsizetype commandsSize, qsizetype commandsDataSize)
     : d_ptr(new QCanvasPathPrivate)
 {
-    d_ptr->commands.resize(commandsSize);
-    if (commandsDataSize < 0)
-        d_ptr->commandsData.resize(2 * commandsSize);
-    else
-        d_ptr->commandsData.resize(commandsDataSize);
-
+    if (commandsSize > 0) {
+        d_ptr->commands.resize(commandsSize);
+        if (commandsDataSize < 0)
+            d_ptr->commandsData.resize(2 * commandsSize);
+        else
+            d_ptr->commandsData.resize(commandsDataSize);
+    }
 }
 
 /*!
@@ -1130,6 +1131,11 @@ qsizetype QCanvasPath::commandsDataCapacity() const
     and \a commandsDataSize data points. Some path elements require
     multiple commands, see \l commandsSize() and \l commandsDataSize().
 
+    If \a commandsDataSize is not specified, then space is automatically
+    reserved for \c{2 * commandsSize} amount of data, which is the optimal
+    amount when the path commands are straight lines (\l moveTo(), \l lineTo(),
+    \l rect()).
+
     Reserving correct space is an optimization for path creation and
     memory usage. It isn't mandatory as sufficient space will automatically
     be ensured while adding commands into the path.
@@ -1146,31 +1152,6 @@ void QCanvasPath::reserve(qsizetype commandsSize, qsizetype commandsDataSize)
     else
         d->commandsData.resize(commandsDataSize);
 
-}
-
-/*!
-    Reserves a given amounts of space in QCanvasPath's internal memory.
-
-    \overload
-
-    Attempts to allocate memory for at least \a commandsSize commands. Some path
-    elements require multiple commands, see \l commandsSize() and \l
-    commandsDataSize().
-
-    Space is automatically reserved for \c{2 * commandsSize} amount of data,
-    which is optimal amount when the path commands are straight lines (\l
-    moveTo(), \l lineTo(), \l rect()).
-
-    Reserving correct space is an optimization for path creation and
-    memory usage. It isn't mandatory as sufficient space will automatically
-    be ensured while adding commands into the path.
-
-    \sa squeeze(), commandsCapacity(), commandsDataCapacity()
-*/
-
-void QCanvasPath::reserve(qsizetype commandsSize)
-{
-    reserve(commandsSize, -1);
 }
 
 /*!
