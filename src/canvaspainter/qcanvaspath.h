@@ -101,8 +101,7 @@ public:
     Q_CANVASPAINTER_EXPORT qsizetype commandsDataSize() const;
     Q_CANVASPAINTER_EXPORT qsizetype commandsCapacity() const;
     Q_CANVASPAINTER_EXPORT qsizetype commandsDataCapacity() const;
-    Q_CANVASPAINTER_EXPORT void reserve(qsizetype commandsSize);
-    Q_CANVASPAINTER_EXPORT void reserve(qsizetype commandsSize, qsizetype commandsDataSize);
+    Q_CANVASPAINTER_EXPORT void reserve(qsizetype commandsSize, qsizetype commandsDataSize = -1);
 
     // Other
     Q_CANVASPAINTER_EXPORT QPointF currentPosition() const;
