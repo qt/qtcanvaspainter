@@ -26,8 +26,8 @@ QT_BEGIN_NAMESPACE
 class QCanvasPainterFactoryPrivate
 {
 public:
-    static const QCanvasPainterFactoryPrivate *get(const QCanvasPainterFactory *obj) { return obj->d; }
-    static QCanvasPainterFactoryPrivate *get(QCanvasPainterFactory *obj) { return obj->d; }
+    static const QCanvasPainterFactoryPrivate *get(const QCanvasPainterFactory *obj) { return obj->d.get(); }
+    static QCanvasPainterFactoryPrivate *get(QCanvasPainterFactory *obj) { return obj->d.get(); }
 
     std::unique_ptr<QCanvasRhiPaintDriver> paintDriver;
     std::unique_ptr<QCanvasPainter> painter;

@@ -9,6 +9,7 @@
 
 #include <QtCanvasPainter/qtcanvaspainterglobal.h>
 #include <QtCanvasPainter/qcanvasoffscreencanvas.h>
+#include <memory>
 
 QT_BEGIN_NAMESPACE
 
@@ -34,7 +35,7 @@ public:
 
 private:
     Q_DISABLE_COPY_MOVE(QCanvasPainterFactory)
-    QCanvasPainterFactoryPrivate *d = nullptr;
+    std::unique_ptr<QCanvasPainterFactoryPrivate> d;
     friend class QCanvasPainterFactoryPrivate;
 };
 

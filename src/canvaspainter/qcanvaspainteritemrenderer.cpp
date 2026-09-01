@@ -62,7 +62,7 @@ QAtomicInt QCanvasPainterItemRendererPrivate::m_rendered;
 */
 
 QCanvasPainterItemRenderer::QCanvasPainterItemRenderer()
-    : d_ptr(new QCanvasPainterItemRendererPrivate(this))
+    : d_ptr(std::make_unique<QCanvasPainterItemRendererPrivate>(this))
 {
 }
 
@@ -77,8 +77,6 @@ QCanvasPainterItemRenderer::~QCanvasPainterItemRenderer()
         delete d->m_factory;
 
     QObject::disconnect(d->m_sharedPainterNewFrameConn);
-
-    delete d_ptr;
 }
 
 

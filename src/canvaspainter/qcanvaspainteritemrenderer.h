@@ -13,6 +13,7 @@
 #include <QtCore/qelapsedtimer.h>
 #include <QtCanvasPainter/qcanvaspainter.h>
 #include <QtCanvasPainter/qcanvaspainteritem.h>
+#include <memory>
 
 QT_BEGIN_NAMESPACE
 
@@ -68,7 +69,7 @@ private:
     Q_DECLARE_PRIVATE(QCanvasPainterItemRenderer)
     void grabCanvasImpl(const QCanvasOffscreenCanvas &canvas, const QObject *context,
                         QtPrivate::QSlotObjectBase *slotObj);
-    QCanvasPainterItemRendererPrivate *d_ptr;
+    std::unique_ptr<QCanvasPainterItemRendererPrivate> d_ptr;
 };
 
 QT_END_NAMESPACE
