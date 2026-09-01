@@ -216,7 +216,7 @@ public:
     void grabCanvas(const QCanvasOffscreenCanvas &canvas, const QObject *context,
                     QtPrivate::SlotObjUniquePtr callback, QRhiCommandBuffer *maybeCb);
 
-    void recordRenderPass(QRhiCommandBuffer *cb, QRhiRenderTarget *rt, const QColor &clearColor);
+    void recordRenderPass(QRhiCommandBuffer *cb, QRhiRenderTarget *rt, QColor clearColor);
 
     bool isYUpInNDC() const;
 

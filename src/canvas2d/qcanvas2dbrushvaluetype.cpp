@@ -37,7 +37,7 @@ QT_BEGIN_NAMESPACE
     \endcode
 */
 
-void QCanvas2DLinearGradientValueType::addColorStop(float offset, const QColor &color)
+void QCanvas2DLinearGradientValueType::addColorStop(float offset, QColor color)
 {
     QCanvasLinearGradient::addColorStop(offset, color);
 }
@@ -130,7 +130,7 @@ void QCanvas2DLinearGradientValueType::setEndPosition(float x, float y)
     \endcode
 */
 
-void QCanvas2DRadialGradientValueType::addColorStop(float offset, const QColor &color)
+void QCanvas2DRadialGradientValueType::addColorStop(float offset, QColor color)
 {
     QCanvasRadialGradient::addColorStop(offset, color);
 }
@@ -320,7 +320,7 @@ void QCanvas2DRadialGradientValueType::setInnerRadius(float radius)
     \endcode
 */
 
-void QCanvas2DConicalGradientValueType::addColorStop(float offset, const QColor &color)
+void QCanvas2DConicalGradientValueType::addColorStop(float offset, QColor color)
 {
     QCanvasConicalGradient::addColorStop(offset, color);
 }
@@ -409,7 +409,7 @@ void QCanvas2DConicalGradientValueType::setStartAngle(float angle)
     \endcode
 */
 
-void QCanvas2DBoxGradientValueType::addColorStop(float offset, const QColor &color)
+void QCanvas2DBoxGradientValueType::addColorStop(float offset, QColor color)
 {
     QCanvasBoxGradient::addColorStop(offset, color);
 }
@@ -666,7 +666,7 @@ QColor QCanvas2DGridPatternValueType::lineColor() const
     The default value is white.
 */
 
-void QCanvas2DGridPatternValueType::setLineColor(const QColor &color)
+void QCanvas2DGridPatternValueType::setLineColor(QColor color)
 {
     QCanvasGridPattern::setLineColor(color);
 }
@@ -689,7 +689,7 @@ QColor QCanvas2DGridPatternValueType::backgroundColor() const
     The default value is black.
 */
 
-void QCanvas2DGridPatternValueType::setBackgroundColor(const QColor &color)
+void QCanvas2DGridPatternValueType::setBackgroundColor(QColor color)
 {
     QCanvasGridPattern::setBackgroundColor(color);
 }
@@ -846,7 +846,7 @@ QColor QCanvas2DBoxShadowValueType::color() const
     The default value is black with full opacity.
 */
 
-void QCanvas2DBoxShadowValueType::setColor(const QColor &color)
+void QCanvas2DBoxShadowValueType::setColor(QColor color)
 {
     QCanvasBoxShadow::setColor(color);
 }
@@ -1087,7 +1087,7 @@ QColor QCanvas2DImagePatternValueType::tintColor() const
     \note To set alpha globally, use QCanvasPainter::setGlobalAlpha()
 */
 
-void QCanvas2DImagePatternValueType::setTintColor(const QColor &color)
+void QCanvas2DImagePatternValueType::setTintColor(QColor color)
 {
     QCanvasImagePattern::setTintColor(color);
 }

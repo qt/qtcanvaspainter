@@ -42,7 +42,7 @@ public:
     Q_CANVASPAINTER_EXPORT bool isNull() const;
 
     Q_CANVASPAINTER_EXPORT QColor tintColor() const;
-    Q_CANVASPAINTER_EXPORT void setTintColor(const QColor &color);
+    Q_CANVASPAINTER_EXPORT void setTintColor(QColor color);
 
 private:
     friend Q_CANVASPAINTER_EXPORT bool comparesEqual(const QCanvasImage &lhs, const QCanvasImage &rhs) noexcept;

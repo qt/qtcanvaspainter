@@ -73,9 +73,9 @@ public:
 
     // *** Render styles ***
 
-    Q_CANVASPAINTER_EXPORT void setStrokeStyle(const QColor &color);
+    Q_CANVASPAINTER_EXPORT void setStrokeStyle(QColor color);
     Q_CANVASPAINTER_EXPORT void setStrokeStyle(const QCanvasBrush &brush);
-    Q_CANVASPAINTER_EXPORT void setFillStyle(const QColor &color);
+    Q_CANVASPAINTER_EXPORT void setFillStyle(QColor color);
     Q_CANVASPAINTER_EXPORT void setFillStyle(const QCanvasBrush &brush);
     Q_CANVASPAINTER_EXPORT void setMiterLimit(qreal limit);
     Q_CANVASPAINTER_EXPORT void setLineWidth(qreal width);

@@ -390,7 +390,7 @@ QColor QCanvasImagePattern::tintColor() const
     \note To set alpha globally, use QCanvasPainter::setGlobalAlpha()
 */
 
-void QCanvasImagePattern::setTintColor(const QColor &color)
+void QCanvasImagePattern::setTintColor(QColor color)
 {
     detach();
     d->tintColor = color;

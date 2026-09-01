@@ -50,7 +50,7 @@ public:
     Q_CANVASPAINTER_EXPORT qreal spread() const;
     Q_CANVASPAINTER_EXPORT void setSpread(qreal spread);
     Q_CANVASPAINTER_EXPORT QColor color() const;
-    Q_CANVASPAINTER_EXPORT void setColor(const QColor &color);
+    Q_CANVASPAINTER_EXPORT void setColor(QColor color);
 
     Q_CANVASPAINTER_EXPORT qreal topLeftRadius() const;
     Q_CANVASPAINTER_EXPORT void setTopLeftRadius(qreal radius);

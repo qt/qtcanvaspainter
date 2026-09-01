@@ -136,7 +136,7 @@ QColor QCanvasGradient::startColor() const
     This is equal to calling setColorAt() with position \c 0.
 */
 
-void QCanvasGradient::setStartColor(const QColor &color)
+void QCanvasGradient::setStartColor(QColor color)
 {
     setColorAt(0.0, color);
 }
@@ -160,7 +160,7 @@ QColor QCanvasGradient::endColor() const
     This is equal to calling setColorAt() with position \c 1.
 */
 
-void QCanvasGradient::setEndColor(const QColor &color)
+void QCanvasGradient::setEndColor(QColor color)
 {
     setColorAt(1.0, color);
 }
@@ -172,7 +172,7 @@ void QCanvasGradient::setEndColor(const QColor &color)
     \sa setStops(), stops()
 */
 
-void QCanvasGradient::setColorAt(qreal position, const QColor &color)
+void QCanvasGradient::setColorAt(qreal position, QColor color)
 {
     if (QCanvasGradientBrushPrivate::get(std::as_const(*this))->gradientStops.size()
         >= QCPAINTER_GRADIENT_MAX_STOPS) {
@@ -229,7 +229,7 @@ QCanvasGradientStops QCanvasGradient::stops() const
 }
 
 /*!
-    \fn void QCanvasGradient::addColorStop(qreal position, const QColor &color)
+    \fn void QCanvasGradient::addColorStop(qreal position, QColor color)
     \since 6.12
 
     Creates a stop point at the given \a position with the given \a

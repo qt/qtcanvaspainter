@@ -282,7 +282,7 @@ QColor QCanvasImage::tintColor() const
     icons or to adjust images becase on the theme.
 */
 
-void QCanvasImage::setTintColor(const QColor &color)
+void QCanvasImage::setTintColor(QColor color)
 {
     detach();
     d->tintColor = color;

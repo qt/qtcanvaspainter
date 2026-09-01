@@ -52,9 +52,9 @@ public:
     void reset();
 
     // Painting styles
-    void setStrokeColor(const QColor &color);
+    void setStrokeColor(QColor color);
     void setStrokePaint(const QCPaint &paint);
-    void setFillColor(const QColor &color);
+    void setFillColor(QColor color);
     void setFillPaint(const QCPaint &paint);
     void setLineWidth(float width);
     void setLineCap(QCanvasPainter::LineCap lineCap);
@@ -89,12 +89,12 @@ public:
                     const uchar* data);
     bool deleteImage(int imageId);
     void drawImageId(int imageId, float x, float y, float width, float height,
-                     const QColor &tintColor);
+                     QColor tintColor);
     void drawImageIdAt(int imageId, float x, float y, float width, float height,
                        float dX, float dY, float dWidth, float dHeight,
-                       const QColor &tintColor);
+                       QColor tintColor);
     QCPaint createImagePattern(float x, float y, float width, float height,
-                               int imageId, float angle, const QColor &tintColor);
+                               int imageId, float angle, QColor tintColor);
 
     // Paths
     void beginPath();

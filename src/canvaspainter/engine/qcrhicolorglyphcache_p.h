@@ -36,7 +36,7 @@ public:
 
     void addGlyphRun(const QPointF &glyphPos,
                      const QGlyphRun &run,
-                     const QColor &color,
+                     QColor color,
                      const QTransform &transform,
                      float devicePixelRatio,
                      QCRhiDistanceFieldGlyphCache::VertexList *verts,
@@ -79,7 +79,7 @@ private:
     void ensureAtlas();
     void growAtlas(int requiredSize);
     const GlyphData &ensureGlyph(const GlyphKey &key, QFontEngine *fe,
-                                 const QColor &color, const QTransform &rasterTransform);
+                                 QColor color, const QTransform &rasterTransform);
     bool useTextureResizeWorkaround() const;
 
     void referenceGlyph(const GlyphKey &key, GlyphData &gd);

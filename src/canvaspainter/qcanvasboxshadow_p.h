@@ -48,7 +48,7 @@ public:
     QCPaint createPaint(QCanvasPainter *painter) const override;
     void createBoxShadow(qreal x, qreal y, qreal width, qreal height,
                          const QVector4D &radius,
-                         qreal blur, const QColor &color) const;
+                         qreal blur, QColor color) const;
 
     qreal clampedRadius(qreal radius, qreal width, qreal height) const;
     QColor clampedColor() const;

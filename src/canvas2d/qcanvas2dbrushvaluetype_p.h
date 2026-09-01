@@ -42,7 +42,7 @@ class Q_CANVAS2D_EXPORT QCanvas2DLinearGradientValueType : private QCanvasLinear
 
 public:
     Q_INVOKABLE QCanvas2DLinearGradientValueType() = default;
-    Q_INVOKABLE void addColorStop(float offset, const QColor &color);
+    Q_INVOKABLE void addColorStop(float offset, QColor color);
     Q_INVOKABLE QPointF startPosition() const;
     Q_INVOKABLE void setStartPosition(float x, float y);
     Q_INVOKABLE inline void setStartPosition(QPointF start);
@@ -74,7 +74,7 @@ class Q_CANVAS2D_EXPORT QCanvas2DRadialGradientValueType : private QCanvasRadial
 
 public:
     Q_INVOKABLE QCanvas2DRadialGradientValueType() = default;
-    Q_INVOKABLE void addColorStop(float offset, const QColor &color);
+    Q_INVOKABLE void addColorStop(float offset, QColor color);
     Q_INVOKABLE QPointF centerPosition() const;
     Q_INVOKABLE void setCenterPosition(float x, float y);
     Q_INVOKABLE inline void setCenterPosition(QPointF center);
@@ -118,7 +118,7 @@ class Q_CANVAS2D_EXPORT QCanvas2DConicalGradientValueType : private QCanvasConic
 
 public:
     Q_INVOKABLE QCanvas2DConicalGradientValueType() = default;
-    Q_INVOKABLE void addColorStop(float offset, const QColor &color);
+    Q_INVOKABLE void addColorStop(float offset, QColor color);
     Q_INVOKABLE QPointF centerPosition() const;
     Q_INVOKABLE void setCenterPosition(float x, float y);
     Q_INVOKABLE inline void setCenterPosition(QPointF center);
@@ -144,7 +144,7 @@ class Q_CANVAS2D_EXPORT QCanvas2DBoxGradientValueType : private QCanvasBoxGradie
 
 public:
     Q_INVOKABLE QCanvas2DBoxGradientValueType() = default;
-    Q_INVOKABLE void addColorStop(float offset, const QColor &color);
+    Q_INVOKABLE void addColorStop(float offset, QColor color);
     Q_INVOKABLE QRectF rect() const;
     Q_INVOKABLE void setRect(float x, float y, float width, float height);
     Q_INVOKABLE inline void setRect(const QRectF &rect);
@@ -185,9 +185,9 @@ public:
     Q_INVOKABLE float rotation() const;
     Q_INVOKABLE void setRotation(float rotation);
     Q_INVOKABLE QColor lineColor() const;
-    Q_INVOKABLE void setLineColor(const QColor &color);
+    Q_INVOKABLE void setLineColor(QColor color);
     Q_INVOKABLE QColor backgroundColor() const;
-    Q_INVOKABLE void setBackgroundColor(const QColor &color);
+    Q_INVOKABLE void setBackgroundColor(QColor color);
 };
 
 inline void QCanvas2DGridPatternValueType::setStartPosition(QPointF point)
@@ -224,7 +224,7 @@ public:
     Q_INVOKABLE float spread() const;
     Q_INVOKABLE void setSpread(float spread);
     Q_INVOKABLE QColor color() const;
-    Q_INVOKABLE void setColor(const QColor &color);
+    Q_INVOKABLE void setColor(QColor color);
     Q_INVOKABLE float topLeftRadius() const;
     Q_INVOKABLE void setTopLeftRadius(float radius);
     Q_INVOKABLE float topRightRadius() const;
@@ -262,7 +262,7 @@ public:
     Q_INVOKABLE float rotation() const;
     Q_INVOKABLE void setRotation(float rotation);
     Q_INVOKABLE QColor tintColor() const;
-    Q_INVOKABLE void setTintColor(const QColor &color);
+    Q_INVOKABLE void setTintColor(QColor color);
 };
 
 inline void QCanvas2DImagePatternValueType::setStartPosition(QPointF point)

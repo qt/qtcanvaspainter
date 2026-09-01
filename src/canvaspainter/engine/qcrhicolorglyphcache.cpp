@@ -139,7 +139,7 @@ QRect QCRhiColorGlyphCache::evictUntilAllocated(const QSize &allocSize)
 
 const QCRhiColorGlyphCache::GlyphData &
 QCRhiColorGlyphCache::ensureGlyph(const GlyphKey &key, QFontEngine *fe,
-                                  const QColor &color, const QTransform &rasterTransform)
+                                  QColor color, const QTransform &rasterTransform)
 {
     auto it = m_glyphs.find(key);
     if (it != m_glyphs.end()) {
@@ -231,7 +231,7 @@ void QCRhiColorGlyphCache::optimizeAfterRendering()
 
 void QCRhiColorGlyphCache::addGlyphRun(const QPointF &glyphPos,
                                        const QGlyphRun &run,
-                                       const QColor &color,
+                                       QColor color,
                                        const QTransform &transform,
                                        float devicePixelRatio,
                                        QCRhiDistanceFieldGlyphCache::VertexList *verts,

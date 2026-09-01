@@ -519,7 +519,7 @@ void QCanvasPainter::reset()
     \endtable
 */
 
-void QCanvasPainter::setStrokeStyle(const QColor &color)
+void QCanvasPainter::setStrokeStyle(QColor color)
 {
     Q_D(QCanvasPainter);
     d->m_e->setStrokeColor(color);
@@ -584,7 +584,7 @@ void QCanvasPainter::setStrokeStyle(const QCanvasBrush &brush)
     \endtable
 */
 
-void QCanvasPainter::setFillStyle(const QColor &color)
+void QCanvasPainter::setFillStyle(QColor color)
 {
     Q_D(QCanvasPainter);
     d->m_e->setFillColor(color);
