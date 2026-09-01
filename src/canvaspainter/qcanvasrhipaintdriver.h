@@ -14,6 +14,8 @@
 #include <QtGui/qmatrix4x4.h>
 #include <QtCanvasPainter/qcanvasoffscreencanvas.h>
 
+#include <memory>
+
 QT_BEGIN_NAMESPACE
 
 class QRhi;
@@ -66,7 +68,7 @@ private:
     Q_CANVASPAINTER_EXPORT void grabCanvasImpl(const QCanvasOffscreenCanvas &canvas,
                                                const QObject *context,
                                                QtPrivate::QSlotObjectBase *slotObj);
-    QCanvasRhiPaintDriverPrivate *d = nullptr;
+    std::unique_ptr<QCanvasRhiPaintDriverPrivate> d;
     friend class QCanvasRhiPaintDriverPrivate;
     friend class QCanvasPainterWidget;
     friend class QCanvasPainterItemRenderer;

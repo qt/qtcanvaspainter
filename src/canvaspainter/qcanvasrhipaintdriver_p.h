@@ -26,8 +26,10 @@ QT_BEGIN_NAMESPACE
 class QCanvasRhiPaintDriverPrivate
 {
 public:
-    static const QCanvasRhiPaintDriverPrivate *get(const QCanvasRhiPaintDriver *obj) { return obj->d; }
-    static QCanvasRhiPaintDriverPrivate *get(QCanvasRhiPaintDriver *obj) { return obj->d; }
+    static const QCanvasRhiPaintDriverPrivate *get(const QCanvasRhiPaintDriver *obj)
+    { return obj->d.get(); }
+    static QCanvasRhiPaintDriverPrivate *get(QCanvasRhiPaintDriver *obj)
+    { return obj->d.get(); }
 
     QCanvasPainter *painter = nullptr;
     QCPainterRhiRenderer *renderer = nullptr;
