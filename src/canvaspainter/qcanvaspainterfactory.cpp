@@ -108,7 +108,7 @@ QCanvasPainterFactory *QCanvasPainterFactory::sharedInstance(QRhi *rhi)
     \sa sharedInstance()
  */
 QCanvasPainterFactory::QCanvasPainterFactory()
-    : d(new QCanvasPainterFactoryPrivate)
+    : d(std::make_unique<QCanvasPainterFactoryPrivate>())
 {
 }
 
@@ -118,7 +118,6 @@ QCanvasPainterFactory::QCanvasPainterFactory()
 QCanvasPainterFactory::~QCanvasPainterFactory()
 {
     destroy();
-    delete d;
 }
 
 /*!
