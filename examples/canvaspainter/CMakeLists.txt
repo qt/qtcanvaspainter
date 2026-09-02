@@ -7,6 +7,7 @@ endif()
 
 if(TARGET Qt::Quick)
     qt_internal_add_example(gallery)
+    qt_internal_add_example(canvas2dtester)
 endif()
 
 if(TARGET Qt::Widgets)
