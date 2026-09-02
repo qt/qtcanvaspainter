@@ -3,7 +3,7 @@
 
 /*!
     \example canvas2dtester
-    \ingroup canvas2d-examples
+    \ingroup canvaspainter-examples
     \title Qt Canvas 2D - Canvas 2D Tester Example
     \examplecategory {Graphics}
     \brief Demonstrates the use of Qt Canvas2D element.

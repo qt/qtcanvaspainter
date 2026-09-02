@@ -54,7 +54,6 @@ imagedirs   += images
 
 # Add Canvas2D content
 {headerdirs,sourcedirs} += ../../canvas2d
-exampledirs += ../../../examples/canvas2d
 
 # Exclude private header files from the documentation build
 excludefiles += "*_p.h"
