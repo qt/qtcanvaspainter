@@ -47,6 +47,11 @@ QT_BEGIN_NAMESPACE
 #define DECONST(d) const_cast<QCanvasRadialGradientBrushPrivate *>(d)
 
 /*!
+    \fn void QCanvasRadialGradient::swap(QCanvasRadialGradient &other)
+    \memberswap{gradient}
+*/
+
+/*!
     Constructs a default radial gradient.
     Gradient center position is (0, 0).
     Gradient outer radius is 100.0 and inner radius is 0.0.

@@ -54,6 +54,11 @@ QT_BEGIN_NAMESPACE
 #define DECONST(d) const_cast<QCanvasBoxGradientBrushPrivate *>(d)
 
 /*!
+    \fn void QCanvasBoxGradient::swap(QCanvasBoxGradient &other)
+    \memberswap{gradient}
+*/
+
+/*!
     Constructs a default box gradient.
     Position of gradient is (0, 0) and size (100, 100)
     Gradient feather is 10.0.

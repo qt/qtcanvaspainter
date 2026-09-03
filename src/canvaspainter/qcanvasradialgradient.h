@@ -31,6 +31,8 @@ public:
     QCanvasRadialGradient &operator=(QCanvasRadialGradient &&) = default;
     ~QCanvasRadialGradient() = default;
 
+    void swap(QCanvasRadialGradient &other) noexcept { QCanvasGradient::swap(other); }
+
     Q_CANVASPAINTER_EXPORT QPointF centerPosition() const;
     Q_CANVASPAINTER_EXPORT void setCenterPosition(qreal x, qreal y);
     inline void setCenterPosition(QPointF center);
@@ -51,6 +53,8 @@ private:
     friend class QCanvasGradientBrushPrivate;
     friend size_t qHash(const QCanvasRadialGradient &, size_t seed) = delete;
 };
+
+Q_DECLARE_SHARED(QCanvasRadialGradient)
 
 void QCanvasRadialGradient::setCenterPosition(QPointF center)
 {

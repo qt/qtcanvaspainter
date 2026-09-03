@@ -27,6 +27,8 @@ public:
     QCanvasBoxGradient &operator=(QCanvasBoxGradient &&) = default;
     ~QCanvasBoxGradient() = default;
 
+    void swap(QCanvasBoxGradient &other) noexcept { QCanvasGradient::swap(other); }
+
     Q_CANVASPAINTER_EXPORT QRectF rect() const;
     Q_CANVASPAINTER_EXPORT void setRect(qreal x, qreal y, qreal width, qreal height);
     inline void setRect(const QRectF &rect);
@@ -40,6 +42,8 @@ private:
     friend class QCanvasGradientBrushPrivate;
     friend size_t qHash(const QCanvasBoxGradient &, size_t seed) = delete;
 };
+
+Q_DECLARE_SHARED(QCanvasBoxGradient)
 
 void QCanvasBoxGradient::setRect(const QRectF &rect)
 {

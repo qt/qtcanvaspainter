@@ -48,6 +48,11 @@ QT_BEGIN_NAMESPACE
 #define DECONST(d) const_cast<QCanvasLinearGradientBrushPrivate *>(d)
 
 /*!
+    \fn void QCanvasLinearGradient::swap(QCanvasLinearGradient &other)
+    \memberswap{gradient}
+*/
+
+/*!
     Constructs a default linear gradient.
     Gradient start color position is (0, 0) and end color position (0, 100).
 */
