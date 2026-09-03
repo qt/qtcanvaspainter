@@ -217,9 +217,9 @@ public:
     inline void fillText(const QString &text, QPointF point, qreal maxWidth = 0);
     Q_CANVASPAINTER_EXPORT void fillText(const QString &text, const QRectF &rect);
 
-    Q_CANVASPAINTER_EXPORT QRectF textBoundingBox(const QString &text, qreal x, qreal y, qreal maxWidth = 0);
-    inline QRectF textBoundingBox(const QString &text, QPointF point, qreal maxWidth = 0);
-    Q_CANVASPAINTER_EXPORT QRectF textBoundingBox(const QString &text, const QRectF &rect);
+    Q_CANVASPAINTER_EXPORT QRectF textBoundingBox(const QString &text, qreal x, qreal y, qreal maxWidth = 0) const;
+    inline QRectF textBoundingBox(const QString &text, QPointF point, qreal maxWidth = 0) const;
+    Q_CANVASPAINTER_EXPORT QRectF textBoundingBox(const QString &text, const QRectF &rect) const;
 
     // *** Other ***
 
@@ -393,7 +393,7 @@ void QCanvasPainter::fillText(const QString &text, QPointF point, qreal maxWidth
     fillText(text, point.x(), point.y(), maxWidth);
 }
 
-QRectF QCanvasPainter::textBoundingBox(const QString &text, QPointF point, qreal maxWidth)
+QRectF QCanvasPainter::textBoundingBox(const QString &text, QPointF point, qreal maxWidth) const
 {
     return textBoundingBox(text, point.x(), point.y(), maxWidth);
 }

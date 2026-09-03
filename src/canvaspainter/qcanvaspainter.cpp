@@ -2597,14 +2597,14 @@ void QCanvasPainter::fillText(const QString &text, const QRectF &rect)
     \endtable
 */
 
-QRectF QCanvasPainter::textBoundingBox(const QString &text, qreal x, qreal y, qreal maxWidth)
+QRectF QCanvasPainter::textBoundingBox(const QString &text, qreal x, qreal y, qreal maxWidth) const
 {
-    Q_D(QCanvasPainter);
+    Q_D(const QCanvasPainter);
     return d->textBoundingBox(text, x, y, maxWidth);
 }
 
 /*!
-    \fn QRectF QCanvasPainter::textBoundingBox(const QString &text, QPointF point, qreal maxWidth)
+    \fn QRectF QCanvasPainter::textBoundingBox(const QString &text, QPointF point, qreal maxWidth) const
     \overload
 
     Measures bounding box of a \a text string at \a point.
@@ -2625,9 +2625,9 @@ QRectF QCanvasPainter::textBoundingBox(const QString &text, qreal x, qreal y, qr
     Measured values are returned in local coordinate space.
 */
 
-QRectF QCanvasPainter::textBoundingBox(const QString &text, const QRectF &rect)
+QRectF QCanvasPainter::textBoundingBox(const QString &text, const QRectF &rect) const
 {
-    Q_D(QCanvasPainter);
+    Q_D(const QCanvasPainter);
     return d->textBoundingBox(text, rect);
 }
 
@@ -3170,14 +3170,14 @@ void QCanvasPainterPrivate::fillShapedText(QFontEngine *fontEngine, const quint3
     m_e->fillShapedText(fontEngine, glyphIndexes, glyphPositions, glyphCount);
 }
 
-QRectF QCanvasPainterPrivate::textBoundingBox(const QString &text, qreal x, qreal y, qreal maxWidth)
+QRectF QCanvasPainterPrivate::textBoundingBox(const QString &text, qreal x, qreal y, qreal maxWidth) const
 {
     // Unify point & rect APIs behavior.
     const QRectF rect = textAlignedRectFromPoint(m_e->state.textAlignment, x, y, maxWidth);
     return m_e->textBoundingBox(text, rect);
 }
 
-QRectF QCanvasPainterPrivate::textBoundingBox(const QString &text, const QRectF &rect)
+QRectF QCanvasPainterPrivate::textBoundingBox(const QString &text, const QRectF &rect) const
 {
     return m_e->textBoundingBox(text, rect);
 }
