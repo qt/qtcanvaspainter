@@ -75,6 +75,8 @@ private:
     friend size_t qHash(const QCanvasGridPattern &, size_t seed) = delete;
 };
 
+Q_DECLARE_SHARED(QCanvasGridPattern)
+
 void QCanvasGridPattern::setStartPosition(QPointF point)
 {
     setStartPosition(point.x(), point.y());

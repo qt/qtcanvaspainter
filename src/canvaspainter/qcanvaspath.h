@@ -120,6 +120,8 @@ private:
     QCanvasPathPrivate *d_ptr;
 };
 
+Q_DECLARE_SHARED(QCanvasPath)
+
 void QCanvasPath::moveTo(QPointF point)
 {
     moveTo(point.x(), point.y());

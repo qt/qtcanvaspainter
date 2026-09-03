@@ -65,6 +65,8 @@ private:
     friend size_t qHash(const QCanvasCustomBrush &, size_t seed) = delete;
 };
 
+Q_DECLARE_SHARED(QCanvasCustomBrush)
+
 QT_END_NAMESPACE
 
 #endif // QCANVASCUSTOMBRUSH_H

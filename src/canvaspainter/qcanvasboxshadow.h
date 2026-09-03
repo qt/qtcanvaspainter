@@ -80,8 +80,9 @@ private:
     friend Q_CANVASPAINTER_EXPORT QDebug operator<<(QDebug, const QCanvasBoxShadow &);
 #endif
     friend size_t qHash(const QCanvasBoxShadow &, size_t seed) = delete;
-
 };
+
+Q_DECLARE_SHARED(QCanvasBoxShadow)
 
 void QCanvasBoxShadow::setRect(const QRectF &rect)
 {
