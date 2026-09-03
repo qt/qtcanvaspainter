@@ -293,6 +293,14 @@ void QCanvasPainterWidget::graphicsResourcesInvalidated()
 }
 
 /*!
+    \reimp
+ */
+bool QCanvasPainterWidget::event(QEvent *event)
+{
+    return QRhiWidget::event(event);
+}
+
+/*!
     Starts recording QCanvasPainter draw commands targeting \a canvas.
 
     \note This function should only be called from prePaint().

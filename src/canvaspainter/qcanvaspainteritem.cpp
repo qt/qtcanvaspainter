@@ -229,6 +229,14 @@ void QCanvasPainterItemPrivate::updateDebugData(const QCDebugCounters &debugCoun
 /*!
    \reimp
 */
+bool QCanvasPainterItem::event(QEvent *event)
+{
+    return QQuickRhiItem::event(event);
+}
+
+/*!
+   \reimp
+*/
 QQuickRhiItemRenderer *QCanvasPainterItem::createRenderer()
 {
     Q_D(QCanvasPainterItem);

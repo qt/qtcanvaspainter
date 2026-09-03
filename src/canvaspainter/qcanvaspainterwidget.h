@@ -56,6 +56,7 @@ protected:
     void initialize(QRhiCommandBuffer *cb) override;
     void render(QRhiCommandBuffer *cb) override;
     void releaseResources() override;
+    bool event(QEvent *event) override;
 
     void beginCanvasPainting(QCanvasOffscreenCanvas &canvas);
     void endCanvasPainting();
