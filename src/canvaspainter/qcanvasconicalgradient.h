@@ -24,6 +24,8 @@ public:
     QCanvasConicalGradient &operator=(QCanvasConicalGradient &&) = default;
     ~QCanvasConicalGradient() = default;
 
+    void swap(QCanvasConicalGradient &other) noexcept { QCanvasGradient::swap(other); }
+
     Q_CANVASPAINTER_EXPORT QPointF centerPosition() const;
     Q_CANVASPAINTER_EXPORT void setCenterPosition(qreal x, qreal y);
     inline void setCenterPosition(QPointF center);
@@ -35,6 +37,8 @@ private:
     friend class QCanvasGradientBrushPrivate;
     friend size_t qHash(const QCanvasConicalGradient &, size_t seed) = delete;
 };
+
+Q_DECLARE_SHARED(QCanvasConicalGradient)
 
 void QCanvasConicalGradient::setCenterPosition(QPointF center)
 {

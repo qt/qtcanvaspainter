@@ -25,6 +25,8 @@ public:
     QCanvasLinearGradient &operator=(QCanvasLinearGradient &&) = default;
     ~QCanvasLinearGradient() = default;
 
+    void swap(QCanvasLinearGradient &other) noexcept { QCanvasGradient::swap(other); }
+
     Q_CANVASPAINTER_EXPORT QPointF startPosition() const;
     Q_CANVASPAINTER_EXPORT void setStartPosition(qreal x, qreal y);
     inline void setStartPosition(QPointF start);
@@ -37,6 +39,8 @@ private:
     friend class QCanvasGradientBrushPrivate;
     friend size_t qHash(const QCanvasLinearGradient &, size_t seed) = delete;
 };
+
+Q_DECLARE_SHARED(QCanvasLinearGradient)
 
 void QCanvasLinearGradient::setStartPosition(QPointF start)
 {

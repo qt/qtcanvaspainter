@@ -48,6 +48,11 @@ QT_BEGIN_NAMESPACE
 #define DECONST(d) const_cast<QCanvasConicalGradientBrushPrivate *>(d)
 
 /*!
+    \fn void QCanvasConicalGradient::swap(QCanvasConicalGradient &other)
+    \memberswap{gradient}
+*/
+
+/*!
     Constructs a default conical gradient.
     Gradient center position is (0, 0).
     Gradient angle is 0.0.

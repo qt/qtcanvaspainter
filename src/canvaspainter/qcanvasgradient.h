@@ -84,6 +84,8 @@ protected:
 
     ~QCanvasGradient() = default;
 
+    void swap(QCanvasGradient &other) noexcept { m_brush.swap(other.m_brush); }
+
 private:
     QCanvasBrush m_brush;
 
