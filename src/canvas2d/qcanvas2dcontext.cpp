@@ -2565,10 +2565,12 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_createBoxShadow(const QV4
             }
         }
 
-        qreal radiusTL = 0;
-        qreal radiusTR = 0;
-        qreal radiusBR = 0;
-        qreal radiusBL = 0;
+        // Default value of separate corner radius
+        // is -1, so combined radius gets used.
+        qreal radiusTL = -1;
+        qreal radiusTR = -1;
+        qreal radiusBR = -1;
+        qreal radiusBL = -1;
         if (argc == 7) {
             // Single radius for all corners
             radiusTL = argv[6].toNumber();
