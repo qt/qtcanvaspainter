@@ -86,8 +86,10 @@ QT_BEGIN_NAMESPACE
     let offsetX = 2;
     let offsetY = 4;
     let shadow = ctx.createBoxShadow(40 + offsetX, 70 + offsetY,
-                                     120, 60,
-                                     30, "#60373F26", 15);
+                                     120, 60);
+    shadow.setRadius(30);
+    shadow.setBlur(15);
+    shadow.setColor("#60373F26");
     ctx.drawBoxShadow(shadow);
     // Paint rounded rect
     ctx.beginPath();
@@ -2487,12 +2489,10 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_createBoxGradient(const Q
 }
 
 /*!
-    \qmlmethod boxshadow2d Canvas2DContext::createBoxShadow(real x, real y, real width, real height,
-                                                       real blur, string color, real radius)
+    \qmlmethod boxshadow2d Canvas2DContext::createBoxShadow(real x, real y, real width, real height)
 
-    Returns a \l{boxshadow2d} object with color \a color that represents
-    a box shadow that covers the rectangle area (\a x, \a y, \a width, \a height)
-    with blur \a blur and corner radius \a radius.
+    Returns a \l{boxshadow2d} object that represents a box shadow
+    that covers the rectangle area (\a x, \a y, \a width, \a height).
 
     \table
     \row
@@ -2503,8 +2503,9 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_createBoxGradient(const Q
     let offsetY = 4;
     let shadow = ctx.createBoxShadow(40 + offsetX,
                                      40 + offsetY,
-                                     120, 120,
-                                     30, "black", 0);
+                                     120, 120);
+    shadow.setBlur(30);
+    shadow.setColor("black");
     ctx.drawBoxShadow(shadow);
     ctx.beginPath();
     ctx.roundRect(40, 40, 120, 120, 30);
@@ -2512,6 +2513,17 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_createBoxGradient(const Q
     ctx.fill();
     \endcode
     \endtable
+
+    \sa drawBoxShadow()
+*/
+
+/*!
+    \qmlmethod boxshadow2d Canvas2DContext::createBoxShadow(real x, real y, real width, real height,
+                                                            real blur, string color, real radius)
+
+    Returns a \l{boxshadow2d} object with color \a color that represents
+    a box shadow that covers the rectangle area (\a x, \a y, \a width, \a height)
+    with blur \a blur and corner radius \a radius.
 
     \sa drawBoxShadow()
 */

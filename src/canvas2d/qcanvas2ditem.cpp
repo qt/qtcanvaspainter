@@ -111,7 +111,7 @@ QCanvas2DItemPrivate::~QCanvas2DItemPrivate()
 
     The Canvas2D item allows drawing of straight and curved lines, simple and
     complex shapes, graphs, and referenced graphic images. It can also add
-    text, colors, gradients, and patterns, and do low level pixel operations.
+    text, colors, gradients, and patterns.
 
     Rendering to the Canvas is done using a Canvas2DContext object, usually as a
     result of the \l paint signal.
