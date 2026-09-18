@@ -169,6 +169,31 @@ QCanvas2DItem::~QCanvas2DItem()
 }
 
 /*!
+    \qmlproperty color Canvas2D::fillColor
+
+    The color to use for filling the item ie. the item background.
+
+    The default color is \c black. To not have background for Canvas2D,
+    set this to 'transparent' and \l alphaBlending to \c true.
+
+    \sa alphaBlending, QCanvasPainterItem::fillColor
+*/
+
+/*!
+    \qmlproperty bool Canvas2D::alphaBlending
+
+    Controls if blending is always enabled when drawing the Canvas2D item.
+
+    The default value is \c false. This is for performance reasons: if
+    semi-transparency is not involved, because the \l fillColor clears
+    to an opaque color, then there is no point in enabling blending.
+
+    If the \l fillColor has semi-transparency, set this property to \c true.
+
+    \sa fillColor, QQuickRhiItem::alphaBlending
+ */
+
+/*!
     \qmlproperty bool Canvas2D::available
 
     Indicates when Canvas is able to provide a drawing context to operate on.
