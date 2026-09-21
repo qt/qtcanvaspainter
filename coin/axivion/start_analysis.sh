@@ -6,7 +6,7 @@ $HOME/bauhaus-suite/setup.sh --non-interactive
 export PATH=/home/qt/bauhaus-suite/bin:$PATH
 export BAUHAUS_CONFIG=$(cd $(dirname $(readlink -f $0)) && pwd)
 export AXIVION_VERSION_NAME=$(git rev-parse HEAD)
-export EXCLUDE_FILES="../qtcanvaspainter_build/*:src/3rdparty/*"
+export EXCLUDE_FILES="../qtcanvaspainter_build/**:src/3rdparty/**"
 export MODULE=$TESTED_MODULE_COIN
 export PACKAGE="Add-ons"
 export IRNAME="../qtcanvaspainter_build/$TESTED_MODULE_COIN.ir"
@@ -25,6 +25,11 @@ while IFS= read -r file; do
 done <<EOF
 $(grep -rl "$MAGIC" "$ROOT_DIR")
 EOF
+
+if [ -z "$INCLUDE_FILES" ]; then
+    echo "No Security Critical files found; running analysis with an explicit fallback sentinel."
+    INCLUDE_FILES="__NO_FILES_FOUND__"
+fi
 
 export INCLUDE_FILES
 
