@@ -261,17 +261,6 @@ void tst_CanvasRhiRendering::rhiTestData()
 static constexpr int RT_WIDTH = 1280;
 static constexpr int RT_HEIGHT = 720;
 
-// True when running on the Android emulator's SwiftShader software renderer.
-static bool isAndroidSwiftShader(const QRhi *rhi)
-{
-#ifdef Q_OS_ANDROID
-    return rhi->driverInfo().deviceName.contains("SwiftShader");
-#else
-    Q_UNUSED(rhi);
-    return false;
-#endif
-}
-
 tst_CanvasRhiRendering::RenderTargetPtr tst_CanvasRhiRendering::createRenderTarget(QRhi *rhi)
 {
     RenderTargetPtr result(nullptr, &RenderTarget::deleter);
@@ -481,9 +470,6 @@ void tst_CanvasRhiRendering::render()
     if (!rhi)
         QSKIP("Failed to create QRhi, skip");
 
-    if (impl == QRhi::Vulkan && isAndroidSwiftShader(rhi.get()))
-        QSKIP("SwiftShader Vulkan is unreliable and can crash the emulator (QTBUG-146930)");
-
 #ifdef FRAME_CAPTURE
     configureFrameCapture(m_cap.get(), rhi.get());
     startFrameCapture(m_cap.get(), rhi.get(), "render");
@@ -543,9 +529,6 @@ void tst_CanvasRhiRendering::renderWithDepthTest()
     std::unique_ptr<QRhi> rhi(QRhi::create(impl, initParams, rhiCreateFlags));
     if (!rhi)
         QSKIP("Failed to create QRhi, skip");
-
-    if (impl == QRhi::Vulkan && isAndroidSwiftShader(rhi.get()))
-        QSKIP("SwiftShader Vulkan is unreliable and can crash the emulator (QTBUG-146930)");
 
     RenderTargetPtr rt = createRenderTarget(rhi.get());
     QVERIFY(rt);
@@ -626,9 +609,6 @@ void tst_CanvasRhiRendering::canvasRender()
     std::unique_ptr<QRhi> rhi(QRhi::create(impl, initParams, rhiCreateFlags));
     if (!rhi)
         QSKIP("Failed to create QRhi, skip");
-
-    if (impl == QRhi::Vulkan && isAndroidSwiftShader(rhi.get()))
-        QSKIP("SwiftShader Vulkan is unreliable and can crash the emulator (QTBUG-146930)");
 
 #ifdef FRAME_CAPTURE
     configureFrameCapture(m_cap.get(), rhi.get());
@@ -765,9 +745,6 @@ void tst_CanvasRhiRendering::canvasGrab()
     std::unique_ptr<QRhi> rhi(QRhi::create(impl, initParams, rhiCreateFlags));
     if (!rhi)
         QSKIP("Failed to create QRhi, skip");
-
-    if (impl == QRhi::Vulkan && isAndroidSwiftShader(rhi.get()))
-        QSKIP("SwiftShader Vulkan is unreliable and can crash the emulator (QTBUG-146930)");
 
     std::unique_ptr<QCanvasPainterFactory> factory(new QCanvasPainterFactory);
     QCanvasPainter *painter = factory->create(rhi.get());
@@ -937,9 +914,6 @@ void tst_CanvasRhiRendering::canvasGrabContext()
     if (!rhi)
         QSKIP("Failed to create QRhi, skip");
 
-    if (impl == QRhi::Vulkan && isAndroidSwiftShader(rhi.get()))
-        QSKIP("SwiftShader Vulkan is unreliable and can crash the emulator (QTBUG-146930)");
-
     std::unique_ptr<QCanvasPainterFactory> factory(new QCanvasPainterFactory);
     QCanvasPainter *painter = factory->create(rhi.get());
     QCanvasRhiPaintDriver *pd = factory->paintDriver();
@@ -1083,9 +1057,6 @@ void tst_CanvasRhiRendering::canvasRenderMipMap()
     if (!rhi)
         QSKIP("Failed to create QRhi, skip");
 
-    if (impl == QRhi::Vulkan && isAndroidSwiftShader(rhi.get()))
-        QSKIP("SwiftShader Vulkan is unreliable and can crash the emulator (QTBUG-146930)");
-
     std::unique_ptr<QCanvasPainterFactory> factory(new QCanvasPainterFactory);
     QCanvasPainter *painter = factory->create(rhi.get());
     QVERIFY(painter);
@@ -1174,9 +1145,6 @@ void tst_CanvasRhiRendering::canvasRenderHqStroking()
     std::unique_ptr<QRhi> rhi(QRhi::create(impl, initParams, rhiCreateFlags));
     if (!rhi)
         QSKIP("Failed to create QRhi, skip");
-
-    if (impl == QRhi::Vulkan && isAndroidSwiftShader(rhi.get()))
-        QSKIP("SwiftShader Vulkan is unreliable and can crash the emulator (QTBUG-146930)");
 
 #ifdef FRAME_CAPTURE
     configureFrameCapture(m_cap.get(), rhi.get());
@@ -1412,9 +1380,6 @@ void tst_CanvasRhiRendering::canvasRenderPathGroups()
     std::unique_ptr<QRhi> rhi(QRhi::create(impl, initParams, rhiCreateFlags));
     if (!rhi)
         QSKIP("Failed to create QRhi, skip");
-
-    if (impl == QRhi::Vulkan && isAndroidSwiftShader(rhi.get()))
-        QSKIP("SwiftShader Vulkan is unreliable and can crash the emulator (QTBUG-146930)");
 
 #ifdef FRAME_CAPTURE
     configureFrameCapture(m_cap.get(), rhi.get());
@@ -1683,9 +1648,6 @@ void tst_CanvasRhiRendering::canvasRenderGlyphEviction()
     if (!rhi)
         QSKIP("Failed to create QRhi, skip");
 
-    if (impl == QRhi::Vulkan && isAndroidSwiftShader(rhi.get()))
-        QSKIP("SwiftShader Vulkan is unreliable and can crash the emulator (QTBUG-146930)");
-
     std::unique_ptr<QCanvasPainterFactory> factory(new QCanvasPainterFactory);
     QCanvasPainter *painter = factory->create(rhi.get());
     QCanvasRhiPaintDriver *pd = factory->paintDriver();
@@ -1820,9 +1782,6 @@ void tst_CanvasRhiRendering::canvasRenderEmojiGlyphEviction()
     std::unique_ptr<QRhi> rhi(QRhi::create(impl, initParams, rhiCreateFlags));
     if (!rhi)
         QSKIP("Failed to create QRhi, skip");
-
-    if (impl == QRhi::Vulkan && isAndroidSwiftShader(rhi.get()))
-        QSKIP("SwiftShader Vulkan is unreliable and can crash the emulator (QTBUG-146930)");
 
     std::unique_ptr<QCanvasPainterFactory> factory(new QCanvasPainterFactory);
     QCanvasPainter *painter = factory->create(rhi.get());
