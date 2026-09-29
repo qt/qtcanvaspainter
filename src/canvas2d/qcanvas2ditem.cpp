@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
 // Qt-Security score:significant reason:default
 
-#include <QtCanvasPainter/private/qcanvaspainteritem_p.h>
 #include "qcanvas2dcontext_p.h"
 #include "qcanvas2ditem_p.h"
 #include "qcanvas2ditemrenderer_p.h"
@@ -76,11 +75,27 @@ QImage QCanvas2DPixmap::image()
     return m_image;
 }
 
-class QCanvas2DItemPrivate : public QCanvasPainterItemPrivate
+QCanvas2DPainterItem::QCanvas2DPainterItem(QCanvas2DItem *canvas)
+    : QCanvasPainterItem(canvas)
+    , m_canvas(canvas)
+{
+    setFlag(ItemHasContents);
+}
+
+QCanvasPainterItemRenderer* QCanvas2DPainterItem::createItemRenderer() const
+{
+    auto *renderer = new QCanvas2DItemRenderer();
+    QObject::connect(renderer, &QCanvas2DItemRenderer::painted,
+                     m_canvas, &QCanvas2DItem::painted);
+    return renderer;
+}
+
+class QCanvas2DItemPrivate : public QQuickItemPrivate
 {
 public:
     QCanvas2DItemPrivate();
     ~QCanvas2DItemPrivate();
+    QCanvas2DPainterItem *painterItem = nullptr;
     QCanvas2DContext *context = nullptr;
     QString contextType;
     QHash<QUrl, QQmlRefPointer<QCanvas2DPixmap> > pixmaps;
@@ -92,7 +107,7 @@ public:
 };
 
 QCanvas2DItemPrivate::QCanvas2DItemPrivate()
-    : QCanvasPainterItemPrivate()
+    : QQuickItemPrivate()
 {
     implicitAntialiasing = true;
 }
@@ -153,8 +168,15 @@ QCanvas2DItemPrivate::~QCanvas2DItemPrivate()
 */
 
 QCanvas2DItem::QCanvas2DItem(QQuickItem *parent)
-    : QCanvasPainterItem(*(new QCanvas2DItemPrivate), parent)
+    : QQuickItem(*(new QCanvas2DItemPrivate), parent)
 {
+    Q_D(QCanvas2DItem);
+    d->painterItem = new QCanvas2DPainterItem(this);
+    d->painterItem->setAntialiasing(antialiasing());
+    connect(this, &QQuickItem::antialiasingChanged, d->painterItem, [this]() {
+        d_func()->painterItem->setAntialiasing(antialiasing());
+    });
+
     // TODO: Should we default to performance like QCanvasPainterItem
     // and remove these, or compatibity with HTLM/Quick Canvas and
     // enable these to be the default?
@@ -179,6 +201,21 @@ QCanvas2DItem::~QCanvas2DItem()
     \sa alphaBlending, QCanvasPainterItem::fillColor
 */
 
+QColor QCanvas2DItem::fillColor() const
+{
+    Q_D(const QCanvas2DItem);
+    return d->painterItem->fillColor();
+}
+
+void QCanvas2DItem::setFillColor(QColor color)
+{
+    Q_D(QCanvas2DItem);
+    if (fillColor() == color)
+        return;
+    d->painterItem->setFillColor(color);
+    Q_EMIT fillColorChanged();
+}
+
 /*!
     \qmlproperty bool Canvas2D::alphaBlending
 
@@ -192,6 +229,21 @@ QCanvas2DItem::~QCanvas2DItem()
 
     \sa fillColor, QQuickRhiItem::alphaBlending
  */
+
+bool QCanvas2DItem::alphaBlending() const
+{
+    Q_D(const QCanvas2DItem);
+    return d->painterItem->alphaBlending();
+}
+
+void QCanvas2DItem::setAlphaBlending(bool enable)
+{
+    Q_D(QCanvas2DItem);
+    if (alphaBlending() == enable)
+        return;
+    d->painterItem->setAlphaBlending(enable);
+    Q_EMIT alphaBlendingChanged();
+}
 
 /*!
     \qmlproperty bool Canvas2D::available
@@ -282,11 +334,12 @@ void QCanvas2DItem::geometryChange(const QRectF &newGeometry, const QRectF &oldG
 {
     Q_D(QCanvas2DItem);
 
-    QCanvasPainterItem::geometryChange(newGeometry, oldGeometry);
+    QQuickItem::geometryChange(newGeometry, oldGeometry);
 
     // Due to indirect recursion, newGeometry may be outdated
     // after this call, so we use width and height instead.
     QSizeF newSize = QSizeF(width(), height());
+    d->painterItem->setSize(newSize);
     if (d->available && newSize != oldGeometry.size()) {
         if (isVisible() || (d->extra.isAllocated() && d->extra->effectRefCount > 0))
             requestPaint();
@@ -310,8 +363,20 @@ bool QCanvas2DItem::event(QEvent *event)
         polish();
         return true;
     default:
-        return QCanvasPainterItem::event(event);
+        return QQuickItem::event(event);
     }
+}
+
+bool QCanvas2DItem::isTextureProvider() const
+{
+    Q_D(const QCanvas2DItem);
+    return d->painterItem->isTextureProvider();
+}
+
+QSGTextureProvider *QCanvas2DItem::textureProvider() const
+{
+    Q_D(const QCanvas2DItem);
+    return d->painterItem->textureProvider();
 }
 
 void QCanvas2DItem::invalidateSceneGraph()
@@ -334,7 +399,7 @@ void QCanvas2DItem::schedulePolish()
 
 void QCanvas2DItem::componentComplete()
 {
-    QCanvasPainterItem::componentComplete();
+    QQuickItem::componentComplete();
 
     Q_D(QCanvas2DItem);
     d->baseUrl = qmlEngine(this)->contextForObject(this)->baseUrl();
@@ -342,7 +407,7 @@ void QCanvas2DItem::componentComplete()
 
 void QCanvas2DItem::itemChange(QQuickItem::ItemChange change, const QQuickItem::ItemChangeData &value)
 {
-    QCanvasPainterItem::itemChange(change, value);
+    QQuickItem::itemChange(change, value);
     if (change != QQuickItem::ItemSceneChange)
         return;
 
@@ -371,7 +436,7 @@ void QCanvas2DItem::itemChange(QQuickItem::ItemChange change, const QQuickItem::
 
 void QCanvas2DItem::updatePolish()
 {
-    QCanvasPainterItem::updatePolish();
+    QQuickItem::updatePolish();
 
     Q_D(QCanvas2DItem);
 
@@ -410,7 +475,7 @@ void QCanvas2DItem::setCcb(QCanvas2DCommandBuffer *ccb)
 {
     Q_D(QCanvas2DItem);
     d->ccb = ccb;
-    update();
+    d->painterItem->update();
 }
 
 /*!
@@ -547,6 +612,7 @@ void QCanvas2DItem::markDirty()
         return;
 
     polish();
+    d->painterItem->polish();
 }
 
 void QCanvas2DItem::checkAnimationCallbacks()
@@ -704,14 +770,6 @@ void QCanvas2DItem::initializeContext(QCanvas2DContext *context, const QVariantM
     d->context->init(this, args);
     d->context->setV4Engine(qmlEngine(this)->handle());
     emit contextChanged();
-}
-
-QCanvasPainterItemRenderer* QCanvas2DItem::createItemRenderer() const
-{
-    auto *renderer = new QCanvas2DItemRenderer();
-    QObject::connect(renderer, &QCanvas2DItemRenderer::painted,
-                     this, &QCanvas2DItem::painted);
-    return renderer;
 }
 
 /*!

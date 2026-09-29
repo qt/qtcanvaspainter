@@ -34,7 +34,7 @@ QCanvas2DItemRenderer::~QCanvas2DItemRenderer()
 void QCanvas2DItemRenderer::synchronizeData(QCanvasPainterItem *item)
 {
     Q_ASSERT(item);
-    QCanvas2DItem *realItem = static_cast<QCanvas2DItem*>(item);
+    QCanvas2DItem *realItem = static_cast<QCanvas2DPainterItem*>(item)->canvas();
 
     imageData = realItem->imageData();
 
