@@ -18,6 +18,7 @@
 
 #include "qtcanvas2dglobal_p.h"
 #include "qcanvaspainteritem.h"
+#include <QtQuick/qquickitem.h>
 #include <QtCanvasPainter/qcanvaspainter.h>
 #include <QtCanvasPainter/qcanvasimagepattern.h>
 #include <QtQml/private/qqmlrefcount_p.h>
@@ -29,6 +30,7 @@ QT_BEGIN_NAMESPACE
 
 class QCanvas2DContext;
 
+class QCanvas2DItem;
 class QCanvas2DItemPrivate;
 class QQuickPixmap;
 class QCanvas2DCommandBuffer;
@@ -52,9 +54,27 @@ private:
     QImage m_image;
 };
 
-class Q_CANVAS2D_EXPORT QCanvas2DItem : public QCanvasPainterItem
+class Q_CANVAS2D_EXPORT QCanvas2DPainterItem : public QCanvasPainterItem
 {
     Q_OBJECT
+
+public:
+    explicit QCanvas2DPainterItem(QCanvas2DItem *canvas);
+
+    QCanvas2DItem *canvas() const { return m_canvas; }
+
+protected:
+    QCanvasPainterItemRenderer *createItemRenderer() const override;
+
+private:
+    QCanvas2DItem *m_canvas = nullptr;
+};
+
+class Q_CANVAS2D_EXPORT QCanvas2DItem : public QQuickItem
+{
+    Q_OBJECT
+    Q_PROPERTY(QColor fillColor READ fillColor WRITE setFillColor NOTIFY fillColorChanged FINAL)
+    Q_PROPERTY(bool alphaBlending READ alphaBlending WRITE setAlphaBlending NOTIFY alphaBlendingChanged FINAL)
     Q_PROPERTY(bool available READ isAvailable NOTIFY availableChanged FINAL)
     Q_PROPERTY(QString contextType READ contextType WRITE setContextType NOTIFY contextTypeChanged FINAL)
     Q_PROPERTY(QJSValue context READ context NOTIFY contextChanged FINAL)
@@ -71,6 +91,12 @@ public:
         QCanvasPainter::ImageFlags flags;
         QString url;
     };
+
+    QColor fillColor() const;
+    void setFillColor(QColor color);
+
+    bool alphaBlending() const;
+    void setAlphaBlending(bool enable);
 
     bool isAvailable() const;
 
@@ -91,7 +117,6 @@ public:
 
     QCanvas2DCommandBuffer *ccb() const;
     void setCcb(QCanvas2DCommandBuffer *ccb);
-    QCanvasPainterItemRenderer *createItemRenderer() const override;
     void addImagePattern(const QCanvasImagePattern &pattern, const QString &url, const QImage &image, QCanvasPainter::ImageFlags flags);
     QHash<uint, ImageData> imageData() const;
     void clearImageDataCache();
@@ -99,6 +124,8 @@ public:
 Q_SIGNALS:
     void paint();
     void painted();
+    void fillColorChanged();
+    void alphaBlendingChanged();
     void availableChanged();
     void contextTypeChanged();
     void contextChanged();
@@ -116,6 +143,11 @@ private Q_SLOTS:
     void checkAnimationCallbacks();
     void invalidateSceneGraph();
     void schedulePolish();
+
+public:
+    // Public as these are public also in QQuickItem.
+    bool isTextureProvider() const override;
+    QSGTextureProvider *textureProvider() const override;
 
 protected:
     void componentComplete() override;
