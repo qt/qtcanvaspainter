@@ -18,14 +18,11 @@
 
 #include <QtCore/qstring.h>
 #include <QtGui/qfont.h>
-#include <QtGui/qcolor.h>
-#include <QtQml/private/qv4value_p.h>
 
 QT_BEGIN_NAMESPACE
 
 namespace QCanvas2DUtils
 {
-    QColor qColorFromString(const QV4::Value &name);
     QFont qFontFromString(const QString& fontString, const QFont &currentFont);
 }
 

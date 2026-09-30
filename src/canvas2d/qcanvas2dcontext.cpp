@@ -1902,10 +1902,6 @@ QV4::ReturnedValue QCanvasJSContext2D::method_set_globalCompositeOperation(const
     Invalid values are ignored.
     This property accepts several color syntaxes:
     \list
-    \li 'rgb(red, green, blue)' - for example: 'rgb(255, 100, 55)' or 'rgb(100%, 70%, 30%)'
-    \li 'rgba(red, green, blue, alpha)' - for example: 'rgb(255, 100, 55, 1.0)' or 'rgb(100%, 70%, 30%, 0.5)'
-    \li 'hsl(hue, saturation, lightness)'
-    \li 'hsla(hue, saturation, lightness, alpha)'
     \li '#RRGGBB' - for example: '#00FFCC'
     \li '#AARRGGBB' - for example: '#8000FFCC'
     \li SVG color name - for example: 'black', 'green' or 'lightsteelblue'
@@ -1962,15 +1958,10 @@ QV4::ReturnedValue QCanvasJSContext2D::method_get_fillStyle(const QV4::FunctionO
 
     const QColor color = r->d()->context()->state.fillColor.toRgb();
     if (color.isValid()) {
+        // Return #RRGGBB with full alpha, #AARRGGBB otherwise.
         if (color.alpha() == 255)
-            RETURN_RESULT(scope.engine->newString(color.name()));
-        QString alphaString = QString::number(color.alphaF(), 'f');
-        while (alphaString.endsWith(QLatin1Char('0')))
-            alphaString.chop(1);
-        if (alphaString.endsWith(QLatin1Char('.')))
-            alphaString += QLatin1Char('0');
-        QString str = QString::fromLatin1("rgba(%1, %2, %3, %4)").arg(color.red()).arg(color.green()).arg(color.blue()).arg(alphaString);
-        RETURN_RESULT(scope.engine->newString(str));
+            RETURN_RESULT(scope.engine->newString(color.name(QColor::HexRgb)));
+        RETURN_RESULT(scope.engine->newString(color.name(QColor::HexArgb)));
     }
     RETURN_RESULT(r->d()->context()->m_fillStyle.value());
 }
@@ -2019,7 +2010,7 @@ QV4::ReturnedValue QCanvasJSContext2D::method_set_fillStyle(const QV4::FunctionO
             r->d()->context()->m_fillStyle.set(scope.engine, value);
         }
     } else if (value->isString()) {
-        QColor color = QCanvas2DUtils::qColorFromString(value);
+        QColor color = QColor::fromString(value->toQString());
         if (color.isValid()) {
             r->d()->context()->state.fillColor = color;
             r->d()->context()->buffer()->setFillColor(color);
@@ -2166,15 +2157,10 @@ QV4::ReturnedValue QCanvasJSContext2D::method_get_strokeStyle(const QV4::Functio
 
     const QColor color = r->d()->context()->state.strokeColor.toRgb();
     if (color.isValid()) {
+        // Return #RRGGBB with full alpha, #AARRGGBB otherwise.
         if (color.alpha() == 255)
-            RETURN_RESULT(scope.engine->newString(color.name()));
-        QString alphaString = QString::number(color.alphaF(), 'f');
-        while (alphaString.endsWith(QLatin1Char('0')))
-            alphaString.chop(1);
-        if (alphaString.endsWith(QLatin1Char('.')))
-            alphaString += QLatin1Char('0');
-        QString str = QString::fromLatin1("rgba(%1, %2, %3, %4)").arg(color.red()).arg(color.green()).arg(color.blue()).arg(alphaString);
-        RETURN_RESULT(scope.engine->newString(str));
+            RETURN_RESULT(scope.engine->newString(color.name(QColor::HexRgb)));
+        RETURN_RESULT(scope.engine->newString(color.name(QColor::HexArgb)));
     }
     RETURN_RESULT(r->d()->context()->m_strokeStyle.value());
 }
@@ -2200,7 +2186,7 @@ QV4::ReturnedValue QCanvasJSContext2D::method_set_strokeStyle(const QV4::Functio
             r->d()->context()->m_strokeStyle.set(scope.engine, value);
         }
     } else if (value->isString()) {
-        QColor color = QCanvas2DUtils::qColorFromString(value);
+        QColor color = QColor::fromString(value->toQString());
         if (color.isValid()) {
             r->d()->context()->state.strokeColor = color;
             r->d()->context()->buffer()->setStrokeColor(color);
@@ -2561,7 +2547,7 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_createBoxShadow(const QV4
                 color = QV4::ExecutionEngine::toVariant(
                                 argv[5], QMetaType::fromType<QColor>()).value<QColor>();
             } else {
-                color = QCanvas2DUtils::qColorFromString(argv[5]);
+                color = QColor::fromString(argv[5].toQString());
             }
         }
 
@@ -2651,7 +2637,7 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_createGridPattern(const Q
                 lineColor = QV4::ExecutionEngine::toVariant(
                                 argv[4], QMetaType::fromType<QColor>()).value<QColor>();
             } else {
-                lineColor = QCanvas2DUtils::qColorFromString(argv[4]);
+                lineColor = QColor::fromString(argv[4].toQString());
             }
         }
         if (argc >= 6) {
@@ -2659,7 +2645,7 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_createGridPattern(const Q
                 backgroundColor = QV4::ExecutionEngine::toVariant(
                                     argv[5], QMetaType::fromType<QColor>()).value<QColor>();
             } else {
-                backgroundColor = QCanvas2DUtils::qColorFromString(argv[5]);
+                backgroundColor = QColor::fromString(argv[5].toQString());
             }
         }
 

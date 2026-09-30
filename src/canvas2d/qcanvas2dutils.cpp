@@ -3,12 +3,9 @@
 // Qt-Security score:significant reason:default
 
 #include "qcanvas2dutils_p.h"
-#include <QtCore/qbytearray.h>
-#include <QtCore/qminmax.h>
 #include <QtCore/private/qlocale_tools_p.h>
 #include <QtCore/qstringview.h>
 #include <QtGui/qfont.h>
-#include <QtGui/qcolor.h>
 #include <QtGui/qfontdatabase.h>
 
 QT_BEGIN_NAMESPACE
@@ -20,78 +17,6 @@ enum FontToken
     FontVariant = 0x02,
     FontWeight = 0x04
 };
-
-QColor QCanvas2DUtils::qColorFromString(const QV4::Value &name)
-{
-    QByteArray str = name.toQString().toUtf8();
-
-    char *p = str.data();
-    int len = str.size();
-    //rgb/hsl color string has at least 7 characters
-    if (!p || len > 255 || len <= 7)
-        return QColor::fromString(p);
-    else {
-        bool isRgb(false), isHsl(false), hasAlpha(false);
-        Q_UNUSED(isHsl);
-
-        while (isspace(*p)) p++;
-        if (strncmp(p, "rgb", 3) == 0)
-            isRgb = true;
-        else if (strncmp(p, "hsl", 3) == 0)
-            isHsl = true;
-        else
-            return QColor::fromString(p);
-
-        p+=3; //skip "rgb" or "hsl"
-        hasAlpha = (*p == 'a') ? true : false;
-
-        ++p; //skip "("
-
-        if (hasAlpha) ++p; //skip "a"
-
-        int rh, gs, bl, alpha = 255;
-
-        //red
-        while (isspace(*p)) p++;
-        rh = strtol(p, &p, 10);
-        if (*p == '%') {
-            rh = qRound(rh/100.0 * 255);
-            ++p;
-        }
-        if (*p++ != ',') return QColor();
-
-        //green
-        while (isspace(*p)) p++;
-        gs = strtol(p, &p, 10);
-        if (*p == '%') {
-            gs = qRound(gs/100.0 * 255);
-            ++p;
-        }
-        if (*p++ != ',') return QColor();
-
-        //blue
-        while (isspace(*p)) p++;
-        bl = strtol(p, &p, 10);
-        if (*p == '%') {
-            bl = qRound(bl/100.0 * 255);
-            ++p;
-        }
-
-        if (hasAlpha) {
-            if (*p++!= ',') return QColor();
-            while (isspace(*p)) p++;
-            bool ok = false;
-            alpha = qRound(qstrtod(p, const_cast<const char **>(&p), &ok) * 255);
-        }
-
-        if (*p != ')') return QColor();
-        if (isRgb)
-            return QColor::fromRgba(qRgba(qBound(0, rh, 255), qBound(0, gs, 255), qBound(0, bl, 255), qBound(0, alpha, 255)));
-        else if (isHsl)
-            return QColor::fromHsl(qBound(0, rh, 359), qBound(0, gs, 255), qBound(0, bl, 255), qBound(0, alpha, 255));
-    }
-    return QColor();
-}
 
 static int parseFontSizeFromToken(QStringView fontSizeToken, bool &ok)
 {
