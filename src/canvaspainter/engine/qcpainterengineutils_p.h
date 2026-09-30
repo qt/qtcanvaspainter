@@ -230,7 +230,7 @@ struct QCContext {
     float divsTol;
     float tessTol;
     float distTol;
-    float devicePxRatio;
+    float devicePxRatio = 1.0f;
     float prevX;
     float prevY;
     // Effectively used amounts
