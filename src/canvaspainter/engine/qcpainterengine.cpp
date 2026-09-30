@@ -157,7 +157,8 @@ void QCPainterEngine::reset()
     state.fill = QCPaint();
     state.stroke = QCPaint();
     state.strokeWidth = 1.0f;
-    state.antialias = 1.0f;
+    // Must match what setDevicePixelRatio() and setAntialias(1) would set.
+    state.antialias = QCPAINTER_ANTIALIAS_MULTIPLIER / ctx.devicePxRatio;
     state.miterLimit = 10.0f;
     state.lineCap = QCanvasPainter::LineCap::Butt;
     state.lineJoin = QCanvasPainter::LineJoin::Miter;
