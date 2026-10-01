@@ -16,12 +16,12 @@ ApplicationWindow {
 
     property bool forceRepaint: false
 
-    property real fontSizeSmall: 12
-    property real fontSizeLarge: 20
-    property real iconSize: 64
+    readonly property real fontSizeSmall: 12
+    readonly property real fontSizeLarge: 20
+    readonly property real iconSize: 64
 
-    width: 1920 / 2 //1280
-    height: 1080 / 2 //720
+    width: 1920 / 2
+    height: 1080 / 2
     visible: true
     title: qsTr("Canvas2D Tester")
     color: "#202020"
@@ -37,8 +37,19 @@ ApplicationWindow {
         height: 80
         color: "#f0f0f0"
         Row {
-            anchors.verticalCenter: parent.verticalCenter
+            component Separator : Item {
+                width: 40
+                height: parent.height
+                Rectangle {
+                    width: 2
+                    height: 40
+                    anchors.centerIn: parent
+                    color: "#d0d0d0"
+                }
+            }
+
             x: 20
+            height: parent.height
             Item {
                 width: 100
                 height: parent.height
@@ -59,16 +70,7 @@ ApplicationWindow {
                     }
                 }
             }
-            Item {
-                width: 40
-                height: parent.height
-                Rectangle {
-                    width: 2
-                    height: 40
-                    anchors.centerIn: parent
-                    color: "#d0d0d0"
-                }
-            }
+            Separator {}
             Switch {
                 id: animateSwitch
                 anchors.verticalCenter: parent.verticalCenter
@@ -80,19 +82,10 @@ ApplicationWindow {
                     font.pixelSize: 12
                     font.bold: animateSwitch.checked
                     color: "#202020"
-                    text: "Animate"
+                    text: qsTr("Animate")
                 }
             }
-            Item {
-                width: 40
-                height: parent.height
-                Rectangle {
-                    width: 2
-                    height: 40
-                    anchors.centerIn: parent
-                    color: "#d0d0d0"
-                }
-            }
+            Separator {}
             Slider {
                 id: complexitySlider
                 anchors.verticalCenter: parent.verticalCenter
@@ -107,17 +100,7 @@ ApplicationWindow {
                     anchors.verticalCenterOffset: -6
                     font.pixelSize: 12
                     color: "#202020"
-                    text: "Complexity: " + complexitySlider.value
-                }
-            }
-            Item {
-                width: 40
-                height: parent.height
-                Rectangle {
-                    width: 2
-                    height: 40
-                    anchors.centerIn: parent
-                    color: "#d0d0d0"
+                    text: qsTr("Complexity") + ": " + complexitySlider.value
                 }
             }
         }
@@ -130,7 +113,7 @@ ApplicationWindow {
         readonly property real listItemHeight: 40
 
         anchors.fill: parent
-        visible: mainWindow.testCase == -1
+        visible: mainWindow.testCase === -1
 
         ListModel {
             id: testsModel
@@ -230,21 +213,21 @@ ApplicationWindow {
                 width: testsView.listItemWidth
                 height: testsView.listItemHeight
                 background: Rectangle {
-                    id: buttonBackground
                     border.width: 0.5
                     border.color: "#d0808080"
                     color: "#d0404040"
                     opacity: button.hovered ? 1.0 : 0.5
                 }
                 contentItem: Text {
-                    anchors.centerIn: parent
+                    horizontalAlignment: Text.AlignHCenter
+                    verticalAlignment: Text.AlignVCenter
                     color: "#f0f0f0"
                     font.pointSize: mainWindow.fontSizeSmall
                     text: button.name
                 }
 
                 onClicked: {
-                    mainWindow.testCase = button.testId
+                    mainWindow.testCase = button.testId;
                     canvasView.updateBothCanvas();
                 }
             }
@@ -257,13 +240,13 @@ ApplicationWindow {
             spacing: 20
 
             component HeaderItem : Item {
-                id: component
+                id: headerItem
                 property string text
                 width: testsView.listItemWidth
                 height: testsView.listItemHeight
                 Text {
                     anchors.centerIn: parent
-                    text: component.text
+                    text: headerItem.text
                     color: "#f0f0f0"
                     font.pointSize: mainWindow.fontSizeSmall * 1.2
                     font.bold: true
@@ -336,8 +319,8 @@ ApplicationWindow {
         z: 10
         implicitWidth: mainWindow.iconSize
         implicitHeight: mainWindow.iconSize
-        opacity: mainWindow.testCase >= 0
-        visible: opacity
+        opacity: mainWindow.testCase >= 0 ? 1.0 : 0.0
+        visible: opacity > 0
         icon.source: "arrow_icon.png"
         icon.width: backButton.width * 0.3
         icon.height: backButton.height * 0.3
@@ -346,7 +329,7 @@ ApplicationWindow {
             color: "transparent"
         }
         onClicked: {
-            mainWindow.testCase = -1
+            mainWindow.testCase = -1;
         }
         Behavior on opacity {
             NumberAnimation {
