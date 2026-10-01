@@ -10,6 +10,9 @@ Item {
     property bool showCanvas2D: false
     // True when animation is on
     property bool animate: true
+    // Cached paths for the path2D test
+    property path2d heartPath
+    property path2d personPath
 
     function updateCurrentCanvas() {
         if (mainWindow.requestCanvas2D)
@@ -27,10 +30,10 @@ Item {
 
     FrameAnimation {
         id: fa
-        running: true
+        running: rootItem.visible
         paused: !rootItem.animate
         onTriggered: {
-            updateCurrentCanvas();
+            rootItem.updateCurrentCanvas();
         }
     }
 
@@ -76,56 +79,57 @@ Item {
         // Clear the canvas, not needed with Canvas2D.
         if (!isCanvas2D)
             ctx.clearRect(0, 0, canvas2D.width, canvas2D.height);
-        let complexity = complexitySlider.value;
+        const complexity = complexitySlider.value;
+        const testCase = mainWindow.testCase;
 
-        if (testCase == -1)
+        if (testCase === -1)
             return;
 
         if (testCase >= 200 && !isCanvas2D)
             return;
 
         // Tests
-        if (testCase == 0)
+        if (testCase === 0)
             textAlignTest(ctx);
-        else if (testCase == 1)
+        else if (testCase === 1)
             compositeModesTest(ctx);
-        else if (testCase == 2)
+        else if (testCase === 2)
             gradientsTest(ctx, isCanvas2D);
 
         // Benchmarks
-        else if (testCase == 100)
-            rectanglesBenchmark(ctx, complexity)
-        else if (testCase == 101)
+        else if (testCase === 100)
+            rectanglesBenchmark(ctx, complexity);
+        else if (testCase === 101)
             linesBenchmark(ctx, complexity);
-        else if (testCase == 102)
+        else if (testCase === 102)
             circlesBenchmark(ctx, complexity);
-        else if (testCase == 103)
+        else if (testCase === 103)
             clipBenchmark(ctx, complexity, isCanvas2D);
-        else if (testCase == 104)
+        else if (testCase === 104)
             lineStylesBenchmark(ctx, complexity);
-        else if (testCase == 106)
+        else if (testCase === 106)
             textsBenchmark(ctx, complexity);
-        else if (testCase == 107)
+        else if (testCase === 107)
             stateHandlingBenchmark(ctx, complexity);
-        else if (testCase == 108)
+        else if (testCase === 108)
             imagesBenchmark(ctx, complexity);
-        else if (testCase == 109)
+        else if (testCase === 109)
             transformationsBenchmark(ctx, complexity, isCanvas2D);
 
         // Features
-        else if (testCase == 200)
+        else if (testCase === 200)
             boxGradientTest(ctx);
-        else if (testCase == 201)
+        else if (testCase === 201)
             boxShadowTest(ctx);
-        else if (testCase == 202)
+        else if (testCase === 202)
             colorEffectsTest(ctx);
-        else if (testCase == 203)
+        else if (testCase === 203)
             pathHolesTest(ctx);
-        else if (testCase == 204)
+        else if (testCase === 204)
             antialiasTest(ctx);
-        else if (testCase == 205)
+        else if (testCase === 205)
             gridPatternTest(ctx);
-        else if (testCase == 206)
+        else if (testCase === 206)
             path2DTest(ctx, complexity);
 
         mainWindow.forceRepaint = false;
@@ -222,7 +226,7 @@ Item {
     function lineStylesBenchmark(ctx, complexity) {
         const w = canvas2D.width;
         const h = canvas2D.height;
-        const m = canvas2D.height * 0.1;
+        const m = h * 0.1;
         const lines = 3 * complexity;
         const lineCount = 100;
         const xMovement = (w - 2 * m) / lineCount;
@@ -230,7 +234,7 @@ Item {
         const lineCaps = ["butt", "round", "square"];
         ctx.lineWidth = 5 + 10 / complexity;
         ctx.miterLimit = 5;
-        const setH = (h - 2 * m)  / (lines);
+        const setH = (h - 2 * m) / lines;
         let setY = m + 0.5 * setH;
         for (let j=0; j<lines; j++) {
             ctx.lineJoin = lineJoins[j%3];
@@ -437,17 +441,17 @@ Item {
         ctx.fillStyle = "#e0e0e0";
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
-        const texts = 100 * complexity;//200;
+        const texts = 100 * complexity;
         const yMovement = (h - m*2) / texts;
         for (let i=0; i<texts; i++) {
             const xPos = w * 0.5 + w * 0.4 * Math.sin(0.1 * fa.elapsedTime + i*0.5);
             const yPos = m + i * yMovement;
-            const s = "pos:(" + xPos.toFixed(0) + ", " + yPos.toFixed(0) + ")"
+            const s = "pos:(" + xPos.toFixed(0) + ", " + yPos.toFixed(0) + ")";
             ctx.fillText(s, xPos, yPos);
         }
     }
 
-    function textAlignTest(ctx, complexity) {
+    function textAlignTest(ctx) {
         const w = canvas2D.width;
         const h = canvas2D.height;
         const m = w * 0.1;
@@ -460,7 +464,6 @@ Item {
         ctx.lineTo(cX, h * 0.9);
         ctx.stroke();
 
-        ctx.lineWidth = 2;
         ctx.font = "30px sans-serif";
         ctx.fillStyle = "#e0e0e0";
         ctx.textBaseline = "top";
@@ -474,11 +477,12 @@ Item {
         alignments.forEach((alignment, index) => {
             const y = h * 0.1 + index * h * 0.15;
             ctx.textAlign = alignment;
-            let s = `Align (${alignment})`;
+            const s = `Align (${alignment})`;
             ctx.fillText(s, cX, y);
         });
 
         ctx.textAlign = "left";
+        ctx.strokeStyle = "red";
         const baselines = [
           "top",
           "hanging",
@@ -494,9 +498,7 @@ Item {
             ctx.beginPath();
             ctx.moveTo(m, y + 0.5);
             ctx.lineTo(m + w*0.4, y + 0.5);
-            ctx.strokeStyle = "red";
             ctx.stroke();
-            ctx.lineWidth = 2;
             const s = `Baseline (${baseline})`;
             ctx.fillText(s, m, y);
         });
@@ -505,7 +507,7 @@ Item {
     function imagesBenchmark(ctx, complexity) {
         const w = canvas2D.width;
         const h = canvas2D.height;
-        const m = canvas2D.height * 0.1;
+        const m = h * 0.1;
         ctx.fillStyle = "#000000";
         ctx.fillRect(0, m, w, h-m);
         // TODO: This doesn't work, so pattern image size can't be adjusted after load?
@@ -514,21 +516,20 @@ Item {
         //img.width = 32;
         //img.height = 23;
         //var pattern = ctx.createPattern(img, 'repeat');
-        var pattern = ctx.createPattern("qtlogo.png", 'repeat');
+        const pattern = ctx.createPattern("qtlogo.png", "repeat");
         ctx.fillStyle = pattern;
         ctx.fillRect(0, m, w, h-m);
-        const images = 1000 * complexity;//200;
+        const images = 1000 * complexity;
         const imageSize = w * 0.05;
         const yMovement = (h - m*2) / images;
         for (let i=0; i<images; i++) {
             const xPos = -0.5*imageSize + w * 0.5 + w * 0.4 * Math.sin(0.1 * fa.elapsedTime + i);
             const yPos = m + i * yMovement;
-            ctx.drawImage("face-smile.png", xPos, yPos, imageSize, imageSize)
+            ctx.drawImage("face-smile.png", xPos, yPos, imageSize, imageSize);
         }
     }
 
     function drawFlower(ctx, isCanvas2D, cX, cY, leafs) {
-        const w = canvas2D.width;
         const h = canvas2D.height;
         const rotateAngle = (2 * Math.PI) / leafs;
         const leafHeight = h/2;
@@ -580,16 +581,15 @@ Item {
         const s = Math.min(w, h);
         ctx.strokeStyle = "#000000";
         ctx.fillStyle = "#e0e0e0";
-        drawFlower(ctx, isCanvas2D, w*0.5, h*0.5, 26);
-        const flowers = complexity;//5*complexity;
+        drawFlower(ctx, isCanvas2D, cX, cY, 26);
+        const flowers = complexity;
         for (let i = 0; i < flowers; i++) {
             ctx.resetTransform();
             ctx.translate(cX, cY);
             const rotateAngle = (i / flowers) * Math.PI*0.5;
             ctx.rotate(rotateAngle);
             ctx.translate(-cX, -cY);
-            let c1 = Qt.rgba(1 - (i / flowers), (i / flowers), 1, 1);
-            ctx.fillStyle = c1;
+            ctx.fillStyle = Qt.rgba(1 - (i / flowers), (i / flowers), 1, 1);
             const sr = s * 0.25;
             drawFlower(ctx, isCanvas2D, cX + sr, cY - sr, 6);
             drawFlower(ctx, isCanvas2D, cX + sr, cY + sr, 10);
@@ -607,7 +607,6 @@ Item {
         const marginY = h * 0.05;
         const size = w / rects - margin;
         const lineWidth = 1 + w * 0.004;
-        const animationSine = 0.5 + 0.5 * Math.sin(fa.elapsedTime);
         const renders = complexity * 20;
         for (let i = 0; i < renders; i++) {
             let posX = margin/2 + (i / renders) * margin;
@@ -655,7 +654,7 @@ Item {
         ctx.globalCompositeOperation = "source-over";
         // First item
         ctx.beginPath();
-        ctx.rect(x, y, w, h * 0.7, w * 0.2);
+        ctx.rect(x, y, w, h * 0.7);
         ctx.fillStyle = "#DFD0B8";
         ctx.fill();
         ctx.strokeStyle = "#ffffff";
@@ -724,7 +723,7 @@ Item {
         posX += size + margin;
 
         const r2 = size/4;
-        const f2 = size/2 - animationSine*size/3
+        const f2 = size/2 - animationSine*size/3;
         const g2 = ctx.createBoxGradient(posX, posY, size, size, f2, r2);
         g2.addColorStop(0.0, Qt.rgba(0, 1, 0, 1));
         g2.addColorStop(1.0, Qt.rgba(1, 0, 0, 1));
@@ -752,7 +751,6 @@ Item {
         g4.addColorStop(1.0, Qt.rgba(0, 0, 0, 0));
         ctx.fillStyle = g4;
         ctx.fillRect(posX, posY, size, size);
-        posX += size + margin;
     }
 
     function boxShadowTest(ctx)
@@ -809,10 +807,11 @@ Item {
         ctx.lineWidth = border;
         const cx = x + 0.5 * w;
         const cy = y + 0.5 * h;
-        const g1 = ctx.createLinearGradient(cx - 0.25 * w,
-                                            cy - 0.25 * w,
-                                            cx + 0.25 * h,
-                                            cy + 0.25 * w);
+        const gs = 0.25 * w;
+        const g1 = ctx.createLinearGradient(cx - gs,
+                                            cy - gs,
+                                            cx + gs,
+                                            cy + gs);
         g1.addColorStop(0.0, "#FF0000");
         g1.addColorStop(0.5, "#D0D000");
         g1.addColorStop(1.0, "#000000");
@@ -832,7 +831,7 @@ Item {
 
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
-        const fontSize = h * 0.4
+        const fontSize = h * 0.4;
         ctx.font = fontSize + "px sans-serif";
         ctx.fillStyle = "#FFFFFF";
         ctx.fillText(label, cx, cy);
@@ -961,7 +960,7 @@ Item {
         const animSpeed = 0.5 * Math.sqrt(2) / Math.PI * t;
         const bar = size * 0.5;
         const gp3 = ctx.createGridPattern(animSpeed * bar, 0, bar, 0,
-                                          "#2CDE85", "00414A",
+                                          "#2CDE85", "#00414A",
                                           bar * 0.5, bar * 0.5, Math.PI / 4);
         ctx.fillStyle = gp3;
         ctx.lineWidth = 0.5 * bar;
@@ -996,9 +995,6 @@ Item {
         ctx.stroke();
     }
 
-    property path2d heartPath
-    property path2d personPath
-
     function path2DTest(ctx, complexity)
     {
         const w = canvas2D.width;
@@ -1008,7 +1004,7 @@ Item {
         const personPathGroup = 1;
         const heartPathGroup = 2;
 
-        var d = Math.min(w, h) * 0.1;
+        const d = Math.min(w, h) * 0.1;
         ctx.lineWidth = d * 0.1;
 
         // Hearts
@@ -1020,8 +1016,6 @@ Item {
             heartPath.clear();
 
         if (heartPath.isEmpty()) {
-            console.debug("Recreating the path");
-            heartPath.clear();
             heartPath.moveTo(0, d / 4);
             heartPath.quadraticCurveTo(0, 0, d / 4, 0);
             heartPath.quadraticCurveTo(d / 2, 0, d / 2, d / 4);
@@ -1099,7 +1093,6 @@ Item {
             ctx.fill(personPath, personPathGroup);
             ctx.stroke(personPath, personPathGroup);
         }
-
     }
 
     Canvas2D {
@@ -1109,15 +1102,16 @@ Item {
         alphaBlending: true
         fillColor: "transparent"
         onPaint: {
-            var ctx = canvas2D.getContext("2d");
-            paintView(ctx, true);
+            const ctx = canvas2D.getContext("2d");
+            rootItem.paintView(ctx, true);
         }
         onPainted: {
             rootItem.showCanvas2D = mainWindow.requestCanvas2D;
         }
+        onImageLoaded: canvas2D.requestPaint();
         Component.onCompleted: {
-            loadImage("qtlogo.png", Qt.size(32, 23))
-            loadImage("face-smile.png")
+            loadImage("qtlogo.png", Qt.size(32, 23));
+            loadImage("face-smile.png");
             canvas2D.requestPaint();
         }
     }
@@ -1126,15 +1120,16 @@ Item {
         anchors.fill: parent
         visible: !rootItem.showCanvas2D
         onPaint: {
-            var ctx = legacyCanvas.getContext("2d");
-            paintView(ctx, false);
+            const ctx = legacyCanvas.getContext("2d");
+            rootItem.paintView(ctx, false);
         }
         onPainted: {
             rootItem.showCanvas2D = mainWindow.requestCanvas2D;
         }
+        onImageLoaded: legacyCanvas.requestPaint();
         Component.onCompleted: {
-            loadImage("qtlogo.png", Qt.size(32, 23))
-            loadImage("face-smile.png")
+            loadImage("qtlogo.png", Qt.size(32, 23));
+            loadImage("face-smile.png");
             legacyCanvas.requestPaint();
         }
     }
@@ -1142,7 +1137,7 @@ Item {
         anchors.centerIn: legacyCanvas
         color: "#ffffff"
         font.pixelSize: 20
-        visible: !rootItem.showCanvas2D && testCase >= 200
+        visible: !rootItem.showCanvas2D && mainWindow.testCase >= 200
         text: qsTr("The features in this view are only available on Canvas2D.")
     }
 }
