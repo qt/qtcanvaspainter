@@ -64,7 +64,7 @@ private:
     QCanvasPainterPrivate *m_painterPrivate = nullptr;
     QHash<qint64, QCanvasImage> m_data;
     QList<QCanvasImage> m_cleanupTextures;
-    QList<int> m_usedTextureIDs;
+    QSet<int> m_usedTextureIDs;
     qsizetype m_dataAmount = 0;
     bool m_doingResourcesRemoval = false;
 };

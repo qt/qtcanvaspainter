@@ -1508,7 +1508,7 @@ void QCanvasPainter::arc(qreal centerX, qreal centerY, qreal radius, qreal a0, q
 void QCanvasPainter::rect(qreal x, qreal y, qreal width, qreal height)
 {
     Q_D(QCanvasPainter);
-    d->m_e->addRect(x, y, width, height);
+    d->m_e->addRect(float(x), float(y), float(width), float(height));
 }
 
 /*!
@@ -2039,7 +2039,7 @@ void QCanvasPainter::fillRect(qreal x, qreal y, qreal width, qreal height)
 {
     Q_D(QCanvasPainter);
     d->m_e->beginPath();
-    d->m_e->addRect(x, y, width, height);
+    d->m_e->addRect(float(x), float(y), float(width), float(height));
     d->m_e->fill(FillRule::NonZero);
 }
 
@@ -2076,7 +2076,7 @@ void QCanvasPainter::clearRect(qreal x, qreal y, qreal width, qreal height)
 {
     Q_D(QCanvasPainter);
     d->m_e->beginPath();
-    d->m_e->addRect(x, y, width, height);
+    d->m_e->addRect(float(x), float(y), float(width), float(height));
     d->m_e->fillForClear();
 }
 
@@ -2112,7 +2112,7 @@ void QCanvasPainter::strokeRect(qreal x, qreal y, qreal width, qreal height)
 {
     Q_D(QCanvasPainter);
     d->m_e->beginPath();
-    d->m_e->addRect(x, y, width, height);
+    d->m_e->addRect(float(x), float(y), float(width), float(height));
     d->m_e->stroke();
 }
 
@@ -2254,7 +2254,7 @@ void QCanvasPainter::drawImage(const QCanvasImage &image, qreal x, qreal y, qrea
 void QCanvasPainter::drawImage(const QCanvasImage &image, const QRectF &sourceRect, const QRectF &destinationRect)
 {
     Q_D(QCanvasPainter);
-    if (image.isNull())
+    if (image.isNull() || sourceRect.width() <= 0 || sourceRect.height() <= 0)
         return;
 
     const qreal sx = sourceRect.x();
@@ -2888,7 +2888,7 @@ void QCanvasPainter::cleanupResources()
 qsizetype QCanvasPainter::activeImageMemoryUsage() const
 {
     Q_D(const QCanvasPainter);
-    return d->m_imageTracker.dataAmount() * 0.001;
+    return d->m_imageTracker.dataAmount() / 1000;
 }
 
 /*!
@@ -2967,7 +2967,7 @@ void QCanvasImageTracker::handleRemoveTextures()
             m_dataAmount -= ip->sizeInBytes;
             it = m_data.erase(it);
         } else {
-            it++;
+            ++it;
         }
     }
     // Cleanups done, so reset
@@ -2988,8 +2988,8 @@ void QCanvasImageTracker::clear()
 // Marks imageId as being currently used.
 void QCanvasImageTracker::markTextureIdUsed(int imageId)
 {
-    if (imageId > 0 && !m_usedTextureIDs.contains(imageId))
-        m_usedTextureIDs << imageId;
+    if (imageId > 0)
+        m_usedTextureIDs.insert(imageId);
 }
 
 
@@ -3071,10 +3071,9 @@ QCanvasImage QCanvasPainterPrivate::getQCanvasImage(const QImage &image, QCanvas
         key = generateImageKey(image, flags);
         type = QCanvasImagePrivate::DataType::TextureFromImage;
     }
-    if (m_imageTracker.contains(key)) {
-        // Image is in cache
-        qcimage = m_imageTracker.image(key);
-    } else {
+    qcimage = m_imageTracker.image(key);
+    if (qcimage.isNull()) {
+        // Image is not in cache
         if (image.isNull()) {
             qWarning() << "Empty image";
         } else {
@@ -3090,7 +3089,7 @@ QCanvasImage QCanvasPainterPrivate::getQCanvasImage(const QImage &image, QCanvas
             else
                 flags &= ~int(QCanvasPainter::ImageFlag::Premultiplied);
             QCanvasImagePrivate *ip = QCanvasImagePrivate::get(&qcimage);
-            ip->id = m_e->createImage(image.width(), image.height(), flags, convertedImage.constBits());
+            ip->id = m_e->createImage(convertedImage.width(), convertedImage.height(), flags, convertedImage.constBits());
             ip->width = convertedImage.width();
             ip->height = convertedImage.height();
             ip->devicePixelRatio = convertedImage.devicePixelRatio();
@@ -3111,10 +3110,13 @@ QCanvasImage QCanvasPainterPrivate::getQCanvasImage(const QImage &image, QCanvas
 QCanvasImage QCanvasPainterPrivate::getQCanvasImage(QRhiTexture *texture, QCanvasPainter::ImageFlags flags)
 {
     Q_ASSERT(m_renderer);
+    if (!texture)
+        return {};
     QCanvasImage qcimage;
     const quint64 key = texture->globalResourceId();
-    if (m_nativeTextureCache.contains(key)) {
-        qcimage = m_nativeTextureCache.value(key);
+    const auto cached = m_nativeTextureCache.constFind(key);
+    if (cached != m_nativeTextureCache.cend()) {
+        qcimage = cached.value();
         QCanvasImagePrivate *ip = QCanvasImagePrivate::get(&qcimage);
         if (ip->width != texture->pixelSize().width() || ip->height != texture->pixelSize().height())
             qcimage = {};
