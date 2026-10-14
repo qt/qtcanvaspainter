@@ -3004,6 +3004,8 @@ QCanvasPainterPrivate::~QCanvasPainterPrivate()
     handleCleanupTextures();
 }
 
+// Return aligned QRectF.
+// Note: textAlignment must be an effective alignment (Left, Center or Right).
 static QRectF textAlignedRectFromPoint(QCanvasPainter::TextAlign textAlignment, qreal x, qreal y, qreal maxWidth)
 {
     QRectF rect;
@@ -3153,7 +3155,7 @@ void QCanvasPainterPrivate::setFont(const QFont &font)
 void QCanvasPainterPrivate::fillText(const QString &text, qreal x, qreal y, qreal maxWidth)
 {
     // Unify point & rect APIs behavior.
-    const QRectF rect = textAlignedRectFromPoint(m_e->state.textAlignment, x, y, maxWidth);
+    const QRectF rect = textAlignedRectFromPoint(m_e->effectiveTextAlign(text), x, y, maxWidth);
     fillText(text, rect);
 }
 
@@ -3171,7 +3173,7 @@ void QCanvasPainterPrivate::fillShapedText(QFontEngine *fontEngine, const quint3
 QRectF QCanvasPainterPrivate::textBoundingBox(const QString &text, qreal x, qreal y, qreal maxWidth) const
 {
     // Unify point & rect APIs behavior.
-    const QRectF rect = textAlignedRectFromPoint(m_e->state.textAlignment, x, y, maxWidth);
+    const QRectF rect = textAlignedRectFromPoint(m_e->effectiveTextAlign(text), x, y, maxWidth);
     return m_e->textBoundingBox(text, rect);
 }
 
