@@ -2938,12 +2938,7 @@ void QCanvasImageTracker::removeTemporaryResources()
 // Marks a texture with imageId to be removed
 void QCanvasImageTracker::removeTextureId(int imageId)
 {
-    for (auto i = m_data.cbegin(), end = m_data.cend(); i != end; ++i) {
-        if (i.value().id() == imageId) {
-            m_cleanupTextures << i.value();
-            break;
-        }
-    }
+    m_cleanupTextures.insert(imageId);
 }
 
 // Handles texture removal from GPU and from the cache
@@ -2958,7 +2953,7 @@ void QCanvasImageTracker::handleRemoveTextures()
     auto it = m_data.begin();
     while (it != m_data.end()) {
         QCanvasImagePrivate *ip = QCanvasImagePrivate::get(&*it);
-        bool remove = m_cleanupTextures.contains(*it);
+        bool remove = m_cleanupTextures.contains(ip->id);
         bool removeUnusedGradients = m_doingResourcesRemoval &&
                                      ip->type == QCanvasImagePrivate::DataType::GradientTextureFromImage &&
                                      !m_usedTextureIDs.contains(ip->id);
