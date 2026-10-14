@@ -2830,12 +2830,7 @@ void QCanvasPainter::removeImage(const QCanvasImage &image)
         d->m_imageTracker.removeTextureId(id);
         break;
     case QCanvasImagePrivate::DataType::ImportedTexture:
-        for (auto it = d->m_nativeTextureCache.cbegin(); it != d->m_nativeTextureCache.cend(); ) {
-            if (it->id() == id)
-                it = d->m_nativeTextureCache.erase(it);
-            else
-                ++it;
-        }
+        d->m_nativeTextureCache.removeIf([id](auto it) { return it.value().id() == id; });
         d->m_pendingNativeTextureDelete.insert(id);
         break;
     case QCanvasImagePrivate::DataType::Unknown:
@@ -2995,7 +2990,8 @@ QCanvasPainterPrivate::QCanvasPainterPrivate()
     const int defaultMaxTextures = 1024;
     static int maxTexturesEnv = qEnvironmentVariableIntValue("QCPAINTER_MAX_TEXTURES");
     m_maxTextures = maxTexturesEnv > 0 ? maxTexturesEnv : defaultMaxTextures;
-    m_trackingDisabled = qEnvironmentVariableIsSet("QCPAINTER_DISABLE_TEXTURE_USAGE_TRACKING");
+    static const bool trackingDisabledEnv = qEnvironmentVariableIsSet("QCPAINTER_DISABLE_TEXTURE_USAGE_TRACKING");
+    m_trackingDisabled = trackingDisabledEnv;
 }
 
 QCanvasPainterPrivate::~QCanvasPainterPrivate()
@@ -3073,7 +3069,7 @@ QCanvasImage QCanvasPainterPrivate::getQCanvasImage(const QImage &image, QCanvas
     if (qcimage.isNull()) {
         // Image is not in cache
         if (image.isNull()) {
-            qWarning() << "Empty image";
+            qCWarning(QC_INFO, "Cannot add an empty (null) image");
         } else {
             QImage convertedImage;
             if (image.format() != QImage::Format_RGBA8888 && image.format() != QImage::Format_RGBA8888_Premultiplied) {
@@ -3136,6 +3132,7 @@ QCanvasImage QCanvasPainterPrivate::getQCanvasImage(QRhiTexture *texture, QCanva
 
 QCanvasImage QCanvasPainterPrivate::getQCanvasImage(const QCanvasOffscreenCanvas &canvas, QCanvasPainter::ImageFlags flags)
 {
+    Q_ASSERT(m_renderer);
     if (canvas.isNull())
         return {};
 
