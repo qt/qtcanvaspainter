@@ -3050,7 +3050,8 @@ void QCanvasPainterPrivate::markTextureIdUsed(int imageId) {
 
 qint64 QCanvasPainterPrivate::generateImageKey(const QImage &image, QCanvasPainter::ImageFlags flags) const
 {
-    return image.cacheKey() ^ int(flags);
+    // Reserve the low byte for the flags (all ImageFlags fit in 8 bits).
+    return (image.cacheKey() << 8) | (int(flags) & 0xFF);
 }
 
 // Get the texture id for the image. Id will be unique for the image+flags, or imageKey
