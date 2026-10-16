@@ -35,9 +35,6 @@ using namespace Qt::Literals::StringLiterals;
 #ifndef QCPAINTER_INITIAL_TOTAL_CALLS_SIZE
 #define QCPAINTER_INITIAL_TOTAL_CALLS_SIZE 128
 #endif
-#ifndef QCPAINTER_INITIAL_TOTAL_PATHS_SIZE
-#define QCPAINTER_INITIAL_TOTAL_PATHS_SIZE 256
-#endif
 #ifndef QCPAINTER_INITIAL_TOTAL_VERTICES_SIZE
 #define QCPAINTER_INITIAL_TOTAL_VERTICES_SIZE 16384
 #endif
@@ -104,12 +101,14 @@ struct QCRHICall {
     QCRHICallType type;
     int image;
     int font;
-    int pathOffset;
-    int pathCount;
     int indexOffset;
     int indexCount;
     int triangleOffset;
     int triangleCount;
+    // The strips of all the paths as one triangle strip, see copyStrips()
+    int stripOffset;
+    int stripCount;
+    int stripTriangleCount; // the real triangles, without the joining degenerate ones
     int commonUniformBufferOffset;
     int vertUniformBufferOffset;
     QCPainterRhiRenderer::RenderFlags renderFlags;
@@ -130,8 +129,6 @@ struct QCRHICall {
 struct QCRHIPath {
     int fillOffset;
     int fillCount;
-    int strokeOffset;
-    int strokeCount;
 };
 
 struct QCRHIVertUniforms {
@@ -407,6 +404,9 @@ struct QCRhiCachedPathFillData
 {
     QVector<QCVertex> verts; // might also contain stroke vertices
     QVector<QCRHIPath> paths;
+    int stripOffset = 0; // the antialiasing strips of the paths
+    int stripCount = 0;
+    int stripTriangleCount = 0;
     quint64 entryId;
     int indexCount;
     bool isConvex;
@@ -415,7 +415,9 @@ struct QCRhiCachedPathFillData
 struct QCRhiCachedPathStrokeData
 {
     QVector<QCVertex> verts;
-    QVector<QCRHIPath> paths;
+    int subpathCount = 0;
+    int stripCount = 0; // the strips of the paths, at the start of verts
+    int stripTriangleCount = 0;
     quint64 entryId;
 };
 
@@ -464,7 +466,6 @@ struct QCRHIContext
 
     // Per frame buffers
     QVector<QCRHICall> calls;
-    QVector<QCRHIPath> paths;
     QVector<QCVertex> verts;
     QVector<uint32_t> indices;
 
@@ -474,7 +475,6 @@ struct QCRHIContext
     QVector<QCRHIVertUniforms> vertUniforms;
     QVector<QCRHITexture> textures;
     int callsCount = 0;
-    int pathsCount = 0;
     int vertsCount = 0;
     int indicesCount = 0;
     int commonUniformsCount = 0;
@@ -747,7 +747,6 @@ bool QCPainterRhiRenderer::renderCreate()
 {
     // Initial allocations into data arrays
     rhiCtx->calls.resize(QCPAINTER_INITIAL_TOTAL_CALLS_SIZE);
-    rhiCtx->paths.resize(QCPAINTER_INITIAL_TOTAL_PATHS_SIZE);
     rhiCtx->verts.resize(QCPAINTER_INITIAL_TOTAL_VERTICES_SIZE);
     rhiCtx->indices.resize(QCPAINTER_INITIAL_TOTAL_INDICES_SIZE);
     rhiCtx->commonUniforms.resize(QCPAINTER_INITIAL_TOTAL_COMMON_UNIFORMS_SIZE);
@@ -1001,6 +1000,56 @@ static QCRHIBlend blendCompositeOperation(QCanvasPainter::CompositeOperation op,
     return blend;
 }
 
+// The strokes and the antialiasing fringes of fills are triangle strips, one
+// for each path. They are drawn as one triangle strip, connected by
+// degenerate triangles, so that a call has one draw for any number of paths.
+// Each strip starts at an even vertex index, so that its triangles keep their
+// winding for back face culling. The strips are built from vertex pairs, so
+// they have even vertex counts, but this doesn't depend on it.
+
+// Returns the vertex count of the strips of \a paths as one triangle strip.
+static int stripVertCount(const QCPath *paths, int pathsCount)
+{
+    int count = 0;
+    for (int i = 0; i < pathsCount; i++) {
+        const int stripCount = paths[i].strokeCount;
+        if (stripCount <= 0)
+            continue;
+        if (count > 0)
+            count += (count % 2) ? 3 : 2;
+        count += stripCount;
+    }
+    return count;
+}
+
+// Copies the strips of \a paths from \a src to \a dst as one triangle strip.
+// Returns the vertex count, the same as stripVertCount(). The count of the real
+// triangles, without the degenerate ones joining the strips, is set to
+// \a triangleCount.
+template <typename T>
+static int copyStrips(T *dst, const T *src, const QCPath *paths, int pathsCount, int *triangleCount)
+{
+    int count = 0;
+    *triangleCount = 0;
+    for (int i = 0; i < pathsCount; i++) {
+        const int stripCount = paths[i].strokeCount;
+        if (stripCount <= 0)
+            continue;
+        *triangleCount += std::max(stripCount - 2, 0);
+        const T *strip = src + paths[i].strokeOffset;
+        if (count > 0) {
+            const T last = dst[count - 1];
+            if (count % 2)
+                dst[count++] = last;
+            dst[count++] = last;
+            dst[count++] = strip[0];
+        }
+        memcpy(dst + count, strip, sizeof(T) * stripCount);
+        count += stripCount;
+    }
+    return count;
+}
+
 // Returns the needed vertex count for \a path.
 // If \a indexCount is provided, calculates there the needed indices count.
 static int maxVertCount(const QCPaths &paths, int pathsCount, int *indexCount = nullptr)
@@ -1016,9 +1065,8 @@ static int maxVertCount(const QCPaths &paths, int pathsCount, int *indexCount = 
             if (indexCount)
                 *indexCount += (fillCount - 2) * 3;
         }
-        count += path.strokeCount;
     }
-    return count;
+    return count + stripVertCount(paths.constData(), pathsCount);
 }
 
 void QCPainterRhiRenderer::updateVertUniforms(QCRHICall *call, const QTransform &transform)
@@ -1068,20 +1116,6 @@ QCRHITexture *QCPainterRhiRenderer::allocTexture()
         tex = &rhiCtx->textures[rhiCtx->texturesCount++];
     }
     return tex;
-}
-
-// Makes sure there are enough paths available.
-// Returns offset of the path (so previous amount of paths).
-int QCPainterRhiRenderer::allocPaths(int count)
-{
-    if (rhiCtx->pathsCount + count > rhiCtx->paths.size()) {
-        // Overallocate as suitable
-        const int newSize = (rhiCtx->pathsCount + count) + rhiCtx->paths.size() * 0.5;
-        rhiCtx->paths.resize(newSize);
-    }
-    int ret = rhiCtx->pathsCount;
-    rhiCtx->pathsCount += count;
-    return ret;
 }
 
 int QCPainterRhiRenderer::allocVerts(int count)
@@ -1350,18 +1384,12 @@ int QCPainterRhiRenderer::transferFillGeom(QCRHICall *call,
     int vertOffset = allocVerts(vertexCount);
     call->indexCount = indexCount;
     call->indexOffset = allocIndices(call->indexCount);
-    call->pathCount = pathCount;
-    call->pathOffset = allocPaths(call->pathCount);
 
     uint32_t *indexPtr = &rhiCtx->indices[call->indexOffset];
-    for (int i = 0; i < call->pathCount; i++) {
-        QCRHIPath *renderPath = &rhiCtx->paths[call->pathOffset + i];
-        memset(renderPath, 0, sizeof(QCRHIPath));
+    for (int i = 0; i < pathCount; i++) {
         const QCPath *pathFillInfo = &pathInfos[i];
         const int fillCount = pathFillInfo->fillCount;
         if (fillCount > 2) {
-            renderPath->fillOffset = vertOffset;
-            renderPath->fillCount = fillCount;
             memcpy(&rhiCtx->verts[vertOffset], &vertices[pathFillInfo->fillOffset], sizeof(QCVertex) * fillCount);
             int baseVertexIndex = vertOffset;
             for (int j = 2; j < fillCount; j++) {
@@ -1371,29 +1399,14 @@ int QCPainterRhiRenderer::transferFillGeom(QCRHICall *call,
             }
             vertOffset += fillCount;
         }
-        const int strokeCount = pathFillInfo->strokeCount;
-        if (strokeCount > 0) {
-            renderPath->strokeOffset = vertOffset;
-            renderPath->strokeCount = strokeCount;
-            memcpy(&rhiCtx->verts[vertOffset], &vertices[pathFillInfo->strokeOffset], sizeof(QCVertex) * strokeCount);
-            vertOffset += strokeCount;
-        }
     }
+    // Antialiasing fringes after the fills
+    call->stripOffset = vertOffset;
+    call->stripCount = copyStrips(rhiCtx->verts.data() + vertOffset, vertices, pathInfos, pathCount,
+                                  &call->stripTriangleCount);
+    vertOffset += call->stripCount;
 
     return vertOffset;
-}
-
-void QCPainterRhiRenderer::transferPathsFromCachedPathGroup(QCRHICall *call, int pathCount, const QCRHIPath *paths)
-{
-    call->pathCount = pathCount;
-    call->pathOffset = allocPaths(call->pathCount);
-    for (int i = 0; i < call->pathCount; ++i) {
-        // Can copy as-is. The offsets will need to be adjusted (in
-        // render()) by cpg.*vertexBufferOffsetAdjust[entryId] but that
-        // is calculated only when baking the dedicated path group
-        // buffer (in endPrepare()).
-        rhiCtx->paths[call->pathOffset + i] = paths[i];
-    }
 }
 
 // TODO: Possibly use index buffer so we have 4 verts per quad?
@@ -1662,7 +1675,7 @@ void QCPainterRhiRenderer::renderFill(const QCPaint &paint, const QCState &state
             cpg->totalSubpathCount += cpf->paths.count();
 
             // The section for this path fill in the buffer will be laid out as:
-            //   <fill_vertices_subpath_0> [<stroke_vertices_subpath_0>] [<fill_vertices_subpath_1> [<stroke_vertices_subpath_1>] ...] <fill quad>
+            //   <fill_vertices_subpath_0> [<fill_vertices_subpath_1> ...] [<antialiasing strips>] <fill quad>
             vertOffset = 0;
             for (int i = 0; i < pti.updateData->pathsCount; ++i) {
                 QCRHIPath *cachedFillInfo = &cpf->paths[i];
@@ -1676,15 +1689,12 @@ void QCPainterRhiRenderer::renderFill(const QCPaint &paint, const QCState &state
                     memcpy(&cpf->verts[vertOffset], &vertices->at(preparedPath->fillOffset), sizeof(QCVertex) * fillCount);
                     vertOffset += fillCount;
                 }
-                const int strokeCount = preparedPath->strokeCount;
-                if (strokeCount > 0) {
-                    cachedFillInfo->strokeOffset = vertOffset;
-                    cachedFillInfo->strokeCount = strokeCount;
-                    const auto *vertices = &ctx.vertices;
-                    memcpy(&cpf->verts[vertOffset], &vertices->at(preparedPath->strokeOffset), sizeof(QCVertex) * strokeCount);
-                    vertOffset += strokeCount;
-                }
             }
+            cpf->stripOffset = vertOffset;
+            cpf->stripCount = copyStrips(cpf->verts.data() + vertOffset, ctx.vertices.constData(),
+                                         pti.updateData->paths.constData(), pti.updateData->pathsCount,
+                                         &cpf->stripTriangleCount);
+            vertOffset += cpf->stripCount;
 
             if (!cpf->isConvex) {
                 QCVertex *quad = &cpf->verts[vertOffset];
@@ -1708,7 +1718,9 @@ void QCPainterRhiRenderer::renderFill(const QCPaint &paint, const QCState &state
         call->pathGroupEntryId = cpf->entryId;
         call->indexCount = cpf->indexCount;
         call->indexOffset = 0; // will need to be adjusted by cpg.fillIndexBufferOffsetAdjust[id]
-        transferPathsFromCachedPathGroup(call, cpf->paths.count(), cpf->paths.constData());
+        call->stripOffset = cpf->stripOffset; // adjusted like triangleOffset
+        call->stripCount = cpf->stripCount;
+        call->stripTriangleCount = cpf->stripTriangleCount;
     }
 
     QCanvasCustomBrushPrivate *customPriv = nullptr;
@@ -1764,21 +1776,10 @@ void QCPainterRhiRenderer::transferStrokeGeom(QCRHICall *call,
                                               int pathCount, const QCPath *pathInfos)
 {
     int vertOffset = allocVerts(vertexCount);
-    call->pathCount = pathCount;
-    call->pathOffset = allocPaths(call->pathCount);
 
-    for (int i = 0; i < call->pathCount; i++) {
-        QCRHIPath *renderPath = &rhiCtx->paths[call->pathOffset + i];
-        memset(renderPath, 0, sizeof(QCRHIPath));
-        const QCPath *pathStrokeInfo = &pathInfos[i];
-        const int strokeCount = pathStrokeInfo->strokeCount;
-        if (strokeCount > 0) {
-            renderPath->strokeOffset = vertOffset;
-            renderPath->strokeCount = strokeCount;
-            memcpy(&rhiCtx->verts[vertOffset], &vertices[pathStrokeInfo->strokeOffset], sizeof(QCVertex) * strokeCount);
-            vertOffset += strokeCount;
-        }
-    }
+    call->stripOffset = vertOffset;
+    call->stripCount = copyStrips(rhiCtx->verts.data() + vertOffset, vertices, pathInfos, pathCount,
+                                  &call->stripTriangleCount);
 }
 
 void QCPainterRhiRenderer::renderStroke(const QCPaint &paint, const QCState &state,
@@ -1843,31 +1844,23 @@ void QCPainterRhiRenderer::renderStroke(const QCPaint &paint, const QCState &sta
             cps->verts.resize(vertsCount);
             cpg->cachedVertexDataBytes += cps->verts.size() * sizeof(QCVertex);
 
-            cpg->totalSubpathCount -= cps->paths.count();
-            cps->paths.resize(pti.updateData->pathsCount);
-            cpg->totalSubpathCount += cps->paths.count();
+            cpg->totalSubpathCount -= cps->subpathCount;
+            cps->subpathCount = pti.updateData->pathsCount;
+            cpg->totalSubpathCount += cps->subpathCount;
 
-            int vertOffset = 0;
-            for (int i = 0; i < pti.updateData->pathsCount; i++) {
-                QCRHIPath *cachedStrokeInfo = &cps->paths[i];
-                memset(cachedStrokeInfo, 0, sizeof(QCRHIPath));
-                const QCPath *preparedPath = &pti.updateData->paths.at(i);
-                const int strokeCount = preparedPath->strokeCount;
-                if (strokeCount > 0) {
-                    cachedStrokeInfo->strokeOffset = vertOffset;
-                    cachedStrokeInfo->strokeCount = strokeCount;
-                    const auto *vertices = &ctx.vertices;
-                    memcpy(&cps->verts[vertOffset], &vertices->at(preparedPath->strokeOffset), sizeof(QCVertex) * strokeCount);
-                    vertOffset += strokeCount;
-                }
-            }
+            const QCPath *preparedPaths = pti.updateData->paths.constData();
+            cps->stripCount = copyStrips(cps->verts.data(), ctx.vertices.constData(),
+                                         preparedPaths, pti.updateData->pathsCount,
+                                         &cps->stripTriangleCount);
 
             cpg->strokeBufferNeedsUpdate = true;
         }
 
         call->pathGroup = pti.pathGroup;
         call->pathGroupEntryId = cps->entryId;
-        transferPathsFromCachedPathGroup(call, cps->paths.count(), cps->paths.constData());
+        call->stripOffset = 0; // adjusted by cpg.strokeVertexBufferOffsetAdjust[id]
+        call->stripCount = cps->stripCount;
+        call->stripTriangleCount = cps->stripTriangleCount;
     }
 
     if (rhiCtx->flags & QCPainterRhiRenderer::StencilStrokes) {
@@ -2845,7 +2838,6 @@ void QCPainterRhiRenderer::renderDelete()
 #endif
 
     rhiCtx->calls.clear();
-    rhiCtx->paths.clear();
     rhiCtx->verts.clear();
     rhiCtx->indices.clear();
     rhiCtx->commonUniforms.clear();
@@ -3064,10 +3056,19 @@ void QCPainterRhiRenderer::render()
     bool needsViewport = true;
     bool stencilClippingActive = false;
 
+    // Draws the triangle strip (anti-aliased edges / stroke) of the call, if any.
+    auto drawStrips = [this](const QCRHICall *call, int vbufOffsetAdjust, auto &drawCallCount, auto &triCount) {
+        if (call->stripCount > 0) {
+            rhiCtx->cb->draw(call->stripCount, 1, call->stripOffset + vbufOffsetAdjust);
+            drawCallCount++;
+            triCount += call->stripTriangleCount;
+        }
+    };
+
     for (int i = 0; i < rhiCtx->callsCount; i++) {
         QCRHICall *call = &rhiCtx->calls[i];
-        int pathsCount = call->pathCount;
-        if (pathsCount < 1 && call->type < CallText) //### Careful with enum order
+        // Nothing to draw, the stencil pass of a fill would not mark anything either
+        if (call->type < CallText && call->indexCount == 0 && call->stripCount == 0) //### Careful with enum order
             continue;
 
         // The default offset at 0, with empty transform. NB have to add an offset to skip
@@ -3090,7 +3091,6 @@ void QCPainterRhiRenderer::render()
             }
         }
 
-        const QCRHIPath *paths = &rhiCtx->paths[call->pathOffset];
         // vertUniformBufferOffset is 0 unless updateVertUniforms() was called (due to path groups and caching).
         vertDynamicOffsetForCall.second += call->vertUniformBufferOffset * rhiCtx->oneVertUniformBufferSize;
 
@@ -3112,11 +3112,7 @@ void QCPainterRhiRenderer::render()
             if (call->renderFlags & QCPainterRhiRenderer::Antialiasing) {
                 bindPipeline(call, 1, 1, vertDynamicOffsetForCall, dynamicOffsetForCallPlusOne, false, &needsViewport);
                 // Draw antialiased edges
-                for (int i = 0; i < pathsCount; i++) {
-                    rhiCtx->cb->draw(paths[i].strokeCount, 1, paths[i].strokeOffset + vbufOffsetAdjust);
-                    logFillDrawCallCount++;
-                    logFillTriCount += paths[i].strokeCount - 2;
-                }
+                drawStrips(call, vbufOffsetAdjust, logFillDrawCallCount, logFillTriCount);
             }
 
             // 3. Draw fill
@@ -3136,53 +3132,27 @@ void QCPainterRhiRenderer::render()
             // 2. Draw antialiased edges
             if (call->renderFlags & QCPainterRhiRenderer::Antialiasing) {
                 bindPipeline(call, 1, 0, vertDynamicOffsetForCall, dynamicOffsetForCall, false, &needsViewport);
-                for (int i = 0; i < pathsCount; i++) {
-                    if (paths[i].strokeCount > 0) {
-                        rhiCtx->cb->draw(paths[i].strokeCount, 1, paths[i].strokeOffset + vbufOffsetAdjust);
-                        logFillDrawCallCount++;
-                        logFillTriCount += paths[i].strokeCount - 2;
-                    }
-                }
+                drawStrips(call, vbufOffsetAdjust, logFillDrawCallCount, logFillTriCount);
             }
         } else if (call->type == CallStroke) {
             if (!(call->renderFlags & QCPainterRhiRenderer::StencilStrokes)) {
                 // 1. Draw Strokes
                 bindPipeline(call, 0, 0, vertDynamicOffsetForCall, dynamicOffsetForCall, false, &needsViewport);
-                for (int i = 0; i < pathsCount; i++) {
-                    rhiCtx->cb->draw(paths[i].strokeCount, 1, paths[i].strokeOffset + vbufOffsetAdjust);
-                    logStrokeDrawCallCount++;
-                    logStrokeTriCount += paths[i].strokeCount - 2;
-                }
+                drawStrips(call, vbufOffsetAdjust, logStrokeDrawCallCount, logStrokeTriCount);
             } else {
                 // 2. Fill the stroke base without overlap
                 bindPipeline(call, 1, 0, vertDynamicOffsetForCall, dynamicOffsetForCallPlusOne, false, &needsViewport);
-                for (int i = 0; i < pathsCount; i++) {
-                    rhiCtx->cb->draw(paths[i].strokeCount, 1, paths[i].strokeOffset + vbufOffsetAdjust);
-                    logStrokeDrawCallCount++;
-                    logStrokeTriCount += paths[i].strokeCount - 2;
-                }
+                drawStrips(call, vbufOffsetAdjust, logStrokeDrawCallCount, logStrokeTriCount);
 
                 // 3. Draw anti-aliased pixels.
                 if (call->renderFlags & QCPainterRhiRenderer::Antialiasing) {
                     bindPipeline(call, 2, 0, vertDynamicOffsetForCall, dynamicOffsetForCall, false, &needsViewport);
-                    for (int i = 0; i < pathsCount; i++) {
-                        if (paths[i].strokeCount > 0) {
-                            rhiCtx->cb->draw(paths[i].strokeCount, 1, paths[i].strokeOffset + vbufOffsetAdjust);
-                            logStrokeDrawCallCount++;
-                            logStrokeTriCount += paths[i].strokeCount - 2;
-                        }
-                    }
+                    drawStrips(call, vbufOffsetAdjust, logStrokeDrawCallCount, logStrokeTriCount);
                 }
 
                 //  4. Clear stencil buffer.
                 bindPipeline(call, 3, 0, vertDynamicOffsetForCall, dynamicOffsetForCall, false, &needsViewport);
-                for (int i = 0; i < pathsCount; i++) {
-                    if (paths[i].strokeCount > 0) {
-                        rhiCtx->cb->draw(paths[i].strokeCount, 1, paths[i].strokeOffset + vbufOffsetAdjust);
-                        logStrokeDrawCallCount++;
-                        logStrokeTriCount += paths[i].strokeCount - 2;
-                    }
-                }
+                drawStrips(call, vbufOffsetAdjust, logStrokeDrawCallCount, logStrokeTriCount);
             }
         } else if (call->type == CallText) {
 #ifndef QCPAINTER_DISABLE_TEXT_SUPPORT
@@ -3239,7 +3209,6 @@ void QCPainterRhiRenderer::render()
 
 void QCPainterRhiRenderer::resetForPass()
 {
-    rhiCtx->pathsCount = 0;
     rhiCtx->callsCount = 0;
 
     rhiCtx->vertsCount = 0;

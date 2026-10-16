@@ -149,8 +149,9 @@ public:
 
     // Other
     void resetDebugCounters();
-    void syncDebugCounters();
-    QCDebugCounters debugCounters() const;
+    // Exported for autotests
+    Q_CANVASPAINTER_EXPORT void syncDebugCounters();
+    Q_CANVASPAINTER_EXPORT QCDebugCounters debugCounters() const;
     void setAntialias(float antialias);
     void setMiterLimit(float limit);
     void removePathGroup(int pathGroup);
