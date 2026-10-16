@@ -14,4 +14,5 @@ qt_internal_add_test(tst_qcrhiplumbing
         Qt::Gui
         Qt::GuiPrivate
         Qt::CanvasPainter
+        Qt::CanvasPainterPrivate
 )

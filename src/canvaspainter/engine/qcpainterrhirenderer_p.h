@@ -236,7 +236,6 @@ private:
 
     QCRHICall *allocCall();
     QCRHITexture *allocTexture();
-    int allocPaths(int count);
     int allocVerts(int count);
     int allocIndices(int count);
     int allocCommonUniforms(int count);
@@ -263,7 +262,6 @@ private:
     void transferStrokeGeom(QCRHICall *call,
                             int vertexCount, const QCVertex *vertices,
                             int pathCount, const QCPath *pathInfos);
-    void transferPathsFromCachedPathGroup(QCRHICall *call, int pathCount, const QCRHIPath *paths);
 
 private:
     friend class QCanvasPainter;

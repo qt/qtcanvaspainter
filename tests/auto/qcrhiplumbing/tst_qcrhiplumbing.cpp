@@ -26,6 +26,9 @@
 #include "qcanvasrhipaintdriver.h"
 #include "qcanvasimagepattern.h"
 #include "qcanvaspath.h"
+#include <QtCanvasPainter/private/qcanvaspainter_p.h>
+#include <QtCanvasPainter/private/qcpainterengine_p.h>
+#include <QtCanvasPainter/private/qcpainterrhirenderer_p.h>
 
 #if QT_CONFIG(opengl)
 #include <QOffscreenSurface>
@@ -84,6 +87,8 @@ private slots:
     void canvasRenderGlyphEviction();
     void canvasRenderEmojiGlyphEviction_data();
     void canvasRenderEmojiGlyphEviction();
+    void multiPathRender_data();
+    void multiPathRender();
 
 private:
     void setWindowType(QWindow *window, QRhi::Implementation impl);
@@ -1910,6 +1915,198 @@ void tst_CanvasRhiRendering::canvasRenderEmojiGlyphEviction()
         // With broken eviction/reuse this count collapses to something much
         // smaller than 500.
         QCOMPARE_GT(lastBlockPixels, 500);
+    }
+}
+
+void tst_CanvasRhiRendering::multiPathRender_data()
+{
+    rhiTestData();
+}
+
+// Strokes and fills of several paths are drawn as one triangle strip per
+// pass. They must render the same as drawing each path separately.
+void tst_CanvasRhiRendering::multiPathRender()
+{
+    QFETCH(QRhi::Implementation, impl);
+    QFETCH(QRhiInitParams *, initParams);
+
+    std::unique_ptr<QRhi> rhi(QRhi::create(impl, initParams, rhiCreateFlags));
+    if (!rhi)
+        QSKIP("Failed to create QRhi, skip");
+
+    RenderTargetPtr rt = createRenderTarget(rhi.get());
+    QVERIFY(rt);
+
+    std::unique_ptr<QCanvasPainterFactory> factory(new QCanvasPainterFactory);
+    QCanvasPainter *painter = factory->create(rhi.get());
+    QVERIFY(painter);
+    QCanvasRhiPaintDriver *pd = factory->paintDriver();
+    QCPainterEngine *engine = QCanvasPainterPrivate::get(painter)->m_renderer->engine();
+
+    // Subpaths with strips of different lengths: open, closed, round caps
+    // and joins, curves. They don't overlap.
+    auto addSubpath = [](QCanvasPath &path, int i) {
+        const float x = 60 + (i % 4) * 300;
+        const float y = 60 + (i / 4) * 220;
+        switch (i % 4) {
+        case 0:
+            path.moveTo(x, y);
+            path.lineTo(x + 200, y + 40);
+            break;
+        case 1:
+            path.moveTo(x, y);
+            path.lineTo(x + 100, y + 120);
+            path.lineTo(x + 200, y);
+            break;
+        case 2:
+            path.rect(x, y, 200, 120);
+            break;
+        case 3:
+            path.circle(x + 80, y + 70, 60);
+            break;
+        }
+    };
+    // Only the closed subpaths are filled, as filling a line has
+    // differences between convex and non-convex fills.
+    auto isClosed = [](int i) { return i % 4 >= 2; };
+    constexpr int subpathCount = 8;
+    QCanvasPath merged;
+    QCanvasPath mergedClosed;
+    QList<QCanvasPath> separate(subpathCount);
+    for (int i = 0; i < subpathCount; ++i) {
+        addSubpath(merged, i);
+        if (isClosed(i))
+            addSubpath(mergedClosed, i);
+        addSubpath(separate[i], i);
+    }
+
+    struct Result {
+        QImage image;
+        int fillDrawCalls = 0;
+        int strokeDrawCalls = 0;
+        int fillTriangles = 0;
+        int strokeTriangles = 0;
+    };
+    auto render = [&](bool together, bool antialias, bool highQuality, bool cached) {
+        QRhiCommandBuffer *cb;
+        rhi->beginOffscreenFrame(&cb);
+        pd->resetForNewFrame();
+        pd->beginPaint(cb, rt->rt);
+        painter->setAntialias(antialias ? 1.0 : 0.0);
+        painter->setHighQualityStroking(highQuality);
+        painter->setLineWidth(16);
+        painter->setLineCap(QCanvasPainter::LineCap::Round);
+        painter->setLineJoin(QCanvasPainter::LineJoin::Round);
+        painter->setStrokeStyle(QColor(255, 255, 255, 160));
+        painter->setFillStyle(QColor(0, 128, 255));
+        auto fill = [&](const QCanvasPath &path, int group) {
+            if (cached) {
+                painter->fill(path, group);
+            } else {
+                painter->beginPath();
+                painter->addPath(path);
+                painter->fill();
+            }
+        };
+        auto stroke = [&](const QCanvasPath &path, int group) {
+            if (cached) {
+                painter->stroke(path, group);
+            } else {
+                painter->beginPath();
+                painter->addPath(path);
+                painter->stroke();
+            }
+        };
+        if (together) {
+            fill(mergedClosed, 0);
+            stroke(merged, 1);
+        } else {
+            for (int i = 0; i < subpathCount; ++i) {
+                if (isClosed(i))
+                    fill(separate[i], 2 + 2 * i);
+                stroke(separate[i], 3 + 2 * i);
+            }
+        }
+        pd->endPaint(QCanvasRhiPaintDriver::EndPaintFlag::DoNotRecordRenderPass);
+        cb->beginPass(rt->rt, Qt::black, { 1.0f, 0 });
+        pd->renderPaint();
+        cb->endPass();
+        rhi->endOffscreenFrame();
+        engine->syncDebugCounters();
+        Result result;
+        if (impl != QRhi::Null)
+            result.image = imageFromReadback(rhi.get(), rt->tex);
+        result.fillDrawCalls = engine->debugCounters().fillDrawCallCount;
+        result.strokeDrawCalls = engine->debugCounters().strokeDrawCallCount;
+        result.fillTriangles = engine->debugCounters().fillTriangleCount;
+        result.strokeTriangles = engine->debugCounters().strokeTriangleCount;
+        return result;
+    };
+
+    // Without antialiasing, the fills have no strips
+    for (bool antialias : { true, false }) {
+        for (bool highQuality : { false, true }) {
+            for (bool cached : { false, true }) {
+                const Result together = render(true, antialias, highQuality, cached);
+                const Result separately = render(false, antialias, highQuality, cached);
+
+                // One draw for each stroke pass, instead of one for each subpath:
+                // 1 without and 3 with high quality stroking, which has no
+                // antialiasing pass without antialiasing
+                const int strokePasses = highQuality ? (antialias ? 3 : 2) : 1;
+                QCOMPARE(together.strokeDrawCalls, strokePasses);
+                QCOMPARE(separately.strokeDrawCalls, subpathCount * strokePasses);
+                // A fill with many subpaths has the stencil, antialiasing, and
+                // cover passes. The separate fills are convex, with a draw for
+                // the fill and for the antialiasing of each. Without
+                // antialiasing, there are no antialiasing draws.
+                QCOMPARE(together.fillDrawCalls, antialias ? 3 : 2);
+                QCOMPARE(separately.fillDrawCalls, (subpathCount / 2) * (antialias ? 2 : 1));
+                // The degenerate triangles joining the strips are not counted,
+                // and the cover quad of the fill adds 2 triangles
+                QCOMPARE(together.strokeTriangles, separately.strokeTriangles);
+                QCOMPARE(together.fillTriangles, separately.fillTriangles + 2);
+
+                if (impl == QRhi::Null)
+                    continue;
+                // The merged fill uses the non-convex fill path, while the
+                // separate fills are convex, so their antialiased edges come
+                // from different draws. Blending them under the translucent
+                // strokes rounds differently between GPUs. Allow those small
+                // differences; a missing subpath or a stray triangle between
+                // strips differs much more, and over many pixels.
+                constexpr int maxAllowedDiff = 16;
+                constexpr int smallDiff = 4;
+                constexpr int maxPixelsOverSmallDiff = RT_WIDTH * RT_HEIGHT / 1000;
+                int maxDiff = 0;
+                int pixelsOverSmallDiff = 0;
+                for (int y = 0; y < RT_HEIGHT; ++y) {
+                    const QRgb *a =
+                            reinterpret_cast<const QRgb *>(together.image.constScanLine(y));
+                    const QRgb *b =
+                            reinterpret_cast<const QRgb *>(separately.image.constScanLine(y));
+                    for (int x = 0; x < RT_WIDTH; ++x) {
+                        const int diff = std::max({ qAbs(qRed(a[x]) - qRed(b[x])),
+                                                    qAbs(qGreen(a[x]) - qGreen(b[x])),
+                                                    qAbs(qBlue(a[x]) - qBlue(b[x])) });
+                        maxDiff = std::max(maxDiff, diff);
+                        if (diff > smallDiff)
+                            ++pixelsOverSmallDiff;
+                    }
+                }
+                const QString message =
+                        QStringLiteral("antialias %1 highQuality %2 cached %3 maxDiff %4 "
+                                       "pixelsOverSmallDiff %5")
+                                .arg(antialias).arg(highQuality).arg(cached).arg(maxDiff)
+                                .arg(pixelsOverSmallDiff);
+                QVERIFY2(maxDiff <= maxAllowedDiff, qPrintable(message));
+                QVERIFY2(pixelsOverSmallDiff <= maxPixelsOverSmallDiff, qPrintable(message));
+                // The subpaths are there: the line stroke, the rect and circle fills
+                QVERIFY(qGray(together.image.pixel(160, 80)) > 100);
+                QVERIFY(qBlue(together.image.pixel(760, 120)) > 200);
+                QVERIFY(qBlue(together.image.pixel(1040, 130)) > 200);
+            }
+        }
     }
 }
 
