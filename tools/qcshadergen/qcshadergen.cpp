@@ -41,7 +41,7 @@ static bool process(const QString &inputFile, const QString &outputFile)
     QDir().mkpath(QFileInfo(outputFile).path());
     QFile outFile(outputFile);
     if (!outFile.open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Truncate)) {
-        printError("Filed to create %s", qPrintable(outputFile));
+        printError("Failed to create %s", qPrintable(outputFile));
         return false;
     }
 
@@ -112,6 +112,7 @@ int main(int argc, char **argv)
             return 1;
     } else {
         printError("No output file specified");
+        return 1;
     }
 
     return 0;

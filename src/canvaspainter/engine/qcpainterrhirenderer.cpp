@@ -688,6 +688,20 @@ QCRHITexture *QCPainterRhiRenderer::findTexture(int id) const
     return nullptr;
 }
 
+static QCRHISamplerDesc samplerDescForTexture(const QCRHITexture *tex)
+{
+    QCRHISamplerDesc desc;
+    desc.minFilter = (tex->flags & QCanvasPainter::ImageFlag::Nearest) ? QRhiSampler::Nearest : QRhiSampler::Linear;
+    desc.magFilter = (tex->flags & QCanvasPainter::ImageFlag::Nearest) ? QRhiSampler::Nearest : QRhiSampler::Linear;
+    desc.mipmap = (tex->flags & QCanvasPainter::ImageFlag::GenerateMipmaps) ?
+                      ((tex->flags & QCanvasPainter::ImageFlag::Nearest) ? QRhiSampler::Nearest : QRhiSampler::Linear) :
+                      QRhiSampler::None;
+    desc.hTiling = (tex->flags & QCanvasPainter::ImageFlag::RepeatX) ? QRhiSampler::Repeat : QRhiSampler::ClampToEdge;
+    desc.vTiling = (tex->flags & QCanvasPainter::ImageFlag::RepeatY) ? QRhiSampler::Repeat : QRhiSampler::ClampToEdge;
+    desc.zTiling = QRhiSampler::Repeat;
+    return desc;
+}
+
 QRhiShaderResourceBindings *QCPainterRhiRenderer::createSrb(int brushImage, int fontImage)
 {
     QCRHITexture* tex = nullptr;
@@ -707,26 +721,6 @@ QRhiShaderResourceBindings *QCPainterRhiRenderer::createSrb(int brushImage, int 
     Q_ASSERT(tex && tex->tex);
     Q_ASSERT(fontTex && fontTex->tex);
 
-    QCRHISamplerDesc samplerDesc;
-    samplerDesc.minFilter = (tex->flags & QCanvasPainter::ImageFlag::Nearest) ? QRhiSampler::Nearest : QRhiSampler::Linear;
-    samplerDesc.magFilter = (tex->flags & QCanvasPainter::ImageFlag::Nearest) ? QRhiSampler::Nearest : QRhiSampler::Linear;
-    samplerDesc.mipmap = (tex->flags & QCanvasPainter::ImageFlag::GenerateMipmaps) ?
-                             ((tex->flags & QCanvasPainter::ImageFlag::Nearest) ? QRhiSampler::Nearest : QRhiSampler::Linear) :
-                             QRhiSampler::None;
-    samplerDesc.hTiling = (tex->flags & QCanvasPainter::ImageFlag::RepeatX) ? QRhiSampler::Repeat : QRhiSampler::ClampToEdge;
-    samplerDesc.vTiling = (tex->flags & QCanvasPainter::ImageFlag::RepeatY) ? QRhiSampler::Repeat : QRhiSampler::ClampToEdge;
-    samplerDesc.zTiling = QRhiSampler::Repeat;
-
-    QCRHISamplerDesc fontSamplerDesc;
-    fontSamplerDesc.minFilter = (fontTex->flags & QCanvasPainter::ImageFlag::Nearest) ? QRhiSampler::Nearest : QRhiSampler::Linear;
-    fontSamplerDesc.magFilter = (fontTex->flags & QCanvasPainter::ImageFlag::Nearest) ? QRhiSampler::Nearest : QRhiSampler::Linear;
-    fontSamplerDesc.mipmap = (fontTex->flags & QCanvasPainter::ImageFlag::GenerateMipmaps) ?
-                                 ((fontTex->flags & QCanvasPainter::ImageFlag::Nearest) ? QRhiSampler::Nearest : QRhiSampler::Linear) :
-                                 QRhiSampler::None;
-    fontSamplerDesc.hTiling = (fontTex->flags & QCanvasPainter::ImageFlag::RepeatX) ? QRhiSampler::Repeat : QRhiSampler::ClampToEdge;
-    fontSamplerDesc.vTiling = (fontTex->flags & QCanvasPainter::ImageFlag::RepeatY) ? QRhiSampler::Repeat : QRhiSampler::ClampToEdge;
-    fontSamplerDesc.zTiling = QRhiSampler::Repeat;
-
     QRhiShaderResourceBindings *srb = rhiCtx->rhi->newShaderResourceBindings();
     QCRHIContext::PerPassData *ppd = rhiCtx->currentPerPassData();
     srb->setBindings({
@@ -737,8 +731,8 @@ QRhiShaderResourceBindings *QCPainterRhiRenderer::createSrb(int brushImage, int 
             ppd->uniformBuffer, sizeof(QCRHICommonUniforms)),
         QRhiShaderResourceBinding::uniformBufferWithDynamicOffset(4, QRhiShaderResourceBinding::VertexStage,
             ppd->uniformBuffer, sizeof(QCRHIVertUniforms)),
-        QRhiShaderResourceBinding::sampledTexture(2, QRhiShaderResourceBinding::FragmentStage, tex->tex, sampler(samplerDesc)),
-        QRhiShaderResourceBinding::sampledTexture(3, QRhiShaderResourceBinding::FragmentStage, fontTex->tex, sampler(fontSamplerDesc)),
+        QRhiShaderResourceBinding::sampledTexture(2, QRhiShaderResourceBinding::FragmentStage, tex->tex, sampler(samplerDescForTexture(tex))),
+        QRhiShaderResourceBinding::sampledTexture(3, QRhiShaderResourceBinding::FragmentStage, fontTex->tex, sampler(samplerDescForTexture(fontTex))),
     });
     if (!srb->create()) {
         qWarning("Failed to create resource bindings");

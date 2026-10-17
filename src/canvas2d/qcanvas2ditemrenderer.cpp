@@ -36,9 +36,10 @@ void QCanvas2DItemRenderer::synchronizeData(QCanvasPainterItem *item)
     Q_ASSERT(item);
     QCanvas2DItem *realItem = static_cast<QCanvas2DPainterItem*>(item)->canvas();
 
-    imageData = realItem->imageData();
-
-    if (auto ccb = realItem->ccb()) {
+    // Without a new paint, for example when only the item has changed, the
+    // previous commands and images are rendered again.
+    if (auto ccb = realItem->takeCcb()) {
+        imageData = realItem->imageData();
         commands = ccb->commands;
         ints = ccb->ints;
         bools = ccb->bools;
