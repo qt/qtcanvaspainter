@@ -18,6 +18,6 @@
 //
 
 #include "qtcanvaspainterglobal.h"
-#include <QtShaderTools/qtcanvaspainterexports.h>
+#include <QtCanvasPainter/qtcanvaspainterexports.h>
 
 #endif

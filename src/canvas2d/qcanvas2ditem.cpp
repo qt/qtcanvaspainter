@@ -464,18 +464,18 @@ void QCanvas2DItem::updatePolish()
         d->context->flush();
 }
 
-
-QCanvas2DCommandBuffer *QCanvas2DItem::ccb() const
-{
-    Q_D(const QCanvas2DItem);
-    return d->ccb;
-}
-
 void QCanvas2DItem::setCcb(QCanvas2DCommandBuffer *ccb)
 {
     Q_D(QCanvas2DItem);
     d->ccb = ccb;
     d->painterItem->update();
+}
+
+// Returns the commands of a new paint, or null if there has been no new paint
+QCanvas2DCommandBuffer *QCanvas2DItem::takeCcb()
+{
+    Q_D(QCanvas2DItem);
+    return std::exchange(d->ccb, nullptr);
 }
 
 /*!

@@ -115,8 +115,8 @@ public:
 
     QQmlRefPointer<QCanvas2DPixmap> loadedPixmap(const QUrl& url, QSizeF sourceSize = QSizeF());
 
-    QCanvas2DCommandBuffer *ccb() const;
     void setCcb(QCanvas2DCommandBuffer *ccb);
+    QCanvas2DCommandBuffer *takeCcb();
     void addImagePattern(const QCanvasImagePattern &pattern, const QString &url, const QImage &image, QCanvasPainter::ImageFlags flags);
     QHash<uint, ImageData> imageData() const;
     void clearImageDataCache();
