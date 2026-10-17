@@ -40,6 +40,7 @@ struct QCRHICall;
 struct QCRHIPath;
 struct QCRHICommonUniforms;
 class QCanvasPath;
+class QCanvasBrushProgram;
 
 struct QCRHITexture
 {
@@ -223,7 +224,8 @@ public:
 private:
     QRhiGraphicsPipeline *pipeline(const QCRHIPipelineStateKey &key,
                                    QRhiRenderPassDescriptor *rpDesc,
-                                   QRhiShaderResourceBindings *srb);
+                                   QRhiShaderResourceBindings *srb,
+                                   const QCanvasBrushProgram *program = nullptr);
     QRhiSampler *sampler(const QCRHISamplerDesc &samplerDescription);
     QRhiResourceUpdateBatch *resourceUpdateBatch();
     void commitResourceUpdates();

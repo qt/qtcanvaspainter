@@ -13,6 +13,8 @@
 #include "qcpainterrhirenderer_p.h"
 #include "qcanvaspainter_p.h"
 #include "qcanvascustombrush.h"
+#include "qcanvascustombrush_p.h"
+#include "qcanvasbrushprogram_p.h"
 #include "qcanvaspath_p.h"
 #include "qcanvasoffscreencanvas_p.h"
 
@@ -115,8 +117,8 @@ struct QCRHICall {
     QCRHIBlend blendFunc;
     QRhiShaderResourceBindings *srb[2];
     QRhiGraphicsPipeline *ps[4];
-    QShader customFragShader;
-    QShader customVertShader;
+    // Custom brush, kept alive until the call slot is reused
+    std::shared_ptr<const QCanvasBrushProgram> program;
     quint64 pathGroupEntryId;
     int pathGroup = -1; // non-zero default
     QCanvasPainter::FillRule fillRule;
@@ -215,8 +217,7 @@ struct QCRHIPipelineState
     QRhiGraphicsPipeline::TargetBlend targetBlend;
 
     int sampleCount = 1;
-    QShader customFragShader;
-    QShader customVertShader;
+    quint32 customProgramId = 0;
 };
 
 inline bool operator==(const QCRHIPipelineState &a, const QCRHIPipelineState &b) noexcept
@@ -236,8 +237,7 @@ inline bool operator==(const QCRHIPipelineState &a, const QCRHIPipelineState &b)
            && a.stencilBack.compareOp == b.stencilBack.compareOp
            && a.stencilReadMask == b.stencilReadMask
            && a.stencilWriteMask == b.stencilWriteMask
-           && a.customFragShader == b.customFragShader
-           && a.customVertShader == b.customVertShader
+           && a.customProgramId == b.customProgramId
            // NB! not memcmp
            && a.targetBlend.colorWrite == b.targetBlend.colorWrite
            && a.targetBlend.enable == b.targetBlend.enable
@@ -504,9 +504,8 @@ struct QCRHIContext
     QRhiResourceUpdateBatch *resourceUpdates = nullptr;
     QHash<QCRHISrbKey, QRhiShaderResourceBindings *> srbs;
 
-    // Used for custom brushes iTime.
-    QElapsedTimer animationElapsedTimer;
-    qint64 renderTimeElapsedMs = 0;
+    // Timestamp of the frame being prepared, for custom brush animations.
+    qint64 frameTimeNs = 0;
 
     // Text
     uint32_t textVertexOffset = 0;
@@ -516,7 +515,8 @@ struct QCRHIContext
 
 QRhiGraphicsPipeline *QCPainterRhiRenderer::pipeline(const QCRHIPipelineStateKey &key,
                                                      QRhiRenderPassDescriptor *rpDesc,
-                                                     QRhiShaderResourceBindings *srb)
+                                                     QRhiShaderResourceBindings *srb,
+                                                     const QCanvasBrushProgram *program)
 {
     // Return pipeline if it already exists.
     auto it = rhiCtx->pipelines.constFind(key);
@@ -531,8 +531,9 @@ QRhiGraphicsPipeline *QCPainterRhiRenderer::pipeline(const QCRHIPipelineStateKey
     QShader const *fs = nullptr;
     QShader const *vs = nullptr;
 
-    if (key.state.customVertShader.isValid()) {
-        vs = &key.state.customVertShader;
+    Q_ASSERT(!key.state.customProgramId || (program && program->id() == key.state.customProgramId));
+    if (program && program->vertexShader().isValid()) {
+        vs = &program->vertexShader();
     } else {
         if (key.state.renderFlags & RenderFlag::CustomMatrix)
             vs = &shaders->vsCustomMat;
@@ -540,9 +541,9 @@ QRhiGraphicsPipeline *QCPainterRhiRenderer::pipeline(const QCRHIPipelineStateKey
             vs = &shaders->vs;
     }
 
-    if (key.state.customFragShader.isValid()) {
+    if (program && program->fragmentShader().isValid()) {
         // Use custom brush shader
-        fs = &key.state.customFragShader;
+        fs = &program->fragmentShader();
     } else {
         // Use standard shaders, choose the correct one
         if (key.state.renderFlags & RenderFlag::Antialiasing) {
@@ -1292,13 +1293,8 @@ void QCPainterRhiRenderer::prepareCustomPaint(QCanvasCustomBrushPrivate::CommonU
     frag->fontAlphaMin = fontAlphaMin;
     frag->fontAlphaMax = fontAlphaMax;
 
-    // Handle iTime animation
-    if (privBrush->timeRunning) {
-        auto ms = rhiCtx->renderTimeElapsedMs;
-        float s = ms * 0.001;
-        privBrush->time += s;
-        frag->iTime = privBrush->time;
-    }
+    // The brush clock advances once per frame timestamp
+    frag->iTime = privBrush->currentTime(rhiCtx->frameTimeNs);
 
     const bool isTextRed = rhiCtx->rhi->isFeatureSupported(QRhi::RedOrAlpha8IsRed);
     frag->alphaIsRed = isTextRed;
@@ -1601,8 +1597,7 @@ void QCPainterRhiRenderer::renderFill(const QCPaint &paint, const QCState &state
 
     if (state.customFill.type() == QCanvasBrush::BrushType::Custom) {
         auto *customBrushPriv = static_cast<QCanvasCustomBrushPrivate *>(QCanvasBrushPrivate::get(state.customFill));
-        call->customFragShader = customBrushPriv->fragmentShader;
-        call->customVertShader = customBrushPriv->vertexShader;
+        call->program = customBrushPriv->program;
     }
     call->triangleCount = FILL_QUAD_VERTEX_COUNT;
     call->image = paint.imageId;
@@ -1804,8 +1799,7 @@ void QCPainterRhiRenderer::renderStroke(const QCPaint &paint, const QCState &sta
         customStrokePriv = static_cast<QCanvasCustomBrushPrivate *>(QCanvasBrushPrivate::get(state.customStroke));
 
     if (customStrokePriv) {
-        call->customFragShader = customStrokePriv->fragmentShader;
-        call->customVertShader = customStrokePriv->vertexShader;
+        call->program = customStrokePriv->program;
     }
     call->image = paint.imageId;
     call->blendFunc = blendCompositeOperation(state.compositeOperation, state.blendEnable);
@@ -1993,8 +1987,7 @@ void QCPainterRhiRenderer::renderTextFillCustom(
     call->image = paint.imageId;
     call->font = ctx.fontId;
     if (customBrushPriv){
-        call->customFragShader = customBrushPriv->fragmentShader;
-        call->customVertShader = customBrushPriv->vertexShader;
+        call->program = customBrushPriv->program;
     }
     call->blendFunc = blendCompositeOperation(state.compositeOperation, state.blendEnable);
     const QRectF clipRect = state.clip.rect;
@@ -2043,6 +2036,7 @@ void QCPainterRhiRenderer::beginPrepare(QRhiCommandBuffer *cb,
     rhiCtx->cb = cb;
     rhiCtx->rt = rt;
     rhiCtx->dpr = qFuzzyIsNull(devicePixelRatio) ? rt->devicePixelRatio() : devicePixelRatio;
+    rhiCtx->frameTimeNs = QCanvasCustomBrushClock::nowNs();
 
     resetForPass();
 }
@@ -2379,8 +2373,8 @@ void QCPainterRhiRenderer::endPrepare()
             basePs.renderFlags.setFlag(QCPainterRhiRenderer::CustomMatrix, m_e->ctx.customMatrixValid);
 
             // Custom shader
-            basePs.customFragShader = call->customFragShader;
-            basePs.customVertShader = call->customVertShader;
+            const QCanvasBrushProgram *program = call->program.get();
+            basePs.customProgramId = program ? program->id() : 0;
 
             if (call->type == CallFill) {
                 call->srb[0] = srbWithDummyTexture;
@@ -2429,7 +2423,7 @@ void QCPainterRhiRenderer::endPrepare()
                 ps.cullMode = QRhiGraphicsPipeline::None;
                 ps.targetBlend.colorWrite = {};
 
-                call->ps[0] = pipeline(baseKey.withState(ps), rpDesc, srbForLayout);
+                call->ps[0] = pipeline(baseKey.withState(ps), rpDesc, srbForLayout, program);
 
                 // 2. Draw anti-aliased pixels
                 ps.cullMode = QRhiGraphicsPipeline::Back;
@@ -2447,7 +2441,7 @@ void QCPainterRhiRenderer::endPrepare()
                 ps.stencilBack = ps.stencilFront;
                 ps.topology = QRhiGraphicsPipeline::TriangleStrip;
 
-                call->ps[1] = pipeline(baseKey.withState(ps), rpDesc, srbForLayout);
+                call->ps[1] = pipeline(baseKey.withState(ps), rpDesc, srbForLayout, program);
 
                 // 3. Draw fill
                 if (stencilClipActive) {
@@ -2463,7 +2457,7 @@ void QCPainterRhiRenderer::endPrepare()
                 };
                 ps.stencilBack = ps.stencilFront;
 
-                call->ps[2] = pipeline(baseKey.withState(ps), rpDesc, srbForLayout);
+                call->ps[2] = pipeline(baseKey.withState(ps), rpDesc, srbForLayout, program);
             } else if (call->type == CallConvexFill) {
                 call->srb[0] = srbWithCallTexture;
 
@@ -2481,12 +2475,12 @@ void QCPainterRhiRenderer::endPrepare()
                     call->stencilRef = 0x80;
                 }
                 // 1. Draw fill
-                call->ps[0] = pipeline(baseKey.withState(ps), rpDesc, srbForLayout);
+                call->ps[0] = pipeline(baseKey.withState(ps), rpDesc, srbForLayout, program);
 
                 // 2. Draw antialiased edges
                 ps.topology = QRhiGraphicsPipeline::TriangleStrip;
 
-                call->ps[1] = pipeline(baseKey.withState(ps), rpDesc, srbForLayout);
+                call->ps[1] = pipeline(baseKey.withState(ps), rpDesc, srbForLayout, program);
             } else if (call->type == CallStroke) {
                 call->srb[0] = srbWithCallTexture;
 
@@ -2506,7 +2500,7 @@ void QCPainterRhiRenderer::endPrepare()
                     call->stencilRef = 0x80;
                 }
 
-                call->ps[0] = pipeline(baseKey.withState(ps), rpDesc, srbForLayout);
+                call->ps[0] = pipeline(baseKey.withState(ps), rpDesc, srbForLayout, program);
 
                 // 2. Fill the stroke base without overlap (for semi-transparent strokes)
                 ps.stencilTestEnable = true;
@@ -2527,7 +2521,7 @@ void QCPainterRhiRenderer::endPrepare()
                 };
                 ps.stencilBack = ps.stencilFront;
 
-                call->ps[1] = pipeline(baseKey.withState(ps), rpDesc, srbForLayout);
+                call->ps[1] = pipeline(baseKey.withState(ps), rpDesc, srbForLayout, program);
 
                 // 3. Draw anti-aliased pixels.
                 if (stencilClipActive) {
@@ -2545,7 +2539,7 @@ void QCPainterRhiRenderer::endPrepare()
                 };
                 ps.stencilBack = ps.stencilFront;
 
-                call->ps[2] = pipeline(baseKey.withState(ps), rpDesc, srbForLayout);
+                call->ps[2] = pipeline(baseKey.withState(ps), rpDesc, srbForLayout, program);
 
                 // 4. Clear stencil buffer
                 ps.targetBlend.colorWrite = {};
@@ -2560,7 +2554,7 @@ void QCPainterRhiRenderer::endPrepare()
                 };
                 ps.stencilBack = ps.stencilFront;
 
-                call->ps[3] = pipeline(baseKey.withState(ps), rpDesc, srbForLayout);
+                call->ps[3] = pipeline(baseKey.withState(ps), rpDesc, srbForLayout, program);
             } else if (call->type == CallText) {
                 call->srb[0] = srbWithCallTexture;
 
@@ -2582,7 +2576,8 @@ void QCPainterRhiRenderer::endPrepare()
                 call->ps[0] = pipeline(
                     baseKey.withState(ps),
                     rpDesc,
-                    srbForLayout);
+                    srbForLayout,
+                    program);
             } else if (call->type == CallClearStencil) {
                 call->srb[0] = srbWithDummyTexture;
 
@@ -2599,7 +2594,7 @@ void QCPainterRhiRenderer::endPrepare()
                 ps.cullMode = QRhiGraphicsPipeline::None;
                 ps.targetBlend.colorWrite = {};
 
-                call->ps[0] = pipeline(baseKey.withState(ps), rpDesc, srbForLayout);
+                call->ps[0] = pipeline(baseKey.withState(ps), rpDesc, srbForLayout, program);
                 stencilClipActive = false;
             } else if (call->type == CallStencilClip) {
                 call->srb[0] = srbWithDummyTexture;
@@ -2694,7 +2689,7 @@ void QCPainterRhiRenderer::endPrepare()
                 ps.cullMode = QRhiGraphicsPipeline::None;
                 ps.targetBlend.colorWrite = {};
 
-                call->ps[0] = pipeline(baseKey.withState(ps), rpDesc, srbForLayout);
+                call->ps[0] = pipeline(baseKey.withState(ps), rpDesc, srbForLayout, program);
 
                 ps = basePs;
 
@@ -2716,7 +2711,7 @@ void QCPainterRhiRenderer::endPrepare()
 
                 // ps.cullMode = QRhiGraphicsPipeline::None;
                 ps.targetBlend.colorWrite = {};
-                call->ps[1] = pipeline(baseKey.withState(ps), rpDesc, srbForLayout);
+                call->ps[1] = pipeline(baseKey.withState(ps), rpDesc, srbForLayout, program);
 
                 stencilClipActive = true;
                 call->stencilRef = 0x80; // Just one stencil ref for whole call (change this???)
@@ -3064,11 +3059,6 @@ void QCPainterRhiRenderer::destroy()
 
 void QCPainterRhiRenderer::render()
 {
-    // Get elapsed time since previous render, for custom brush iTime
-    if (!rhiCtx->animationElapsedTimer.isValid())
-        rhiCtx->animationElapsedTimer.start();
-    rhiCtx->renderTimeElapsedMs = rhiCtx->animationElapsedTimer.restart();
-
     rhiCtx->cb->debugMarkBegin("QCanvasPainter render"_ba);
 
     bool needsViewport = true;

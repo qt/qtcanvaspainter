@@ -19,6 +19,7 @@ qt_internal_add_module(CanvasPainter
         qcanvasgradient.cpp qcanvasgradient.h qcanvasgradient_p.h
         qcanvasconicalgradient.cpp qcanvasconicalgradient.h
         qcanvascustombrush.cpp qcanvascustombrush.h qcanvascustombrush_p.h
+        qcanvasbrushprogram.cpp qcanvasbrushprogram_p.h
         qcanvaspath.cpp qcanvaspath.h qcanvaspath_p.h
         qcanvasoffscreencanvas.cpp qcanvasoffscreencanvas.h qcanvasoffscreencanvas_p.h
         qcanvaspainterfactory.cpp qcanvaspainterfactory.h qcanvaspainterfactory_p.h

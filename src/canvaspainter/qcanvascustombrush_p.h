@@ -19,11 +19,40 @@
 
 #include "qcanvasbrush_p.h"
 #include "qcanvascustombrush.h"
+#include "qcanvasbrushprogram_p.h"
+#include <QtCore/qatomic.h>
 #include <QtCore/qshareddata.h>
 #include <qvectornd.h>
 #include <rhi/qshader.h>
+#include <memory>
 
 QT_BEGIN_NAMESPACE
+
+// Animation clock of a custom brush. Shared by all copies of the brush, also
+// over detaching, so modifying a copy of the brush does not restart the
+// animation. The clock is advanced by the renderers using frame timestamps,
+// at most once per timestamp, so drawing the brush several times per frame
+// does not speed up the animation.
+class Q_CANVASPAINTER_EXPORT QCanvasCustomBrushClock
+{
+public:
+    // Steps larger than this are clamped, so that the animation does not
+    // jump after the brush has not been rendered for a long while.
+    static constexpr qint64 MaxStepNs = 5000 * 1000 * 1000LL;
+
+    explicit QCanvasCustomBrushClock(qreal startSeconds = 0)
+        : m_timeNs(qint64(startSeconds * 1e9)) {}
+
+    static qint64 nowNs();
+
+    // Advances the clock to frameNs and returns the position in seconds.
+    qreal advance(qint64 frameNs);
+    qreal position() const { return m_timeNs.loadAcquire() * 1e-9; }
+
+private:
+    QAtomicInteger<qint64> m_timeNs = 0;
+    QAtomicInteger<qint64> m_lastNs = -1;
+};
 
 class QCanvasCustomBrushPrivate : public QCanvasBrushPrivate
 {
@@ -75,10 +104,19 @@ public:
         float unused2[8];
     };
 
-    QShader fragmentShader;
-    QShader vertexShader;
+    void setShaders(const QShader &fragmentShader, const QShader &vertexShader);
+    // Returns the animation time in seconds for a frame rendered at frameNs.
+    float currentTime(qint64 frameNs) const
+    {
+        if (!timeRunning || !clock)
+            return time;
+        return float(clock->advance(frameNs));
+    }
+
+    std::shared_ptr<const QCanvasBrushProgram> program;
+    std::shared_ptr<QCanvasCustomBrushClock> clock;
     bool timeRunning = false;
-    float time = 0;
+    float time = 0; // The time when not running
     QVector4D data[4];
 };
 

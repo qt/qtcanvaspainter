@@ -6,26 +6,11 @@
 #include "qcanvascustombrush.h"
 #include "engine/qcpainterengineutils_p.h"
 #include "qcanvascustombrush_p.h"
-#include <QFile>
 #include <QDebug>
 #include <QDataStream>
+#include <QElapsedTimer>
 
 QT_BEGIN_NAMESPACE
-
-
-static QShader getCustomShader(const QString &name)
-{
-    if (name.isEmpty())
-        return QShader();
-
-    QFile f(name);
-    if (f.open(QIODevice::ReadOnly)) {
-        return QShader::fromSerialized(f.readAll());
-    } else {
-        qWarning() << "Unable to create custom brush with shader:" << name;
-        return QShader();
-    }
-}
 
 /*!
     \class QCanvasCustomBrush
@@ -255,6 +240,67 @@ static QShader getCustomShader(const QString &name)
     \sa qt_add_custom_brush_shaders, {Qt Canvas Painter - Gallery Example}
 */
 
+// ***** QCanvasCustomBrushClock *****
+
+qint64 QCanvasCustomBrushClock::nowNs()
+{
+    // Static timer for all instances; thread-safe one-time initialization.
+    static const QElapsedTimer timer = []{ QElapsedTimer t; t.start(); return t; }();
+    return timer.nsecsElapsed();
+}
+
+qreal QCanvasCustomBrushClock::advance(qint64 frameNs)
+{
+    qint64 last = m_lastNs.loadAcquire();
+    // Only the first caller with a newer timestamp adds the step, so the clock
+    // advances once per frame even when shared by many brushes and renderers.
+    while (frameNs > last) {
+        if (m_lastNs.testAndSetOrdered(last, frameNs, last)) {
+            if (last >= 0)
+                m_timeNs.fetchAndAddOrdered(std::min(frameNs - last, MaxStepNs));
+            break;
+        }
+    }
+    return position();
+}
+
+// ***** QCanvasCustomBrushPrivate *****
+
+QCanvasBrushPrivate *QCanvasCustomBrushPrivate::clone()
+{
+    // Note: The clock is shared on purpose.
+    return new QCanvasCustomBrushPrivate(*this);
+}
+
+QCPaint QCanvasCustomBrushPrivate::createPaint(QCanvasPainter *) const
+{
+    QCPaint empty;
+    return empty;
+}
+
+bool QCanvasCustomBrushPrivate::equals(const QCanvasBrushPrivate &other) const noexcept
+{
+    Q_ASSERT(other.type == type);
+    const auto &bd = static_cast<const QCanvasCustomBrushPrivate &>(other);
+
+    // The time of a running brush is not part of the value.
+    if (program != bd.program
+        || timeRunning != bd.timeRunning
+        || (!timeRunning && time != bd.time)
+        || data[0] != bd.data[0]
+        || data[1] != bd.data[1]
+        || data[2] != bd.data[2]
+        || data[3] != bd.data[3])
+        return false;
+
+    return true;
+}
+
+void QCanvasCustomBrushPrivate::setShaders(const QShader &fragmentShader, const QShader &vertexShader)
+{
+    program = QCanvasBrushProgram::get(fragmentShader, vertexShader);
+}
+
 QT_DEFINE_QESDP_SPECIALIZATION_DTOR(QCanvasCustomBrushPrivate)
 
 QCanvasCustomBrush::QCanvasCustomBrush(QCanvasCustomBrushPrivate *p)
@@ -325,24 +371,6 @@ bool comparesEqual(const QCanvasCustomBrush &lhs, const QCanvasCustomBrush &rhs)
     return d->equals(*bd);
 }
 
-bool QCanvasCustomBrushPrivate::equals(const QCanvasBrushPrivate &other) const noexcept
-{
-    Q_ASSERT(other.type == type);
-    const auto &bd = static_cast<const QCanvasCustomBrushPrivate &>(other);
-
-    if (fragmentShader != bd.fragmentShader
-        || vertexShader != bd.vertexShader
-        || timeRunning != bd.timeRunning
-        || time != bd.time
-        || data[0] != bd.data[0]
-        || data[1] != bd.data[1]
-        || data[2] != bd.data[2]
-        || data[3] != bd.data[3])
-        return false;
-
-    return true;
-}
-
 #ifndef QT_NO_DATASTREAM
 /*!
     \fn QDataStream &operator<<(QDataStream &stream, const QCanvasCustomBrush &brush)
@@ -362,14 +390,20 @@ QDataStream &operator<<(QDataStream &s, const QCanvasCustomBrush &b)
     // Avoid serializing null QShaders to preserve equality after writing and
     // reading back a custom brush to/from a stream. This is because a QShader
     // returned by fromSerialized() is never "null".
-    s << b.d->fragmentShader.isValid();
-    if (b.d->fragmentShader.isValid())
-        s << b.d->fragmentShader.serialized();
-    s << b.d->vertexShader.isValid();
-    if (b.d->vertexShader.isValid())
-        s << b.d->vertexShader.serialized();
+    const QShader fragmentShader = b.d->program ? b.d->program->fragmentShader() : QShader();
+    const QShader vertexShader = b.d->program ? b.d->program->vertexShader() : QShader();
+    s << fragmentShader.isValid();
+    if (fragmentShader.isValid())
+        s << fragmentShader.serialized();
+    s << vertexShader.isValid();
+    if (vertexShader.isValid())
+        s << vertexShader.serialized();
     s << b.d->timeRunning;
-    s << b.d->time;
+    // While running, the current position is held by the clock, d->time is
+    // only the time at which the brush was last stopped.
+    const float time = (b.d->timeRunning && b.d->clock) ? float(b.d->clock->position())
+                                                        : b.d->time;
+    s << time;
     for (size_t i = 0; i < std::size(b.d->data); ++i)
         s << b.d->data[i];
     return s;
@@ -388,23 +422,27 @@ QDataStream &operator<<(QDataStream &s, const QCanvasCustomBrush &b)
 QDataStream &operator>>(QDataStream &s, QCanvasCustomBrush &b)
 {
     b.detach();
-    b.d->fragmentShader = {};
-    b.d->vertexShader = {};
+    QShader fragmentShader;
+    QShader vertexShader;
     bool hasFragmentShader, hasVertexShader;
     s >> hasFragmentShader;
     if (hasFragmentShader) {
         QByteArray fragmentShaderData;
         s >> fragmentShaderData;
-        b.d->fragmentShader = QShader::fromSerialized(fragmentShaderData);
+        fragmentShader = QShader::fromSerialized(fragmentShaderData);
     }
     s >> hasVertexShader;
     if (hasVertexShader) {
         QByteArray vertexShaderData;
         s >> vertexShaderData;
-        b.d->vertexShader = QShader::fromSerialized(vertexShaderData);
+        vertexShader = QShader::fromSerialized(vertexShaderData);
     }
+    b.d->setShaders(fragmentShader, vertexShader);
     s >> b.d->timeRunning;
     s >> b.d->time;
+    // The brush must not share the clock of the brush it is streamed into
+    b.d->clock = b.d->timeRunning ? std::make_shared<QCanvasCustomBrushClock>(b.d->time)
+                                  : nullptr;
     for (size_t i = 0; i < std::size(b.d->data); ++i)
         s >> b.d->data[i];
     return s;
@@ -432,8 +470,7 @@ QDebug operator<<(QDebug dbg, const QCanvasCustomBrush &)
 
 void QCanvasCustomBrush::setFragmentShader(const QString &fragmentShader)
 {
-    detach();
-    d->fragmentShader = getCustomShader(fragmentShader);
+    setFragmentShader(QCanvasBrushProgram::loadShader(fragmentShader));
 }
 
 /*!
@@ -443,7 +480,7 @@ void QCanvasCustomBrush::setFragmentShader(const QString &fragmentShader)
 void QCanvasCustomBrush::setFragmentShader(const QShader &fragmentShader)
 {
     detach();
-    d->fragmentShader = fragmentShader;
+    d->setShaders(fragmentShader, d->program ? d->program->vertexShader() : QShader());
 }
 
 /*!
@@ -454,8 +491,7 @@ void QCanvasCustomBrush::setFragmentShader(const QShader &fragmentShader)
 
 void QCanvasCustomBrush::setVertexShader(const QString &vertexShader)
 {
-    detach();
-    d->vertexShader = getCustomShader(vertexShader);
+    setVertexShader(QCanvasBrushProgram::loadShader(vertexShader));
 }
 
 /*!
@@ -465,7 +501,7 @@ void QCanvasCustomBrush::setVertexShader(const QString &vertexShader)
 void QCanvasCustomBrush::setVertexShader(const QShader &vertexShader)
 {
     detach();
-    d->vertexShader = vertexShader;
+    d->setShaders(d->program ? d->program->fragmentShader() : QShader(), vertexShader);
 }
 
 /*!
@@ -482,12 +518,25 @@ bool QCanvasCustomBrush::isAnimationRunning() const
     uniform \c iTime is updated automatically, and can be used to get the
     current animation running time in the shader.
 
+    The time advances once per rendered frame, also when the brush is drawn
+    several times during the frame, and it is shared by all the copies of the
+    brush.
+
     The default value is \c false.
 */
 
 void QCanvasCustomBrush::setAnimationRunning(bool running)
 {
+    if (d->timeRunning == running)
+        return;
     detach();
+    if (running) {
+        // Start a new clock from the kept time, so that stopping and resuming
+        // this brush does not affect the other copies sharing the old clock.
+        d->clock = std::make_shared<QCanvasCustomBrushClock>(d->time);
+    } else if (d->clock) {
+        d->time = float(d->clock->position());
+    }
     d->timeRunning = running;
 }
 
@@ -533,17 +582,6 @@ void QCanvasCustomBrush::setData4(const QVector4D &data)
 {
     detach();
     d->data[3] = data;
-}
-
-QCanvasBrushPrivate *QCanvasCustomBrushPrivate::clone()
-{
-    return new QCanvasCustomBrushPrivate(*this);
-}
-
-QCPaint QCanvasCustomBrushPrivate::createPaint(QCanvasPainter *) const
-{
-    QCPaint empty;
-    return empty;
 }
 
 QT_END_NAMESPACE
