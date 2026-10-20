@@ -19,26 +19,26 @@ qhp.QtCanvasPainter.virtualFolder       = qtcanvaspainter
 qhp.QtCanvasPainter.indexTitle          = Qt Canvas Painter
 qhp.QtCanvasPainter.indexRoot           =
 
-qhp.QtCanvasPainter.subprojects = examples classes qmltypes
-
-#qhp.QtCanvasPainter.subprojects.manual.title = Qt Canvas Painter
-#qhp.QtCanvasPainter.subprojects.manual.indexTitle = Qt Canvas Painter module topics
-#qhp.QtCanvasPainter.subprojects.manual.type = manual
+qhp.QtCanvasPainter.subprojects = examples cmake classes qmltypes
 
 qhp.QtCanvasPainter.subprojects.examples.title = Examples
 qhp.QtCanvasPainter.subprojects.examples.indexTitle = Qt Canvas Painter Examples and Tutorials
-qhp.QtCanvasPainter.subprojects.examples.selectors = doc:example
+qhp.QtCanvasPainter.subprojects.examples.selectors = example
 qhp.QtCanvasPainter.subprojects.examples.sortPages  = true
 
 qhp.QtCanvasPainter.subprojects.classes.title      = C++ Classes
 qhp.QtCanvasPainter.subprojects.classes.indexTitle = Qt Canvas Painter C++ Classes
-qhp.QtCanvasPainter.subprojects.classes.selectors  = class doc:headerfile
+qhp.QtCanvasPainter.subprojects.classes.selectors  = class headerfile
 qhp.QtCanvasPainter.subprojects.classes.sortPages  = true
 
 qhp.QtCanvasPainter.subprojects.qmltypes.title      = QML Types
 qhp.QtCanvasPainter.subprojects.qmltypes.indexTitle = Qt Canvas2D QML types
-qhp.QtCanvasPainter.subprojects.qmltypes.selectors  = qmlclass
+qhp.QtCanvasPainter.subprojects.qmltypes.selectors  = qmltype
 qhp.QtCanvasPainter.subprojects.qmltypes.sortPages  = true
+
+qhp.QtCanvasPainter.subprojects.cmake.title = CMake Commands
+qhp.QtCanvasPainter.subprojects.cmake.selectors = group:cmake-commands-qtcanvaspainter
+qhp.QtCanvasPainter.subprojects.cmake.sortPages = true
 
 tagfile                 = ../../../doc/qtcanvaspainter/qtcanvaspainter.tags
 
