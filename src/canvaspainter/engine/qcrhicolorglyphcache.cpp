@@ -183,16 +183,20 @@ QCRhiColorGlyphCache::ensureGlyph(const GlyphKey &key, QFontEngine *fe,
 
     const QPoint dst = alloc.topLeft() + QPoint(QC_COLOR_GLYPH_PADDING, QC_COLOR_GLYPH_PADDING);
 
-    QRhiTextureSubresourceUploadDescription subres(bitmap.constBits(), bitmap.sizeInBytes());
-    subres.setSourceSize(glyphSize);
-    subres.setDestinationTopLeft(dst);
+    // Upload image with the padded areas cleared as they might bleed pixels from evicted emojis
+    QImage bitmapPadded = bitmap.copy(
+        -QC_COLOR_GLYPH_PADDING, -QC_COLOR_GLYPH_PADDING, allocSize.width(), allocSize.height());
+
+    QRhiTextureSubresourceUploadDescription subres(bitmapPadded.constBits(), bitmapPadded.sizeInBytes());
+    subres.setSourceSize(allocSize);
+    subres.setDestinationTopLeft(alloc.topLeft());
     m_batch->uploadTexture(m_atlas, QRhiTextureUploadEntry(0, 0, subres));
 
     if (useTextureResizeWorkaround()) {
-        const int bytesPerRow = glyphSize.width() * 4;
-        for (int row = 0; row < glyphSize.height(); ++row) {
-            memcpy(m_atlasImage.scanLine(dst.y() + row) + dst.x() * 4,
-                   bitmap.constScanLine(row),
+        const int bytesPerRow = allocSize.width() * 4;
+        for (int row = 0; row < allocSize.height(); ++row) {
+            memcpy(m_atlasImage.scanLine(alloc.y() + row) + alloc.x() * 4,
+                   bitmapPadded.constScanLine(row),
                    bytesPerRow);
         }
     }
