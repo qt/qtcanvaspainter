@@ -120,10 +120,15 @@ void QCRhiColorGlyphCache::referenceGlyph(const GlyphKey &key, GlyphData &gd)
     m_unusedGlyphs.remove(key);
 }
 
-// Free atlas space held by unused glyphs until allocSize fits (or none are
-// left to evict). Returns the resulting allocation, or a null rect.
+// Free atlas space held by unused glyphs until allocSize fits. If that is not
+// enough, also free glyphs drawn in the previous frame but not in this one,
+// but only when that makes allocSize fit. Returns the resulting allocation,
+// or a null rect.
 QRect QCRhiColorGlyphCache::evictUntilAllocated(const QSize &allocSize)
 {
+    if (allocSize.width() > m_maxAtlasSize || allocSize.height() > m_maxAtlasSize)
+        return QRect();
+
     QRect alloc;
     while (alloc.isNull() && !m_unusedGlyphs.isEmpty()) {
         const GlyphKey unused = *m_unusedGlyphs.constBegin();
@@ -134,7 +139,39 @@ QRect QCRhiColorGlyphCache::evictUntilAllocated(const QSize &allocSize)
         m_glyphs.remove(unused);
         alloc = m_allocator->allocate(allocSize);
     }
-    return alloc;
+    if (!alloc.isNull() || m_prevFrameEvicted)
+        return alloc;
+    if (m_failedEvictionSize.isValid() && allocSize.width() >= m_failedEvictionSize.width()
+        && allocSize.height() >= m_failedEvictionSize.height()) {
+        return QRect();
+    }
+
+    QList<GlyphKey> evict;
+    QCAreaAllocator trial(*m_allocator);
+    for (const GlyphKey &key : std::as_const(m_referencedPrevFrame)) {
+        if (m_referencedThisFrame.contains(key))
+            continue;
+        auto it = m_glyphs.constFind(key);
+        if (it != m_glyphs.constEnd() && it->valid)
+            trial.deallocate(allocationRect(it->atlasRect));
+        evict.append(key);
+    }
+    if (trial.allocate(allocSize).isNull()) {
+        m_failedEvictionSize = allocSize;
+        return QRect();
+    }
+
+    m_prevFrameEvicted = true;
+    for (const GlyphKey &key : std::as_const(evict)) {
+        m_referencedPrevFrame.remove(key);
+        auto it = m_glyphs.constFind(key);
+        if (it != m_glyphs.constEnd()) {
+            if (it->valid)
+                m_allocator->deallocate(allocationRect(it->atlasRect));
+            m_glyphs.erase(it);
+        }
+    }
+    return m_allocator->allocate(allocSize);
 }
 
 const QCRhiColorGlyphCache::GlyphData &
@@ -247,6 +284,8 @@ void QCRhiColorGlyphCache::optimizeAfterRendering()
     releaseGlyphs(m_referencedPrevFrame);
     m_referencedPrevFrame.swap(m_referencedThisFrame);
     m_referencedThisFrame.clear();
+    m_prevFrameEvicted = false;
+    m_failedEvictionSize = QSize();
 
     ++m_frame;
     m_unplacedGlyphs.removeIf([this](std::pair<const GlyphKey &, UnplacedGlyph &> e) {

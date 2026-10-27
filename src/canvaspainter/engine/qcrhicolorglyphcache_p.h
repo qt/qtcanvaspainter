@@ -103,6 +103,8 @@ private:
     QSet<GlyphKey> m_unusedGlyphs;
     const GlyphData m_invalidGlyph;
     quint32 m_frame = 0;
+    bool m_prevFrameEvicted = false;
+    QSize m_failedEvictionSize;
     int m_atlasSize = 0;    // current physical atlas texture size (square, px)
     int m_maxAtlasSize = 0; // allocator coordinate space and growth ceiling (px)
     QImage m_atlasImage;    // CPU shadow of the atlas (resize workaround only)

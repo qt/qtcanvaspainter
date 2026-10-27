@@ -31,6 +31,8 @@ class QCAreaAllocator
 {
 public:
     QCAreaAllocator(QSize size);
+    QCAreaAllocator(const QCAreaAllocator &other);
+    QCAreaAllocator &operator=(const QCAreaAllocator &) = delete;
     ~QCAreaAllocator();
 
     QRect allocate(QSize size);

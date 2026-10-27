@@ -45,6 +45,26 @@ QCAreaAllocator::QCAreaAllocator(QSize size)
     m_root = new QCAreaAllocatorNode(nullptr);
 }
 
+static QCAreaAllocatorNode *cloneNode(const QCAreaAllocatorNode *node,
+                                      QCAreaAllocatorNode *parent)
+{
+    auto *copy = new QCAreaAllocatorNode(parent);
+    copy->isOccupied = node->isOccupied;
+    if (node->left) {
+        copy->split = node->split;
+        copy->splitType = node->splitType;
+        copy->left = cloneNode(node->left, copy);
+        copy->right = cloneNode(node->right, copy);
+    }
+    return copy;
+}
+
+QCAreaAllocator::QCAreaAllocator(const QCAreaAllocator &other)
+    : m_root(cloneNode(other.m_root, nullptr))
+    , m_size(other.m_size)
+{
+}
+
 QCAreaAllocator::~QCAreaAllocator()
 {
     delete m_root;
