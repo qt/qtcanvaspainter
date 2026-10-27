@@ -154,6 +154,23 @@ QCRhiColorGlyphCache::ensureGlyph(const GlyphKey &key, QFontEngine *fe,
     if (!m_atlas)
         return m_invalidGlyph;
 
+    auto allocate = [this](const QSize &size) {
+        QRect r = m_allocator->allocate(size);
+        if (r.isNull())
+            r = evictUntilAllocated(size);
+        return r;
+    };
+
+    auto unplaced = m_unplacedGlyphs.find(key);
+    if (unplaced != m_unplacedGlyphs.end()) {
+        unplaced->lastFrame = m_frame;
+        const QRect probe = allocate(unplaced->allocSize);
+        if (probe.isNull())
+            return m_invalidGlyph;
+        m_allocator->deallocate(probe);
+        m_unplacedGlyphs.erase(unplaced);
+    }
+
     // The bitmap is already in Format_ARGB32_Premultiplied for color fonts.
     QImage bitmap = fe->bitmapForGlyph(key.glyph, QFixedPoint(), rasterTransform, color);
     if (bitmap.isNull())
@@ -165,11 +182,10 @@ QCRhiColorGlyphCache::ensureGlyph(const GlyphKey &key, QFontEngine *fe,
     const QSize glyphSize = bitmap.size();
     const QSize allocSize(glyphSize.width() + QC_COLOR_GLYPH_PADDING * 2,
                           glyphSize.height() + QC_COLOR_GLYPH_PADDING * 2);
-    QRect alloc = m_allocator->allocate(allocSize);
-    if (alloc.isNull())
-        alloc = evictUntilAllocated(allocSize);
+    QRect alloc = allocate(allocSize);
     if (alloc.isNull()) {
         qWarning("Color glyph atlas full; emoji glyph dropped");
+        m_unplacedGlyphs.insert(key, { allocSize, m_frame });
         return m_invalidGlyph;
     }
 
@@ -231,6 +247,11 @@ void QCRhiColorGlyphCache::optimizeAfterRendering()
     releaseGlyphs(m_referencedPrevFrame);
     m_referencedPrevFrame.swap(m_referencedThisFrame);
     m_referencedThisFrame.clear();
+
+    ++m_frame;
+    m_unplacedGlyphs.removeIf([this](std::pair<const GlyphKey &, UnplacedGlyph &> e) {
+        return m_frame - e.second.lastFrame > 1;
+    });
 }
 
 void QCRhiColorGlyphCache::addGlyphRun(QPointF glyphPos,

@@ -76,6 +76,12 @@ private:
         quint32 ref = 0;
     };
 
+    struct UnplacedGlyph
+    {
+        QSize allocSize;
+        quint32 lastFrame = 0;
+    };
+
     void ensureAtlas();
     void growAtlas(int requiredSize);
     const GlyphData &ensureGlyph(const GlyphKey &key, QFontEngine *fe,
@@ -91,10 +97,12 @@ private:
     QRhiResourceUpdateBatch *m_batch = nullptr;
     QCAreaAllocator *m_allocator = nullptr;
     QHash<GlyphKey, GlyphData> m_glyphs;
+    QHash<GlyphKey, UnplacedGlyph> m_unplacedGlyphs;
     QSet<GlyphKey> m_referencedThisFrame;
     QSet<GlyphKey> m_referencedPrevFrame;
     QSet<GlyphKey> m_unusedGlyphs;
     const GlyphData m_invalidGlyph;
+    quint32 m_frame = 0;
     int m_atlasSize = 0;    // current physical atlas texture size (square, px)
     int m_maxAtlasSize = 0; // allocator coordinate space and growth ceiling (px)
     QImage m_atlasImage;    // CPU shadow of the atlas (resize workaround only)
