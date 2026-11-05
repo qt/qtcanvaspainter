@@ -233,6 +233,12 @@ QCanvasPath::QCanvasPath(qsizetype commandsSize, qsizetype commandsDataSize)
 
 /*!
     Constructs a path that is a copy of the given \a path.
+
+    \note The copy shares the original path's identity for caching rendered
+    geometry. If either path is modified afterwards, rendering one of them may
+    reuse the geometry of the other. To build a path from the contents of
+    another path, use \l clear() followed by
+    \l{addPath(const QCanvasPath &, const QTransform &)}{addPath()} instead.
 */
 
 QCanvasPath::QCanvasPath(const QCanvasPath &path)
@@ -251,6 +257,12 @@ QCanvasPath::~QCanvasPath(){
 /*!
     Assigns the given \a path to this path and returns a reference to
     this path.
+
+    \note The copy shares the original path's identity for caching rendered
+    geometry. If either path is modified afterwards, rendering one of them may
+    reuse the geometry of the other. To build a path from the contents of
+    another path, use \l clear() followed by
+    \l{addPath(const QCanvasPath &, const QTransform &)}{addPath()} instead.
 */
 
 QCanvasPath &QCanvasPath::operator=(const QCanvasPath &path)

@@ -731,7 +731,8 @@ void GalleryItemRenderer::drawPainterPaths()
             m_pathGraphLine.lineTo(posX + fl * w, lY);
         }
         // Create fillpath, graph + 2 points.
-        m_pathGraphArea = m_pathGraphLine;
+        m_pathGraphArea.clear();
+        m_pathGraphArea.addPath(m_pathGraphLine);
         m_pathGraphArea.lineTo(posX + w, posY + h);
         m_pathGraphArea.lineTo(posX, posY + h);
     }
@@ -751,7 +752,8 @@ void GalleryItemRenderer::drawPainterPaths()
     int count = commands - 0.5f * commands * std::max(sin(-0.5f * m_animationTime), 0.0f);
     QCanvasPath pathSelection = m_pathGraphLine.sliced(startIndex, count);
     // Selection fill is selection + 2 points
-    QCanvasPath pathSelectionFill(pathSelection);
+    QCanvasPath pathSelectionFill;
+    pathSelectionFill.addPath(pathSelection);
     float selectionFirstX = pathSelection.positionAt(0).x();
     float selectionLastX = pathSelection.positionAt(pathSelection.commandsSize() - 1).x();
     pathSelectionFill.lineTo(selectionLastX, posY + h);
