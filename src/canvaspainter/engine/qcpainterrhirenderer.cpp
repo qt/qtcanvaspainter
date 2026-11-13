@@ -1220,6 +1220,41 @@ static void setPaintTransform(const QTransform &t, float *m3) noexcept
         transformToMat3x4(t.inverted(), m3);
 }
 
+// Sets the uniforms of the transformed clip. The fragment shader maps the points
+// with scissorMat to the coordinates of the clip, where the clip is the rectangle
+// of size 2 * scissorExt centered at the origin, and scissorScale turns those
+// coordinates to the widths of the antialiasing. The points are in the logical
+// coordinates, except those of the cached paths, which the vertex shader
+// transforms. Then pointTransform is the transform of the points.
+template <typename Uniforms>
+static void setScissorUniforms(Uniforms *frag, const QCClip &clip, float aa,
+                               const QTransform *pointTransform) noexcept
+{
+    if (clip.extent[0] < -0.5f || clip.extent[1] < -0.5f) {
+        memset(frag->scissorMat, 0, sizeof(frag->scissorMat));
+        frag->scissorExt[0] = 1.0f;
+        frag->scissorExt[1] = 1.0f;
+        frag->scissorScale[0] = 1.0f;
+        frag->scissorScale[1] = 1.0f;
+        return;
+    }
+    // clip.transform maps the coordinates of the clip to the logical ones
+    QTransform toClip = clip.transform.inverted();
+    if (pointTransform)
+        toClip = *pointTransform * toClip;
+    transformToMat3x4(toClip, frag->scissorMat);
+    frag->scissorExt[0] = clip.extent[0];
+    frag->scissorExt[1] = clip.extent[1];
+    // The size of the coordinates of the clip in the logical ones. This does
+    // not depend on the transform of the points.
+    const float m1 = clip.transform.m11();
+    const float m2 = clip.transform.m12();
+    const float m3 = clip.transform.m21();
+    const float m4 = clip.transform.m22();
+    frag->scissorScale[0] = sqrt(m1 * m1 + m3 * m3) / aa;
+    frag->scissorScale[1] = sqrt(m2 * m2 + m4 * m4) / aa;
+}
+
 static constexpr QCColor premulColor(QCColor c) noexcept
 {
     c.r *= c.a;
@@ -1254,7 +1289,8 @@ static constexpr QCRHIShaderType shaderTypeFromBrush(QCanvasBrushType brushType,
 // Prepare common uniforms according to paint & clip.
 void QCPainterRhiRenderer::preparePaint(QCRHICommonUniforms *frag, const QCPaint &paint,
                                         const QCState &state, float width, float aa, float strokeThr,
-                                        float fontAlphaMin, float fontAlphaMax)
+                                        float fontAlphaMin, float fontAlphaMax,
+                                        const QTransform *pointTransform)
 {
     memset((void*)frag, 0, sizeof(*frag));
     // If antialiasing is disabled, both aa and width must be at least 0.01
@@ -1271,26 +1307,8 @@ void QCPainterRhiRenderer::preparePaint(QCRHICommonUniforms *frag, const QCPaint
     frag->fontAlphaMin = fontAlphaMin;
     frag->fontAlphaMax = fontAlphaMax;
 
-    if (rhiCtx->flags & QCPainterRhiRenderer::TransformedClipping) {
-        const auto &clip = state.clip;
-        if (clip.extent[0] < -0.5f || clip.extent[1] < -0.5f) {
-            memset(frag->scissorMat, 0, sizeof(frag->scissorMat));
-            frag->scissorExt[0] = 1.0f;
-            frag->scissorExt[1] = 1.0f;
-            frag->scissorScale[0] = 1.0f;
-            frag->scissorScale[1] = 1.0f;
-        } else {
-            setPaintTransform(clip.transform, frag->scissorMat);
-            frag->scissorExt[0] = clip.extent[0];
-            frag->scissorExt[1] = clip.extent[1];
-            const float m1 = clip.transform.m11();
-            const float m2 = clip.transform.m12();
-            const float m3 = clip.transform.m21();
-            const float m4 = clip.transform.m22();
-            frag->scissorScale[0] = sqrt(m1 * m1 + m3 * m3) / aa;
-            frag->scissorScale[1] = sqrt(m2 * m2 + m4 * m4) / aa;
-        }
-    }
+    if (rhiCtx->flags & QCPainterRhiRenderer::TransformedClipping)
+        setScissorUniforms(frag, state.clip, aa, pointTransform);
 
     frag->extent[0] = paint.extent[0];
     frag->extent[1] = paint.extent[1];
@@ -1347,7 +1365,8 @@ void QCPainterRhiRenderer::preparePaint(QCRHICommonUniforms *frag, const QCPaint
 void QCPainterRhiRenderer::prepareCustomPaint(QCanvasCustomBrushPrivate::CommonUniforms *frag, const QCPaint &paint,
                                               QCanvasCustomBrushPrivate *privBrush, const QCState &state,
                                               float width, float aa, float strokeThr,
-                                              float fontAlphaMin, float fontAlphaMax)
+                                              float fontAlphaMin, float fontAlphaMax,
+                                              const QTransform *pointTransform)
 {
     Q_UNUSED(paint);
     memset((void*)frag, 0, sizeof(*frag));
@@ -1374,24 +1393,7 @@ void QCPainterRhiRenderer::prepareCustomPaint(QCanvasCustomBrushPrivate::CommonU
     width = std::max(width, 0.01f);
 
     // Custom brush always contains clipping uniforms?
-    const auto &clip = state.clip;
-    if (clip.extent[0] < -0.5f || clip.extent[1] < -0.5f) {
-        memset(frag->scissorMat, 0, sizeof(frag->scissorMat));
-        frag->scissorExt[0] = 1.0f;
-        frag->scissorExt[1] = 1.0f;
-        frag->scissorScale[0] = 1.0f;
-        frag->scissorScale[1] = 1.0f;
-    } else {
-        setPaintTransform(clip.transform, frag->scissorMat);
-        frag->scissorExt[0] = clip.extent[0];
-        frag->scissorExt[1] = clip.extent[1];
-        const float m1 = clip.transform.m11();
-        const float m2 = clip.transform.m12();
-        const float m3 = clip.transform.m21();
-        const float m4 = clip.transform.m22();
-        frag->scissorScale[0] = sqrt(m1 * m1 + m3 * m3) / aa;
-        frag->scissorScale[1] = sqrt(m2 * m2 + m4 * m4) / aa;
-    }
+    setScissorUniforms(frag, state.clip, aa, pointTransform);
 
     frag->alphaMult = (width * 0.5f + aa * 0.5f) / aa;
     frag->strokeThr = strokeThr;
@@ -1633,6 +1635,9 @@ void QCPainterRhiRenderer::renderFill(const QCPaint &paint, const QCState &state
                                       std::optional<QCRhiCachedPathDrawArgs> cachedPathInfo,
                                       QCanvasPainter::FillRule fillRule)
 {
+    // The points of cached paths are not transformed, the vertex shader does it
+    const QTransform *pointTransform = cachedPathInfo ? &cachedPathInfo->pathTransform : nullptr;
+
     QCRHICall *call = allocCall();
     auto &ctx = m_e->ctx;
     const bool aaEnabled = testFlag(QCPainterRhiRenderer::Antialiasing) && state.antialias > 0;
@@ -1785,10 +1790,10 @@ void QCPainterRhiRenderer::renderFill(const QCPaint &paint, const QCState &state
         if (customPriv) {
             prepareCustomPaint(customUniformPtr(call->commonUniformBufferOffset + rhiCtx->oneCommonUniformBufferSize),
                                paint, customPriv, state, aa, aa, -1.0f,
-                               -1.0f, -1.0f);
+                               -1.0f, -1.0f, pointTransform);
         } else {
             preparePaint(uniformPtr(call->commonUniformBufferOffset + rhiCtx->oneCommonUniformBufferSize),
-                         paint, state, aa, aa, -1.0f, -1.0f, -1.0f);
+                         paint, state, aa, aa, -1.0f, -1.0f, -1.0f, pointTransform);
         }
     } else {
         // CallConvexFill
@@ -1797,10 +1802,10 @@ void QCPainterRhiRenderer::renderFill(const QCPaint &paint, const QCState &state
         if (customPriv) {
             prepareCustomPaint(customUniformPtr(call->commonUniformBufferOffset),
                                paint, customPriv, state, aa, aa, -1.0f,
-                               -1.0f, -1.0f);
+                               -1.0f, -1.0f, pointTransform);
         } else {
             preparePaint(uniformPtr(call->commonUniformBufferOffset),
-                         paint, state, aa, aa, -1.0f, -1.0f, -1.0f);
+                         paint, state, aa, aa, -1.0f, -1.0f, -1.0f, pointTransform);
         }
     }
 }
@@ -1823,6 +1828,9 @@ void QCPainterRhiRenderer::renderStroke(const QCPaint &paint, const QCState &sta
                                         std::optional<QCRhiUncachedPathDrawArgs> uncachedPathInfo,
                                         std::optional<QCRhiCachedPathDrawArgs> cachedPathInfo)
 {
+    // The points of cached paths are not transformed, the vertex shader does it
+    const QTransform *pointTransform = cachedPathInfo ? &cachedPathInfo->pathTransform : nullptr;
+
     QCRHICall *call = allocCall();
     auto &ctx = m_e->ctx;
     const bool aaEnabled = testFlag(QCPainterRhiRenderer::Antialiasing) && state.antialias > 0;
@@ -1928,28 +1936,28 @@ void QCPainterRhiRenderer::renderStroke(const QCPaint &paint, const QCState &sta
         if (customStrokePriv) {
             prepareCustomPaint(customUniformPtr(call->commonUniformBufferOffset),
                                paint, customStrokePriv, state, strokeWidth, aa, -1.0f,
-                               -1.0f, -1.0f);
+                               -1.0f, -1.0f, pointTransform);
             prepareCustomPaint(customUniformPtr(call->commonUniformBufferOffset + rhiCtx->oneCommonUniformBufferSize),
                                paint, customStrokePriv, state, strokeWidth, aa, 1.0f - 0.5f/255.0f,
-                               -1.0f, -1.0f);
+                               -1.0f, -1.0f, pointTransform);
         } else {
             preparePaint(uniformPtr(call->commonUniformBufferOffset),
                          paint, state, strokeWidth, aa, -1.0f,
-                         -1.0f, -1.0f);
+                         -1.0f, -1.0f, pointTransform);
             preparePaint(uniformPtr(call->commonUniformBufferOffset + rhiCtx->oneCommonUniformBufferSize),
                          paint, state, strokeWidth, aa, 1.0f - 0.5f/255.0f,
-                         -1.0f, -1.0f);
+                         -1.0f, -1.0f, pointTransform);
         }
     } else {
         call->commonUniformBufferOffset = allocCommonUniforms(1);
         if (customStrokePriv) {
             prepareCustomPaint(customUniformPtr(call->commonUniformBufferOffset),
                                paint, customStrokePriv, state, strokeWidth, aa, -1.0f,
-                               -1.0f, -1.0f);
+                               -1.0f, -1.0f, pointTransform);
         } else {
             preparePaint(uniformPtr(call->commonUniformBufferOffset),
                          paint, state, strokeWidth, aa, -1.0f,
-                         -1.0f, -1.0f);
+                         -1.0f, -1.0f, pointTransform);
         }
     }
 }
