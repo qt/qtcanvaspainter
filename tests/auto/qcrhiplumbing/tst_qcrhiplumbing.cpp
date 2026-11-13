@@ -93,6 +93,8 @@ private slots:
     void cachedPathVariantsUpdate();
     void cachedStrokeScale_data();
     void cachedStrokeScale();
+    void cachedPathTransformedClip_data();
+    void cachedPathTransformedClip();
 
 private:
     void setWindowType(QWindow *window, QRhi::Implementation impl);
@@ -2414,6 +2416,88 @@ void tst_CanvasRhiRendering::cachedStrokeScale()
     if (!image.isNull()) {
         QVERIFY(isOn(image, 80, 120));
         QVERIFY(isOn(image, 200, 420));
+    }
+}
+
+void tst_CanvasRhiRendering::cachedPathTransformedClip_data()
+{
+    rhiTestData();
+}
+
+// The points of cached paths are not transformed, and the clip that is made under a transform
+// has to be in the coordinates of the points. The result must be what it is without a path group,
+// also the antialiasing of the edges of the clip, which is in device pixels.
+void tst_CanvasRhiRendering::cachedPathTransformedClip()
+{
+    QFETCH(QRhi::Implementation, impl);
+    QFETCH(QRhiInitParams *, initParams);
+
+    std::unique_ptr<QRhi> rhi(QRhi::create(impl, initParams, rhiCreateFlags));
+    if (!rhi)
+        QSKIP("Failed to create QRhi, skip");
+    if (impl == QRhi::Null)
+        QSKIP("Needs the rendered pixels");
+
+    RenderTargetPtr rt = createRenderTarget(rhi.get());
+    QVERIFY(rt);
+
+    std::unique_ptr<QCanvasPainterFactory> factory(new QCanvasPainterFactory);
+    QCanvasPainter *painter = factory->create(rhi.get());
+    QVERIFY(painter);
+    QCanvasRhiPaintDriver *pd = factory->paintDriver();
+
+    // The stroke of the box is partly inside the clip. The fill of the larger
+    // path covers the clip, so the only edges of the fill are those of the clip.
+    QCanvasPath box;
+    box.rect(0, 0, 180, 90);
+    QCanvasPath cover;
+    cover.rect(-50, -50, 400, 300);
+
+    auto render = [&](qreal scale, int group, bool stroke) {
+        QRhiCommandBuffer *cb;
+        rhi->beginOffscreenFrame(&cb);
+        pd->resetForNewFrame();
+        pd->beginPaint(cb, rt->rt);
+        painter->resetTransform();
+        painter->translate(100, 80);
+        painter->scale(scale);
+        painter->rotate(0.3);
+        painter->setClipRect(QRectF(10, 10, 200, 100));
+        painter->setFillStyle(Qt::white);
+        painter->setStrokeStyle(Qt::white);
+        painter->setLineWidth(8);
+        if (stroke)
+            painter->stroke(box, group);
+        else
+            painter->fill(cover, group);
+        pd->endPaint(QCanvasRhiPaintDriver::EndPaintFlag::DoNotRecordRenderPass);
+        cb->beginPass(rt->rt, Qt::black, { 1.0f, 0 });
+        pd->renderPaint();
+        cb->endPass();
+        rhi->endOffscreenFrame();
+        return imageFromReadback(rhi.get(), rt->tex);
+    };
+
+    // At 4 the width of the antialiasing would be 4 pixels if it was scaled with the path
+    for (qreal scale : { 1.5, 4.0 }) {
+        for (bool stroke : { false, true }) {
+            const QImage uncached = render(scale, -1, stroke);
+            const QImage cached = render(scale, stroke ? 1 : 0, stroke);
+            QCOMPARE(cached.size(), uncached.size());
+            int inside = 0;
+            int different = 0;
+            for (int y = 0; y < cached.height(); ++y) {
+                for (int x = 0; x < cached.width(); ++x) {
+                    inside += cached.pixel(x, y) != qRgb(0, 0, 0);
+                    different += qAbs(qGray(cached.pixel(x, y)) - qGray(uncached.pixel(x, y))) > 64;
+                }
+            }
+            // Something is drawn, as the clip is where the path is, and it is the same
+            const QString message = QStringLiteral("scale %1 stroke %2: %3 pixels, %4 differ")
+                                            .arg(scale).arg(stroke).arg(inside).arg(different);
+            QVERIFY2(inside > 500, qPrintable(message));
+            QVERIFY2(different < 20, qPrintable(message));
+        }
     }
 }
 

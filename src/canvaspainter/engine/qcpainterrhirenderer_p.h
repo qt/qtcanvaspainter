@@ -245,11 +245,13 @@ private:
     QCanvasCustomBrushPrivate::CommonUniforms *customUniformPtr(int i) const;
     void preparePaint(QCRHICommonUniforms* frag, const QCPaint &paint,
                       const QCState &state, float width, float aa, float strokeThr,
-                      float fontAlphaMin, float fontAlphaMax);
+                      float fontAlphaMin, float fontAlphaMax,
+                      const QTransform *pointTransform = nullptr);
     void prepareCustomPaint(QCanvasCustomBrushPrivate::CommonUniforms* frag, const QCPaint &paint,
                             QCanvasCustomBrushPrivate *privBrush, const QCState &state,
                             float width, float aa, float strokeThr,
-                            float fontAlphaMin, float fontAlphaMax);
+                            float fontAlphaMin, float fontAlphaMax,
+                            const QTransform *pointTransform = nullptr);
     void bindPipeline(QCRHICall *call,
                       int pipelineIndex, int srbIndex,
                       const QRhiCommandBuffer::DynamicOffset &vertDynamicOffset,
