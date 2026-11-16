@@ -879,7 +879,7 @@ void GalleryItemRenderer::drawTransforms() {
     t.scale(scale, scale);
     t.translate(-(posX+w/2), -(posY+w/2));
     painter()->setTransform(t);
-    painter()->strokeRect(posX, posY, w, w);
+    painter()->save();
     painter()->setClipRect(posX, posY, w, w);
     // Duplicate transformation
     QTransform t2 = painter()->getTransform();
@@ -888,6 +888,10 @@ void GalleryItemRenderer::drawTransforms() {
     painter()->setStrokeStyle(0xFF948979);
     painter()->strokeRect(posX, posY, w, w);
     painter()->resetClipping();
+    painter()->restore();
+    // Stroke the clipping rect after the clipped content, so that the content
+    // doesn't paint over the inner half of it
+    painter()->strokeRect(posX, posY, w, w);
 
     posY += w+margin;
     posX = margin/2;
