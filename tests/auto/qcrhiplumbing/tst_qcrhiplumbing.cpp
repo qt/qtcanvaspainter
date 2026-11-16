@@ -103,6 +103,7 @@ private slots:
     void tessellationLevelLimit();
     void zeroSizeCurves_data();
     void zeroSizeCurves();
+    void perspectiveTransformIgnored();
 
 private:
     void setWindowType(QWindow *window, QRhi::Implementation impl);
@@ -2709,6 +2710,36 @@ void tst_CanvasRhiRendering::cachedCurveScale()
             QVERIFY2(different < 3, qPrintable(message));
         }
     }
+}
+
+// Only affine transforms are supported. The perspective part of a transform is
+// ignored, so that it does not apply to some of the drawing and not the rest.
+void tst_CanvasRhiRendering::perspectiveTransformIgnored()
+{
+    QRhiNullInitParams params;
+    std::unique_ptr<QRhi> rhi(QRhi::create(QRhi::Null, &params));
+    QVERIFY(rhi);
+    std::unique_ptr<QCanvasPainterFactory> factory(new QCanvasPainterFactory);
+    QCanvasPainter *painter = factory->create(rhi.get());
+    QVERIFY(painter);
+
+    const QTransform perspective(1, 0.5, 0.002,
+                                 -0.5, 1, 0.001,
+                                 20, 30, 1.5);
+    const QTransform affine(1, 0.5, -0.5, 1, 20, 30);
+
+    painter->setTransform(perspective);
+    QCOMPARE(painter->getTransform(), affine);
+
+    painter->resetTransform();
+    painter->translate(10, 0);
+    painter->transform(perspective);
+    QCOMPARE(painter->getTransform(), affine * QTransform::fromTranslate(10, 0));
+
+    // Affine transforms are used as they are
+    const QTransform scaled = QTransform(affine).scale(2, 3);
+    painter->setTransform(scaled);
+    QCOMPARE(painter->getTransform(), scaled);
 }
 
 void tst_CanvasRhiRendering::tessellationLevelLimit_data()

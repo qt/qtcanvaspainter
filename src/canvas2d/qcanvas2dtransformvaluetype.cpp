@@ -22,6 +22,10 @@ QT_BEGIN_NAMESPACE
 
     This value type is provided by the \l{QtCanvas2D} import.
 
+    \note Canvas2D supports only affine transforms. When a \c transform2d is
+    used for drawing, only its affine part is used, and \c m13, \c m23 and
+    \c m33 are expected to be \c 0, \c 0 and \c 1.
+
     \sa QTransform
 */
 
@@ -163,7 +167,7 @@ void QCanvas2DTransformValueType::setMatrix(qreal m11, qreal m12,
 }
 
 /*!
-    \qmlmethod void transform2d::translate(real dx, qreal dy)
+    \qmlmethod void transform2d::translate(real dx, real dy)
 
     Moves the coordinate system \a dx along the x axis and \a dy along the y axis.
 */

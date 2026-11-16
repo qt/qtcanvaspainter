@@ -1012,6 +1012,12 @@ void QCanvasPainter::resetTransform()
     p->stroke();
     \endcode
     \endtable
+
+    \note Only affine transforms are supported, see QTransform::isAffine().
+    The perspective part of \a transform (\c m13, \c m23 and \c m33) is
+    ignored. To show the painting in a perspective, transform the item that
+    it is drawn into instead, for example a QCanvasPainterItem with a Qt Quick
+    transform.
 */
 
 void QCanvasPainter::setTransform(const QTransform &transform)
@@ -1042,6 +1048,12 @@ void QCanvasPainter::setTransform(const QTransform &transform)
     }
     \endcode
     \endtable
+
+    \note Only affine transforms are supported, see QTransform::isAffine().
+    The perspective part of \a transform (\c m13, \c m23 and \c m33) is
+    ignored.
+
+    \sa setTransform()
 */
 
 void QCanvasPainter::transform(const QTransform &transform)
@@ -1707,6 +1719,9 @@ void QCanvasPainter::addPath(const QPainterPath &path)
     p->stroke();
     \endcode
     \endtable
+
+    \note Only affine transforms are supported for \a transform, see
+    QTransform::isAffine().
 */
 
 void QCanvasPainter::addPath(const QCanvasPath &path, const QTransform &transform)
@@ -1744,6 +1759,9 @@ void QCanvasPainter::addPath(const QCanvasPath &path, const QTransform &transfor
     p->stroke();
     \endcode
     \endtable
+
+    \note Only affine transforms are supported for \a transform, see
+    QTransform::isAffine().
 */
 
 void QCanvasPainter::addPath(const QCanvasPath &path,
