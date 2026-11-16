@@ -97,6 +97,8 @@ private slots:
     void cachedPathTransformedClip();
     void cachedFillScale_data();
     void cachedFillScale();
+    void cachedCurveScale_data();
+    void cachedCurveScale();
 
 private:
     void setWindowType(QWindow *window, QRhi::Implementation impl);
@@ -2617,6 +2619,92 @@ void tst_CanvasRhiRendering::cachedFillScale()
     }
     render(concave, 2.0, 1.0, 0);
     QCOMPARE(engine->debugCounters().cachedPathVertexDataSize, sizeOfBoth);
+}
+
+void tst_CanvasRhiRendering::cachedCurveScale_data()
+{
+    rhiTestData();
+}
+
+// The curves of a cached path are flattened in the units of the path. When the
+// data is made for a scale, they must be flattened for it, as without a path
+// group, or the segments next to a sharp corner differ, and so does its join.
+void tst_CanvasRhiRendering::cachedCurveScale()
+{
+    QFETCH(QRhi::Implementation, impl);
+    QFETCH(QRhiInitParams *, initParams);
+
+    std::unique_ptr<QRhi> rhi(QRhi::create(impl, initParams, rhiCreateFlags));
+    if (!rhi)
+        QSKIP("Failed to create QRhi, skip");
+
+    RenderTargetPtr rt = createRenderTarget(rhi.get());
+    QVERIFY(rt);
+
+    std::unique_ptr<QCanvasPainterFactory> factory(new QCanvasPainterFactory);
+    QCanvasPainter *painter = factory->create(rhi.get());
+    QVERIFY(painter);
+    QCanvasRhiPaintDriver *pd = factory->paintDriver();
+
+    // Curves that meet a line at sharp corners
+    QCanvasPath path;
+    for (int i = 0; i < 4; ++i) {
+        const float x = i * 220.0f;
+        path.moveTo(x, 60);
+        path.quadraticCurveTo(x + 90, 0, x + 180, 60);
+        path.closePath();
+        path.moveTo(x, 160);
+        path.bezierCurveTo(x, 100, x + 140 + i * 10, 100, x + 140 + i * 10, 160);
+        path.closePath();
+    }
+
+    auto render = [&](qreal scale, bool stroke, int group) {
+        QRhiCommandBuffer *cb;
+        rhi->beginOffscreenFrame(&cb);
+        pd->resetForNewFrame();
+        pd->beginPaint(cb, rt->rt);
+        painter->resetTransform();
+        painter->translate(10, 10);
+        painter->scale(scale);
+        if (stroke) {
+            painter->setStrokeStyle(Qt::white);
+            painter->setLineWidth(3);
+            painter->stroke(path, group);
+        } else {
+            painter->setFillStyle(Qt::white);
+            painter->fill(path, group);
+        }
+        pd->endPaint(QCanvasRhiPaintDriver::EndPaintFlag::DoNotRecordRenderPass);
+        cb->beginPass(rt->rt, Qt::black, { 1.0f, 0 });
+        pd->renderPaint();
+        cb->endPass();
+        rhi->endOffscreenFrame();
+        return impl != QRhi::Null ? imageFromReadback(rhi.get(), rt->tex) : QImage();
+    };
+
+    for (bool stroke : { false, true }) {
+        for (qreal scale : { 1.0, 0.5, 0.25, 2.0 }) {
+            const QImage cached = render(scale, stroke, 0);
+            const QImage uncached = render(scale, stroke, -1);
+            painter->removePathGroup(0);
+            if (impl == QRhi::Null)
+                continue;
+            int inside = 0;
+            int different = 0;
+            for (int y = 0; y < cached.height(); ++y) {
+                for (int x = 0; x < cached.width(); ++x) {
+                    inside += cached.pixel(x, y) != qRgb(0, 0, 0);
+                    different += qAbs(qGray(cached.pixel(x, y)) - qGray(uncached.pixel(x, y))) > 64;
+                }
+            }
+            const QString message = QStringLiteral("%1 scale %2: %3 pixels, %4 differ")
+                                            .arg(stroke ? "stroke" : "fill")
+                                            .arg(scale).arg(inside).arg(different);
+            qInfo("%s", qPrintable(message));
+            QVERIFY2(inside > 100, qPrintable(message));
+            QVERIFY2(different < 3, qPrintable(message));
+        }
+    }
 }
 
 #include <tst_qcrhiplumbing.moc>
