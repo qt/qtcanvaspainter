@@ -99,6 +99,10 @@ private slots:
     void cachedFillScale();
     void cachedCurveScale_data();
     void cachedCurveScale();
+    void tessellationLevelLimit_data();
+    void tessellationLevelLimit();
+    void zeroSizeCurves_data();
+    void zeroSizeCurves();
 
 private:
     void setWindowType(QWindow *window, QRhi::Implementation impl);
@@ -2704,6 +2708,129 @@ void tst_CanvasRhiRendering::cachedCurveScale()
             QVERIFY2(inside > 100, qPrintable(message));
             QVERIFY2(different < 3, qPrintable(message));
         }
+    }
+}
+
+void tst_CanvasRhiRendering::tessellationLevelLimit_data()
+{
+    rhiTestData();
+}
+
+// A curve that is not flat enough at the deepest level of subdividing it is
+// still drawn, with the segments of that level.
+void tst_CanvasRhiRendering::tessellationLevelLimit()
+{
+    QFETCH(QRhi::Implementation, impl);
+    QFETCH(QRhiInitParams *, initParams);
+
+    std::unique_ptr<QRhi> rhi(QRhi::create(impl, initParams, rhiCreateFlags));
+    if (!rhi)
+        QSKIP("Failed to create QRhi, skip");
+
+    RenderTargetPtr rt = createRenderTarget(rhi.get());
+    QVERIFY(rt);
+
+    std::unique_ptr<QCanvasPainterFactory> factory(new QCanvasPainterFactory);
+    QCanvasPainter *painter = factory->create(rhi.get());
+    QVERIFY(painter);
+    QCanvasRhiPaintDriver *pd = factory->paintDriver();
+
+    // A circle so large that its curves need more segments than the deepest
+    // level gives. Its top is at the center of the render target.
+    const float radius = 1.0e7f;
+    QCanvasPath path;
+    path.circle(RT_WIDTH / 2, RT_HEIGHT / 2 + radius, radius);
+
+    for (int group : { -1, 0 }) {
+        QRhiCommandBuffer *cb;
+        rhi->beginOffscreenFrame(&cb);
+        pd->resetForNewFrame();
+        pd->beginPaint(cb, rt->rt);
+        painter->setFillStyle(Qt::white);
+        painter->fill(path, group);
+        pd->endPaint(QCanvasRhiPaintDriver::EndPaintFlag::DoNotRecordRenderPass);
+        cb->beginPass(rt->rt, Qt::black, { 1.0f, 0 });
+        pd->renderPaint();
+        cb->endPass();
+        rhi->endOffscreenFrame();
+        if (impl == QRhi::Null)
+            continue;
+        const QImage image = imageFromReadback(rhi.get(), rt->tex);
+        QVERIFY(testColor(image, RT_WIDTH / 2, RT_HEIGHT / 2 - 10, Qt::black));
+        QVERIFY(testColor(image, RT_WIDTH / 2, RT_HEIGHT / 2 + 10, Qt::white));
+        QVERIFY(testColor(image, 10, RT_HEIGHT - 10, Qt::white));
+    }
+}
+
+void tst_CanvasRhiRendering::zeroSizeCurves_data()
+{
+    rhiTestData();
+}
+
+// A curve of zero size, like those of a circle with the radius 0, ends at its
+// start. It is not subdivided, and adds no point, so that it does not make a
+// segment of zero length, which would change the joins of a stroke.
+void tst_CanvasRhiRendering::zeroSizeCurves()
+{
+    QFETCH(QRhi::Implementation, impl);
+    QFETCH(QRhiInitParams *, initParams);
+
+    std::unique_ptr<QRhi> rhi(QRhi::create(impl, initParams, rhiCreateFlags));
+    if (!rhi)
+        QSKIP("Failed to create QRhi, skip");
+
+    RenderTargetPtr rt = createRenderTarget(rhi.get());
+    QVERIFY(rt);
+
+    std::unique_ptr<QCanvasPainterFactory> factory(new QCanvasPainterFactory);
+    QCanvasPainter *painter = factory->create(rhi.get());
+    QVERIFY(painter);
+    QCanvasRhiPaintDriver *pd = factory->paintDriver();
+    QCPainterEngine *engine = QCanvasPainterPrivate::get(painter)->m_renderer->engine();
+
+    // The circle is a point and four curves of zero size
+    QCanvasPath circle;
+    circle.circle(100, 100, 0);
+    QCanvasPath point;
+    point.moveTo(100, 100);
+
+    // A corner with a curve of zero size, like that of a rounded rectangle
+    // with the radius 0 at the corner
+    QCanvasPath cornerWithCurve;
+    cornerWithCurve.moveTo(0, 0);
+    cornerWithCurve.lineTo(100, 0);
+    cornerWithCurve.bezierCurveTo(100, 0, 100, 0, 100, 0);
+    cornerWithCurve.lineTo(100, 100);
+    QCanvasPath corner;
+    corner.moveTo(0, 0);
+    corner.lineTo(100, 0);
+    corner.lineTo(100, 100);
+
+    auto cachedSize = [&](const QCanvasPath &path, bool stroke) {
+        QRhiCommandBuffer *cb;
+        rhi->beginOffscreenFrame(&cb);
+        pd->resetForNewFrame();
+        pd->beginPaint(cb, rt->rt);
+        painter->setLineWidth(10);
+        painter->setLineJoin(QCanvasPainter::LineJoin::Round);
+        if (stroke)
+            painter->stroke(path, 0);
+        else
+            painter->fill(path, 0);
+        pd->endPaint(QCanvasRhiPaintDriver::EndPaintFlag::DoNotRecordRenderPass);
+        cb->beginPass(rt->rt, Qt::black, { 1.0f, 0 });
+        pd->renderPaint();
+        cb->endPass();
+        rhi->endOffscreenFrame();
+        engine->syncDebugCounters();
+        const int size = engine->debugCounters().cachedPathVertexDataSize;
+        painter->removePathGroup(0);
+        return size;
+    };
+
+    for (bool stroke : { false, true }) {
+        QCOMPARE(cachedSize(circle, stroke), cachedSize(point, stroke));
+        QCOMPARE(cachedSize(cornerWithCurve, stroke), cachedSize(corner, stroke));
     }
 }
 
