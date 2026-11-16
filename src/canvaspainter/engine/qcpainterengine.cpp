@@ -311,14 +311,24 @@ QTransform QCPainterEngine::currentTransform() const
     return state.transform;
 }
 
+// Returns \a transform without the perspective part (m13, m23 and m33), as
+// only affine transforms are supported. Without this, the perspective would
+// apply to some of the drawing and not to the rest. Canvas2D ignores those
+// components the same way.
+static QTransform affineTransform(const QTransform &transform)
+{
+    return QTransform(transform.m11(), transform.m12(), transform.m21(), transform.m22(),
+                      transform.dx(), transform.dy());
+}
+
 void QCPainterEngine::transform(const QTransform &transform)
 {
-    state.transform = transform * state.transform;
+    state.transform = affineTransform(transform) * state.transform;
 }
 
 void QCPainterEngine::setTransform(const QTransform &transform)
 {
-    state.transform = transform;
+    state.transform = affineTransform(transform);
 }
 
 void QCPainterEngine::resetTransform()

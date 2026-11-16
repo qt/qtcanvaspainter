@@ -266,6 +266,8 @@ void QCanvas2DPathValueType::beginHoleSubPath()
 
     Adds a \a path into this path, using \a transform as a transformation matrix.
     Providing \a transform parameter is optional.
+
+    \note Perspective transforms are not supported for \a transform.
 */
 
 void QCanvas2DPathValueType::addPath(const QCanvasPath &path, const QTransform &transform)
@@ -283,6 +285,8 @@ void QCanvas2DPathValueType::addPath(const QCanvasPath &path, const QTransform &
     accessed more than the path has commands.
     In case the path shouldn't continue from the current path position, call
     first \l moveTo().
+
+    \note Perspective transforms are not supported for \a transform.
 */
 void QCanvas2DPathValueType::addPath(const QCanvasPath &path, qsizetype start, qsizetype count, const QTransform &transform)
 {
@@ -312,6 +316,8 @@ void QCanvas2DPathValueType::addPath(const QCanvasPath &path, qsizetype start, q
     ctx.stroke(myPath);
     \endcode
     \endtable
+
+    \note Perspective transforms are not supported for \a transform.
 */
 
 void QCanvas2DPathValueType::addPath(const QString &svgPath, const QTransform &transform)

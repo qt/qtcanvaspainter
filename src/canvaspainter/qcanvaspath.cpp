@@ -901,6 +901,9 @@ void QCanvasPath::beginHoleSubPath()
     Adds \a path into this path, optionally using \a transform to
     alter the path points. When \a transform is not provided (or it is
     identity matrix), this operation is very fast as it reuses the path data.
+
+    \note Only affine transforms are supported for \a transform, see
+    QTransform::isAffine().
 */
 
 void QCanvasPath::addPath(const QCanvasPath &path, const QTransform &transform)
@@ -916,6 +919,9 @@ void QCanvasPath::addPath(const QCanvasPath &path, const QTransform &transform)
     accessed more than \l QCanvasPath::commandsSize().
     In case the path shouldn't continue from the current path position, call
     first \l moveTo() with \c{path.positionAt(start - 1)}.
+
+    \note Only affine transforms are supported for \a transform, see
+    QTransform::isAffine().
 */
 
 void QCanvasPath::addPath(const QCanvasPath &path, qsizetype start, qsizetype count, const QTransform &transform)
@@ -999,6 +1005,9 @@ void QCanvasPath::addPath(const QCanvasPath &path, qsizetype start, qsizetype co
 
     See \l {http://www.w3.org/TR/SVG/paths.html#PathData}{W3C SVG Path Data}
     for more details on this format.
+
+    \note Only affine transforms are supported for \a transform, see
+    QTransform::isAffine().
 */
 void QCanvasPath::addPath(QStringView svgPath, const QTransform &transform)
 {
@@ -1220,6 +1229,9 @@ QPointF QCanvasPath::positionAt(qsizetype index) const
     accessed more than \l commandsSize().
     In case the command at \a start is not \c MoveTo, the first command
     will be replaced with \c MoveTo so that this slice is an individual path.
+
+    \note Only affine transforms are supported for \a transform, see
+    QTransform::isAffine().
 */
 
 QCanvasPath QCanvasPath::sliced(qsizetype start, qsizetype count, const QTransform &transform) const
