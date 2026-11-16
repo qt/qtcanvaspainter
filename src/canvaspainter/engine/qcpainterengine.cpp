@@ -1575,7 +1575,17 @@ void QCPainterEngine::commandsToPaths(float pixelSize)
                 const float cp2y = ctx.commandsData.at(dCount++);
                 const float px = ctx.commandsData.at(dCount++);
                 const float py = ctx.commandsData.at(dCount++);
-                tesselateBezier(last.x, last.y, cp1x, cp1y, cp2x, cp2y, px, py, 0, PointCorner);
+                if (cp1x == last.x && cp1y == last.y && cp2x == last.x && cp2y == last.y
+                    && px == last.x && py == last.y) {
+                    // A curve of zero size, like that of a circle with the
+                    // radius 0, would never get flat. It ends at the last
+                    // point, so only that is marked as a corner. Adding the
+                    // point again would make a segment of zero length, which
+                    // changes the joins of a stroke.
+                    ctx.points[ctx.pointsCount - 1].flags |= PointCorner;
+                } else {
+                    tesselateBezier(last.x, last.y, cp1x, cp1y, cp2x, cp2y, px, py, 0, PointCorner);
+                }
             }
             break;
         }
@@ -1649,19 +1659,20 @@ void QCPainterEngine::tesselateBezier(float x1, float y1, float x2, float y2,
                                          float x3, float y3, float x4, float y4,
                                          int level, QCPointFlags flags)
 {
-    if (Q_UNLIKELY(level > QCPAINTER_MAX_TESSELLATION_LEVEL)) {
-        // This shouldn't usually happen, as we will
-        // reach the tessTol accuracy. In case of e.g. huge circles, increase
-        // the QCPAINTER_MAX_TESSELLATION_LEVEL.
-        return;
-    }
-
     const float dx = x4 - x1;
     const float dy = y4 - y1;
     const float d2 = std::abs((x2 - x4) * dy - (y2 - y4) * dx);
     const float d3 = std::abs((x3 - x4) * dy - (y3 - y4) * dx);
     const float d23 = d2 + d3;
-    if (d23 * d23 < ctx.tessTol * (dx * dx + dy * dy)) {
+    // At the deepest level the segment is added even when it is not flat
+    // enough, so that the curve still reaches its end point. That should only
+    // happen with huge curves, like a circle with a radius of millions of
+    // pixels, where the segments are then a bit less accurate. A curve with
+    // points that are not finite has d23 that is not finite, and would never
+    // get flat, so it is added as one segment. These are checked only when
+    // the segment is not flat, so that the common case stays fast.
+    if (d23 * d23 < ctx.tessTol * (dx * dx + dy * dy)
+        || Q_UNLIKELY(level >= QCPAINTER_MAX_TESSELLATION_LEVEL || !(d23 <= FLT_MAX))) {
         handleAddPoint(x4, y4, flags);
         return;
     }
