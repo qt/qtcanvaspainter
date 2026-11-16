@@ -14,6 +14,7 @@
 #include <QtGui/private/qdistancefield_p.h>
 #endif
 #include <qdebug.h>
+#include <QtCore/qscopedvaluerollback.h>
 #include <float.h>
 
 #include <QtGui/private/qvectorpath_p.h>
@@ -845,7 +846,12 @@ void QCPainterEngine::fill(QCanvasPainter::FillRule fillRule, QCanvasPath *maybe
         m_renderer->renderFill(fillPaint, state, ctx.bounds, args, std::nullopt, fillRule);
     } else {
         if (cachedPathUpdateRequired) {
-            commandsToPaths();
+            // When the data is made for a scale, the curves are flattened in
+            // device pixels, like those of the uncached paths. Otherwise the
+            // data is used at all scales, and they are flattened in the units
+            // of the points.
+            const bool forScale = m_renderer->fillCacheProps(state).scale != 0.0f;
+            commandsToPaths(forScale ? pixelSize : 1.0f);
             expandFill(pixelSize);
         }
 
@@ -942,7 +948,9 @@ void QCPainterEngine::stroke(QCanvasPath *maybePath, int pathGroup, bool cachedP
         m_renderer->renderStroke(strokePaint, state, strokeWidth, args, std::nullopt);
     } else {
         if (cachedPathUpdateRequired) {
-            commandsToPaths();
+            // See fill()
+            const bool forScale = m_renderer->strokeCacheProps(state).scale != 0.0f;
+            commandsToPaths(forScale ? pixelSize : 1.0f);
             expandStroke(halfWidth, state.lineCap, state.lineJoin, state.miterLimit, pixelSize);
 
             QCRhiCachedPathDrawArgs args { maybePath, pathGroup, state.transform, { { ctx.paths, ctx.pathsCount } } };
@@ -1518,11 +1526,17 @@ void QCPainterEngine::enforceWinding(int pointsOffset, int pointsCount, QCanvasP
 }
 
 // Create path elements from commands
-void QCPainterEngine::commandsToPaths()
+// pixelSize is the size of a device pixel in the units of the points. The
+// tolerances of flattening the curves are in device pixels.
+void QCPainterEngine::commandsToPaths(float pixelSize)
 {
     // Paths already created for these commands
     if (ctx.pathsCount > 0)
         return;
+
+    // tessTol is compared to squared distances
+    const QScopedValueRollback tessTol(ctx.tessTol, ctx.tessTol * pixelSize * pixelSize);
+    const QScopedValueRollback distTol(ctx.distTol, ctx.distTol * pixelSize);
 
 #ifdef QCPAINTER_PERF_DEBUG
     perf.logStart(QCPerfLogging::C2P);

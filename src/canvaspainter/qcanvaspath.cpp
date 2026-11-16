@@ -102,9 +102,9 @@ QT_BEGIN_NAMESPACE
     like the path. The antialiasing of fills and strokes is sized in device
     pixels, see \l{QCanvasPainter::setAntialias()}, so the data of the path group
     is made for a scale, which is the scale of the transform rounded to a power
-    of two. The data is updated only when the scale changes to another power of
-    two, and at other scales the antialiasing is up to \c sqrt(2) times too wide
-    or too narrow.
+    of two, and the curves are flattened for that scale. The data is updated only
+    when the scale changes to another power of two, and at other scales the
+    antialiasing is up to \c sqrt(2) times too wide or too narrow.
 
     As an example, consider a QCanvasPath \c p with a very large number of
     commands in it. Stroking or filling this path \c p can be an expensive
