@@ -10,21 +10,22 @@ QT_BEGIN_NAMESPACE
     \qmlvaluetype transform2d
     \inqmlmodule QtCanvas2D
     \since 6.12
-    \brief Provides transform2d type,a 3x3 2D transformation matrix,
-    matching to QTransform.
+    \brief Provides transform2d type, a 2D affine transformation matrix,
+    matching to an affine QTransform.
 
-    A \c transform2d type has nine values, each accessible via the properties
-    \c m11 through \c m33 in QML (in row/column order).
+    A \c transform2d type has six values, accessible via the methods
+    \c m11(), \c m12(), \c m21(), \c m22(), \c m31() and \c m32(). The
+    values \c m11, \c m12, \c m21 and \c m22 scale, rotate and shear, and
+    \c m31 and \c m32 translate.
 
     A property of type \c transform2d defaults to the identity matrix, whose
-    diagonal entries \c m11, \c m22 and \c m33 are all \c 1, with all
-    other components \c 0.
+    \c m11 and \c m22 are \c 1, with the other values \c 0.
 
     This value type is provided by the \l{QtCanvas2D} import.
 
-    \note Canvas2D supports only affine transforms. When a \c transform2d is
-    used for drawing, only its affine part is used, and \c m13, \c m23 and
-    \c m33 are expected to be \c 0, \c 0 and \c 1.
+    \note Canvas2D supports only affine transforms. Perspective transforms
+    are not supported, and when a QTransform with a perspective part is
+    used for drawing, that part is ignored.
 
     \sa QTransform
 */
@@ -52,17 +53,6 @@ qreal QCanvas2DTransformValueType::m12() const
 }
 
 /*!
-    \qmlmethod real transform2d::m13()
-
-    Returns the horizontal projection factor.
-*/
-
-qreal QCanvas2DTransformValueType::m13() const
-{
-    return QTransform::m13();
-}
-
-/*!
     \qmlmethod real transform2d::m21()
 
     Returns the horizontal shearing factor.
@@ -85,17 +75,6 @@ qreal QCanvas2DTransformValueType::m22() const
 }
 
 /*!
-    \qmlmethod real transform2d::m23()
-
-    Returns the vertical projection factor.
-*/
-
-qreal QCanvas2DTransformValueType::m23() const
-{
-    return QTransform::m23();
-}
-
-/*!
     \qmlmethod real transform2d::m31()
 
     Returns the horizontal translation factor.
@@ -115,36 +94,6 @@ qreal QCanvas2DTransformValueType::m31() const
 qreal QCanvas2DTransformValueType::m32() const
 {
     return QTransform::m32();
-}
-
-/*!
-    \qmlmethod real transform2d::m33()
-
-    Returns the division factor.
-*/
-
-qreal QCanvas2DTransformValueType::m33() const
-{
-    return QTransform::m33();
-}
-
-/*!
-    \qmlmethod void transform2d::setMatrix(real m11, real m12, real m13,
-                                      real m21, real m22, real m23,
-                                      real m31, real m32, real m33)
-
-    Sets the matrix elements to the specified values, \a m11, \a m12, \a m13 \a m21,
-    \a m22, \a m23 \a m31, \a m32 and \a m33. Note that this function replaces the
-    previous values.
-*/
-
-void QCanvas2DTransformValueType::setMatrix(qreal m11, qreal m12, qreal m13,
-                                            qreal m21, qreal m22, qreal m23,
-                                            qreal m31, qreal m32, qreal m33)
-{
-    QTransform::setMatrix(m11, m12, m13,
-                          m21, m22, m23,
-                          m31, m32, m33);
 }
 
 /*!
@@ -245,18 +194,6 @@ QTransform QCanvas2DTransformValueType::times(const QTransform &m) const
 }
 
 /*!
-    \qmlmethod transform2d transform2d::times(real factor)
-
-    Returns the transform2d result of multiplying this transform2d with
-    the scalar \a factor.
-*/
-
-QTransform QCanvas2DTransformValueType::times(qreal factor) const
-{
-    return *this * factor;
-}
-
-/*!
     \qmlmethod real transform2d::determinant()
 
     Returns the determinant of this transform2d.
@@ -279,21 +216,10 @@ QTransform QCanvas2DTransformValueType::inverted() const
 }
 
 /*!
-    \qmlmethod transform2d transform2d::transposed()
-
-    Returns the transpose of this transform2d.
-*/
-
-QTransform QCanvas2DTransformValueType::transposed() const
-{
-    return QTransform::transposed();
-}
-
-/*!
     \qmlmethod void transform2d::reset()
 
-    Resets the matrix to an identity matrix, i.e. all elements are set to zero,
-    except m11 and m22 (specifying the scale) and m33 which are set to 1.
+    Resets the matrix to an identity matrix, i.e. all values are set to zero,
+    except m11 and m22 (specifying the scale) which are set to 1.
 */
 
 void QCanvas2DTransformValueType::reset()

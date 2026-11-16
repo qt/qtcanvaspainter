@@ -36,17 +36,11 @@ public:
 
     Q_INVOKABLE qreal m11() const;
     Q_INVOKABLE qreal m12() const;
-    Q_INVOKABLE qreal m13() const;
     Q_INVOKABLE qreal m21() const;
     Q_INVOKABLE qreal m22() const;
-    Q_INVOKABLE qreal m23() const;
     Q_INVOKABLE qreal m31() const;
     Q_INVOKABLE qreal m32() const;
-    Q_INVOKABLE qreal m33() const;
 
-    Q_INVOKABLE void setMatrix(qreal m11, qreal m12, qreal m13,
-                               qreal m21, qreal m22, qreal m23,
-                               qreal m31, qreal m32, qreal m33);
     Q_INVOKABLE void setMatrix(qreal m11, qreal m12,
                                qreal m21, qreal m22,
                                qreal m31, qreal m32);
@@ -58,11 +52,9 @@ public:
     Q_INVOKABLE void shear(float sh, float sv);
 
     Q_INVOKABLE QTransform times(const QTransform &m) const;
-    Q_INVOKABLE QTransform times(qreal factor) const;
 
     Q_INVOKABLE qreal determinant() const;
     Q_INVOKABLE QTransform inverted() const;
-    Q_INVOKABLE QTransform transposed() const;
     Q_INVOKABLE void reset();
 };
 

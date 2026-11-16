@@ -1456,7 +1456,7 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_translate(const QV4::Func
     \endtable
 
     \note Perspective transforms are not supported. Only the affine part of
-    \a transform is used, and its \c m13, \c m23 and \c m33 are ignored.
+    \a transform is used.
 */
 /*!
     \qmlmethod void Canvas2DContext::transform(real a, real b, real c, real d, real e, real f)
@@ -1520,8 +1520,8 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_transform(const QV4::Func
     \endtable
 
     \note Perspective transforms are not supported. Only the affine part of
-    \a transform is used, and its \c m13, \c m23 and \c m33 are ignored. To
-    show the painting in a perspective, transform the Canvas2D item instead.
+    \a transform is used. To show the painting in a perspective, transform
+    the Canvas2D item instead.
 
     \sa getTransform()
 */
