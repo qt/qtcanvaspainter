@@ -104,6 +104,10 @@ private slots:
     void zeroSizeCurves_data();
     void zeroSizeCurves();
     void perspectiveTransformIgnored();
+    void restoreClip_data();
+    void restoreClip();
+    void pathWindingNotKept_data();
+    void pathWindingNotKept();
 
 private:
     void setWindowType(QWindow *window, QRhi::Implementation impl);
@@ -2740,6 +2744,166 @@ void tst_CanvasRhiRendering::perspectiveTransformIgnored()
     const QTransform scaled = QTransform(affine).scale(2, 3);
     painter->setTransform(scaled);
     QCOMPARE(painter->getTransform(), scaled);
+}
+
+void tst_CanvasRhiRendering::restoreClip_data()
+{
+    rhiTestData();
+}
+
+// restore() restores the clip, also whether there is one and of which kind.
+void tst_CanvasRhiRendering::restoreClip()
+{
+    QFETCH(QRhi::Implementation, impl);
+    QFETCH(QRhiInitParams *, initParams);
+
+    std::unique_ptr<QRhi> rhi(QRhi::create(impl, initParams, rhiCreateFlags));
+    if (!rhi)
+        QSKIP("Failed to create QRhi, skip");
+
+    RenderTargetPtr rt = createRenderTarget(rhi.get());
+    QVERIFY(rt);
+
+    std::unique_ptr<QCanvasPainterFactory> factory(new QCanvasPainterFactory);
+    QCanvasPainter *painter = factory->create(rhi.get());
+    QVERIFY(painter);
+    QCanvasRhiPaintDriver *pd = factory->paintDriver();
+
+    const QRectF all(0, 0, RT_WIDTH, RT_HEIGHT);
+    const QRectF corner(0, 0, 20, 20);
+    // Each sets up the clip and returns whether the center is clipped
+    const std::function<bool()> clips[] = {
+        // The clip set after save() is removed
+        [&] {
+            painter->save();
+            painter->setClipRect(corner);
+            painter->restore();
+            return false;
+        },
+        [&] {
+            painter->save();
+            painter->rotate(0.1);
+            painter->setClipRect(corner);
+            painter->restore();
+            return false;
+        },
+        // The clip removed after save() is back
+        [&] {
+            painter->setClipRect(corner);
+            painter->save();
+            painter->resetClipping();
+            painter->restore();
+            return true;
+        },
+        [&] {
+            painter->rotate(0.1);
+            painter->setClipRect(corner);
+            painter->resetTransform();
+            painter->save();
+            painter->resetClipping();
+            painter->restore();
+            return true;
+        },
+        // The clip changed to the other kind after save() is back
+        [&] {
+            painter->setClipRect(corner);
+            painter->save();
+            painter->rotate(0.1);
+            painter->setClipRect(all);
+            painter->restore();
+            return true;
+        },
+        [&] {
+            painter->rotate(0.1);
+            painter->setClipRect(corner);
+            painter->resetTransform();
+            painter->save();
+            painter->setClipRect(all);
+            painter->restore();
+            return true;
+        },
+    };
+
+    for (const auto &clip : clips) {
+        QRhiCommandBuffer *cb;
+        rhi->beginOffscreenFrame(&cb);
+        pd->resetForNewFrame();
+        pd->beginPaint(cb, rt->rt);
+        const bool centerClipped = clip();
+        painter->setFillStyle(Qt::white);
+        painter->fillRect(all);
+        pd->endPaint(QCanvasRhiPaintDriver::EndPaintFlag::DoNotRecordRenderPass);
+        cb->beginPass(rt->rt, Qt::black, { 1.0f, 0 });
+        pd->renderPaint();
+        cb->endPass();
+        rhi->endOffscreenFrame();
+        if (impl == QRhi::Null)
+            continue;
+        const QImage image = imageFromReadback(rhi.get(), rt->tex);
+        QVERIFY(testColor(image, 5, 5, Qt::white));
+        QVERIFY(testColor(image, RT_WIDTH / 2, RT_HEIGHT / 2,
+                          centerClipped ? Qt::black : Qt::white));
+    }
+}
+
+void tst_CanvasRhiRendering::pathWindingNotKept_data()
+{
+    rhiTestData();
+}
+
+// The winding set with setPathWinding() is for the subpaths of that path. The
+// next path starts with the default winding, also when save() and restore()
+// are called around filling the earlier path.
+void tst_CanvasRhiRendering::pathWindingNotKept()
+{
+    QFETCH(QRhi::Implementation, impl);
+    QFETCH(QRhiInitParams *, initParams);
+
+    std::unique_ptr<QRhi> rhi(QRhi::create(impl, initParams, rhiCreateFlags));
+    if (!rhi)
+        QSKIP("Failed to create QRhi, skip");
+
+    RenderTargetPtr rt = createRenderTarget(rhi.get());
+    QVERIFY(rt);
+
+    std::unique_ptr<QCanvasPainterFactory> factory(new QCanvasPainterFactory);
+    QCanvasPainter *painter = factory->create(rhi.get());
+    QVERIFY(painter);
+    QCanvasRhiPaintDriver *pd = factory->paintDriver();
+
+    for (bool saveAroundFill : { false, true }) {
+        QRhiCommandBuffer *cb;
+        rhi->beginOffscreenFrame(&cb);
+        pd->resetForNewFrame();
+        pd->beginPaint(cb, rt->rt);
+        painter->setFillStyle(Qt::white);
+        // A path that ends with a hole
+        painter->beginPath();
+        painter->rect(0, 0, 40, 40);
+        painter->setPathWinding(QCanvasPainter::PathWinding::ClockWise);
+        painter->rect(10, 10, 20, 20);
+        if (saveAroundFill)
+            painter->save();
+        painter->fill();
+        if (saveAroundFill)
+            painter->restore();
+        // A rect with a hole in the center
+        painter->beginPath();
+        painter->rect(0, 0, RT_WIDTH, RT_HEIGHT);
+        painter->setPathWinding(QCanvasPainter::PathWinding::ClockWise);
+        painter->rect(RT_WIDTH / 2 - 50, RT_HEIGHT / 2 - 50, 100, 100);
+        painter->fill();
+        pd->endPaint(QCanvasRhiPaintDriver::EndPaintFlag::DoNotRecordRenderPass);
+        cb->beginPass(rt->rt, Qt::black, { 1.0f, 0 });
+        pd->renderPaint();
+        cb->endPass();
+        rhi->endOffscreenFrame();
+        if (impl == QRhi::Null)
+            continue;
+        const QImage image = imageFromReadback(rhi.get(), rt->tex);
+        QVERIFY(testColor(image, RT_WIDTH / 2 - 100, RT_HEIGHT / 2, Qt::white));
+        QVERIFY(testColor(image, RT_WIDTH / 2, RT_HEIGHT / 2, Qt::black));
+    }
 }
 
 void tst_CanvasRhiRendering::tessellationLevelLimit_data()

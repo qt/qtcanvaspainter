@@ -1773,8 +1773,13 @@ void QCanvasPainter::addPath(const QCanvasPath &path,
 }
 
 /*!
-    Sets the current sub-path \a winding to either CounterClockWise (default) or ClockWise.
-    CounterClockWise draws solid subpaths while ClockWise draws holes.
+    Sets the \a winding of the sub-paths that follow in the current path to
+    either CounterClockWise (default) or ClockWise. CounterClockWise draws solid
+    subpaths while ClockWise draws holes.
+
+    The winding is a part of the path, not of the state that save() and
+    restore() handle. Each path starts with CounterClockWise, so the winding
+    does not carry over to the path that beginPath() starts.
     \table
     \row
     \li \inlineimage qcpainter-pathwinding.webp

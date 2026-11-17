@@ -150,6 +150,7 @@ void QCPainterEngine::restore()
     if (ctx.states.isEmpty())
         return;
     state = ctx.states.takeLast();
+    applyClipMode();
 }
 
 void QCPainterEngine::reset()
@@ -180,7 +181,6 @@ void QCPainterEngine::reset()
     state.textLineHeight = 0.0f;
     state.textAntialias = 1.0f;
     state.font = QFont();
-    state.winding = QCanvasPainter::PathWinding::CounterClockWise;
     state.fillRule = QCanvasPainter::FillRule::NonZero;
 
     // Blending is almost always enabled, so e.g. antialiasing,
@@ -1085,8 +1085,18 @@ void QCPainterEngine::resetClipRect()
     state.clip.extent[0] = -1.0f;
     state.clip.extent[1] = -1.0f;
     state.clip.rect = {};
-    m_renderer->setFlag(QCPainterRhiRenderer::SimpleClipping, false);
-    m_renderer->setFlag(QCPainterRhiRenderer::TransformedClipping, false);
+    state.clip.mode = QCClip::Mode::None;
+    applyClipMode();
+}
+
+// Sets the renderer flags of clipping from the state, which save() and
+// restore() do not otherwise change.
+void QCPainterEngine::applyClipMode()
+{
+    m_renderer->setFlag(QCPainterRhiRenderer::SimpleClipping,
+                        state.clip.mode == QCClip::Mode::Simple);
+    m_renderer->setFlag(QCPainterRhiRenderer::TransformedClipping,
+                        state.clip.mode == QCClip::Mode::Transformed);
 }
 
 void QCPainterEngine::setClipRect(const QRectF &clipRect)
@@ -1129,8 +1139,7 @@ void QCPainterEngine::setClipRect(const QRectF &clipRect)
                                (ctx.view.height() - rect.y() - rect.height()) * ctx.dpr,
                                rect.width() * ctx.dpr,
                                rect.height() * ctx.dpr };
-            m_renderer->setFlag(QCPainterRhiRenderer::SimpleClipping, true);
-            m_renderer->setFlag(QCPainterRhiRenderer::TransformedClipping, false);
+            state.clip.mode = QCClip::Mode::Simple;
         } else {
             // Clipping done in fragment shader and taking into use the current transform.
             state.clip.rect = {};
@@ -1142,9 +1151,9 @@ void QCPainterEngine::setClipRect(const QRectF &clipRect)
             t *= state.transform;
             state.clip.extent[0] = width * 0.5f;
             state.clip.extent[1] = height * 0.5f;
-            m_renderer->setFlag(QCPainterRhiRenderer::SimpleClipping, false);
-            m_renderer->setFlag(QCPainterRhiRenderer::TransformedClipping, true);
+            state.clip.mode = QCClip::Mode::Transformed;
         }
+        applyClipMode();
     }
 }
 
@@ -1445,7 +1454,7 @@ void QCPainterEngine::appendCommandsData(const float commandsData[], int dCount,
 
 void QCPainterEngine::handleSetPathWinding(QCanvasPainter::PathWinding winding)
 {
-    state.winding = winding;
+    ctx.winding = winding;
 }
 
 void QCPainterEngine::handleClosePath()
@@ -1466,7 +1475,7 @@ void QCPainterEngine::handleMoveTo()
     QCPath *path = &paths[ctx.pathsCount++];
     *path = {};
     path->pointsOffset = ctx.pointsCount;
-    path->winding = state.winding;
+    path->winding = ctx.winding;
     ctx.currentPath = path;
 }
 
@@ -1551,6 +1560,9 @@ void QCPainterEngine::commandsToPaths(float pixelSize)
 #ifdef QCPAINTER_PERF_DEBUG
     perf.logStart(QCPerfLogging::C2P);
 #endif
+
+    // The winding set for the subpaths of an earlier path does not carry over
+    ctx.winding = QCanvasPainter::PathWinding::CounterClockWise;
 
     // If the first command is not MoveTo, add it manually
     // and make sure ctx.currentPath exists.
