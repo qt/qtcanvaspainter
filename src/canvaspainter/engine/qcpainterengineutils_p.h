@@ -79,9 +79,15 @@ enum QCTextureFormat {
 };
 
 struct QCClip {
+    enum class Mode : quint8 {
+        None,
+        Simple, // rect is the scissor rectangle
+        Transformed // transform and extent are for the fragment shader
+    };
     QTransform transform;
     float extent[2];
     QRectF rect;
+    Mode mode = Mode::None;
 };
 
 struct QCVertex {
@@ -125,7 +131,6 @@ struct QCState {
     QCanvasPainter::CompositeOperation compositeOperation;
     QCanvasPainter::LineJoin lineJoin;
     QCanvasPainter::LineCap lineCap;
-    QCanvasPainter::PathWinding winding;
     QCanvasPainter::WrapMode textWrapMode = QCanvasPainter::WrapMode::NoWrap;
     QCanvasPainter::TextAlign textAlignment = QCanvasPainter::TextAlign::Start;
     QCanvasPainter::TextBaseline textBaseline = QCanvasPainter::TextBaseline::Alphabetic;
@@ -248,6 +253,7 @@ struct QCContext {
     float devicePxRatio = 1.0f;
     float prevX;
     float prevY;
+    QCanvasPainter::PathWinding winding = QCanvasPainter::PathWinding::CounterClockWise;
     // Effectively used amounts
     int commandsCount = 0;
     int commandsDataCount = 0;

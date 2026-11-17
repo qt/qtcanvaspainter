@@ -173,6 +173,8 @@ private:
     friend class QCPainterRhiRenderer;
 
     void setDevicePixelRatio(float ratio);
+    void applyClipMode();
+
     void appendCommand(QCCommand command);
     void appendCommands(const QCCommand commands[], int cCount);
     void appendCommandsData(const float commandsData[], int dCount, bool ignoreTransform = false);

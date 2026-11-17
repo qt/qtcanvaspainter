@@ -1112,8 +1112,13 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_addPath(const QV4::Functi
 /*!
     \qmlmethod void Canvas2DContext::setPathWinding(string winding)
 
-    Sets the current sub-path \a winding to either "counterclockwise" (default) or "clockwise".
-    "counterclockwise" draws solid subpaths while "clockwise" draws holes.
+    Sets the \a winding of the sub-paths that follow in the current path to
+    either "counterclockwise" (default) or "clockwise". "counterclockwise" draws
+    solid subpaths while "clockwise" draws holes.
+
+    The winding is a part of the path, not of the state that save() and
+    restore() handle. Each path starts with "counterclockwise", so the winding
+    does not carry over to the path that beginPath() starts.
     \table
     \row
     \li \inlineimage canvas2d-pathwinding.webp
@@ -1147,7 +1152,6 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_setPathWinding(const QV4:
         else
             THROW_DOM(DOMEXCEPTION_NOT_SUPPORTED_ERR, "setPathWinding(): Incorrect arguments")
 
-        r->d()->context()->state.pathWinding = winding;
         r->d()->context()->buffer()->setPathWinding(winding);
     }
 
@@ -4899,9 +4903,6 @@ void QCanvas2DContext::popState()
 
     if (newState.lineJoin != state.lineJoin)
         buffer()->setLineJoin(newState.lineJoin);
-
-    if (newState.pathWinding != state.pathWinding)
-        buffer()->setPathWinding(newState.pathWinding);
 
     if (newState.highQualityStroking != state.highQualityStroking)
         buffer()->setHighQualityStroking(newState.highQualityStroking);
