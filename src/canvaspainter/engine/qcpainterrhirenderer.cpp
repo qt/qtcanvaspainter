@@ -400,8 +400,28 @@ struct QCRHIShaders
 
 Q_GLOBAL_STATIC(QCRHIShaders, QCPAINTER_RHI_SHADERS)
 
+// The version of the path that the cached data of a fill or a stroke is made
+// from. A path is cached for each set of properties, and changing the path
+// updates only the data of the properties that it is drawn with, so the data of
+// the other properties is up to date only when its version is the current one.
+struct QCRhiCachedPathVersion
+{
+    int pathIterations = -1;
+    qsizetype commandsCount = 0;
+
+    static QCRhiCachedPathVersion of(const QCanvasPathPrivate *pathd) noexcept
+    {
+        return { pathd->pathIterations, pathd->commandsCount };
+    }
+    friend bool operator==(const QCRhiCachedPathVersion &a, const QCRhiCachedPathVersion &b) noexcept
+    {
+        return a.pathIterations == b.pathIterations && a.commandsCount == b.commandsCount;
+    }
+};
+
 struct QCRhiCachedPathFillData
 {
+    QCRhiCachedPathVersion version;
     QVector<QCVertex> verts; // might also contain stroke vertices
     QVector<QCRHIPath> paths;
     int stripOffset = 0; // the antialiasing strips of the paths
@@ -414,6 +434,7 @@ struct QCRhiCachedPathFillData
 
 struct QCRhiCachedPathStrokeData
 {
+    QCRhiCachedPathVersion version;
     QVector<QCVertex> verts;
     int subpathCount = 0;
     int stripCount = 0; // the strips of the paths, at the start of verts
@@ -1658,6 +1679,7 @@ void QCPainterRhiRenderer::renderFill(const QCPaint &paint, const QCState &state
             // The cached vertex data in cp is stale. Update it from ctx.vertices.
 
             cpf->entryId = cpg->idGen++;
+            cpf->version = QCRhiCachedPathVersion::of(QCanvasPathPrivate::get(pti.canvasPath));
             cpf->isConvex = (pti.updateData->pathsCount == 1 && pti.updateData->paths.first().isConvex);
             const int triangleCount = cpf->isConvex ? 0 : call->triangleCount;
 
@@ -1837,6 +1859,7 @@ void QCPainterRhiRenderer::renderStroke(const QCPaint &paint, const QCState &sta
             // The cached vertex data in cp is stale. Update it from ctx.vertices.
 
             cps->entryId = cpg->idGen++;
+            cps->version = QCRhiCachedPathVersion::of(QCanvasPathPrivate::get(pti.canvasPath));
 
             const int vertsCount = maxVertCount(pti.updateData->paths, pti.updateData->pathsCount);
 
@@ -3329,10 +3352,12 @@ bool QCPainterRhiRenderer::isPathCachedForFill(QCanvasPath *path, int pathGroup,
 {
     auto it = rhiCtx->cachedPathGroups.constFind(pathGroup);
     if (it != rhiCtx->cachedPathGroups.cend()) {
-        auto pit = it->cachedPaths.constFind(QCanvasPathPrivate::get(path)->serialNumber);
+        const QCanvasPathPrivate *pathd = QCanvasPathPrivate::get(path);
+        auto pit = it->cachedPaths.constFind(pathd->serialNumber);
         if (pit != it->cachedPaths.cend()) {
             QCCachedPathFillProperties fillProperties { state.antialias, flagsCacheProps() };
-            return pit->fill.contains(fillProperties);
+            auto fit = pit->fill.constFind(fillProperties);
+            return fit != pit->fill.cend() && fit->version == QCRhiCachedPathVersion::of(pathd);
         }
     }
     return false;
@@ -3342,10 +3367,12 @@ bool QCPainterRhiRenderer::isPathCachedForStroke(QCanvasPath *path, int pathGrou
 {
     auto it = rhiCtx->cachedPathGroups.constFind(pathGroup);
     if (it != rhiCtx->cachedPathGroups.cend()) {
-        auto pit = it->cachedPaths.constFind(QCanvasPathPrivate::get(path)->serialNumber);
+        const QCanvasPathPrivate *pathd = QCanvasPathPrivate::get(path);
+        auto pit = it->cachedPaths.constFind(pathd->serialNumber);
         if (pit != it->cachedPaths.cend()) {
             QCCachedPathStrokeProperties strokeProperties { state.antialias, state.strokeWidth, state.lineCap, state.lineJoin, flagsCacheProps() };
-            return pit->stroke.contains(strokeProperties);
+            auto sit = pit->stroke.constFind(strokeProperties);
+            return sit != pit->stroke.cend() && sit->version == QCRhiCachedPathVersion::of(pathd);
         }
     }
     return false;
