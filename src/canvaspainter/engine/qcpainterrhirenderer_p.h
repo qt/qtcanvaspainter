@@ -147,6 +147,7 @@ public:
     void setFlag(RenderFlags flag, bool enable);
     RenderFlags flags() const;
     int flagsCacheProps() const;
+    QCCachedPathStrokeProperties strokeCacheProps(const QCState &state) const;
 
     bool renderCreate();
 

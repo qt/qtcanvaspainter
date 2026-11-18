@@ -186,7 +186,8 @@ private:
                          int level, QCPointFlags flags);
     void enforceWinding(int pointsOffset, int pointsCount, QCanvasPainter::PathWinding winding);
     void expandFill();
-    void expandStroke(float w, QCanvasPainter::LineCap cap, QCanvasPainter::LineJoin join, float miterLimit);
+    void expandStroke(float w, QCanvasPainter::LineCap cap, QCanvasPainter::LineJoin join,
+                      float miterLimit, float pixelSize = 1.0f);
     void calculateJoins(float w, QCanvasPainter::LineJoin join, float miterLimit);
     void addBevelJoin(const QCPoint &p0, const QCPoint &p1,
                       float lw, float rw, float lu, float ru);

@@ -91,6 +91,8 @@ private slots:
     void multiPathRender();
     void cachedPathVariantsUpdate_data();
     void cachedPathVariantsUpdate();
+    void cachedStrokeScale_data();
+    void cachedStrokeScale();
 
 private:
     void setWindowType(QWindow *window, QRhi::Implementation impl);
@@ -2206,6 +2208,212 @@ void tst_CanvasRhiRendering::cachedPathVariantsUpdate()
             QVERIFY2(isOn(image, x + 375, 320), qPrintable(QString::number(x)));
             QVERIFY2(!isOn(image, x + 375, 380), qPrintable(QString::number(x)));
         }
+    }
+}
+
+void tst_CanvasRhiRendering::cachedStrokeScale_data()
+{
+    rhiTestData();
+}
+
+// The stroke of a cached path is expanded in the units of the path, and the
+// vertex shader scales it. The width of the line and the antialiasing must
+// still be what the stroke has without a path group under the same transform.
+void tst_CanvasRhiRendering::cachedStrokeScale()
+{
+    QFETCH(QRhi::Implementation, impl);
+    QFETCH(QRhiInitParams *, initParams);
+
+    std::unique_ptr<QRhi> rhi(QRhi::create(impl, initParams, rhiCreateFlags));
+    if (!rhi)
+        QSKIP("Failed to create QRhi, skip");
+
+    RenderTargetPtr rt = createRenderTarget(rhi.get());
+    QVERIFY(rt);
+
+    std::unique_ptr<QCanvasPainterFactory> factory(new QCanvasPainterFactory);
+    QCanvasPainter *painter = factory->create(rhi.get());
+    QVERIFY(painter);
+    QCanvasRhiPaintDriver *pd = factory->paintDriver();
+    QCPainterEngine *engine = QCanvasPainterPrivate::get(painter)->m_renderer->engine();
+
+    QCanvasPath path;
+    path.moveTo(10, 10);
+    path.lineTo(70, 10);
+    path.lineTo(70, 40);
+    path.lineTo(10, 40);
+    path.closePath();
+    path.moveTo(10, 10);
+    path.lineTo(70, 40);
+
+    auto render = [&](qreal scale, qreal width, qreal antialias, bool cached) {
+        QRhiCommandBuffer *cb;
+        rhi->beginOffscreenFrame(&cb);
+        pd->resetForNewFrame();
+        pd->beginPaint(cb, rt->rt);
+        painter->setAntialias(antialias);
+        painter->resetTransform();
+        painter->translate(20, 20);
+        painter->scale(scale);
+        painter->setLineWidth(width);
+        painter->setLineCap(QCanvasPainter::LineCap::Butt);
+        painter->setLineJoin(QCanvasPainter::LineJoin::Miter);
+        painter->setStrokeStyle(Qt::white);
+        if (cached) {
+            painter->stroke(path, 0);
+        } else {
+            painter->beginPath();
+            painter->addPath(path);
+            painter->stroke();
+        }
+        pd->endPaint(QCanvasRhiPaintDriver::EndPaintFlag::DoNotRecordRenderPass);
+        cb->beginPass(rt->rt, Qt::black, { 1.0f, 0 });
+        pd->renderPaint();
+        cb->endPass();
+        rhi->endOffscreenFrame();
+        engine->syncDebugCounters();
+        return impl != QRhi::Null ? imageFromReadback(rhi.get(), rt->tex) : QImage();
+    };
+    // The amount of ink, as the sum of the gray values
+    auto ink = [](const QImage &image) {
+        qreal sum = 0;
+        for (int y = 0; y < image.height(); ++y) {
+            const QRgb *line = reinterpret_cast<const QRgb *>(image.constScanLine(y));
+            for (int x = 0; x < image.width(); ++x)
+                sum += qGray(line[x]);
+        }
+        return sum / 255.0;
+    };
+
+    // The cached geometry is made at the first scale and used at the others,
+    // when it does not depend on the scale. With antialiasing it does, as the
+    // antialiasing is sized in device pixels, so it is made for the scale
+    // rounded to a power of two. 1.5 and 0.7 are in between, where the
+    // antialiasing is off by up to sqrt(2) but the width of the line is right.
+    for (qreal antialias : { 0.0, 1.0 }) {
+        for (qreal scale : { 1.0, 2.0, 0.5, 4.0, 1.5, 0.7 }) {
+            // A hairline (one device pixel without the transform) and a line
+            // that is scaled with the transform
+            for (qreal width : { 1.0 / scale, 3.0 }) {
+                const QImage cached = render(scale, width, antialias, true);
+                const QImage uncached = render(scale, width, antialias, false);
+                if (impl == QRhi::Null)
+                    continue;
+                const qreal cachedInk = ink(cached);
+                const qreal uncachedInk = ink(uncached);
+                const QString message = QStringLiteral("antialias %1 scale %2 width %3: ink %4, "
+                                                       "without the path group %5")
+                                                .arg(antialias).arg(scale).arg(width)
+                                                .arg(cachedInk).arg(uncachedInk);
+                QVERIFY2(uncachedInk > 50, qPrintable(message));
+                // Thin lines are sensitive to the rounding of the vertices, but a
+                // wrong width is at least 30 % off. With antialiasing between the
+                // powers of two the fringe is not the right width, which is most
+                // of the ink of a hairline.
+                const bool exact = antialias == 0.0
+                                   || qFuzzyCompare(std::exp2(std::round(std::log2(scale))), scale);
+                QVERIFY2(qAbs(cachedInk - uncachedInk) <= (exact ? 0.1 : 0.4) * uncachedInk,
+                         qPrintable(message));
+            }
+        }
+    }
+
+    // The data of other scales of a path is removed, so that zooming does not
+    // grow the cache
+    int firstSize = -1;
+    for (qreal scale : { 1.0, 2.0, 0.5, 4.0, 1.5, 3.0 }) {
+        render(scale, 2.0, 1.0, true);
+        const int size = engine->debugCounters().cachedPathVertexDataSize;
+        if (firstSize < 0)
+            firstSize = size;
+        QVERIFY(firstSize > 0);
+        QCOMPARE(size, firstSize);
+    }
+
+    // The data of the scales that the earlier passes of the frame use is kept,
+    // so drawing the path at two scales in the same frame doesn't make the data
+    // again at every pass. A later frame that strokes the path at a new scale
+    // removes the scales that it doesn't use.
+    // Without the data of the widths above, which is not dependent on the scale.
+    painter->removePathGroup(0);
+    auto renderPasses = [&](std::initializer_list<qreal> scales) {
+        QRhiCommandBuffer *cb;
+        rhi->beginOffscreenFrame(&cb);
+        pd->resetForNewFrame();
+        for (qreal scale : scales) {
+            pd->beginPaint(cb, rt->rt);
+            painter->setAntialias(1.0);
+            painter->resetTransform();
+            painter->scale(scale);
+            painter->setLineWidth(2.0);
+            painter->setStrokeStyle(Qt::white);
+            painter->stroke(path, 0);
+            pd->endPaint();
+        }
+        rhi->endOffscreenFrame();
+        engine->syncDebugCounters();
+        return engine->debugCounters().cachedPathVertexDataSize;
+    };
+    const int sizeAt1 = renderPasses({ 1.0 });
+    const int sizeAt4 = renderPasses({ 4.0 });
+    QVERIFY(sizeAt1 > 0 && sizeAt4 > 0);
+    QCOMPARE(renderPasses({ 1.0, 4.0 }), sizeAt1 + sizeAt4);
+    QCOMPARE(renderPasses({ 1.0, 4.0 }), sizeAt1 + sizeAt4);
+    QCOMPARE(renderPasses({ 2.0 }), sizeAt4);
+
+    // A new scale removes only the data of the same style, so alternating
+    // between two widths on successive frames keeps the data of both
+    painter->removePathGroup(0);
+    render(1.0, 2.0, 1.0, true);
+    const int sizeOfWidth2 = engine->debugCounters().cachedPathVertexDataSize;
+    render(1.0, 4.0, 1.0, true);
+    const int sizeOfBoth = engine->debugCounters().cachedPathVertexDataSize;
+    QVERIFY(sizeOfWidth2 > 0 && sizeOfBoth > sizeOfWidth2);
+    for (qreal width : { 2.0, 4.0, 2.0 }) {
+        render(1.0, width, 1.0, true);
+        QCOMPARE(engine->debugCounters().cachedPathVertexDataSize, sizeOfBoth);
+    }
+    // A new scale of one of them replaces only its own data
+    render(2.0, 2.0, 1.0, true);
+    QCOMPARE(engine->debugCounters().cachedPathVertexDataSize, sizeOfBoth);
+    render(2.0, 4.0, 1.0, true);
+    QCOMPARE(engine->debugCounters().cachedPathVertexDataSize, sizeOfBoth);
+
+    // When the path changes, the data of each scale is made again. Stroking it
+    // at the first scale doesn't make the data of the other scale up to date.
+    auto renderScales = [&]() {
+        QRhiCommandBuffer *cb;
+        rhi->beginOffscreenFrame(&cb);
+        pd->resetForNewFrame();
+        pd->beginPaint(cb, rt->rt);
+        painter->setAntialias(1.0);
+        painter->setLineWidth(3.0);
+        painter->setStrokeStyle(Qt::white);
+        for (qreal scale : { 1.0, 4.0 }) {
+            painter->resetTransform();
+            painter->translate(20, 20);
+            painter->scale(scale);
+            painter->stroke(path, 0);
+        }
+        pd->endPaint(QCanvasRhiPaintDriver::EndPaintFlag::DoNotRecordRenderPass);
+        cb->beginPass(rt->rt, Qt::black, { 1.0f, 0 });
+        pd->renderPaint();
+        cb->endPass();
+        rhi->endOffscreenFrame();
+        return impl != QRhi::Null ? imageFromReadback(rhi.get(), rt->tex) : QImage();
+    };
+    auto isOn = [](const QImage &image, int x, int y) { return qGray(image.pixel(x, y)) > 200; };
+    QImage image = renderScales();
+    if (!image.isNull()) {
+        QVERIFY(!isOn(image, 80, 120));
+        QVERIFY(!isOn(image, 200, 420));
+    }
+    path.moveTo(10, 100);
+    path.lineTo(70, 100);
+    image = renderScales();
+    if (!image.isNull()) {
+        QVERIFY(isOn(image, 80, 120));
+        QVERIFY(isOn(image, 200, 420));
     }
 }
 
