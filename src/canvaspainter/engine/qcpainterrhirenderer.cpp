@@ -439,6 +439,7 @@ struct QCRhiCachedPathStrokeData
     int subpathCount = 0;
     int stripCount = 0; // the strips of the paths, at the start of verts
     int stripTriangleCount = 0;
+    quint64 lastUsedFrame = 0; // see QCRHIContext::frameCount
     quint64 entryId;
 };
 
@@ -471,8 +472,21 @@ struct QCRhiCachedPathGroup
     quint64 idGen = 0;
 };
 
+// Whether the properties differ at most in the scale, so that the data of one
+// replaces the data of the other
+static bool isSameStyle(const QCCachedPathStrokeProperties &a, const QCCachedPathStrokeProperties &b)
+{
+    return qFuzzyCompare(a.antialias, b.antialias)
+           && qFuzzyCompare(a.strokeWidth, b.strokeWidth)
+           && a.lineCap == b.lineCap
+           && a.lineJoin == b.lineJoin
+           && a.renderHints == b.renderHints;
+}
+
 struct QCRHIContext
 {
+    // Counts the frames, for knowing which cached data the frame uses
+    quint64 frameCount = 0;
     QRhi *rhi = nullptr;
     QRhiCommandBuffer *cb = nullptr;
     QRhiRenderTarget *rt = nullptr;
@@ -1852,8 +1866,31 @@ void QCPainterRhiRenderer::renderStroke(const QCPaint &paint, const QCState &sta
 
         QCRhiCachedPathGroup *cpg = &rhiCtx->cachedPathGroups[pti.pathGroup];
         QCRhiCachedPath *cp = &cpg->cachedPaths[QCanvasPathPrivate::get(pti.canvasPath)->serialNumber];
-        QCCachedPathStrokeProperties strokeProps { state.antialias, state.strokeWidth, state.lineCap, state.lineJoin, flagsCacheProps() };
+        const QCCachedPathStrokeProperties strokeProps = strokeCacheProps(state);
+        if (strokeProps.scale != 0.0f && !cp->stroke.contains(strokeProps)) {
+            // The data of a scale dependent stroke is cached for each scale.
+            // Zooming would keep adding data, so remove the data of the other
+            // scales of the same style that this frame doesn't use. The data
+            // of the other styles is kept, so that alternating between them,
+            // for example between two widths, doesn't make the data again
+            // every time. The data that the earlier passes of the frame use
+            // is kept too, so that drawing the path at different scales in
+            // the same frame, for example into an offscreen canvas and with a
+            // shared painter, doesn't make the data again at every pass.
+            for (auto it = cp->stroke.begin(); it != cp->stroke.end();) {
+                if (it.key().scale != 0.0f && it->lastUsedFrame != rhiCtx->frameCount
+                    && isSameStyle(it.key(), strokeProps)) {
+                    cpg->cachedVertexDataBytes -= it->verts.size() * sizeof(QCVertex);
+                    cpg->totalSubpathCount -= it->subpathCount;
+                    it = cp->stroke.erase(it);
+                    cpg->strokeBufferNeedsUpdate = true;
+                } else {
+                    ++it;
+                }
+            }
+        }
         QCRhiCachedPathStrokeData *cps = &cp->stroke[strokeProps];
+        cps->lastUsedFrame = rhiCtx->frameCount;
 
         if (pti.updateData.has_value()) {
             // The cached vertex data in cp is stale. Update it from ctx.vertices.
@@ -3260,6 +3297,7 @@ void QCPainterRhiRenderer::resetForNewFrame()
     // renderer has just been created.
 
     rhiCtx->passId = 0;
+    rhiCtx->frameCount++;
 
     resetForPass();
 
@@ -3370,12 +3408,25 @@ bool QCPainterRhiRenderer::isPathCachedForStroke(QCanvasPath *path, int pathGrou
         const QCanvasPathPrivate *pathd = QCanvasPathPrivate::get(path);
         auto pit = it->cachedPaths.constFind(pathd->serialNumber);
         if (pit != it->cachedPaths.cend()) {
-            QCCachedPathStrokeProperties strokeProperties { state.antialias, state.strokeWidth, state.lineCap, state.lineJoin, flagsCacheProps() };
-            auto sit = pit->stroke.constFind(strokeProperties);
+            auto sit = pit->stroke.constFind(strokeCacheProps(state));
             return sit != pit->stroke.cend() && sit->version == QCRhiCachedPathVersion::of(pathd);
         }
     }
     return false;
+}
+
+QCCachedPathStrokeProperties QCPainterRhiRenderer::strokeCacheProps(const QCState &state) const
+{
+    // See QCCachedPathStrokeProperties::scale and QCPainterEngine::stroke():
+    // the antialiasing fringe, the width that is the minimum for the antialiasing
+    // and the maximum width are in device pixels.
+    const float scale = quantizedScale(getAverageScale(state.transform));
+    const float widthInPixels = state.strokeWidth * scale;
+    const bool fringe = testFlag(QCPainterRhiRenderer::Antialiasing) && state.antialias > 0.0f;
+    const bool sizedInPixels = fringe || widthInPixels < state.antialias
+                               || widthInPixels > QCPAINTER_MAX_STROKE_WIDTH;
+    return { state.antialias, state.strokeWidth, state.lineCap, state.lineJoin, flagsCacheProps(),
+             sizedInPixels ? scale : 0.0f };
 }
 
 void QCPainterRhiRenderer::removePathGroup(int pathGroup)

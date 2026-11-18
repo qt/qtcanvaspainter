@@ -188,6 +188,13 @@ struct QCCachedPathStrokeProperties
     QCanvasPainter::LineCap lineCap = QCanvasPainter::LineCap::Butt;
     QCanvasPainter::LineJoin lineJoin = QCanvasPainter::LineJoin::Miter;
     int renderHints = 0;
+    // The geometry is in the units of the path, which the vertex shader scales.
+    // It depends on the scale of the transform only when something in it is
+    // sized in device pixels (the antialiasing fringe, a minimum or maximum
+    // width), and then this is the scale rounded by quantizedScale(), otherwise
+    // 0. The data is made again only when the scale changes to another power of
+    // two, so zooming a path does not update it at every step.
+    float scale = 0.0f;
 };
 
 inline bool operator==(const QCCachedPathStrokeProperties &a, const QCCachedPathStrokeProperties &b) noexcept
@@ -196,7 +203,8 @@ inline bool operator==(const QCCachedPathStrokeProperties &a, const QCCachedPath
            && qFuzzyCompare(a.strokeWidth, b.strokeWidth)
            && a.lineCap == b.lineCap
            && a.lineJoin == b.lineJoin
-           && a.renderHints == b.renderHints;
+           && a.renderHints == b.renderHints
+           && a.scale == b.scale;
 }
 
 inline bool operator!=(const QCCachedPathStrokeProperties &a, const QCCachedPathStrokeProperties &b) noexcept
@@ -206,7 +214,8 @@ inline bool operator!=(const QCCachedPathStrokeProperties &a, const QCCachedPath
 
 inline size_t qHash(const QCCachedPathStrokeProperties &s, size_t seed) noexcept
 {
-    return qHash(s.antialias, seed) ^ qHash(s.strokeWidth) ^ int(s.lineCap) ^ int(s.lineJoin) ^ s.renderHints;
+    return qHash(s.antialias, seed) ^ qHash(s.strokeWidth) ^ int(s.lineCap) ^ int(s.lineJoin) ^ s.renderHints
+            ^ qHash(s.scale);
 }
 
 struct QCContext {
@@ -392,6 +401,17 @@ inline constexpr bool pointInSegment(float x, float y, float px, float py, float
 inline constexpr float sign(float a) noexcept
 {
     return a >= 0.0f ? 1.0f : -1.0f;
+}
+
+// The maximum stroke width in device pixels
+inline constexpr float QCPAINTER_MAX_STROKE_WIDTH = 1000.0f;
+
+// Returns the scale that the geometry of a cached stroke is made for, when it
+// has parts sized in device pixels: scale rounded to a power of two. At other
+// scales those parts are up to sqrt(2) times too wide or narrow.
+inline float quantizedScale(float scale) noexcept
+{
+    return scale > 0.0f ? std::exp2(std::round(std::log2(scale))) : 0.0f;
 }
 
 // Returns the average scaling and shearing factor

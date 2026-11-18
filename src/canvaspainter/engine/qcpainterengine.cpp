@@ -49,7 +49,6 @@ QT_BEGIN_NAMESPACE
 #define QCPAINTER_STRICT_CONVEX_PATH_CHECK 1
 #endif
 
-static const float QCPAINTER_MAX_STROKE_WIDTH = 1000.0f;
 static const float QCPAINTER_MAX_ANTIALIAS_WIDTH = 10.0f;
 static const int QCPAINTER_MAX_TESSELLATION_LEVEL = 11;
 static const float QCPAINTER_ANTIALIAS_MULTIPLIER = 1.25f;
@@ -888,24 +887,51 @@ void QCPainterEngine::stroke(QCanvasPath *maybePath, int pathGroup, bool cachedP
     if (!usingPathCaching && ctx.commandsCount < 2)
         return;
 
+    // The points of cached paths are not transformed, the vertex shader scales
+    // them. So the stroke is expanded in the units of the points, where one
+    // device pixel is 1 / scale. The parts of the geometry that are sized in
+    // device pixels (the antialiasing, the minimum and maximum width) are made
+    // for the scale rounded to a power of two, so that the cached data is not
+    // made again at every zoom step, see quantizedScale(). The points of the
+    // other paths are in device pixels already.
+    float pixelSize = 1.0f;
+    if (usingPathCaching) {
+        const float scale = getAverageScale(state.transform);
+        if (scale < 1.0e-6f)
+            return; // collapsed, nothing visible
+        pixelSize = 1.0f / quantizedScale(scale);
+    }
+
 #ifdef QCPAINTER_PERF_DEBUG
     perf.logStart(QCPerfLogging::STROKE);
 #endif
 
+    // The width in device pixels, which the shaders and the antialiasing use
     float strokeWidth;
     const bool ignoreTransform = usingPathCaching;
     const QCPaint strokePaint = getStrokePaint(&strokeWidth, ignoreTransform);
 
+    // Half of the width of the geometry, in the units of the points. The same
+    // as strokeWidth in device pixels, except for the cached paths when the
+    // clamping of the width is different at the scale the geometry is made for.
+    float halfWidth = strokeWidth * 0.5f;
+    if (usingPathCaching) {
+        const float bakedWidth = std::max(std::clamp(state.strokeWidth / pixelSize, 0.0f,
+                                                     QCPAINTER_MAX_STROKE_WIDTH),
+                                          state.antialias);
+        halfWidth = bakedWidth * 0.5f * pixelSize;
+    }
+
     if (!usingPathCaching) {
         commandsToPaths();
-        expandStroke(strokeWidth * 0.5f, state.lineCap, state.lineJoin, state.miterLimit);
+        expandStroke(halfWidth, state.lineCap, state.lineJoin, state.miterLimit);
 
         QCRhiUncachedPathDrawArgs args { ctx.paths, ctx.pathsCount };
         m_renderer->renderStroke(strokePaint, state, strokeWidth, args, std::nullopt);
     } else {
         if (cachedPathUpdateRequired) {
             commandsToPaths();
-            expandStroke(strokeWidth * 0.5f, state.lineCap, state.lineJoin, state.miterLimit);
+            expandStroke(halfWidth, state.lineCap, state.lineJoin, state.miterLimit, pixelSize);
 
             QCRhiCachedPathDrawArgs args { maybePath, pathGroup, state.transform, { { ctx.paths, ctx.pathsCount } } };
             m_renderer->renderStroke(strokePaint, state, strokeWidth, std::nullopt, args);
@@ -1745,15 +1771,18 @@ void QCPainterEngine::expandFill()
 }
 
 // Join and cap calculations are customized version based on NanoVG (https://github.com/memononen/nanovg)
-void QCPainterEngine::expandStroke(float w, QCanvasPainter::LineCap cap, QCanvasPainter::LineJoin join, float miterLimit)
+void QCPainterEngine::expandStroke(float w, QCanvasPainter::LineCap cap, QCanvasPainter::LineJoin join,
+                                   float miterLimit, float pixelSize)
 {
-    // w is half of stroke width + aa
-    const float aa = m_renderer->testFlag(QCPainterRhiRenderer::Antialiasing) ? state.antialias : 0.0f;
+    // On entry w is half of stroke width and on return half of stroke width + aa.
+    // Both and pixelSize, the size of a device pixel, are in the units of the points.
+    const float aa = (m_renderer->testFlag(QCPainterRhiRenderer::Antialiasing) ? state.antialias : 0.0f)
+                     * pixelSize;
     w += aa * 0.5f;
     calculateJoins(w, join, miterLimit);
     const int pCount = ctx.pathsCount;
     const int roundDivs = (join == QCanvasPainter::LineJoin::Round) || (cap == QCanvasPainter::LineCap::Round)
-                              ? curveDivs(w, ctx.divsTol)
+                              ? curveDivs(w / pixelSize, ctx.divsTol) // the tolerance is in device pixels
                               : 0;
 
     // Calculate max vertex usage
