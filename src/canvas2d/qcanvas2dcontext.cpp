@@ -27,6 +27,7 @@
 
 #include <QtQml/qqmlinfo.h>
 #include <QtQml/qqmlengine.h>
+#include <QtQml/private/qv4arrayobject_p.h>
 #include <QtQml/private/qv4domerrors_p.h>
 #include <QtQml/private/qv4engine_p.h>
 #include <QtQml/private/qv4object_p.h>
@@ -3417,47 +3418,170 @@ QV4::ReturnedValue QCanvasJSContext2D::method_set_windingEnforce(const QV4::Func
     RETURN_UNDEFINED();
 }
 
+/*!
+    \qmlmethod list<real> Canvas2DContext::getLineDash()
+    \since 6.13
+
+    Returns the current line dash pattern as an array of dash and gap
+    lengths. The array is empty when strokes are solid. When an odd number of
+    lengths was given to setLineDash(), the returned array contains them
+    twice.
+
+    \code
+    ctx.setLineDash([5, 10, 15]);
+    console.log(ctx.getLineDash()); // [5, 10, 15, 5, 10, 15]
+    \endcode
+
+    \sa setLineDash()
+*/
 QV4::ReturnedValue QCanvasJSContext2DPrototype::method_getLineDash(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *, int)
 {
     QV4::Scope scope(b);
-    Q_UNUSED(thisObject);
+    QV4::Scoped<QCanvasJSContext2D> r(scope, *thisObject);
+    CHECK_CONTEXT(r)
 
-    THROW_DOM(DOMEXCEPTION_NOT_SUPPORTED_ERR, "getLineDash(): Method not supported");
+    const QList<qreal> &pattern = r->d()->context()->state.lineDash;
+    QV4::ScopedArrayObject array(scope, scope.engine->newArrayObject(pattern.size()));
+    for (int i = 0; i < pattern.size(); ++i)
+        array->put(i, QV4::Value::fromDouble(pattern.at(i)));
+    array->setArrayLengthUnchecked(pattern.size());
 
-    RETURN_RESULT(QV4::Encode::null());
+    RETURN_RESULT(*array);
 }
 
+/*!
+    \qmlmethod void Canvas2DContext::setLineDash(list<real> segments)
+    \since 6.13
+
+    Sets the line dash pattern used when stroking to \a segments, an array
+    of lengths that alternate between dashes and gaps, starting with a dash.
+    The lengths are in the same units as the \l lineWidth.
+
+    When \a segments contains an odd number of lengths, they are repeated
+    to make the number even, so that \c{[5, 10, 15]} works like
+    \c{[5, 10, 15, 5, 10, 15]}. An empty array, the default, draws solid
+    lines. If any of the lengths is negative, infinite or NaN, the call is
+    ignored.
+
+    The pattern starts at the start of each subpath, shifted by the
+    \l lineDashOffset. Each dash is drawn with the \l lineCap, so with
+    \c "round" and \c "square" caps, zero-length dashes are drawn as dots.
+    The line dash pattern is part of the state saved by save().
+    \table
+    \row
+    \li \inlineimage canvas2d-linedash.webp
+    \li
+    \code
+    ctx.lineWidth = 8;
+    ctx.setLineDash([24, 12]);
+    ctx.beginPath();
+    ctx.roundRect(20, 20, 160, 100, 20);
+    ctx.stroke();
+    // Dots
+    ctx.lineCap = "round";
+    ctx.setLineDash([0, 16]);
+    ctx.beginPath();
+    ctx.moveTo(20, 160);
+    ctx.bezierCurveTo(80, 120, 120,
+                      200, 180, 160);
+    ctx.stroke();
+    \endcode
+    \endtable
+
+    \sa getLineDash(), lineDashOffset, lineCap
+*/
 QV4::ReturnedValue QCanvasJSContext2DPrototype::method_setLineDash(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc)
 {
     QV4::Scope scope(b);
-    Q_UNUSED(thisObject);
-    Q_UNUSED(argv);
-    Q_UNUSED(argc);
+    QV4::Scoped<QCanvasJSContext2D> r(scope, *thisObject);
+    CHECK_CONTEXT(r)
 
-    THROW_DOM(DOMEXCEPTION_NOT_SUPPORTED_ERR, "setLineDash(): Method not supported");
+    QV4::ScopedObject segments(scope, argc ? argv[0] : QV4::Value::undefinedValue());
+    if (!segments)
+        THROW_TYPE_ERROR();
+
+    // Array-like objects, such as QML lists, are accepted. A huge length,
+    // for example of an object that is not a list, would only loop.
+    constexpr qint64 maxLength = 100000;
+    const qint64 length = segments->getLength();
+    if (scope.hasException())
+        return QV4::Encode::undefined();
+    if (length > maxLength)
+        THROW_TYPE_ERROR();
+
+    QV4::ScopedValue v(scope);
+    QList<qreal> pattern;
+    pattern.reserve(length);
+    for (qint64 i = 0; i < length; ++i) {
+        v = segments->get(uint(i));
+        const qreal segment = v->toNumber();
+        if (scope.hasException())
+            return QV4::Encode::undefined();
+        if (segment < 0 || !qt_is_finite(segment))
+            RETURN_UNDEFINED();
+        pattern.append(segment);
+    }
+    if (pattern.size() % 2)
+        pattern.append(QList<qreal>(pattern));
+
+    if (pattern != r->d()->context()->state.lineDash) {
+        r->d()->context()->state.lineDash = pattern;
+        r->d()->context()->buffer()->setLineDash(pattern);
+    }
 
     RETURN_UNDEFINED();
 }
 
+/*!
+    \qmlproperty real Canvas2DContext::lineDashOffset
+    \since 6.13
+
+    Holds the offset of the line dash pattern. The pattern set with
+    setLineDash() starts this far into it at the start of each subpath, so
+    increasing the offset moves the dashes backwards along the strokes.
+    Animating the offset makes the dashes move, for example as "marching
+    ants" around a selection. The default offset is \c 0.0. Setting an
+    infinite or NaN offset is ignored.
+    \table
+    \row
+    \li \inlineimage canvas2d-linedashoffset.webp
+    \li
+    \code
+    ctx.lineWidth = 8;
+    ctx.setLineDash([20, 20]);
+    for (let i = 0; i < 4; i++) {
+        ctx.lineDashOffset = i * 10;
+        ctx.beginPath();
+        ctx.moveTo(20, 40 + i * 40);
+        ctx.lineTo(180, 40 + i * 40);
+        ctx.stroke();
+    }
+    \endcode
+    \endtable
+
+    \sa setLineDash()
+*/
 QV4::ReturnedValue QCanvasJSContext2D::method_get_lineDashOffset(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *, int)
 {
     QV4::Scope scope(b);
-    Q_UNUSED(thisObject);
+    QV4::Scoped<QCanvasJSContext2D> r(scope, *thisObject);
+    CHECK_CONTEXT(r)
 
-    THROW_DOM(DOMEXCEPTION_NOT_SUPPORTED_ERR, "getLineDashOffset(): Method not supported");
-
-    RETURN_RESULT(QV4::Encode::null());
+    RETURN_RESULT(QV4::Encode(r->d()->context()->state.lineDashOffset));
 }
 
 QV4::ReturnedValue QCanvasJSContext2D::method_set_lineDashOffset(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc)
 {
     QV4::Scope scope(b);
-    Q_UNUSED(thisObject);
-    Q_UNUSED(argv);
-    Q_UNUSED(argc);
+    QV4::Scoped<QCanvasJSContext2D> r(scope, *thisObject);
+    CHECK_CONTEXT(r)
 
-    THROW_DOM(DOMEXCEPTION_NOT_SUPPORTED_ERR, "setLineDashOffset(): Method not supported");
+    const qreal offset = argc ? argv[0].toNumber() : qQNaN();
 
+    if (qt_is_finite(offset) && offset != r->d()->context()->state.lineDashOffset) {
+        r->d()->context()->state.lineDashOffset = offset;
+        r->d()->context()->buffer()->setLineDashOffset(offset);
+    }
     RETURN_UNDEFINED();
 }
 
@@ -4921,8 +5045,11 @@ void QCanvas2DContext::popState()
     if (newState.clip != state.clip || newState.clipPath != state.clipPath)
         buffer()->clip(newState.clip, newState.clipPath);
 
-    //if (newState.lineDash != state.lineDash)
-    //    buffer()->setLineDash(newState.lineDash);
+    if (newState.lineDash != state.lineDash)
+        buffer()->setLineDash(newState.lineDash);
+
+    if (newState.lineDashOffset != state.lineDashOffset)
+        buffer()->setLineDashOffset(newState.lineDashOffset);
 
     state = newState;
     buffer()->restore();

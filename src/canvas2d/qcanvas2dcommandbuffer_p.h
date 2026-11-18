@@ -403,6 +403,19 @@ public:
         reals << limit;
     }
 
+    inline void setLineDash(const QList<qreal> &pattern)
+    {
+        commands << QCanvas2DContext::LineDash;
+        ints << int(pattern.size());
+        reals << pattern;
+    }
+
+    inline void setLineDashOffset(qreal offset)
+    {
+        commands << QCanvas2DContext::LineDashOffset;
+        reals << offset;
+    }
+
     inline void setFont(const QFont &font)
     {
         commands << QCanvas2DContext::Font;

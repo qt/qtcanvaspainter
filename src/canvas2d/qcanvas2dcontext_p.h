@@ -102,6 +102,8 @@ public:
         LineCap,
         LineJoin,
         MiterLimit,
+        LineDash,
+        LineDashOffset,
         TextAlign,
         TextBaseline,
         TextWrapMode,
@@ -146,6 +148,7 @@ public:
             , lineCap(QCanvasPainter::LineCap::Butt)
             , lineJoin(QCanvasPainter::LineJoin::Miter)
             , miterLimit(10)
+            , lineDashOffset(0)
             , globalCompositeOperation(QCanvasPainter::CompositeOperation::SourceOver)
             , font(QFont(QStringLiteral("sans-serif")))
             , textAlign(QCanvasPainter::TextAlign::Start)
@@ -177,6 +180,8 @@ public:
         QCanvasPainter::LineCap lineCap;
         QCanvasPainter::LineJoin lineJoin;
         qreal miterLimit;
+        QList<qreal> lineDash;
+        qreal lineDashOffset;
         QCanvasPainter::CompositeOperation globalCompositeOperation;
         QFont font;
         QCanvasPainter::TextAlign textAlign;

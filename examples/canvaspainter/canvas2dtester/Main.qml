@@ -201,6 +201,10 @@ ApplicationWindow {
                 name: "Path2D"
                 testId: 206
             }
+            ListElement {
+                name: "Line Dashes"
+                testId: 207
+            }
         }
 
         Component {

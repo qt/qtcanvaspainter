@@ -131,6 +131,8 @@ Item {
             gridPatternTest(ctx);
         else if (testCase === 206)
             path2DTest(ctx, complexity);
+        else if (testCase === 207)
+            lineDashTest(ctx);
 
         mainWindow.forceRepaint = false;
     }
@@ -993,6 +995,155 @@ Item {
         ctx.roundRect(posX, posY, size, size, bar2);
         ctx.fill();
         ctx.stroke();
+    }
+
+    function lineDashTest(ctx)
+    {
+        const w = canvas2D.width;
+        const h = canvas2D.height;
+        const t = fa.elapsedTime;
+        const s = Math.min(w, h) / 500;
+        ctx.save();
+
+        // Strokes a full circle, which starts at the angle 0
+        function circle(x, y, r) {
+            ctx.beginPath();
+            ctx.arc(x, y, r, 0, 2 * Math.PI);
+            ctx.stroke();
+        }
+
+        // Gauge with rings of ticks, dashes and dots
+        const cx = w * 0.27;
+        const cy = h * 0.5;
+        const R = Math.min(w * 0.22, h * 0.42);
+        const c = 2 * Math.PI * R;
+        ctx.lineCap = "butt";
+        // Ticks are short dashes on wide strokes, offset to center them
+        ctx.strokeStyle = Qt.rgba(0, 0.9, 1, 0.3);
+        ctx.lineWidth = R * 0.05;
+        ctx.setLineDash([1.5 * s, c / 120 - 1.5 * s]);
+        ctx.lineDashOffset = 0.75 * s;
+        circle(cx, cy, R);
+        ctx.strokeStyle = "#00e5ff";
+        ctx.lineWidth = R * 0.1;
+        ctx.setLineDash([3 * s, c / 12 - 3 * s]);
+        ctx.lineDashOffset = 1.5 * s;
+        circle(cx, cy, R - R * 0.025);
+        // A rotating ring of dashes with a rotating gradient
+        const r1 = R * 0.84;
+        const sweep = ctx.createConicalGradient(cx, cy, -t * 0.8);
+        sweep.addColorStop(0.0, "#00e5ff");
+        sweep.addColorStop(0.5, "#7c4dff");
+        sweep.addColorStop(1.0, "#00e5ff");
+        ctx.strokeStyle = sweep;
+        ctx.lineWidth = R * 0.06;
+        const seg1 = 2 * Math.PI * r1 / 48;
+        ctx.setLineDash([seg1 * 0.7, seg1 * 0.3]);
+        ctx.lineDashOffset = -t * r1 * 0.3;
+        circle(cx, cy, r1);
+        // Dots rotating the other way
+        const r2 = R * 0.7;
+        ctx.lineCap = "round";
+        ctx.strokeStyle = "#ff4f8b";
+        ctx.lineWidth = R * 0.035;
+        ctx.setLineDash([0, 2 * Math.PI * r2 / 36]);
+        ctx.lineDashOffset = t * r2 * 0.2;
+        circle(cx, cy, r2);
+        // Segmented progress, dashes start at the start of the arc
+        const r3 = R * 0.5;
+        const seg3 = 2 * Math.PI * r3 / 40;
+        const progress = 0.5 + 0.5 * Math.sin(t * 0.8);
+        ctx.lineCap = "butt";
+        ctx.lineWidth = R * 0.12;
+        ctx.setLineDash([seg3 * 0.75, seg3 * 0.25]);
+        ctx.lineDashOffset = 0;
+        ctx.strokeStyle = Qt.rgba(1, 1, 1, 0.12);
+        ctx.beginPath();
+        ctx.arc(cx, cy, r3, -Math.PI / 2, 1.5 * Math.PI);
+        ctx.stroke();
+        ctx.strokeStyle = "#2cde85";
+        ctx.beginPath();
+        ctx.arc(cx, cy, r3, -Math.PI / 2, -Math.PI / 2 + progress * 2 * Math.PI);
+        ctx.stroke();
+        ctx.fillStyle = "#ffffff";
+        ctx.font = Math.round(R * 0.22) + "px sans-serif";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText(Math.round(progress * 100) + "%", cx, cy);
+
+        // Waves flowing with different patterns, caps and speeds
+        const x0 = w * 0.52;
+        const x1 = w * 0.96;
+        const waveGradient = ctx.createLinearGradient(x0, 0, x1, 0);
+        waveGradient.addColorStop(0.0, "#00e5ff");
+        waveGradient.addColorStop(1.0, "#7c4dff");
+        const waves = [
+            { pattern: [0, 14], cap: "round", width: 7, style: "#ffc94d", speed: 40 },
+            { pattern: [24, 10, 4, 10], cap: "butt", width: 5, style: "#ff4f8b", speed: 60 },
+            { pattern: [40, 14], cap: "round", width: 4, style: waveGradient, speed: 80 }
+        ];
+        waves.forEach((wave, k) => {
+            ctx.setLineDash(wave.pattern.map(v => v * s));
+            ctx.lineDashOffset = -t * wave.speed * s;
+            ctx.lineCap = wave.cap;
+            ctx.lineWidth = wave.width * s;
+            ctx.strokeStyle = wave.style;
+            ctx.beginPath();
+            for (let i = 0; i <= 80; i++) {
+                const x = x0 + (x1 - x0) * i / 80;
+                const y = h * 0.28 + h * 0.1 * Math.sin(x / (w * 0.06) + t * 1.5 + k * 2.1);
+                if (i === 0)
+                    ctx.moveTo(x, y);
+                else
+                    ctx.lineTo(x, y);
+            }
+            ctx.stroke();
+        });
+
+        // A rotating star, the dashes turn around its sharp corners
+        const sx = w * 0.64;
+        const sy = h * 0.73;
+        const sr = Math.min(w * 0.1, h * 0.2);
+        ctx.lineJoin = "miter";
+        ctx.lineCap = "butt";
+        ctx.lineWidth = 5 * s;
+        ctx.strokeStyle = "#b388ff";
+        ctx.setLineDash([50 * s, 16 * s]);
+        ctx.lineDashOffset = t * 60 * s;
+        ctx.beginPath();
+        for (let i = 0; i < 10; i++) {
+            const a = t * 0.3 + i * Math.PI / 5 - Math.PI / 2;
+            const r = i % 2 ? sr * 0.45 : sr;
+            ctx.lineTo(sx + r * Math.cos(a), sy + r * Math.sin(a));
+        }
+        ctx.closePath();
+        ctx.stroke();
+
+        // Marching ants around a selection
+        const ax = w * 0.86;
+        const ay = h * 0.73;
+        const ar = Math.min(w * 0.06, h * 0.12);
+        const blob = ctx.createRadialGradient(ax, ay, 0, ax, ay, ar);
+        blob.addColorStop(0.0, "#ffc94d");
+        blob.addColorStop(1.0, "#ff4f8b");
+        ctx.fillStyle = blob;
+        ctx.beginPath();
+        ctx.arc(ax, ay, ar, 0, 2 * Math.PI);
+        ctx.fill();
+        const m = ar * 0.3;
+        ctx.lineJoin = "miter";
+        ctx.lineWidth = 2 * s;
+        ctx.setLineDash([]);
+        ctx.strokeStyle = "#000000";
+        ctx.beginPath();
+        ctx.roundRect(ax - ar - m, ay - ar - m, 2 * (ar + m), 2 * (ar + m), m);
+        ctx.stroke();
+        ctx.setLineDash([6 * s, 6 * s]);
+        ctx.lineDashOffset = -t * 20 * s;
+        ctx.strokeStyle = "#ffffff";
+        ctx.stroke();
+
+        ctx.restore();
     }
 
     function path2DTest(ctx, complexity)

@@ -410,6 +410,20 @@ void QCanvas2DItemRenderer::paint(QCanvasPainter *painter)
             m_painter->setMiterLimit(m_state.miterLimit);
             break;
         }
+        case QCanvas2DContext::LineDash:
+        {
+            // The painter copies the pattern, so a view into reals is enough
+            const int count = takeInt();
+            m_painter->setLineDash(QSpan<const qreal>(reals).subspan(realIdx, count));
+            realIdx += count;
+            break;
+        }
+        case QCanvas2DContext::LineDashOffset:
+        {
+            m_state.lineDashOffset = takeReal();
+            m_painter->setLineDashOffset(m_state.lineDashOffset);
+            break;
+        }
         case QCanvas2DContext::TextAlign:
         {
             auto a = takeAlign();
