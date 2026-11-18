@@ -89,6 +89,8 @@ private slots:
     void canvasRenderEmojiGlyphEviction();
     void multiPathRender_data();
     void multiPathRender();
+    void cachedPathVariantsUpdate_data();
+    void cachedPathVariantsUpdate();
 
 private:
     void setWindowType(QWindow *window, QRhi::Implementation impl);
@@ -2106,6 +2108,103 @@ void tst_CanvasRhiRendering::multiPathRender()
                 QVERIFY(qBlue(together.image.pixel(760, 120)) > 200);
                 QVERIFY(qBlue(together.image.pixel(1040, 130)) > 200);
             }
+        }
+    }
+}
+
+void tst_CanvasRhiRendering::cachedPathVariantsUpdate_data()
+{
+    rhiTestData();
+}
+
+void tst_CanvasRhiRendering::cachedPathVariantsUpdate()
+{
+    QFETCH(QRhi::Implementation, impl);
+    QFETCH(QRhiInitParams *, initParams);
+
+    std::unique_ptr<QRhi> rhi(QRhi::create(impl, initParams, rhiCreateFlags));
+    if (!rhi)
+        QSKIP("Failed to create QRhi, skip");
+
+    RenderTargetPtr rt = createRenderTarget(rhi.get());
+    QVERIFY(rt);
+
+    std::unique_ptr<QCanvasPainterFactory> factory(new QCanvasPainterFactory);
+    QCanvasPainter *painter = factory->create(rhi.get());
+    QCanvasRhiPaintDriver *pd = factory->paintDriver();
+
+    // A path in a path group is cached for each set of properties that it is
+    // drawn with, here two stroke widths and two antialiasing widths of a fill.
+    // When the path changes, drawing it with the first properties updates their
+    // data, and drawing it with the second properties must then update theirs
+    // as well, not draw the data of the earlier path.
+    QCanvasPath strokePath;
+    strokePath.moveTo(50, 50);
+    strokePath.lineTo(450, 50);
+    QCanvasPath fillPath;
+    fillPath.rect(50, 300, 150, 100);
+    auto render = [&]() {
+        QRhiCommandBuffer *cb;
+        rhi->beginOffscreenFrame(&cb);
+        pd->resetForNewFrame();
+        pd->beginPaint(cb, rt->rt);
+        painter->setStrokeStyle(Qt::white);
+        painter->setFillStyle(Qt::white);
+        for (int variant = 0; variant < 2; ++variant) {
+            painter->resetTransform();
+            painter->translate(variant * 600, 0);
+            painter->setLineWidth(variant ? 20 : 4);
+            painter->stroke(strokePath, 1);
+            painter->setAntialias(variant ? 4 : 1);
+            painter->fill(fillPath, 1);
+        }
+        painter->setAntialias(1);
+        pd->endPaint(QCanvasRhiPaintDriver::EndPaintFlag::DoNotRecordRenderPass);
+        cb->beginPass(rt->rt, Qt::black, { 1.0f, 0 });
+        pd->renderPaint();
+        cb->endPass();
+        rhi->endOffscreenFrame();
+        return impl != QRhi::Null ? imageFromReadback(rhi.get(), rt->tex) : QImage();
+    };
+    auto isOn = [](const QImage &image, int x, int y) { return qGray(image.pixel(x, y)) > 200; };
+
+    QImage image = render();
+    if (!image.isNull()) {
+        for (int x : { 0, 600 }) {
+            QVERIFY(isOn(image, x + 250, 50));
+            QVERIFY(!isOn(image, x + 450, 120));
+            QVERIFY(isOn(image, x + 125, 350));
+            QVERIFY(!isOn(image, x + 375, 350));
+        }
+    }
+
+    strokePath.lineTo(450, 150);
+    fillPath.rect(300, 300, 150, 100);
+    image = render();
+    if (!image.isNull()) {
+        for (int x : { 0, 600 }) {
+            QVERIFY2(isOn(image, x + 250, 50), qPrintable(QString::number(x)));
+            QVERIFY2(isOn(image, x + 450, 120), qPrintable(QString::number(x)));
+            QVERIFY2(isOn(image, x + 125, 350), qPrintable(QString::number(x)));
+            QVERIFY2(isOn(image, x + 375, 350), qPrintable(QString::number(x)));
+        }
+    }
+
+    // The path changes again, with the same number of commands
+    strokePath.clear();
+    strokePath.moveTo(50, 50);
+    strokePath.lineTo(450, 50);
+    strokePath.lineTo(250, 150);
+    fillPath.clear();
+    fillPath.rect(50, 300, 150, 100);
+    fillPath.rect(300, 300, 150, 50);
+    image = render();
+    if (!image.isNull()) {
+        for (int x : { 0, 600 }) {
+            QVERIFY2(!isOn(image, x + 450, 120), qPrintable(QString::number(x)));
+            QVERIFY2(isOn(image, x + 350, 100), qPrintable(QString::number(x)));
+            QVERIFY2(isOn(image, x + 375, 320), qPrintable(QString::number(x)));
+            QVERIFY2(!isOn(image, x + 375, 380), qPrintable(QString::number(x)));
         }
     }
 }
