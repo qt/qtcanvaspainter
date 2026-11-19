@@ -76,6 +76,7 @@ private slots:
     void testHighQualityStrokingWithStencilClip();
     void testGradientSpread();
     void testGradientCaching();
+    void testRadialGradientFocalPoint();
     void testTextDirection();
     void testVectorPathStencilClip();    
 
