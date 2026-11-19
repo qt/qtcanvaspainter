@@ -1518,29 +1518,43 @@ static constexpr float triarea2(float ax, float ay, float bx, float by, float cx
     return (acx * aby) - (abx * acy);
 }
 
+// Twice the signed area of the points, positive when they go counterclockwise
+// on the screen
+static float pointsArea(const QCPoints &points, int pointsOffset, int pointsCount)
+{
+    float area = 0;
+    if (pointsCount <= 2)
+        return area;
+    const QCPoint &a = points.at(pointsOffset);
+    for (int i = 2; i < pointsCount; i++) {
+        const QCPoint &b = points.at(pointsOffset + i - 1);
+        const QCPoint &c = points.at(pointsOffset + i);
+        area += triarea2(a.x, a.y, b.x, b.y, c.x, c.y);
+    }
+    return area;
+}
+
+static void reversePoints(QCPoints &points, int pointsOffset, int pointsCount)
+{
+    int i = 0;
+    int j = pointsCount - 1;
+    while (i < j) {
+        std::swap(points[pointsOffset + i], points[pointsOffset + j]);
+        i++;
+        j--;
+    }
+}
+
 void QCPainterEngine::enforceWinding(int pointsOffset, int pointsCount, QCanvasPainter::PathWinding winding)
 {
     if (pointsCount <= 2)
         return;
     // Calculate if points area is positive or negative
-    float area = 0;
-    for (int i = 2; i < pointsCount; i++) {
-        const QCPoint a = ctx.points.at(pointsOffset);
-        const QCPoint b = ctx.points.at(pointsOffset + i - 1);
-        const QCPoint c = ctx.points.at(pointsOffset + i);
-        area += triarea2(a.x, a.y, b.x, b.y, c.x, c.y);
-    }
+    const float area = pointsArea(ctx.points, pointsOffset, pointsCount);
     // If needed, reverse the points order
     if ((winding == QCanvasPainter::PathWinding::CounterClockWise && area < 0.0f) ||
         (winding == QCanvasPainter::PathWinding::ClockWise && area > 0.0f)) {
-        int i = 0;
-        int j = pointsCount - 1;
-        auto &pts = ctx.points;
-        while (i < j) {
-            std::swap(pts[pointsOffset + i], pts[pointsOffset + j]);
-            i++;
-            j--;
-        }
+        reversePoints(ctx.points, pointsOffset, pointsCount);
     }
 }
 
@@ -1634,7 +1648,8 @@ void QCPainterEngine::commandsToPaths(float pixelSize)
     float boundH = -FLT_MAX;
     const int pCount = ctx.pathsCount;
     const bool windingEnforce = m_renderer->testFlag(QCPainterRhiRenderer::WindingEnforce);
-    // Calculate the direction and length of line segments.
+    // The signed area of the paths without the winding enforcement
+    float area = 0;
     for (int j = 0; j < pCount; j++) {
         QCPath &path = ctx.paths[j];
         if (path.pointsCount == 0)
@@ -1650,7 +1665,29 @@ void QCPainterEngine::commandsToPaths(float pixelSize)
 
         if (windingEnforce)
             enforceWinding(path.pointsOffset, path.pointsCount, path.winding);
+        else
+            area += pointsArea(ctx.points, path.pointsOffset, path.pointsCount);
+    }
 
+    // Without the winding enforcement the paths keep their direction. A fill
+    // and its antialiasing fringe are made for the paths going counterclockwise,
+    // like the solid ones of the enforcement, so a fill going clockwise would
+    // get the fringe on the wrong side of its edges, leaving a gap between it
+    // and the fill, and would not be convex. Reversing all the paths doesn't
+    // change which pixels a fill covers, with either fill rule, or how a
+    // stroke looks, so they are reversed when they go clockwise in total.
+    if (area < 0.0f) {
+        for (int j = 0; j < pCount; j++) {
+            const QCPath &path = ctx.paths.at(j);
+            reversePoints(ctx.points, path.pointsOffset, path.pointsCount);
+        }
+    }
+
+    // Calculate the direction and length of line segments.
+    for (int j = 0; j < pCount; j++) {
+        QCPath &path = ctx.paths[j];
+        if (path.pointsCount == 0)
+            continue;
         int p0Index = path.pointsOffset + path.pointsCount - 1;
         int p1Index = path.pointsOffset;
         for (int i = 0; i < path.pointsCount; i++) {
