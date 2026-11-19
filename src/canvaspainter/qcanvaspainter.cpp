@@ -1292,8 +1292,13 @@ void QCanvasPainter::beginPath()
 }
 
 /*!
-    Closes the current sub-path with a line segment.
-    This is equivalent to lineTo([starting point]) as the last path element.
+    Closes the current sub-path with a line segment to its starting point.
+
+    Unlike in the HTML canvas, this doesn't start a new sub-path, and the
+    current point stays at the last point of the sub-path. Drawing after this
+    without moveTo(), for example with lineTo(), adds the points to the closed
+    sub-path. Call moveTo() to start a new sub-path. The same applies after
+    rect(), roundRect(), ellipse() and circle(), which close their sub-path.
 */
 
 void QCanvasPainter::closePath()

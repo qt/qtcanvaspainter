@@ -603,9 +603,9 @@ void QCPainterEngine::addRect(float x, float y, float width, float height)
 {
     float data[] = {
         x, y,
-        x, y + height,
+        x + width, y,
         x + width, y + height,
-        x + width, y
+        x, y + height
     };
     appendCommandsData(data, 8);
     static constexpr QCCommand commands[] = {
@@ -636,15 +636,15 @@ void QCPainterEngine::addRoundRect(float x, float y, float width, float height, 
         const float rYCK = rY * COMP_KAPPA90;
         const float rXCK = rX * COMP_KAPPA90;
         float data[] = {
-            x, y + rY,
-            x, yH - rY,
-            x, yH - rYCK, x + rXCK, yH, x + rX, yH,
-            xW - rX, yH,
-            xW - rXCK, yH, xW, yH - rYCK, xW, yH - rY,
-            xW, y + rY,
-            xW, y + rYCK, xW - rXCK, y, xW - rX, y,
             x + rX, y,
-            x + rXCK, y, x, y + rYCK, x, y + rY
+            xW - rX, y,
+            xW - rXCK, y, xW, y + rYCK, xW, y + rY,
+            xW, yH - rY,
+            xW, yH - rYCK, xW - rXCK, yH, xW - rX, yH,
+            x + rX, yH,
+            x + rXCK, yH, x, yH - rYCK, x, yH - rY,
+            x, y + rY,
+            x, y + rYCK, x + rXCK, y, x + rX, y
         };
 
         appendCommandsData(data, 34);
@@ -698,15 +698,15 @@ void QCPainterEngine::addRoundRect(float x, float y, float width, float height,
         const float xW = x + width;
         const float yH = y + height;
         float data[] = {
-            x, y + rYTL,
-            x, yH - rYBL,
-            x, yH - rYBL * COMP_KAPPA90, x + rXBL * COMP_KAPPA90, yH, x + rXBL, yH,
-            xW - rXBR, yH,
-            xW - rXBR * COMP_KAPPA90, yH, xW, yH - rYBR * COMP_KAPPA90, xW, yH - rYBR,
-            xW, y + rYTR,
-            xW, y + rYTR * COMP_KAPPA90, xW - rXTR * COMP_KAPPA90, y, xW - rXTR, y,
             x + rXTL, y,
-            x + rXTL * COMP_KAPPA90, y, x, y + rYTL * COMP_KAPPA90, x, y + rYTL
+            xW - rXTR, y,
+            xW - rXTR * COMP_KAPPA90, y, xW, y + rYTR * COMP_KAPPA90, xW, y + rYTR,
+            xW, yH - rYBR,
+            xW, yH - rYBR * COMP_KAPPA90, xW - rXBR * COMP_KAPPA90, yH, xW - rXBR, yH,
+            x + rXBL, yH,
+            x + rXBL * COMP_KAPPA90, yH, x, yH - rYBL * COMP_KAPPA90, x, yH - rYBL,
+            x, y + rYTL,
+            x, y + rYTL * COMP_KAPPA90, x + rXTL * COMP_KAPPA90, y, x + rXTL, y
         };
 
         appendCommandsData(data, 34);
@@ -735,11 +735,11 @@ void QCPainterEngine::addEllipse(float x, float y, float radiusX, float radiusY)
     const float xmRadX = x - radiusX;
     const float xpRadX = x + radiusX;
     float data[] = {
-        xmRadX, y,
-        xmRadX, y + radYK, x - radXK, ypRadY, x, ypRadY,
-        x + radXK, ypRadY, xpRadX, y + radYK, xpRadX, y,
-        xpRadX, y - radYK, x + radXK, ymRadY, x, ymRadY,
-        x - radXK, ymRadY, xmRadX, y - radYK, xmRadX, y,
+        xpRadX, y,
+        xpRadX, y + radYK, x + radXK, ypRadY, x, ypRadY,
+        x - radXK, ypRadY, xmRadX, y + radYK, xmRadX, y,
+        xmRadX, y - radYK, x - radXK, ymRadY, x, ymRadY,
+        x + radXK, ymRadY, xpRadX, y - radYK, xpRadX, y,
     };
     appendCommandsData(data, 26);
     static constexpr QCCommand commands[] = {
@@ -758,11 +758,11 @@ void QCPainterEngine::addCircle(float x, float y, float radius)
     const float ymRad = y - radius;
     const float ypRad = y + radius;
     float data[] = {
-        x - radius, y,
-        x - radius, y + radK, x - radK, ypRad, x, ypRad,
-        x + radK, ypRad, x + radius, y + radK, x + radius, y,
-        x + radius, y - radK, x + radK, ymRad, x, ymRad,
-        x - radK, ymRad, x - radius, y - radK, x - radius, y,
+        x + radius, y,
+        x + radius, y + radK, x + radK, ypRad, x, ypRad,
+        x - radK, ypRad, x - radius, y + radK, x - radius, y,
+        x - radius, y - radK, x - radK, ymRad, x, ymRad,
+        x + radK, ymRad, x + radius, y - radK, x + radius, y,
     };
     appendCommandsData(data, 26);
     static constexpr QCCommand commands[] = {

@@ -350,7 +350,13 @@ bool comparesEqual(const QCanvasPath &lhs, const QCanvasPath &rhs) noexcept
 
 /*!
     Closes the current subpath by drawing a line to the beginning of
-    the subpath, automatically starting a new path.
+    the subpath.
+
+    Unlike in the HTML canvas, this doesn't start a new subpath, and the
+    current point stays at the last point of the subpath. Drawing after this
+    without moveTo(), for example with lineTo(), adds the points to the closed
+    subpath. Call moveTo() to start a new subpath. The same applies after
+    rect(), roundRect(), ellipse() and circle(), which close their subpath.
 */
 
 void QCanvasPath::closePath()
@@ -622,9 +628,9 @@ void QCanvasPath::rect(qreal x, qreal y, qreal width, qreal height)
     Q_D(QCanvasPath);
     const qreal data[] = {
         x, y,
-        x, y + height,
+        x + width, y,
         x + width, y + height,
-        x + width, y
+        x, y + height
     };
     d->appendCommandsData(data, 8);
     static constexpr QCCommand commands[] = {
@@ -667,15 +673,15 @@ void QCanvasPath::roundRect(qreal x, qreal y, qreal width, qreal height, qreal r
         const qreal rYCK = rY * COMP_KAPPA90;
         const qreal rXCK = rX * COMP_KAPPA90;
         const qreal data[] = {
-            x, y + rY,
-            x, yH - rY,
-            x, yH - rYCK, x + rXCK, yH, x + rX, yH,
-            xW - rX, yH,
-            xW - rXCK, yH, xW, yH - rYCK, xW, yH - rY,
-            xW, y + rY,
-            xW, y + rYCK, xW - rXCK, y, xW - rX, y,
             x + rX, y,
-            x + rXCK, y, x, y + rYCK, x, y + rY
+            xW - rX, y,
+            xW - rXCK, y, xW, y + rYCK, xW, y + rY,
+            xW, yH - rY,
+            xW, yH - rYCK, xW - rXCK, yH, xW - rX, yH,
+            x + rX, yH,
+            x + rXCK, yH, x, yH - rYCK, x, yH - rY,
+            x, y + rY,
+            x, y + rYCK, x + rXCK, y, x + rX, y
         };
 
         d->appendCommandsData(data, 34);
@@ -749,15 +755,15 @@ void QCanvasPath::roundRect(
         const qreal xW = x + width;
         const qreal yH = y + height;
         const qreal data[] = {
-            x, y + rYTL,
-            x, yH - rYBL,
-            x, yH - rYBL * COMP_KAPPA90, x + rXBL * COMP_KAPPA90, yH, x + rXBL, yH,
-            xW - rXBR, yH,
-            xW - rXBR * COMP_KAPPA90, yH, xW, yH - rYBR * COMP_KAPPA90, xW, yH - rYBR,
-            xW, y + rYTR,
-            xW, y + rYTR * COMP_KAPPA90, xW - rXTR * COMP_KAPPA90, y, xW - rXTR, y,
             x + rXTL, y,
-            x + rXTL * COMP_KAPPA90, y, x, y + rYTL * COMP_KAPPA90, x, y + rYTL
+            xW - rXTR, y,
+            xW - rXTR * COMP_KAPPA90, y, xW, y + rYTR * COMP_KAPPA90, xW, y + rYTR,
+            xW, yH - rYBR,
+            xW, yH - rYBR * COMP_KAPPA90, xW - rXBR * COMP_KAPPA90, yH, xW - rXBR, yH,
+            x + rXBL, yH,
+            x + rXBL * COMP_KAPPA90, yH, x, yH - rYBL * COMP_KAPPA90, x, yH - rYBL,
+            x, y + rYTL,
+            x, y + rYTL * COMP_KAPPA90, x + rXTL * COMP_KAPPA90, y, x + rXTL, y
         };
 
         d->appendCommandsData(data, 34);
@@ -800,11 +806,11 @@ void QCanvasPath::ellipse(qreal x, qreal y, qreal radiusX, qreal radiusY)
     const qreal xmRadX = x - radiusX;
     const qreal xpRadX = x + radiusX;
     const qreal data[] = {
-        xmRadX, y,
-        xmRadX, y + radYK, x - radXK, ypRadY, x, ypRadY,
-        x + radXK, ypRadY, xpRadX, y + radYK, xpRadX, y,
-        xpRadX, y - radYK, x + radXK, ymRadY, x, ymRadY,
-        x - radXK, ymRadY, xmRadX, y - radYK, xmRadX, y,
+        xpRadX, y,
+        xpRadX, y + radYK, x + radXK, ypRadY, x, ypRadY,
+        x - radXK, ypRadY, xmRadX, y + radYK, xmRadX, y,
+        xmRadX, y - radYK, x - radXK, ymRadY, x, ymRadY,
+        x + radXK, ymRadY, xpRadX, y - radYK, xpRadX, y,
     };
     d->appendCommandsData(data, 26);
     static constexpr QCCommand commands[] = {
@@ -835,11 +841,11 @@ void QCanvasPath::circle(qreal x, qreal y, qreal radius)
     const qreal ymRad = y - radius;
     const qreal ypRad = y + radius;
     const qreal data[] = {
-        x - radius, y,
-        x - radius, y + radK, x - radK, ypRad, x, ypRad,
-        x + radK, ypRad, x + radius, y + radK, x + radius, y,
-        x + radius, y - radK, x + radK, ymRad, x, ymRad,
-        x - radK, ymRad, x - radius, y - radK, x - radius, y,
+        x + radius, y,
+        x + radius, y + radK, x + radK, ypRad, x, ypRad,
+        x - radK, ypRad, x - radius, y + radK, x - radius, y,
+        x - radius, y - radK, x - radK, ymRad, x, ymRad,
+        x + radK, ymRad, x + radius, y - radK, x + radius, y,
     };
     d->appendCommandsData(data, 26);
     static constexpr QCCommand commands[] = {
@@ -1187,6 +1193,10 @@ void QCanvasPath::reserve(qsizetype commandsSize, qsizetype commandsDataSize)
 /*!
     Returns the current position of the path.
     This means position where previous path command (\l moveTo, \l lineTo, \l bezierCurveTo etc.) has ended.
+    After \l closePath(), and after the shapes like \l rect() that close their
+    subpath, this is the last point added to the subpath. It is the start of
+    the subpath only when the subpath ends there, as with \l ellipse() and
+    \l circle().
     When the path is empty, returns (0.0, 0.0).
 */
 QPointF QCanvasPath::currentPosition() const

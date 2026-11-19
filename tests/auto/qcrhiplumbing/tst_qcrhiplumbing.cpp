@@ -110,6 +110,8 @@ private slots:
     void pathWindingNotKept();
     void clockwiseFillWithoutWindingEnforce_data();
     void clockwiseFillWithoutWindingEnforce();
+    void shapeDirection_data();
+    void shapeDirection();
 
 private:
     void setWindowType(QWindow *window, QRhi::Implementation impl);
@@ -3001,6 +3003,113 @@ void tst_CanvasRhiRendering::clockwiseFillWithoutWindingEnforce()
             QVERIFY2(cw.fillTriangles == ccw.fillTriangles, qPrintable(message));
         }
         painter->removePathGroup(0);
+    }
+}
+
+void tst_CanvasRhiRendering::shapeDirection_data()
+{
+    rhiTestData();
+}
+
+// Like in the HTML canvas, rect(), roundRect(), ellipse() and circle() start
+// at the top-left corner or at the angle 0 and go clockwise. Without the
+// winding enforcement and with the nonzero fill rule, a subpath going
+// counterclockwise inside them is a hole. The antialiasing fringe must still be
+// outside the edges of the shape and inside the hole, without a gap.
+void tst_CanvasRhiRendering::shapeDirection()
+{
+    QFETCH(QRhi::Implementation, impl);
+    QFETCH(QRhiInitParams *, initParams);
+
+    std::unique_ptr<QRhi> rhi(QRhi::create(impl, initParams, rhiCreateFlags));
+    if (!rhi)
+        QSKIP("Failed to create QRhi, skip");
+
+    RenderTargetPtr rt = createRenderTarget(rhi.get());
+    QVERIFY(rt);
+
+    std::unique_ptr<QCanvasPainterFactory> factory(new QCanvasPainterFactory);
+    QCanvasPainter *painter = factory->create(rhi.get());
+    QVERIFY(painter);
+    QCanvasRhiPaintDriver *pd = factory->paintDriver();
+
+    const qreal cx = RT_WIDTH / 2;
+    const qreal cy = RT_HEIGHT / 2;
+    // Adds the shape and returns its start point
+    const auto addShape = [&](auto *target, int shape) -> QPointF {
+        switch (shape) {
+        case 0:
+            target->rect(cx - 200, cy - 200, 400, 400);
+            return { cx - 200, cy - 200 };
+        case 1:
+            target->roundRect(cx - 200, cy - 200, 400, 400, 40);
+            return { cx - 160, cy - 200 };
+        case 2:
+            target->roundRect(cx - 200, cy - 200, 400, 400, 40, 30, 20, 10);
+            return { cx - 160, cy - 200 };
+        case 3:
+            target->ellipse(cx, cy, 250, 200);
+            return { cx + 250, cy };
+        default:
+            target->circle(cx, cy, 200);
+            return { cx + 200, cy };
+        }
+    };
+    // A square going counterclockwise on the screen
+    const auto addHole = [&](auto *target) {
+        target->moveTo(cx - 50, cy - 50);
+        target->lineTo(cx - 50, cy + 50);
+        target->lineTo(cx + 50, cy + 50);
+        target->lineTo(cx + 50, cy - 50);
+        target->closePath();
+    };
+
+    for (int shape = 0; shape < 5; ++shape) {
+        // Painter path, QCanvasPath, and QCanvasPath in a path group
+        for (int mode = 0; mode < 3; ++mode) {
+            QRhiCommandBuffer *cb;
+            rhi->beginOffscreenFrame(&cb);
+            pd->resetForNewFrame();
+            pd->beginPaint(cb, rt->rt);
+            painter->setWindingEnforce(false);
+            painter->setFillStyle(Qt::white);
+            if (mode == 0) {
+                painter->beginPath();
+                addShape(painter, shape);
+                addHole(painter);
+                painter->fill();
+            } else {
+                QCanvasPath path;
+                const QPointF start = addShape(&path, shape);
+                QCOMPARE(path.positionAt(0), start);
+                addHole(&path);
+                painter->fill(path, mode == 2 ? 0 : -1);
+            }
+            pd->endPaint(QCanvasRhiPaintDriver::EndPaintFlag::DoNotRecordRenderPass);
+            cb->beginPass(rt->rt, Qt::black, { 1.0f, 0 });
+            pd->renderPaint();
+            cb->endPass();
+            rhi->endOffscreenFrame();
+            if (impl == QRhi::Null)
+                continue;
+            const QImage image = imageFromReadback(rhi.get(), rt->tex);
+            const QString message = QString("shape %1, mode %2").arg(shape).arg(mode);
+            QVERIFY2(testColor(image, cx - 120, cy, Qt::white), qPrintable(message));
+            QVERIFY2(testColor(image, cx, cy, Qt::black), qPrintable(message));
+            // The left edges of the shape and the hole are on the pixel
+            // boundaries. The pixels next to them on the filled side are
+            // covered, and those on the other side are not, so that the fringe
+            // is not drawn apart from the edge.
+            const int left = shape == 3 ? cx - 250 : cx - 200;
+            const int hole = int(cx) - 50;
+            for (int x : { left - 2, left - 1, left, left + 1,
+                           hole - 2, hole - 1, hole, hole + 1 }) {
+                const bool filled = (x >= left && x < hole);
+                const int gray = qGray(image.pixel(x, cy));
+                QVERIFY2(filled ? gray > 200 : gray < 32,
+                         qPrintable(message + QString(": x %1 is %2").arg(x).arg(gray)));
+            }
+        }
     }
 }
 
