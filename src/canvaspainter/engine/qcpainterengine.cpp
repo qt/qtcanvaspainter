@@ -818,6 +818,18 @@ void QCPainterEngine::fill(QCanvasPainter::FillRule fillRule, QCanvasPath *maybe
     if (!usingPathCaching && ctx.commandsCount < 2)
         return;
 
+    // The points of cached paths are not transformed, the vertex shader scales
+    // them. So the antialiasing fringe, which is in device pixels, is made in
+    // the units of the points for the scale rounded to a power of two, like
+    // for the strokes, see stroke().
+    float pixelSize = 1.0f;
+    if (usingPathCaching) {
+        const float scale = getAverageScale(state.transform);
+        if (scale < 1.0e-6f)
+            return; // collapsed, nothing visible
+        pixelSize = 1.0f / quantizedScale(scale);
+    }
+
 #ifdef QCPAINTER_PERF_DEBUG
     perf.logStart(QCPerfLogging::FILL);
 #endif
@@ -834,7 +846,7 @@ void QCPainterEngine::fill(QCanvasPainter::FillRule fillRule, QCanvasPath *maybe
     } else {
         if (cachedPathUpdateRequired) {
             commandsToPaths();
-            expandFill();
+            expandFill(pixelSize);
         }
 
         const bool ignoreTransform = true;
@@ -1657,9 +1669,11 @@ void QCPainterEngine::tesselateBezier(float x1, float y1, float x2, float y2,
     tesselateBezier(x1234, y1234, x234, y234, x34, y34, x4, y4, (level + 1), flags);
 }
 
-void QCPainterEngine::expandFill()
+// pixelSize is the size of a device pixel in the units of the points
+void QCPainterEngine::expandFill(float pixelSize)
 {
-    const float aa = m_renderer->testFlag(QCPainterRhiRenderer::Antialiasing) ? state.antialias : 0.0f;
+    const float aa = (m_renderer->testFlag(QCPainterRhiRenderer::Antialiasing) ? state.antialias : 0.0f)
+                     * pixelSize;
     // Hardcoded miterLimit for fill.
     const float miterLimit = 2.4f;
     calculateJoins(aa, QCanvasPainter::LineJoin::Miter, miterLimit);
