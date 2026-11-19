@@ -108,6 +108,8 @@ private slots:
     void restoreClip();
     void pathWindingNotKept_data();
     void pathWindingNotKept();
+    void clockwiseFillWithoutWindingEnforce_data();
+    void clockwiseFillWithoutWindingEnforce();
 
 private:
     void setWindowType(QWindow *window, QRhi::Implementation impl);
@@ -2903,6 +2905,102 @@ void tst_CanvasRhiRendering::pathWindingNotKept()
         const QImage image = imageFromReadback(rhi.get(), rt->tex);
         QVERIFY(testColor(image, RT_WIDTH / 2 - 100, RT_HEIGHT / 2, Qt::white));
         QVERIFY(testColor(image, RT_WIDTH / 2, RT_HEIGHT / 2, Qt::black));
+    }
+}
+
+void tst_CanvasRhiRendering::clockwiseFillWithoutWindingEnforce_data()
+{
+    rhiTestData();
+}
+
+// Without the winding enforcement the paths keep their direction. A fill that
+// goes clockwise must still have its antialiasing fringe outside its edges,
+// and a convex one must still be drawn without the stencil, like the same fill
+// going counterclockwise. A hole going the other way gets the fringe inside it.
+void tst_CanvasRhiRendering::clockwiseFillWithoutWindingEnforce()
+{
+    QFETCH(QRhi::Implementation, impl);
+    QFETCH(QRhiInitParams *, initParams);
+
+    std::unique_ptr<QRhi> rhi(QRhi::create(impl, initParams, rhiCreateFlags));
+    if (!rhi)
+        QSKIP("Failed to create QRhi, skip");
+
+    RenderTargetPtr rt = createRenderTarget(rhi.get());
+    QVERIFY(rt);
+
+    std::unique_ptr<QCanvasPainterFactory> factory(new QCanvasPainterFactory);
+    QCanvasPainter *painter = factory->create(rhi.get());
+    QVERIFY(painter);
+    QCanvasRhiPaintDriver *pd = factory->paintDriver();
+    QCPainterEngine *engine = QCanvasPainterPrivate::get(painter)->m_renderer->engine();
+
+    // A rect going counterclockwise on the screen, or clockwise when reversed
+    auto addRect = [](QCanvasPath *path, const QRectF &r, bool reversed) {
+        QList<QPointF> points { r.topLeft(), r.bottomLeft(), r.bottomRight(), r.topRight() };
+        if (reversed)
+            std::reverse(points.begin(), points.end());
+        path->moveTo(points.at(0));
+        for (int i = 1; i < points.size(); ++i)
+            path->lineTo(points.at(i));
+        path->closePath();
+    };
+    auto makePath = [&](bool withHole, bool clockwise) {
+        QCanvasPath path;
+        addRect(&path, QRectF(20.3, 20.3, 120.4, 80.4), clockwise);
+        if (withHole)
+            addRect(&path, QRectF(60.5, 40.5, 40, 40), !clockwise);
+        return path;
+    };
+
+    struct Result {
+        QImage image;
+        int fillTriangles;
+    };
+    auto render = [&](const QCanvasPath &path, int group) {
+        QRhiCommandBuffer *cb;
+        rhi->beginOffscreenFrame(&cb);
+        pd->resetForNewFrame();
+        pd->beginPaint(cb, rt->rt);
+        painter->setWindingEnforce(false);
+        painter->setFillStyle(Qt::white);
+        painter->fill(path, group);
+        pd->endPaint(QCanvasRhiPaintDriver::EndPaintFlag::DoNotRecordRenderPass);
+        cb->beginPass(rt->rt, Qt::black, { 1.0f, 0 });
+        pd->renderPaint();
+        cb->endPass();
+        rhi->endOffscreenFrame();
+        engine->syncDebugCounters();
+        return Result { impl != QRhi::Null ? imageFromReadback(rhi.get(), rt->tex) : QImage(),
+                        engine->debugCounters().fillTriangleCount };
+    };
+
+    for (bool withHole : { false, true }) {
+        for (int group : { -1, 0 }) {
+            const QCanvasPath ccwPath = makePath(withHole, false);
+            const QCanvasPath cwPath = makePath(withHole, true);
+            const Result ccw = render(ccwPath, group);
+            const Result cw = render(cwPath, group);
+            const QString message = QStringLiteral("hole %1 group %2").arg(withHole).arg(group);
+            if (impl != QRhi::Null) {
+                int different = 0;
+                for (int y = 0; y < ccw.image.height(); ++y) {
+                    for (int x = 0; x < ccw.image.width(); ++x) {
+                        different += qAbs(qGray(cw.image.pixel(x, y))
+                                          - qGray(ccw.image.pixel(x, y))) > 8;
+                    }
+                }
+                QVERIFY2(different == 0, qPrintable(message + QStringLiteral(": %1 pixels differ")
+                                                              .arg(different)));
+                // The edge is antialiased, most of the pixel at 20 is covered
+                const int edge = qGray(cw.image.pixel(20, 60));
+                QVERIFY2(edge > 64 && edge < 230, qPrintable(message + QStringLiteral(": edge %1")
+                                                                          .arg(edge)));
+            }
+            // Without the stencil the convex fill has fewer triangles
+            QVERIFY2(cw.fillTriangles == ccw.fillTriangles, qPrintable(message));
+        }
+        painter->removePathGroup(0);
     }
 }
 
