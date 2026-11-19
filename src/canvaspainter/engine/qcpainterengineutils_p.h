@@ -28,7 +28,7 @@
 #include <QVariantMap>
 #include "qcanvaspainter.h"
 #include "qcanvasbrush.h"
-#include "qcpaint_p.h"
+#include <QtCanvasPainter/private/qcpaint_p.h>
 #ifndef QCPAINTER_DISABLE_TEXT_SUPPORT
 #include "qcrhidistancefieldglyphcache_p.h"
 #endif

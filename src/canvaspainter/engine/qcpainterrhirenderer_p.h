@@ -19,7 +19,7 @@
 
 #include <rhi/qrhi.h>
 #include "qcpainterengineutils_p.h"
-#include "qcanvascustombrush_p.h"
+#include <QtCanvasPainter/private/qcanvascustombrush_p.h>
 #include "qcanvasoffscreencanvas.h"
 #include <QtCore/qobject.h>
 #include <QtCore/qpointer.h>
