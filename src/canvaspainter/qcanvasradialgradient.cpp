@@ -329,8 +329,8 @@ void QCanvasRadialGradientBrushPrivate::createRadialGradient(QColor iColor, QCol
         // extended type.
         p.brushType = BrushRadialGradientExtended;
         // extent used for inner center position.
-        p.extent[0] = float(dd.icx);
-        p.extent[1] = float(dd.icy);
+        p.extent[0] = float(dd.icx - dd.ocx);
+        p.extent[1] = float(dd.icy - dd.ocy);
         p.radius = float(dd.iRadius);
         // feather used for outer radius.
         p.feather = float(dd.oRadius);

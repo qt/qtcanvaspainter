@@ -3460,6 +3460,37 @@ void CanvasPainterLancelotCppTests::testGradientCaching()
     painter->fillRect(rect2);
 }
 
+void CanvasPainterLancelotCppTests::testRadialGradientFocalPoint()
+{
+    // Radial gradient whose inner (focal) center differs from the outer
+    // center. The gradient is defined in the same local coordinates for every
+    // cell; it must follow the painter transform like the rect it fills, so
+    // the focal highlight stays at the same spot of each rect.
+    const QRectF rect(0, 0, 100, 100);
+    for (int row = 0; row < 2; ++row) {
+        // Row 0: two stops, row 1: multiple stops (gradient texture).
+        QCanvasRadialGradient rg(70, 70, 0, 50, 50, 50);
+        rg.setColorAt(0.0, QColorConstants::White);
+        if (row == 1)
+            rg.setColorAt(0.2, QColorConstants::Green);
+        rg.setColorAt(1.0, QColorConstants::Black);
+        for (int col = 0; col < 4; ++col) {
+            painter->save();
+            painter->translate(20 + col * 120, 20 + row * 130);
+            if (col == 2) {
+                painter->translate(50, 50);
+                painter->rotate(qDegreesToRadians(60.0));
+                painter->translate(-50, -50);
+            } else if (col == 3) {
+                painter->scale(0.6, 0.9);
+            }
+            painter->setFillStyle(rg);
+            painter->fillRect(rect);
+            painter->restore();
+        }
+    }
+}
+
 void CanvasPainterLancelotCppTests::testTextDirection()
 {
     // setTextDirection() with all four modes applied to bidirectional strings.

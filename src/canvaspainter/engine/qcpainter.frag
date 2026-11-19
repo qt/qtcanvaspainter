@@ -50,11 +50,13 @@ float createBars(float coord, float spacing, float strokeWidth) {
     return smoothstep(barWidth - barSmoothness, barWidth + barSmoothness, bar);
 }
 
+// pt is relative to the outer center and extent is the inner center relative
+// to the outer center, both in gradient space.
 float extendedRadialGradient(vec2 pt) {
     const float ocx = -pt.x;
     const float ocy = -pt.y;
-    const float dx = -paintMat[2][0] - extent.x;
-    const float dy = -paintMat[2][1] - extent.y;
+    const float dx = -extent.x;
+    const float dy = -extent.y;
     const float icr = radius;
     const float ocr = feather;
     const float dr = icr - ocr;
