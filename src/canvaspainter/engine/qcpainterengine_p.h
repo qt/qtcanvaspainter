@@ -185,7 +185,7 @@ private:
                          float x3, float y3, float x4, float y4,
                          int level, QCPointFlags flags);
     void enforceWinding(int pointsOffset, int pointsCount, QCanvasPainter::PathWinding winding);
-    void expandFill();
+    void expandFill(float pixelSize = 1.0f);
     void expandStroke(float w, QCanvasPainter::LineCap cap, QCanvasPainter::LineJoin join,
                       float miterLimit, float pixelSize = 1.0f);
     void calculateJoins(float w, QCanvasPainter::LineJoin join, float miterLimit);

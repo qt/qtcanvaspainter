@@ -161,12 +161,18 @@ struct QCCachedPathFillProperties
 {
     float antialias = 1.0f;
     int renderHints = 0;
+    // The geometry is in the units of the path, which the vertex shader scales.
+    // The antialiasing fringe is sized in device pixels, so with antialiasing
+    // this is the scale of the transform rounded by quantizedScale(), otherwise
+    // 0. See QCCachedPathStrokeProperties::scale.
+    float scale = 0.0f;
 };
 
 inline bool operator==(const QCCachedPathFillProperties &a, const QCCachedPathFillProperties &b) noexcept
 {
     return qFuzzyCompare(a.antialias, b.antialias)
-           && a.renderHints == b.renderHints;
+           && a.renderHints == b.renderHints
+           && a.scale == b.scale;
 }
 
 inline bool operator!=(const QCCachedPathFillProperties &a, const QCCachedPathFillProperties &b) noexcept
@@ -176,7 +182,7 @@ inline bool operator!=(const QCCachedPathFillProperties &a, const QCCachedPathFi
 
 inline size_t qHash(const QCCachedPathFillProperties &s, size_t seed) noexcept
 {
-    return qHash(s.antialias, seed) ^ s.renderHints;
+    return qHash(s.antialias, seed) ^ s.renderHints ^ qHash(s.scale);
 }
 
 // Variables to determine if related state has changed so that paths, points &

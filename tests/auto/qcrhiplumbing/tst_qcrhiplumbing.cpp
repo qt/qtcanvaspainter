@@ -95,6 +95,8 @@ private slots:
     void cachedStrokeScale();
     void cachedPathTransformedClip_data();
     void cachedPathTransformedClip();
+    void cachedFillScale_data();
+    void cachedFillScale();
 
 private:
     void setWindowType(QWindow *window, QRhi::Implementation impl);
@@ -2499,6 +2501,122 @@ void tst_CanvasRhiRendering::cachedPathTransformedClip()
             QVERIFY2(different < 20, qPrintable(message));
         }
     }
+}
+
+void tst_CanvasRhiRendering::cachedFillScale_data()
+{
+    rhiTestData();
+}
+
+// The antialiasing fringe of a cached fill is made in the units of the path, and the vertex
+// shader scales it. It must still be in device pixels, as it is without a path group.
+void tst_CanvasRhiRendering::cachedFillScale()
+{
+    QFETCH(QRhi::Implementation, impl);
+    QFETCH(QRhiInitParams *, initParams);
+
+    std::unique_ptr<QRhi> rhi(QRhi::create(impl, initParams, rhiCreateFlags));
+    if (!rhi)
+        QSKIP("Failed to create QRhi, skip");
+
+    RenderTargetPtr rt = createRenderTarget(rhi.get());
+    QVERIFY(rt);
+
+    std::unique_ptr<QCanvasPainterFactory> factory(new QCanvasPainterFactory);
+    QCanvasPainter *painter = factory->create(rhi.get());
+    QVERIFY(painter);
+    QCanvasRhiPaintDriver *pd = factory->paintDriver();
+    QCPainterEngine *engine = QCanvasPainterPrivate::get(painter)->m_renderer->engine();
+
+    // A convex path, which has half of the fringe, and a concave one, which is
+    // filled with the stencil and has all of it
+    QCanvasPath convex;
+    convex.rect(0, 0, 60, 30);
+    QCanvasPath concave;
+    concave.moveTo(0, 0);
+    concave.lineTo(60, 0);
+    concave.lineTo(30, 15);
+    concave.lineTo(60, 30);
+    concave.lineTo(0, 30);
+    concave.closePath();
+
+    auto render = [&](const QCanvasPath &path, qreal scale, qreal antialias, int group) {
+        QRhiCommandBuffer *cb;
+        rhi->beginOffscreenFrame(&cb);
+        pd->resetForNewFrame();
+        pd->beginPaint(cb, rt->rt);
+        painter->setAntialias(antialias);
+        painter->resetTransform();
+        painter->translate(40, 30);
+        painter->scale(scale);
+        painter->rotate(0.3);
+        painter->setFillStyle(Qt::white);
+        painter->fill(path, group);
+        pd->endPaint(QCanvasRhiPaintDriver::EndPaintFlag::DoNotRecordRenderPass);
+        cb->beginPass(rt->rt, Qt::black, { 1.0f, 0 });
+        pd->renderPaint();
+        cb->endPass();
+        rhi->endOffscreenFrame();
+        engine->syncDebugCounters();
+        return impl != QRhi::Null ? imageFromReadback(rhi.get(), rt->tex) : QImage();
+    };
+
+    // The cached geometry is made at the first scale and used at the others when
+    // it does not depend on the scale, without antialiasing. With antialiasing it
+    // is made for the scale rounded to a power of two. At 1.5 and 0.7 in between
+    // the fringe is off by up to sqrt(2), but not by the scale.
+    for (const QCanvasPath *path : { &convex, &concave }) {
+        for (qreal antialias : { 0.0, 1.0 }) {
+            for (qreal scale : { 1.0, 4.0, 0.5, 8.0, 1.5, 0.7 }) {
+                const QImage cached = render(*path, scale, antialias, 0);
+                const QImage uncached = render(*path, scale, antialias, -1);
+                if (impl == QRhi::Null)
+                    continue;
+                int inside = 0;
+                int different = 0;
+                for (int y = 0; y < cached.height(); ++y) {
+                    for (int x = 0; x < cached.width(); ++x) {
+                        inside += cached.pixel(x, y) != qRgb(0, 0, 0);
+                        different += qAbs(qGray(cached.pixel(x, y)) - qGray(uncached.pixel(x, y))) > 64;
+                    }
+                }
+                const QString message = QStringLiteral("%1 antialias %2 scale %3: %4 pixels, %5 differ")
+                                                .arg(path == &convex ? "convex" : "concave")
+                                                .arg(antialias).arg(scale).arg(inside).arg(different);
+                QVERIFY2(inside > 100, qPrintable(message));
+                QVERIFY2(different < 20, qPrintable(message));
+            }
+        }
+        painter->removePathGroup(0);
+    }
+
+    // The data of other scales of a path is removed, so that zooming does not
+    // grow the cache
+    int firstSize = -1;
+    for (qreal scale : { 1.0, 2.0, 0.5, 4.0, 1.5, 3.0 }) {
+        render(concave, scale, 1.0, 0);
+        const int size = engine->debugCounters().cachedPathVertexDataSize;
+        if (firstSize < 0)
+            firstSize = size;
+        QVERIFY(firstSize > 0);
+        QCOMPARE(size, firstSize);
+    }
+
+    // A new scale removes only the data of the same antialiasing, so
+    // alternating between two amounts on successive frames keeps the data of
+    // both
+    painter->removePathGroup(0);
+    render(concave, 1.0, 1.0, 0);
+    const int sizeOfOne = engine->debugCounters().cachedPathVertexDataSize;
+    render(concave, 1.0, 2.0, 0);
+    const int sizeOfBoth = engine->debugCounters().cachedPathVertexDataSize;
+    QVERIFY(sizeOfOne > 0 && sizeOfBoth > sizeOfOne);
+    for (qreal antialias : { 1.0, 2.0, 1.0 }) {
+        render(concave, 1.0, antialias, 0);
+        QCOMPARE(engine->debugCounters().cachedPathVertexDataSize, sizeOfBoth);
+    }
+    render(concave, 2.0, 1.0, 0);
+    QCOMPARE(engine->debugCounters().cachedPathVertexDataSize, sizeOfBoth);
 }
 
 #include <tst_qcrhiplumbing.moc>

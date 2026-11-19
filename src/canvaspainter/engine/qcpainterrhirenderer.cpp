@@ -427,6 +427,7 @@ struct QCRhiCachedPathFillData
     int stripOffset = 0; // the antialiasing strips of the paths
     int stripCount = 0;
     int stripTriangleCount = 0;
+    quint64 lastUsedFrame = 0; // see QCRHIContext::frameCount
     quint64 entryId;
     int indexCount;
     bool isConvex;
@@ -474,6 +475,12 @@ struct QCRhiCachedPathGroup
 
 // Whether the properties differ at most in the scale, so that the data of one
 // replaces the data of the other
+static bool isSameStyle(const QCCachedPathFillProperties &a, const QCCachedPathFillProperties &b)
+{
+    return qFuzzyCompare(a.antialias, b.antialias)
+           && a.renderHints == b.renderHints;
+}
+
 static bool isSameStyle(const QCCachedPathStrokeProperties &a, const QCCachedPathStrokeProperties &b)
 {
     return qFuzzyCompare(a.antialias, b.antialias)
@@ -481,6 +488,34 @@ static bool isSameStyle(const QCCachedPathStrokeProperties &a, const QCCachedPat
            && a.lineCap == b.lineCap
            && a.lineJoin == b.lineJoin
            && a.renderHints == b.renderHints;
+}
+
+// The data of a scale dependent fill or stroke is cached for each scale.
+// Zooming would keep adding data, so this removes the data of the other scales
+// of the same style as props that this frame doesn't use. The data of the
+// other styles is kept, so that alternating between them, for example between
+// two stroke widths, doesn't make the data again every time. The data that the
+// earlier passes of the frame use is kept too, so that drawing the path at
+// different scales in the same frame, for example into an offscreen canvas and
+// with a shared painter, doesn't make the data again at every pass. Returns
+// true when something is removed.
+template <typename Properties, typename Data, typename SubpathCount>
+static bool removeUnusedScales(QHash<Properties, Data> *cache, const Properties &props,
+                               quint64 frame, QCRhiCachedPathGroup *cpg,
+                               SubpathCount subpathCount)
+{
+    bool removed = false;
+    for (auto it = cache->begin(); it != cache->end();) {
+        if (it.key().scale != 0.0f && it->lastUsedFrame != frame && isSameStyle(it.key(), props)) {
+            cpg->cachedVertexDataBytes -= it->verts.size() * sizeof(QCVertex);
+            cpg->totalSubpathCount -= subpathCount(*it);
+            it = cache->erase(it);
+            removed = true;
+        } else {
+            ++it;
+        }
+    }
+    return removed;
 }
 
 struct QCRHIContext
@@ -1691,8 +1726,15 @@ void QCPainterRhiRenderer::renderFill(const QCPaint &paint, const QCState &state
 
         QCRhiCachedPathGroup *cpg = &rhiCtx->cachedPathGroups[pti.pathGroup];
         QCRhiCachedPath *cp = &cpg->cachedPaths[QCanvasPathPrivate::get(pti.canvasPath)->serialNumber];
-        QCCachedPathFillProperties fillProps { state.antialias, flagsCacheProps() };
+        const QCCachedPathFillProperties fillProps = fillCacheProps(state);
+        if (fillProps.scale != 0.0f && !cp->fill.contains(fillProps)) {
+            if (removeUnusedScales(&cp->fill, fillProps, rhiCtx->frameCount, cpg,
+                                   [](const QCRhiCachedPathFillData &d) { return d.paths.count(); })) {
+                cpg->fillBuffersNeedUpdate = true;
+            }
+        }
         QCRhiCachedPathFillData *cpf = &cp->fill[fillProps];
+        cpf->lastUsedFrame = rhiCtx->frameCount;
 
         if (pti.updateData.has_value()) {
             // The cached vertex data in cp is stale. Update it from ctx.vertices.
@@ -1876,25 +1918,9 @@ void QCPainterRhiRenderer::renderStroke(const QCPaint &paint, const QCState &sta
         QCRhiCachedPath *cp = &cpg->cachedPaths[QCanvasPathPrivate::get(pti.canvasPath)->serialNumber];
         const QCCachedPathStrokeProperties strokeProps = strokeCacheProps(state);
         if (strokeProps.scale != 0.0f && !cp->stroke.contains(strokeProps)) {
-            // The data of a scale dependent stroke is cached for each scale.
-            // Zooming would keep adding data, so remove the data of the other
-            // scales of the same style that this frame doesn't use. The data
-            // of the other styles is kept, so that alternating between them,
-            // for example between two widths, doesn't make the data again
-            // every time. The data that the earlier passes of the frame use
-            // is kept too, so that drawing the path at different scales in
-            // the same frame, for example into an offscreen canvas and with a
-            // shared painter, doesn't make the data again at every pass.
-            for (auto it = cp->stroke.begin(); it != cp->stroke.end();) {
-                if (it.key().scale != 0.0f && it->lastUsedFrame != rhiCtx->frameCount
-                    && isSameStyle(it.key(), strokeProps)) {
-                    cpg->cachedVertexDataBytes -= it->verts.size() * sizeof(QCVertex);
-                    cpg->totalSubpathCount -= it->subpathCount;
-                    it = cp->stroke.erase(it);
-                    cpg->strokeBufferNeedsUpdate = true;
-                } else {
-                    ++it;
-                }
+            if (removeUnusedScales(&cp->stroke, strokeProps, rhiCtx->frameCount, cpg,
+                                   [](const QCRhiCachedPathStrokeData &d) { return d.subpathCount; })) {
+                cpg->strokeBufferNeedsUpdate = true;
             }
         }
         QCRhiCachedPathStrokeData *cps = &cp->stroke[strokeProps];
@@ -3401,8 +3427,7 @@ bool QCPainterRhiRenderer::isPathCachedForFill(QCanvasPath *path, int pathGroup,
         const QCanvasPathPrivate *pathd = QCanvasPathPrivate::get(path);
         auto pit = it->cachedPaths.constFind(pathd->serialNumber);
         if (pit != it->cachedPaths.cend()) {
-            QCCachedPathFillProperties fillProperties { state.antialias, flagsCacheProps() };
-            auto fit = pit->fill.constFind(fillProperties);
+            auto fit = pit->fill.constFind(fillCacheProps(state));
             return fit != pit->fill.cend() && fit->version == QCRhiCachedPathVersion::of(pathd);
         }
     }
@@ -3421,6 +3446,15 @@ bool QCPainterRhiRenderer::isPathCachedForStroke(QCanvasPath *path, int pathGrou
         }
     }
     return false;
+}
+
+QCCachedPathFillProperties QCPainterRhiRenderer::fillCacheProps(const QCState &state) const
+{
+    // See QCCachedPathFillProperties::scale and QCPainterEngine::fill(): the
+    // antialiasing fringe is in device pixels.
+    const bool fringe = testFlag(QCPainterRhiRenderer::Antialiasing) && state.antialias > 0.0f;
+    return { state.antialias, flagsCacheProps(),
+             fringe ? quantizedScale(getAverageScale(state.transform)) : 0.0f };
 }
 
 QCCachedPathStrokeProperties QCPainterRhiRenderer::strokeCacheProps(const QCState &state) const
