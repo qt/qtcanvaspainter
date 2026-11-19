@@ -95,7 +95,7 @@ void GalleryItemRenderer::synchronizeData(QCanvasPainterItem *item)
 void GalleryItemRenderer::loadTigerPath()
 {
     // Load tiger JSON data for the correct view, once.
-    if (m_viewIndex == 7 && m_tigerData.isEmpty()) {
+    if (m_viewIndex == 8 && m_tigerData.isEmpty()) {
         QFile tigerFile(":/images/tiger.json");
         if (tigerFile.open(QIODevice::ReadOnly)) {
             QByteArray data = tigerFile.readAll();
@@ -155,33 +155,36 @@ void GalleryItemRenderer::paint(QCanvasPainter *painter)
         drawPaths();
         break;
     case 6:
-        drawPainterPaths();
+        drawDashedStrokes();
         break;
     case 7:
-        drawPainterPaths2();
+        drawPainterPaths();
         break;
     case 8:
-        drawTransforms();
+        drawPainterPaths2();
         break;
     case 9:
-        drawAntialiasing();
+        drawTransforms();
         break;
     case 10:
-        drawCompositeModes();
+        drawAntialiasing();
         break;
     case 11:
-        drawColorEffects();
+        drawCompositeModes();
         break;
     case 12:
-        drawTextsFonts();
+        drawColorEffects();
         break;
     case 13:
-        drawTextsBrushes();
+        drawTextsFonts();
         break;
     case 14:
-        drawTextsAlignments();
+        drawTextsBrushes();
         break;
     case 15:
+        drawTextsAlignments();
+        break;
+    case 16:
         drawTextsWrapping();
         break;
     default:
@@ -589,6 +592,162 @@ void GalleryItemRenderer::drawPaths() {
     painter()->lineTo(posX, posY+w);
     painter()->lineTo(posX+w*m_animationSine, posY);
     painter()->stroke();
+}
+
+void GalleryItemRenderer::drawDashedStrokes()
+{
+    const int columns = 3;
+    const float margin = width() * 0.1f;
+    const float w = width() / columns - margin;
+    const float lw = width() * 0.02f;
+    const float startX = margin / 2;
+    float posX = startX;
+    float posY = m_topMargin;
+    QCanvasPainter *p = painter();
+    p->save();
+    p->setStrokeStyle(0xFFDFD0B8);
+    p->setFillStyle(0xFF948979);
+    p->setLineWidth(lw);
+
+    // The same dash patterns with butt, square, and round caps. The dash
+    // lengths are relative to the line width. Zero-length dashes are dots
+    // with square and round caps.
+    const QList<qreal> patterns[] = {
+        { 4 * lw, 2 * lw },
+        { lw, 2 * lw },
+        { 3 * lw, 2 * lw, 0, 2 * lw },
+    };
+    const QCanvasPainter::LineCap caps[] = {
+        QCanvasPainter::LineCap::Butt,
+        QCanvasPainter::LineCap::Square,
+        QCanvasPainter::LineCap::Round,
+    };
+    for (QCanvasPainter::LineCap cap : caps) {
+        p->setLineCap(cap);
+        for (int i = 0; i < 3; ++i) {
+            p->setLineDash(patterns[i]);
+            const float y = posY + w * (0.2f + 0.3f * i);
+            p->beginPath();
+            p->moveTo(posX, y);
+            p->lineTo(posX + w, y);
+            p->stroke();
+        }
+        posX += w + margin;
+    }
+
+    // Closed shapes. The dashes continue around the corners with the line
+    // join, also at the start point.
+    posY += w + margin;
+    posX = startX;
+    p->setLineCap(QCanvasPainter::LineCap::Butt);
+    p->setLineJoin(QCanvasPainter::LineJoin::Miter);
+    p->setLineDash({ 5 * lw, 2 * lw });
+    p->beginPath();
+    p->rect(posX, posY, w, w);
+    p->stroke();
+    posX += w + margin;
+    p->setLineCap(QCanvasPainter::LineCap::Round);
+    p->setLineJoin(QCanvasPainter::LineJoin::Round);
+    p->setLineDash({ 2 * lw, 2 * lw });
+    p->beginPath();
+    p->roundRect(posX, posY, w, w, w * 0.25f);
+    p->stroke();
+    posX += w + margin;
+    p->setLineDash({ 0, 2 * lw });
+    p->beginPath();
+    p->circle(posX + w * 0.5f, posY + w * 0.5f, w * 0.52f);
+    p->stroke();
+
+    // Animated dash offsets and patterns
+    posY += w + margin;
+    posX = startX;
+    // Marching ants around a selection
+    p->setLineWidth(lw * 0.5f);
+    p->setLineCap(QCanvasPainter::LineCap::Butt);
+    p->setLineJoin(QCanvasPainter::LineJoin::Miter);
+    p->setLineDash({ 1.5 * lw, 1.5 * lw });
+    p->setLineDashOffset(-m_animationTime * lw * 4);
+    p->beginPath();
+    p->rect(posX + w * 0.1f, posY + w * 0.1f, w * 0.8f, w * 0.8f);
+    p->stroke();
+    p->setLineDashOffset(0);
+    posX += w + margin;
+    // A progress ring: a dash as long as the progress, starting at the top
+    const float radius = w * 0.4f;
+    const float circumference = 2 * M_PI * radius;
+    const QPointF center(posX + w * 0.5f, posY + w * 0.5f);
+    p->setLineWidth(lw * 1.5f);
+    p->setLineDash({});
+    p->setStrokeStyle(QColor::fromRgba(0x40DFD0B8));
+    p->beginPath();
+    p->circle(center.x(), center.y(), radius);
+    p->stroke();
+    p->setStrokeStyle(0xFFDFD0B8);
+    p->setLineCap(QCanvasPainter::LineCap::Round);
+    p->setLineDash({ m_animationSine * circumference, circumference });
+    p->beginPath();
+    p->arc(center, radius, -M_PI_2, 1.5 * M_PI);
+    p->stroke();
+    posX += w + margin;
+    // Dashes flowing along a curve
+    p->setLineWidth(lw);
+    p->setLineDash({ 2 * lw, 1.5 * lw });
+    p->setLineDashOffset(-m_animationTime * lw * 8);
+    p->beginPath();
+    p->moveTo(posX, posY + w);
+    p->bezierCurveTo(posX, posY, posX + w, posY + w, posX + w, posY);
+    p->stroke();
+    p->setLineDashOffset(0);
+
+    // Dashes with other stroke settings
+    posY += w + margin;
+    posX = startX;
+    // Overlapping semi-transparent dashes are blended only once with high
+    // quality stroking
+    p->setHighQualityStroking(true);
+    p->setStrokeStyle(QColor::fromRgba(0x80DFD0B8));
+    p->setLineDash({ 4 * lw, lw });
+    p->beginPath();
+    p->moveTo(posX, posY + w * 0.2f);
+    p->lineTo(posX + w, posY + w);
+    p->lineTo(posX + w, posY + w * 0.2f);
+    p->lineTo(posX, posY + w);
+    p->stroke();
+    p->setHighQualityStroking(false);
+    p->setStrokeStyle(0xFFDFD0B8);
+    posX += w + margin;
+    // The dash lengths follow the transform, like the line width
+    p->save();
+    p->translate(posX + w * 0.5f, posY + w * 0.5f);
+    const float scale = 0.5f + 0.5f * m_animationSine;
+    p->scale(scale, scale);
+    p->rotate(m_animationTime);
+    p->setLineCap(QCanvasPainter::LineCap::Butt);
+    p->setLineJoin(QCanvasPainter::LineJoin::Miter);
+    p->setLineDash({ 2 * lw, lw });
+    p->beginPath();
+    p->rect(-w * 0.5f, -w * 0.5f, w, w);
+    p->stroke();
+    p->restore();
+    posX += w + margin;
+    // Dashes with a gradient brush
+    QCanvasLinearGradient gradient(posX, posY, posX + w, posY + w);
+    gradient.setStartColor(0xFF948979);
+    gradient.setEndColor(0xFFDFD0B8);
+    p->setStrokeStyle(gradient);
+    p->setLineWidth(lw * 1.5f);
+    p->setLineCap(QCanvasPainter::LineCap::Round);
+    p->setLineJoin(QCanvasPainter::LineJoin::Round);
+    p->setLineDash({ 3 * lw, 2 * lw, 0, 2 * lw });
+    p->beginPath();
+    p->moveTo(posX, posY + w * 0.5f);
+    for (int i = 1; i <= 40; ++i) {
+        const float t = i / 40.0f;
+        p->lineTo(posX + w * t, posY + w * (0.5f + 0.4f * std::sin(t * 2 * M_PI + m_animationTime)));
+    }
+    p->stroke();
+
+    p->restore();
 }
 
 void GalleryItemRenderer::drawPainterPaths()

@@ -19,6 +19,7 @@
 #include "qcanvasoffscreencanvas_p.h"
 
 #include <math.h>
+#include <numeric>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -473,6 +474,17 @@ struct QCRhiCachedPathGroup
     quint64 idGen = 0;
 };
 
+// Whether the cached data is for the current scale or dash offset only
+static bool isTransient(const QCCachedPathFillProperties &props)
+{
+    return props.scale != 0.0f;
+}
+
+static bool isTransient(const QCCachedPathStrokeProperties &props)
+{
+    return props.scale != 0.0f || !props.lineDash.isEmpty();
+}
+
 // Whether the properties differ at most in the scale, so that the data of one
 // replaces the data of the other
 static bool isSameStyle(const QCCachedPathFillProperties &a, const QCCachedPathFillProperties &b)
@@ -481,32 +493,37 @@ static bool isSameStyle(const QCCachedPathFillProperties &a, const QCCachedPathF
            && a.renderHints == b.renderHints;
 }
 
+// Whether the properties differ at most in the scale and the dash pattern and
+// offset, so that the data of one replaces the data of the other. A dashed and
+// a solid stroke are different styles.
 static bool isSameStyle(const QCCachedPathStrokeProperties &a, const QCCachedPathStrokeProperties &b)
 {
     return qFuzzyCompare(a.antialias, b.antialias)
            && qFuzzyCompare(a.strokeWidth, b.strokeWidth)
            && a.lineCap == b.lineCap
            && a.lineJoin == b.lineJoin
-           && a.renderHints == b.renderHints;
+           && a.renderHints == b.renderHints
+           && a.lineDash.isEmpty() == b.lineDash.isEmpty();
 }
 
-// The data of a scale dependent fill or stroke is cached for each scale.
-// Zooming would keep adding data, so this removes the data of the other scales
-// of the same style as props that this frame doesn't use. The data of the
-// other styles is kept, so that alternating between them, for example between
-// two stroke widths, doesn't make the data again every time. The data that the
-// earlier passes of the frame use is kept too, so that drawing the path at
-// different scales in the same frame, for example into an offscreen canvas and
-// with a shared painter, doesn't make the data again at every pass. Returns
-// true when something is removed.
+// The data of a scale dependent fill or stroke is cached for each scale, and
+// that of a dashed stroke for each dash pattern and offset. Zooming or
+// animating the dash offset would keep adding data, so this removes the data
+// of the other scales and dashes of the same style as props that this frame
+// doesn't use. The data of the other styles is kept, so that alternating
+// between them, for example between two stroke widths, doesn't make the data
+// again every time. The data that the earlier passes of the frame use is kept
+// too, so that drawing the path at different scales in the same frame, for
+// example into an offscreen canvas and with a shared painter, doesn't make the
+// data again at every pass. Returns true when something is removed.
 template <typename Properties, typename Data, typename SubpathCount>
-static bool removeUnusedScales(QHash<Properties, Data> *cache, const Properties &props,
-                               quint64 frame, QCRhiCachedPathGroup *cpg,
-                               SubpathCount subpathCount)
+static bool removeUnusedTransientData(QHash<Properties, Data> *cache, const Properties &props,
+                                      quint64 frame, QCRhiCachedPathGroup *cpg,
+                                      SubpathCount subpathCount)
 {
     bool removed = false;
     for (auto it = cache->begin(); it != cache->end();) {
-        if (it.key().scale != 0.0f && it->lastUsedFrame != frame && isSameStyle(it.key(), props)) {
+        if (isTransient(it.key()) && it->lastUsedFrame != frame && isSameStyle(it.key(), props)) {
             cpg->cachedVertexDataBytes -= it->verts.size() * sizeof(QCVertex);
             cpg->totalSubpathCount -= subpathCount(*it);
             it = cache->erase(it);
@@ -1727,9 +1744,9 @@ void QCPainterRhiRenderer::renderFill(const QCPaint &paint, const QCState &state
         QCRhiCachedPathGroup *cpg = &rhiCtx->cachedPathGroups[pti.pathGroup];
         QCRhiCachedPath *cp = &cpg->cachedPaths[QCanvasPathPrivate::get(pti.canvasPath)->serialNumber];
         const QCCachedPathFillProperties fillProps = fillCacheProps(state);
-        if (fillProps.scale != 0.0f && !cp->fill.contains(fillProps)) {
-            if (removeUnusedScales(&cp->fill, fillProps, rhiCtx->frameCount, cpg,
-                                   [](const QCRhiCachedPathFillData &d) { return d.paths.count(); })) {
+        if (isTransient(fillProps) && !cp->fill.contains(fillProps)) {
+            if (removeUnusedTransientData(&cp->fill, fillProps, rhiCtx->frameCount, cpg,
+                                          [](const QCRhiCachedPathFillData &d) { return d.paths.count(); })) {
                 cpg->fillBuffersNeedUpdate = true;
             }
         }
@@ -1917,9 +1934,9 @@ void QCPainterRhiRenderer::renderStroke(const QCPaint &paint, const QCState &sta
         QCRhiCachedPathGroup *cpg = &rhiCtx->cachedPathGroups[pti.pathGroup];
         QCRhiCachedPath *cp = &cpg->cachedPaths[QCanvasPathPrivate::get(pti.canvasPath)->serialNumber];
         const QCCachedPathStrokeProperties strokeProps = strokeCacheProps(state);
-        if (strokeProps.scale != 0.0f && !cp->stroke.contains(strokeProps)) {
-            if (removeUnusedScales(&cp->stroke, strokeProps, rhiCtx->frameCount, cpg,
-                                   [](const QCRhiCachedPathStrokeData &d) { return d.subpathCount; })) {
+        if (isTransient(strokeProps) && !cp->stroke.contains(strokeProps)) {
+            if (removeUnusedTransientData(&cp->stroke, strokeProps, rhiCtx->frameCount, cpg,
+                                          [](const QCRhiCachedPathStrokeData &d) { return d.subpathCount; })) {
                 cpg->strokeBufferNeedsUpdate = true;
             }
         }
@@ -3459,6 +3476,16 @@ QCCachedPathFillProperties QCPainterRhiRenderer::fillCacheProps(const QCState &s
 
 QCCachedPathStrokeProperties QCPainterRhiRenderer::strokeCacheProps(const QCState &state) const
 {
+    // The offset doesn't matter for solid strokes
+    qreal lineDashOffset = 0.0;
+    if (!state.lineDash.isEmpty()) {
+        const qreal patternLength = std::accumulate(state.lineDash.cbegin(), state.lineDash.cend(), 0.0);
+        if (patternLength > 0.0) {
+            lineDashOffset = std::fmod(state.lineDashOffset, patternLength);
+            if (lineDashOffset < 0.0)
+                lineDashOffset += patternLength;
+        }
+    }
     // See QCCachedPathStrokeProperties::scale and QCPainterEngine::stroke():
     // the antialiasing fringe, the width that is the minimum for the antialiasing
     // and the maximum width are in device pixels.
@@ -3468,7 +3495,7 @@ QCCachedPathStrokeProperties QCPainterRhiRenderer::strokeCacheProps(const QCStat
     const bool sizedInPixels = fringe || widthInPixels < state.antialias
                                || widthInPixels > QCPAINTER_MAX_STROKE_WIDTH;
     return { state.antialias, state.strokeWidth, state.lineCap, state.lineJoin, flagsCacheProps(),
-             sizedInPixels ? scale : 0.0f };
+             state.lineDash, lineDashOffset, sizedInPixels ? scale : 0.0f };
 }
 
 void QCPainterRhiRenderer::removePathGroup(int pathGroup)

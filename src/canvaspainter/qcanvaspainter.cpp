@@ -761,6 +761,122 @@ void QCanvasPainter::setLineJoin(LineJoin join)
 }
 
 /*!
+    \since 6.13
+
+    Sets the dash pattern of strokes to \a pattern. The pattern alternates
+    the lengths of dashes and gaps, starting with a dash. The lengths are in
+    the same units as the line width, so they follow the transform. With a
+    non-uniform scale or a skew, they are measured in the units before the
+    transform, so for example with \c{scale(2, 1)}, horizontal dashes are
+    twice as long as vertical ones.
+
+    The pattern can be given as a braced list, such as \c{{24, 12}}, or as
+    any contiguous container of qreal, such as QList, QVarLengthArray,
+    \c std::array, or \c std::vector. The lengths are copied, so the
+    container doesn't need to outlive the call.
+
+    When \a pattern has an odd number of lengths, it is repeated to make the
+    number even, so that \c{{5, 10, 15}} works like
+    \c{{5, 10, 15, 5, 10, 15}}. An empty pattern, the default, draws solid
+    strokes, as does a pattern where all the lengths are zero. A pattern
+    with a negative, infinite, or NaN length is ignored, and the dash
+    pattern stays as it was.
+
+    The pattern starts at the start of each subpath, shifted by the line dash
+    offset. Each dash is drawn with the line caps, and the joins inside a
+    dash with the line join. With \l {LineCap::}{Round} and
+    \l {LineCap::}{Square} caps, zero-length dashes are drawn as dots. On a
+    closed subpath, the dash crossing the start point is a single dash. A
+    dash that covers the whole closed subpath has caps at the start point.
+
+    \table
+    \row
+    \li \inlineimage qcpainter-linedash.webp
+    \li
+    \code
+    p->setLineWidth(8);
+    p->setLineDash({ 24, 12 });
+    p->beginPath();
+    p->roundRect(20, 20, 160, 100, 20);
+    p->stroke();
+
+    // Dots
+    p->setLineCap(QCanvasPainter::LineCap::Round);
+    p->setLineDash({ 0, 16 });
+    p->beginPath();
+    p->moveTo(20, 160);
+    p->bezierCurveTo(80, 120, 120, 200, 180, 160);
+    p->stroke();
+    \endcode
+    \endtable
+
+    \note Strokes with a dash pattern are split into dashes when they are
+    drawn. With a path group, changing the dash pattern or offset updates the
+    cached geometry.
+
+    \sa lineDash(), setLineDashOffset(), setLineCap(), stroke()
+*/
+
+void QCanvasPainter::setLineDash(QSpan<const qreal> pattern)
+{
+    // Like with QPen::setDashPattern(), a braced list of int variables doesn't
+    // compile, as converting them to qreal is narrowing. Constants and floats work.
+    Q_D(QCanvasPainter);
+    d->m_e->setLineDash(pattern);
+}
+
+/*!
+    \since 6.13
+
+    Sets the offset of the line dash pattern to \a offset. The pattern
+    starts this far into it at the start of each subpath, so increasing the
+    offset moves the dashes backwards along the strokes. The default offset
+    is \c 0.0.
+
+    Animating the offset makes the dashes move, for example as
+    "marching ants" around a selection. An infinite or NaN \a offset is
+    ignored, and the offset stays as it was.
+
+    \sa lineDashOffset(), setLineDash()
+*/
+
+void QCanvasPainter::setLineDashOffset(qreal offset)
+{
+    Q_D(QCanvasPainter);
+    d->m_e->setLineDashOffset(offset);
+}
+
+/*!
+    \since 6.13
+
+    Returns the line dash pattern. When the pattern given to setLineDash()
+    has an odd number of lengths, the returned pattern has them twice. The
+    pattern is empty when strokes are not dashed.
+
+    \sa setLineDash()
+*/
+
+QList<qreal> QCanvasPainter::lineDash() const
+{
+    Q_D(const QCanvasPainter);
+    return d->m_e->lineDash();
+}
+
+/*!
+    \since 6.13
+
+    Returns the line dash offset.
+
+    \sa setLineDashOffset()
+*/
+
+qreal QCanvasPainter::lineDashOffset() const
+{
+    Q_D(const QCanvasPainter);
+    return d->m_e->lineDashOffset();
+}
+
+/*!
     Sets the global alpha (transparency) value to \a alpha. This alpha value is
     applied to all rendered shapes. Already transparent paths will get
     proportionally more transparent as well.

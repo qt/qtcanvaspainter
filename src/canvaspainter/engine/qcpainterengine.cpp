@@ -86,6 +86,8 @@ void QCPainterEngine::cleanup()
     ctx.commandsData.clear();
     ctx.paths.clear();
     ctx.points.clear();
+    ctx.dashPaths.clear();
+    ctx.dashPoints.clear();
     ctx.currentPath = nullptr;
 }
 
@@ -101,6 +103,9 @@ void QCPainterEngine::releaseUnusedResources()
     ctx.vertices.squeeze();
     ctx.paths.squeeze();
     ctx.points.squeeze();
+    // Only needed between dashPaths() and expandStroke()
+    ctx.dashPaths = {};
+    ctx.dashPoints = {};
 }
 
 QCPainterEngine::QCPainterEngine()
@@ -161,6 +166,8 @@ void QCPainterEngine::reset()
     // Must match what setDevicePixelRatio() and setAntialias(1) would set.
     state.antialias = QCPAINTER_ANTIALIAS_MULTIPLIER / ctx.devicePxRatio;
     state.miterLimit = 10.0f;
+    state.lineDash.clear();
+    state.lineDashOffset = 0.0;
     state.lineCap = QCanvasPainter::LineCap::Butt;
     state.lineJoin = QCanvasPainter::LineJoin::Miter;
     state.compositeOperation = QCanvasPainter::CompositeOperation::SourceOver;
@@ -950,20 +957,32 @@ void QCPainterEngine::stroke(QCanvasPath *maybePath, int pathGroup, bool cachedP
         halfWidth = bakedWidth * 0.5f * pixelSize;
     }
 
-    if (!usingPathCaching) {
-        commandsToPaths();
-        expandStroke(halfWidth, state.lineCap, state.lineJoin, state.miterLimit);
+    // With a dash pattern, the dashes are stroked instead of the paths
+    auto expandPaths = [&](float tolerancePixelSize) -> std::pair<QCPaths *, int> {
+        commandsToPaths(tolerancePixelSize);
+        if (!state.lineDash.isEmpty()) {
+            // The points of cached paths are not transformed, the others are
+            if (dashPaths(!usingPathCaching, pixelSize)) {
+                expandStroke(ctx.dashPaths, ctx.dashPathsCount, ctx.dashPoints,
+                             halfWidth, state.lineCap, state.lineJoin, state.miterLimit, pixelSize);
+                return { &ctx.dashPaths, ctx.dashPathsCount };
+            }
+        }
+        expandStroke(ctx.paths, ctx.pathsCount, ctx.points,
+                     halfWidth, state.lineCap, state.lineJoin, state.miterLimit, pixelSize);
+        return { &ctx.paths, ctx.pathsCount };
+    };
 
-        QCRhiUncachedPathDrawArgs args { ctx.paths, ctx.pathsCount };
+    if (!usingPathCaching) {
+        const auto [paths, pathsCount] = expandPaths(1.0f);
+        QCRhiUncachedPathDrawArgs args { *paths, pathsCount };
         m_renderer->renderStroke(strokePaint, state, strokeWidth, args, std::nullopt);
     } else {
         if (cachedPathUpdateRequired) {
             // See fill()
             const bool forScale = m_renderer->strokeCacheProps(state).scale != 0.0f;
-            commandsToPaths(forScale ? pixelSize : 1.0f);
-            expandStroke(halfWidth, state.lineCap, state.lineJoin, state.miterLimit, pixelSize);
-
-            QCRhiCachedPathDrawArgs args { maybePath, pathGroup, state.transform, { { ctx.paths, ctx.pathsCount } } };
+            const auto [paths, pathsCount] = expandPaths(forScale ? pixelSize : 1.0f);
+            QCRhiCachedPathDrawArgs args { maybePath, pathGroup, state.transform, { { *paths, pathsCount } } };
             m_renderer->renderStroke(strokePaint, state, strokeWidth, std::nullopt, args);
         } else {
             QCRhiCachedPathDrawArgs args { maybePath, pathGroup, state.transform, std::nullopt };
@@ -1334,6 +1353,29 @@ void QCPainterEngine::setAntialias(float antialias)
     state.antialias = QCPAINTER_ANTIALIAS_MULTIPLIER * antialias / ctx.devicePxRatio;
 }
 
+// Like the HTML canvas, a pattern with a negative or non-finite length is
+// ignored, and an odd pattern is repeated to make the number of lengths even.
+void QCPainterEngine::setLineDash(QSpan<const qreal> pattern)
+{
+    for (qreal length : pattern) {
+        if (!(length >= 0.0 && qIsFinite(length)))
+            return;
+    }
+    const qsizetype count = pattern.size() % 2 ? pattern.size() * 2 : pattern.size();
+    QList<qreal> dashes;
+    dashes.reserve(count);
+    for (qsizetype i = 0; i < count; ++i)
+        dashes.append(pattern[i % pattern.size()]);
+    state.lineDash = std::move(dashes);
+}
+
+// Like the HTML canvas, a non-finite offset is ignored
+void QCPainterEngine::setLineDashOffset(qreal offset)
+{
+    if (qIsFinite(offset))
+        state.lineDashOffset = offset;
+}
+
 void QCPainterEngine::setMiterLimit(float limit)
 {
     state.miterLimit = limit;
@@ -1534,9 +1576,11 @@ static float pointsArea(const QCPoints &points, int pointsOffset, int pointsCoun
     return area;
 }
 
-static void reversePoints(QCPoints &points, int pointsOffset, int pointsCount)
+// The first point of a closed path stays first, so that the fills of the paths
+// drawn the other way don't change.
+static void reversePoints(QCPoints &points, int pointsOffset, int pointsCount, bool isClosed)
 {
-    int i = 0;
+    int i = isClosed ? 1 : 0;
     int j = pointsCount - 1;
     while (i < j) {
         std::swap(points[pointsOffset + i], points[pointsOffset + j]);
@@ -1545,17 +1589,21 @@ static void reversePoints(QCPoints &points, int pointsOffset, int pointsCount)
     }
 }
 
-void QCPainterEngine::enforceWinding(int pointsOffset, int pointsCount, QCanvasPainter::PathWinding winding)
+// Returns true when the points are reversed, see reversePoints()
+bool QCPainterEngine::enforceWinding(int pointsOffset, int pointsCount, QCanvasPainter::PathWinding winding,
+                                     bool isClosed)
 {
     if (pointsCount <= 2)
-        return;
+        return false;
     // Calculate if points area is positive or negative
     const float area = pointsArea(ctx.points, pointsOffset, pointsCount);
     // If needed, reverse the points order
     if ((winding == QCanvasPainter::PathWinding::CounterClockWise && area < 0.0f) ||
         (winding == QCanvasPainter::PathWinding::ClockWise && area > 0.0f)) {
-        reversePoints(ctx.points, pointsOffset, pointsCount);
+        reversePoints(ctx.points, pointsOffset, pointsCount, isClosed);
+        return true;
     }
+    return false;
 }
 
 // Create path elements from commands
@@ -1664,7 +1712,8 @@ void QCPainterEngine::commandsToPaths(float pixelSize)
         }
 
         if (windingEnforce)
-            enforceWinding(path.pointsOffset, path.pointsCount, path.winding);
+            path.isReversed = enforceWinding(path.pointsOffset, path.pointsCount, path.winding,
+                                             path.isClosed);
         else
             area += pointsArea(ctx.points, path.pointsOffset, path.pointsCount);
     }
@@ -1675,11 +1724,13 @@ void QCPainterEngine::commandsToPaths(float pixelSize)
     // get the fringe on the wrong side of its edges, leaving a gap between it
     // and the fill, and would not be convex. Reversing all the paths doesn't
     // change which pixels a fill covers, with either fill rule, or how a
-    // stroke looks, so they are reversed when they go clockwise in total.
+    // stroke looks, as the dashes follow the order of drawing, see
+    // QCPath::isReversed. So they are reversed when they go clockwise in total.
     if (area < 0.0f) {
         for (int j = 0; j < pCount; j++) {
-            const QCPath &path = ctx.paths.at(j);
-            reversePoints(ctx.points, path.pointsOffset, path.pointsCount);
+            QCPath &path = ctx.paths[j];
+            reversePoints(ctx.points, path.pointsOffset, path.pointsCount, path.isClosed);
+            path.isReversed = path.pointsCount > 1;
         }
     }
 
@@ -1711,6 +1762,282 @@ void QCPainterEngine::commandsToPaths(float pixelSize)
 #ifdef QCPAINTER_PERF_DEBUG
     perf.logEnd(QCPerfLogging::C2P);
 #endif
+}
+
+// The maximum number of dashes in a stroke. With more, for example with a very
+// short dash pattern on a long path, the stroke is drawn without dashes.
+static constexpr int QCPAINTER_MAX_DASH_COUNT = 100000;
+
+// Splits the paths into dashes with the dash pattern of the state, like the
+// HTML canvas setLineDash(). The dashes are open paths in ctx.dashPaths and
+// ctx.dashPoints, stroked with caps and joins like other paths. The pattern
+// starts at the start of each subpath, in the direction it was drawn, shifted
+// by the dash offset. On closed subpaths, the dash crossing the start point is
+// one dash, but a dash covering the whole subpath has caps at the start point.
+// Zero-length dashes are dots with round and square caps.
+// The lengths of the pattern are in the user space. When pointsTransformed is
+// true, the points are transformed with the state transform, and the lengths
+// of the segments are measured in the user space with its inverse, so that the
+// dashes follow also a non-uniform scale or a skew. pixelSize is the size of a
+// device pixel in the units of the points, for the tolerances.
+// Returns false when the paths are stroked without dashes.
+bool QCPainterEngine::dashPaths(bool pointsTransformed, float pixelSize)
+{
+    const QList<qreal> &lineDash = state.lineDash;
+    if (lineDash.isEmpty())
+        return false;
+    QVarLengthArray<float, 16> pattern(lineDash.size());
+    float patternLength = 0.0f;
+    double exactPatternLength = 0.0;
+    for (qsizetype i = 0; i < lineDash.size(); ++i) {
+        pattern[i] = float(lineDash.at(i));
+        patternLength += pattern[i];
+        exactPatternLength += lineDash.at(i);
+    }
+    // All zero lengths draw solid, like in the HTML canvas
+    if (!(patternLength > 0.0f && patternLength <= FLT_MAX))
+        return false;
+
+    // The inverse of the linear part of the transform, which maps the segment
+    // directions to the user space. With a rotation and a uniform scale, all
+    // directions have the same scale, userScale.
+    float ia = 1.0f;
+    float ib = 0.0f;
+    float ic = 0.0f;
+    float id = 1.0f;
+    float userScale = 1.0f;
+    bool uniformScale = true;
+    if (pointsTransformed) {
+        const QTransform &t = state.transform;
+        const double det = t.m11() * t.m22() - t.m12() * t.m21();
+        // Collapsed, nothing to dash
+        if (!(std::abs(det) > 1.0e-12 && qIsFinite(det)))
+            return false;
+        uniformScale = (t.m11() == t.m22() && t.m12() == -t.m21())
+                       || (t.m11() == -t.m22() && t.m12() == t.m21());
+        if (uniformScale) {
+            userScale = float(1.0 / std::sqrt(std::abs(det)));
+        } else {
+            ia = float(t.m22() / det);
+            ib = float(-t.m12() / det);
+            ic = float(-t.m21() / det);
+            id = float(t.m11() / det);
+        }
+    }
+
+    ctx.dashPointsCount = 0;
+    ctx.dashPathsCount = 0;
+    // Counts the ends of dashes and gaps, to limit the work also when the
+    // dashes are too short to add points
+    int dashEndCount = 0;
+    const bool skipEmptyDashes = state.lineCap == QCanvasPainter::LineCap::Butt;
+
+    auto beginDash = [this]() {
+        if (ctx.dashPathsCount + 1 > ctx.dashPaths.size())
+            ctx.dashPaths.resize((ctx.dashPathsCount + 1) + ctx.dashPaths.size() / 2);
+        QCPath &dash = ctx.dashPaths[ctx.dashPathsCount++];
+        dash = {};
+        dash.pointsOffset = ctx.dashPointsCount;
+    };
+    // Adds a point to the current dash, skipping duplicates
+    const float distTol = ctx.distTol * pixelSize;
+    auto addPoint = [this, distTol](float x, float y, quint8 flags) {
+        QCPath &dash = ctx.dashPaths[ctx.dashPathsCount - 1];
+        if (dash.pointsCount > 0) {
+            QCPoint &last = ctx.dashPoints[ctx.dashPointsCount - 1];
+            if (pointsEquals(last.x, last.y, x, y, distTol)) {
+                last.flags |= flags;
+                return;
+            }
+        }
+        if (ctx.dashPointsCount + 1 > ctx.dashPoints.size())
+            ctx.dashPoints.resize((ctx.dashPointsCount + 1) + ctx.dashPoints.size() / 2);
+        QCPoint &pt = ctx.dashPoints[ctx.dashPointsCount++];
+        pt = {};
+        pt.x = x;
+        pt.y = y;
+        pt.flags = flags;
+        dash.pointsCount++;
+    };
+    // Ends the current dash. A dash of one point is a dot in direction
+    // (dx, dy), or removed with butt caps.
+    auto endDash = [&](float dx, float dy) {
+        QCPath &dash = ctx.dashPaths[ctx.dashPathsCount - 1];
+        if (dash.pointsCount >= 2)
+            return;
+        if (dash.pointsCount == 0 || skipEmptyDashes || (dx == 0.0f && dy == 0.0f)) {
+            ctx.dashPointsCount -= dash.pointsCount;
+            ctx.dashPathsCount--;
+            return;
+        }
+        // Two points very close to each other give the direction of the caps
+        const QCPoint p = ctx.dashPoints[ctx.dashPointsCount - 1];
+        const float halfLength = 1.0e-3f * pixelSize;
+        ctx.dashPointsCount--;
+        dash.pointsCount = 0;
+        if (ctx.dashPointsCount + 2 > ctx.dashPoints.size())
+            ctx.dashPoints.resize((ctx.dashPointsCount + 2) + ctx.dashPoints.size() / 2);
+        for (float sign : { -1.0f, 1.0f }) {
+            QCPoint &pt = ctx.dashPoints[ctx.dashPointsCount++];
+            pt = {};
+            pt.x = p.x + sign * halfLength * dx;
+            pt.y = p.y + sign * halfLength * dy;
+            pt.flags = PointCorner;
+            dash.pointsCount++;
+        }
+    };
+
+    // The distance into the pattern at the start of each subpath. The offset
+    // is wrapped in double precision, so that an offset that keeps growing,
+    // for example in an animation, doesn't lose the precision of the dashes.
+    double wrappedOffset = std::fmod(state.lineDashOffset, exactPatternLength);
+    if (wrappedOffset < 0.0)
+        wrappedOffset += exactPatternLength;
+    const float startPhase = std::min(float(wrappedOffset), patternLength);
+
+    // Points of the head of a closed subpath, until the first gap, joined
+    // to the last dash at the end
+    QVarLengthArray<QCPoint, 64> head;
+
+    for (int i = 0; i < ctx.pathsCount; ++i) {
+        const QCPath &path = ctx.paths.at(i);
+        const int n = path.pointsCount;
+        if (n < 2)
+            continue;
+        // The points in the order they were drawn, before they were reversed
+        auto pointAt = [&](int k) -> const QCPoint & {
+            const int index = !path.isReversed ? k : (path.isClosed ? (n - k) % n : n - 1 - k);
+            return ctx.points.at(path.pointsOffset + index);
+        };
+        const int segmentCount = path.isClosed ? n : n - 1;
+
+        // Find the dash at the start, with the offset
+        float phase = startPhase;
+        int index = 0;
+        float remaining = 0.0f;
+        for (;;) {
+            const float length = pattern[index];
+            if (phase < length || (phase == 0.0f && length == 0.0f)) {
+                remaining = length - phase;
+                break;
+            }
+            phase -= length;
+            index = (index + 1) % pattern.size();
+        }
+        bool on = index % 2 == 0;
+
+        // The head of a closed subpath is collected separately
+        const bool collectHead = path.isClosed && on;
+        bool inHead = collectHead;
+        head.clear();
+
+        const QCPoint &start = pointAt(0);
+        if (inHead)
+            head.append(start);
+        else if (on) {
+            beginDash();
+            addPoint(start.x, start.y, PointCorner);
+        }
+
+        float dx = 0.0f;
+        float dy = 0.0f;
+        for (int k = 0; k < segmentCount; ++k) {
+            const QCPoint &a = pointAt(k);
+            const QCPoint &b = pointAt((k + 1) % n);
+            // commandsToPaths() has the direction and length of the segment
+            // in the point before it in the order of the points
+            float length;
+            if (!path.isReversed) {
+                dx = a.dx;
+                dy = a.dy;
+                length = a.len;
+            } else {
+                dx = -b.dx;
+                dy = -b.dy;
+                length = b.len;
+            }
+            // The distance of the points for a distance in the user space
+            float toPoints = 1.0f / userScale;
+            if (!uniformScale) {
+                const float ux = ia * dx + ic * dy;
+                const float uy = ib * dx + id * dy;
+                toPoints = 1.0f / std::sqrt(ux * ux + uy * uy);
+            }
+            // The length in the user space
+            const float segmentLength = length / toPoints;
+            float t = 0.0f;
+            while (segmentLength - t > remaining) {
+                // The current dash or gap ends in this segment
+                if (Q_UNLIKELY(++dashEndCount > 2 * QCPAINTER_MAX_DASH_COUNT))
+                    return false;
+                t += remaining;
+                const float x = a.x + dx * (t * toPoints);
+                const float y = a.y + dy * (t * toPoints);
+                if (on) {
+                    if (inHead) {
+                        QCPoint pt = {};
+                        pt.x = x;
+                        pt.y = y;
+                        pt.flags = PointCorner;
+                        head.append(pt);
+                        inHead = false;
+                    } else {
+                        addPoint(x, y, PointCorner);
+                        endDash(dx, dy);
+                    }
+                } else {
+                    beginDash();
+                    addPoint(x, y, PointCorner);
+                }
+                index = (index + 1) % pattern.size();
+                on = !on;
+                remaining = pattern[index];
+            }
+            remaining -= segmentLength - t;
+            if (on) {
+                // The segment end is a point of the dash, keeping its flags
+                // for the joins
+                const quint8 flags = (k == segmentCount - 1 && !path.isClosed) ? quint8(PointCorner) : b.flags;
+                if (inHead)
+                    head.append(b);
+                else
+                    addPoint(b.x, b.y, flags);
+            }
+        }
+
+        if (inHead) {
+            // A dash covers the whole closed subpath. Like in the HTML canvas,
+            // it is not joined at the start point, but has caps there.
+            beginDash();
+            for (const QCPoint &pt : std::as_const(head))
+                addPoint(pt.x, pt.y, pt.flags);
+            endDash(dx, dy);
+            continue;
+        }
+        if (collectHead) {
+            // Join the head to the last dash, or make it a dash of its own
+            if (!on)
+                beginDash();
+            for (qsizetype h = on ? 1 : 0; h < head.size(); ++h)
+                addPoint(head.at(h).x, head.at(h).y, head.at(h).flags);
+            endDash(dx, dy);
+        } else if (on) {
+            endDash(dx, dy);
+        }
+    }
+
+    // Segment directions and lengths, like in commandsToPaths()
+    for (int i = 0; i < ctx.dashPathsCount; ++i) {
+        const QCPath &dash = ctx.dashPaths.at(i);
+        for (int k = 0; k < dash.pointsCount; ++k) {
+            QCPoint &p0 = ctx.dashPoints[dash.pointsOffset + k];
+            const QCPoint &p1 = ctx.dashPoints[dash.pointsOffset + (k + 1) % dash.pointsCount];
+            p0.dx = p1.x - p0.x;
+            p0.dy = p1.y - p0.y;
+            p0.len = normalizePoint(&p0.dx, &p0.dy);
+        }
+    }
+    return true;
 }
 
 // Customized version of NanoVG bezier tesselation (https://github.com/memononen/nanovg)
@@ -1760,7 +2087,7 @@ void QCPainterEngine::expandFill(float pixelSize)
                      * pixelSize;
     // Hardcoded miterLimit for fill.
     const float miterLimit = 2.4f;
-    calculateJoins(aa, QCanvasPainter::LineJoin::Miter, miterLimit);
+    calculateJoins(ctx.paths, ctx.pathsCount, ctx.points, aa, QCanvasPainter::LineJoin::Miter, miterLimit);
     const int pCount = ctx.pathsCount;
     const bool useEdgeAA = aa > 0.0f;
 
@@ -1869,7 +2196,8 @@ void QCPainterEngine::expandFill(float pixelSize)
 }
 
 // Join and cap calculations are customized version based on NanoVG (https://github.com/memononen/nanovg)
-void QCPainterEngine::expandStroke(float w, QCanvasPainter::LineCap cap, QCanvasPainter::LineJoin join,
+void QCPainterEngine::expandStroke(QCPaths &paths, int pathsCount, QCPoints &points,
+                                   float w, QCanvasPainter::LineCap cap, QCanvasPainter::LineJoin join,
                                    float miterLimit, float pixelSize)
 {
     // On entry w is half of stroke width and on return half of stroke width + aa.
@@ -1877,8 +2205,8 @@ void QCPainterEngine::expandStroke(float w, QCanvasPainter::LineCap cap, QCanvas
     const float aa = (m_renderer->testFlag(QCPainterRhiRenderer::Antialiasing) ? state.antialias : 0.0f)
                      * pixelSize;
     w += aa * 0.5f;
-    calculateJoins(w, join, miterLimit);
-    const int pCount = ctx.pathsCount;
+    calculateJoins(paths, pathsCount, points, w, join, miterLimit);
+    const int pCount = pathsCount;
     const int roundDivs = (join == QCanvasPainter::LineJoin::Round) || (cap == QCanvasPainter::LineCap::Round)
                               ? curveDivs(w / pixelSize, ctx.divsTol) // the tolerance is in device pixels
                               : 0;
@@ -1886,7 +2214,7 @@ void QCPainterEngine::expandStroke(float w, QCanvasPainter::LineCap cap, QCanvas
     // Calculate max vertex usage
     int vertsCount = 0;
     for (int i = 0; i < pCount; i++) {
-        const QCPath &path = ctx.paths.at(i);
+        const QCPath &path = paths.at(i);
         if (join == QCanvasPainter::LineJoin::Round)
             vertsCount += (path.pointsCount + path.bevelCount * (roundDivs + 2) + 1) * 2; // plus one for loop
         else
@@ -1912,7 +2240,7 @@ void QCPainterEngine::expandStroke(float w, QCanvasPainter::LineCap cap, QCanvas
     }
 
     for (int i = 0; i < pCount; i++) {
-        QCPath &path = ctx.paths[i];
+        QCPath &path = paths[i];
         path.fillOffset = 0;
         path.fillCount = 0;
         path.strokeOffset = ctx.verticesCount;
@@ -1928,8 +2256,8 @@ void QCPainterEngine::expandStroke(float w, QCanvasPainter::LineCap cap, QCanvas
             endPoint = path.pointsCount - 1;
             p0Index = path.pointsOffset;
             p1Index = p0Index + 1;
-            const QCPoint &p0 = ctx.points[p0Index];
-            const QCPoint &p1 = ctx.points[p1Index];
+            const QCPoint &p0 = points[p0Index];
+            const QCPoint &p1 = points[p1Index];
 
             float dx = p1.x - p0.x;
             float dy = p1.y - p0.y;
@@ -1944,8 +2272,8 @@ void QCPainterEngine::expandStroke(float w, QCanvasPainter::LineCap cap, QCanvas
 
         for (int j = startPoint; j < endPoint; ++j) {
             // Add joins
-            const QCPoint &p0 = ctx.points[p0Index];
-            const QCPoint &p1 = ctx.points[p1Index];
+            const QCPoint &p0 = points[p0Index];
+            const QCPoint &p1 = points[p1Index];
             if (p1.flags & (PointBevel | PointInnerBevel)) {
                 if (join == QCanvasPainter::LineJoin::Round) {
                     addRoundJoin(p0, p1, w, w, u0, u1, roundDivs);
@@ -1967,8 +2295,8 @@ void QCPainterEngine::expandStroke(float w, QCanvasPainter::LineCap cap, QCanvas
             addVert(verts.at(loopIndex + 1).x, verts.at(loopIndex + 1).y, u1, 1.0f);
         } else {
             // Add end cap
-            const QCPoint &p0 = ctx.points[p0Index];
-            const QCPoint &p1 = ctx.points[p1Index];
+            const QCPoint &p0 = points[p0Index];
+            const QCPoint &p1 = points[p1Index];
             float dx = p1.x - p0.x;
             float dy = p1.y - p0.y;
             normalizePoint(&dx, &dy);
@@ -1983,15 +2311,16 @@ void QCPainterEngine::expandStroke(float w, QCanvasPainter::LineCap cap, QCanvas
     }
 }
 
-void QCPainterEngine::calculateJoins(float w, QCanvasPainter::LineJoin join, float miterLimit)
+void QCPainterEngine::calculateJoins(QCPaths &paths, int pathsCount, QCPoints &points,
+                                     float w, QCanvasPainter::LineJoin join, float miterLimit)
 {
     // Inverse of width
     const float iw = (w > 0.0f) ? 1.0f / w : 0.0f;
 
-    const int pCount = ctx.pathsCount;
+    const int pCount = pathsCount;
     // Calculate which joins needs extra vertices to append, and gather vertex count.
     for (int i = 0; i < pCount; i++) {
-        QCPath &path = ctx.paths[i];
+        QCPath &path = paths[i];
         const int pointsCount = path.pointsCount;
         if (Q_UNLIKELY(pointsCount == 0))
             continue;
@@ -2001,15 +2330,15 @@ void QCPainterEngine::calculateJoins(float w, QCanvasPainter::LineJoin join, flo
         int leftCount = 0;
         int bevelCount = 0;
 #if QCPAINTER_STRICT_CONVEX_PATH_CHECK
-        bool prevPosX = ctx.points[p0Index].dx > 0;
-        bool prevPosY = ctx.points[p0Index].dy > 0;
+        bool prevPosX = points[p0Index].dx > 0;
+        bool prevPosY = points[p0Index].dy > 0;
         int xFlips = 0;
         int yFlips = 0;
 #endif
 
         for (int j = 0; j < pointsCount; j++) {
-            const QCPoint &p0 = ctx.points[p0Index];
-            QCPoint &p1 = ctx.points[p1Index];
+            const QCPoint &p0 = points[p0Index];
+            QCPoint &p1 = points[p1Index];
 #if QCPAINTER_STRICT_CONVEX_PATH_CHECK
             // Count the number of times the path changes direction
             const bool posX = p1.dx > 0;

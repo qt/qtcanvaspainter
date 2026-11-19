@@ -38,6 +38,7 @@ private:
 
     // View - Paths
     void drawPaths();
+    void drawDashedStrokes();
 
     // View - Painter Paths
     void drawPainterPaths();

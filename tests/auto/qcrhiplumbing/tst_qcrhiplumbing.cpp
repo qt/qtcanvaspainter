@@ -9,7 +9,9 @@
 
 #include <QTest>
 #include <algorithm>
+#include <array>
 #include <memory>
+#include <vector>
 #include <rhi/qrhi.h>
 #include <QFont>
 #include <QRawFont>
@@ -95,6 +97,8 @@ private slots:
     void cachedStrokeScale();
     void cachedPathTransformedClip_data();
     void cachedPathTransformedClip();
+    void lineDashRender_data();
+    void lineDashRender();
     void cachedFillScale_data();
     void cachedFillScale();
     void cachedCurveScale_data();
@@ -3235,6 +3239,390 @@ void tst_CanvasRhiRendering::zeroSizeCurves()
         QCOMPARE(cachedSize(cornerWithCurve, stroke), cachedSize(corner, stroke));
     }
 }
+
+void tst_CanvasRhiRendering::lineDashRender_data()
+{
+    rhiTestData();
+}
+
+void tst_CanvasRhiRendering::lineDashRender()
+{
+    QFETCH(QRhi::Implementation, impl);
+    QFETCH(QRhiInitParams *, initParams);
+
+    std::unique_ptr<QRhi> rhi(QRhi::create(impl, initParams, rhiCreateFlags));
+    if (!rhi)
+        QSKIP("Failed to create QRhi, skip");
+
+    RenderTargetPtr rt = createRenderTarget(rhi.get());
+    QVERIFY(rt);
+
+    std::unique_ptr<QCanvasPainterFactory> factory(new QCanvasPainterFactory);
+    QCanvasPainter *painter = factory->create(rhi.get());
+    QVERIFY(painter);
+    QCanvasRhiPaintDriver *pd = factory->paintDriver();
+    QCPainterEngine *engine = QCanvasPainterPrivate::get(painter)->m_renderer->engine();
+
+    auto line = [painter](float y, float x0 = 100, float x1 = 500) {
+        painter->beginPath();
+        painter->moveTo(x0, y);
+        painter->lineTo(x1, y);
+        painter->stroke();
+    };
+
+    // Like in the HTML canvas, the shapes start at the top-left corner, or at
+    // the angle 0, and go clockwise, so only the start has the dash. They are
+    // drawn with the painter, or with a QCanvasPath, which has its own code.
+    auto drawShapes = [painter](bool withPath) {
+        painter->setLineDash({ 50, 1000 });
+        QCanvasPath path;
+        auto shape = [&](auto addShape) {
+            if (withPath) {
+                path.clear();
+                addShape(path);
+                painter->stroke(path);
+            } else {
+                painter->beginPath();
+                addShape(*painter);
+                painter->stroke();
+            }
+        };
+        shape([](auto &t) { t.rect(700, 200, 200, 100); });
+        shape([](auto &t) { t.circle(1100, 250, 50); });
+        shape([](auto &t) { t.roundRect(1000, 40, 200, 100, 20); });
+        shape([](auto &t) { t.roundRect(1000, 340, 200, 100, 10, 20, 30, 40); });
+        shape([](auto &t) { t.ellipse(1100, 520, 80, 40); });
+    };
+    auto checkShapes = [](const QImage &image) {
+        auto on = [&image](int x, int y) { return qGray(image.pixel(x, y)) > 200; };
+        auto off = [&image](int x, int y) { return qGray(image.pixel(x, y)) < 30; };
+        // rect(), from the top-left corner to the right
+        QVERIFY(on(720, 200));
+        QVERIFY(on(745, 200));
+        QVERIFY(off(760, 200));
+        QVERIFY(off(700, 230));
+        QVERIFY(off(800, 300));
+        // circle(), from the angle 0 down
+        QVERIFY(on(1144, 274));
+        QVERIFY(off(1144, 226));
+        // roundRect(), from the end of the top-left corner to the right
+        QVERIFY(on(1040, 40));
+        QVERIFY(on(1065, 40));
+        QVERIFY(off(1080, 40));
+        QVERIFY(off(1000, 80));
+        QVERIFY(on(1030, 340));
+        QVERIFY(on(1055, 340));
+        QVERIFY(off(1070, 340));
+        QVERIFY(off(1000, 400));
+        // ellipse(), from the angle 0 down
+        QVERIFY(on(1170, 539));
+        QVERIFY(off(1170, 501));
+        QVERIFY(off(1100, 560));
+    };
+
+    QRhiCommandBuffer *cb;
+    rhi->beginOffscreenFrame(&cb);
+    pd->resetForNewFrame();
+    pd->beginPaint(cb, rt->rt);
+
+    // Like in the HTML canvas, invalid patterns and offsets are ignored, odd
+    // patterns are repeated, and save(), restore() and reset() include the
+    // dash state
+    QVERIFY(painter->lineDash().isEmpty());
+    QCOMPARE(painter->lineDashOffset(), 0.0);
+    painter->setLineDash({ 40, 20 });
+    painter->setLineDash({ 10, -5 });
+    painter->setLineDash({ 10, qQNaN() });
+    painter->setLineDash({ qInf(), 10 });
+    QCOMPARE(painter->lineDash(), QList<qreal>({ 40, 20 }));
+    painter->setLineDashOffset(7);
+    painter->setLineDashOffset(qInf());
+    painter->setLineDashOffset(qQNaN());
+    QCOMPARE(painter->lineDashOffset(), 7.0);
+    painter->save();
+    const qreal odd[] = { 5, 10, 15 };
+    painter->setLineDash(odd);
+    painter->setLineDashOffset(-3);
+    QCOMPARE(painter->lineDash(), QList<qreal>({ 5, 10, 15, 5, 10, 15 }));
+    QCOMPARE(painter->lineDashOffset(), -3.0);
+    painter->restore();
+    QCOMPARE(painter->lineDash(), QList<qreal>({ 40, 20 }));
+    QCOMPARE(painter->lineDashOffset(), 7.0);
+    painter->reset();
+    QVERIFY(painter->lineDash().isEmpty());
+    QCOMPARE(painter->lineDashOffset(), 0.0);
+
+    painter->setStrokeStyle(Qt::white);
+    painter->setLineWidth(10);
+
+    // Dashes and gaps, then shifted by the offset
+    painter->setLineDash({ 40, 20 });
+    line(40);
+    painter->setLineDashOffset(10);
+    line(80);
+    painter->setLineDashOffset(0);
+
+    // An odd pattern is repeated: 10 on, 20 off, 30 on, 10 off, 20 on, 30 off.
+    // Other contiguous containers than QList work too.
+    const qreal oddPattern[] = { 10, 20, 30 };
+    painter->setLineDash(oddPattern);
+    line(120);
+
+    // Zero lengths draw solid, a non-finite offset is ignored
+    painter->setLineDash({ 0, 0 });
+    line(160);
+    painter->setLineDash({ 40, 20 });
+    painter->setLineDashOffset(qInf());
+    line(200);
+    painter->setLineDashOffset(0);
+
+    // Zero-length dashes are dots with round caps and nothing with butt caps
+    painter->setLineDash({ 0, 30 });
+    painter->setLineCap(QCanvasPainter::LineCap::Round);
+    line(240, 100, 400);
+    painter->setLineCap(QCanvasPainter::LineCap::Butt);
+    line(280, 100, 400);
+
+    // On a closed subpath starting from the top-left corner, the dash crossing
+    // the start point is one dash, with a miter join at the corner
+    painter->setLineJoin(QCanvasPainter::LineJoin::Miter);
+    painter->setLineDash({ 60, 20 });
+    painter->setLineDashOffset(10);
+    painter->beginPath();
+    painter->rect(700, 40, 200, 100);
+    painter->stroke();
+    painter->setLineDashOffset(0);
+
+    // The dash lengths are scaled like the line width
+    painter->save();
+    painter->translate(100, 320);
+    painter->scale(2, 2);
+    painter->setLineWidth(5);
+    painter->setLineDash(std::array<qreal, 2>{ 20, 10 });
+    line(0, 0, 200);
+    painter->restore();
+
+    // A cached path with two offsets in the same pass
+    QCanvasPath path;
+    path.moveTo(100, 0);
+    path.lineTo(500, 0);
+    painter->setLineDash(std::vector<qreal>{ 40, 20 });
+    painter->translate(0, 380);
+    painter->stroke(path, 1);
+    painter->setLineDashOffset(30);
+    painter->translate(0, 40);
+    painter->stroke(path, 1);
+    painter->resetTransform();
+    painter->setLineDashOffset(0);
+
+    drawShapes(false);
+    // An open path that the winding enforcement reverses starts at its first
+    // point
+    painter->beginPath();
+    painter->moveTo(700, 400);
+    painter->lineTo(900, 400);
+    painter->lineTo(900, 500);
+    painter->stroke();
+
+    // With a non-uniform scale, the lengths are measured before the
+    // transform, so horizontal dashes are twice as long as vertical ones
+    painter->save();
+    painter->translate(100, 520);
+    painter->scale(2, 1);
+    painter->setLineWidth(5);
+    painter->setLineDash({ 20, 10 });
+    line(0, 0, 150);
+    painter->beginPath();
+    painter->moveTo(250, 0);
+    painter->lineTo(250, 150);
+    painter->stroke();
+    painter->restore();
+
+    // Like in the HTML canvas, a dash that covers the whole closed subpath is
+    // not joined at the start point, but has caps there
+    painter->setLineDash({ 10000, 10 });
+    painter->beginPath();
+    painter->rect(700, 560, 100, 60);
+    painter->stroke();
+
+    // A huge offset keeps its precision: 1e9 + 10 is 50 into the pattern
+    painter->setLineDash({ 40, 20 });
+    painter->setLineDashOffset(1.0e9 + 10);
+    line(600, 100, 300);
+    painter->setLineDashOffset(0);
+
+    pd->endPaint(QCanvasRhiPaintDriver::EndPaintFlag::DoNotRecordRenderPass);
+    cb->beginPass(rt->rt, Qt::black, { 1.0f, 0 });
+    pd->renderPaint();
+    cb->endPass();
+    rhi->endOffscreenFrame();
+
+    if (impl != QRhi::Null) {
+        const QImage image = imageFromReadback(rhi.get(), rt->tex);
+        auto on = [&image](int x, int y) { return qGray(image.pixel(x, y)) > 200; };
+        auto off = [&image](int x, int y) { return qGray(image.pixel(x, y)) < 30; };
+
+        QVERIFY(on(120, 40));
+        QVERIFY(off(150, 40));
+        QVERIFY(on(180, 40));
+        QVERIFY(off(450, 40));
+
+        QVERIFY(on(120, 80));
+        QVERIFY(off(140, 80));
+        QVERIFY(on(170, 80));
+
+        QVERIFY(on(105, 120));
+        QVERIFY(off(120, 120));
+        QVERIFY(on(145, 120));
+        QVERIFY(off(165, 120));
+        QVERIFY(on(180, 120));
+        QVERIFY(off(200, 120));
+
+        QVERIFY(on(125, 160));
+        QVERIFY(on(150, 160));
+
+        QVERIFY(on(120, 200));
+        QVERIFY(off(150, 200));
+
+        QVERIFY(on(130, 240));
+        QVERIFY(off(145, 240));
+        QVERIFY(on(160, 240));
+        QVERIFY(off(130, 280));
+        QVERIFY(off(160, 280));
+
+        // The outer corner of the miter join
+        QVERIFY(on(696, 36));
+        QVERIFY(on(710, 40));
+        QVERIFY(on(700, 50));
+
+        QVERIFY(on(120, 320));
+        QVERIFY(off(150, 320));
+        QVERIFY(on(170, 320));
+
+        QVERIFY(on(120, 380));
+        QVERIFY(off(150, 380));
+        QVERIFY(off(120, 420));
+        QVERIFY(on(150, 420));
+
+        checkShapes(image);
+        if (QTest::currentTestFailed())
+            return;
+
+        QVERIFY(on(720, 400));
+        QVERIFY(off(800, 400));
+        QVERIFY(off(900, 480));
+
+        QVERIFY(on(120, 520));
+        QVERIFY(off(150, 520));
+        QVERIFY(on(170, 520));
+        QVERIFY(on(600, 530));
+        QVERIFY(off(600, 545));
+        QVERIFY(on(600, 555));
+
+        QVERIFY(off(697, 557));
+        QVERIFY(on(703, 557));
+        QVERIFY(on(697, 563));
+        QVERIFY(on(802, 558));
+
+        QVERIFY(off(104, 600));
+        QVERIFY(on(115, 600));
+        QVERIFY(off(155, 600));
+    }
+
+    // A dashed stroke is one draw
+    rhi->beginOffscreenFrame(&cb);
+    pd->resetForNewFrame();
+    pd->beginPaint(cb, rt->rt);
+    painter->setStrokeStyle(Qt::white);
+    painter->setLineDash({ 10, 10 });
+    line(40);
+    pd->endPaint(QCanvasRhiPaintDriver::EndPaintFlag::DoNotRecordRenderPass);
+    cb->beginPass(rt->rt, Qt::black, { 1.0f, 0 });
+    pd->renderPaint();
+    cb->endPass();
+    rhi->endOffscreenFrame();
+    engine->syncDebugCounters();
+    QCOMPARE(engine->debugCounters().strokeDrawCallCount, 1);
+
+    // The shapes of QCanvasPath start and go like those of the painter
+    rhi->beginOffscreenFrame(&cb);
+    pd->resetForNewFrame();
+    pd->beginPaint(cb, rt->rt);
+    painter->setStrokeStyle(Qt::white);
+    painter->setLineWidth(10);
+    drawShapes(true);
+    pd->endPaint(QCanvasRhiPaintDriver::EndPaintFlag::DoNotRecordRenderPass);
+    cb->beginPass(rt->rt, Qt::black, { 1.0f, 0 });
+    pd->renderPaint();
+    cb->endPass();
+    rhi->endOffscreenFrame();
+    if (impl != QRhi::Null) {
+        checkShapes(imageFromReadback(rhi.get(), rt->tex));
+        if (QTest::currentTestFailed())
+            return;
+    }
+
+    // Without the winding enforcement the paths that go clockwise are reversed
+    // for the fill, but the dashes still start and go the same way
+    for (bool withPath : { false, true }) {
+        rhi->beginOffscreenFrame(&cb);
+        pd->resetForNewFrame();
+        pd->beginPaint(cb, rt->rt);
+        painter->setWindingEnforce(false);
+        painter->setStrokeStyle(Qt::white);
+        painter->setLineWidth(10);
+        drawShapes(withPath);
+        painter->beginPath();
+        painter->moveTo(700, 400);
+        painter->lineTo(900, 400);
+        painter->lineTo(900, 500);
+        painter->stroke();
+        painter->setWindingEnforce(true);
+        pd->endPaint(QCanvasRhiPaintDriver::EndPaintFlag::DoNotRecordRenderPass);
+        cb->beginPass(rt->rt, Qt::black, { 1.0f, 0 });
+        pd->renderPaint();
+        cb->endPass();
+        rhi->endOffscreenFrame();
+        if (impl != QRhi::Null) {
+            const QImage image = imageFromReadback(rhi.get(), rt->tex);
+            checkShapes(image);
+            if (QTest::currentTestFailed())
+                return;
+            QVERIFY(qGray(image.pixel(720, 400)) > 200);
+            QVERIFY(qGray(image.pixel(800, 400)) < 30);
+            QVERIFY(qGray(image.pixel(900, 480)) < 30);
+        }
+    }
+
+    // Animating the offset of a cached path doesn't keep adding cached data,
+    // the data of the offsets that the frame doesn't use is removed. Without
+    // antialiasing, the data doesn't depend on the scale, which would remove
+    // it anyway.
+    QCanvasPath cachedPath;
+    cachedPath.roundRect(100, 100, 300, 200, 30);
+    QList<int> vertexDataSizes;
+    for (int frame = 0; frame < 10; ++frame) {
+        rhi->beginOffscreenFrame(&cb);
+        pd->resetForNewFrame();
+        pd->beginPaint(cb, rt->rt);
+        painter->setAntialias(0);
+        painter->setLineDash({ 20, 10 });
+        painter->setLineDashOffset(frame * 3);
+        painter->stroke(cachedPath, 2);
+        pd->endPaint(QCanvasRhiPaintDriver::EndPaintFlag::DoNotRecordRenderPass);
+        cb->beginPass(rt->rt, Qt::black, { 1.0f, 0 });
+        pd->renderPaint();
+        cb->endPass();
+        rhi->endOffscreenFrame();
+        engine->syncDebugCounters();
+        vertexDataSizes.append(engine->debugCounters().cachedPathVertexDataSize);
+    }
+    QVERIFY(vertexDataSizes.first() > 0);
+    QVERIFY2(vertexDataSizes.last() < 2 * vertexDataSizes.first(),
+             qPrintable(QString::number(vertexDataSizes.first()) + QLatin1String(" -> ")
+                        + QString::number(vertexDataSizes.last())));
+}
+
 
 #include <tst_qcrhiplumbing.moc>
 QTEST_MAIN(tst_CanvasRhiRendering)

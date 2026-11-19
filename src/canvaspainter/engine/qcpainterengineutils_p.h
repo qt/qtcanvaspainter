@@ -107,6 +107,10 @@ struct QCPath {
     QCanvasPainter::PathWinding winding = QCanvasPainter::PathWinding::CounterClockWise;
     bool isConvex = false;
     bool isClosed = false;
+    // The points are in the reverse order of drawing, except that the first
+    // point of a closed path stays first, see enforceWinding() and
+    // commandsToPaths()
+    bool isReversed = false;
 };
 typedef QVarLengthArray<QCPath> QCPaths;
 
@@ -122,6 +126,9 @@ struct QCState {
     float strokeWidth;
     float antialias;
     float miterLimit;
+    // Even number of dash and gap lengths, empty when not dashing
+    QList<qreal> lineDash;
+    qreal lineDashOffset = 0.0;
     float alpha;
     float brightness;
     float contrast;
@@ -199,6 +206,10 @@ struct QCCachedPathStrokeProperties
     QCanvasPainter::LineCap lineCap = QCanvasPainter::LineCap::Butt;
     QCanvasPainter::LineJoin lineJoin = QCanvasPainter::LineJoin::Miter;
     int renderHints = 0;
+    // The offset is wrapped to the length of the pattern, so that offsets
+    // that differ by whole patterns share the data
+    QList<qreal> lineDash;
+    qreal lineDashOffset = 0.0;
     // The geometry is in the units of the path, which the vertex shader scales.
     // It depends on the scale of the transform only when something in it is
     // sized in device pixels (the antialiasing fringe, a minimum or maximum
@@ -215,6 +226,8 @@ inline bool operator==(const QCCachedPathStrokeProperties &a, const QCCachedPath
            && a.lineCap == b.lineCap
            && a.lineJoin == b.lineJoin
            && a.renderHints == b.renderHints
+           && a.lineDash == b.lineDash
+           && a.lineDashOffset == b.lineDashOffset
            && a.scale == b.scale;
 }
 
@@ -225,8 +238,11 @@ inline bool operator!=(const QCCachedPathStrokeProperties &a, const QCCachedPath
 
 inline size_t qHash(const QCCachedPathStrokeProperties &s, size_t seed) noexcept
 {
-    return qHash(s.antialias, seed) ^ qHash(s.strokeWidth) ^ int(s.lineCap) ^ int(s.lineJoin) ^ s.renderHints
-            ^ qHash(s.scale);
+    size_t h = qHash(s.antialias, seed) ^ qHash(s.strokeWidth) ^ int(s.lineCap) ^ int(s.lineJoin)
+               ^ s.renderHints ^ qHash(s.scale);
+    if (!s.lineDash.isEmpty())
+        h ^= qHashRange(s.lineDash.cbegin(), s.lineDash.cend()) ^ qHash(s.lineDashOffset);
+    return h;
 }
 
 struct QCContext {
@@ -234,6 +250,9 @@ struct QCContext {
     QCCommandsData commandsData;
     QCPoints points;
     QCPaths paths;
+    // The dashes of paths when stroking with a dash pattern
+    QCPoints dashPoints;
+    QCPaths dashPaths;
     QCVertices vertices;
     // Currently active path, so paths[pathsCount - 1]
     QCPath *currentPath = nullptr;
@@ -260,6 +279,8 @@ struct QCContext {
     int verticesCount = 0;
     int pointsCount = 0;
     int pathsCount = 0;
+    int dashPointsCount = 0;
+    int dashPathsCount = 0;
     int fontId;
     int colorFontId;
     float fontAlphaMin;

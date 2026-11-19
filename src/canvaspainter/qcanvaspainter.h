@@ -9,7 +9,9 @@
 
 #include <QtCanvasPainter/qtcanvaspainterglobal.h>
 #include <QtGui/qcolor.h>
+#include <QtCore/qlist.h>
 #include <QtCore/qrect.h>
+#include <QtCore/qspan.h>
 #include <QtGui/qtransform.h>
 #include <QtGui/qfont.h>
 
@@ -81,6 +83,10 @@ public:
     Q_CANVASPAINTER_EXPORT void setLineWidth(qreal width);
     Q_CANVASPAINTER_EXPORT void setLineCap(LineCap cap);
     Q_CANVASPAINTER_EXPORT void setLineJoin(LineJoin join);
+    Q_CANVASPAINTER_EXPORT void setLineDash(QSpan<const qreal> pattern);
+    Q_CANVASPAINTER_EXPORT QList<qreal> lineDash() const;
+    Q_CANVASPAINTER_EXPORT void setLineDashOffset(qreal offset);
+    Q_CANVASPAINTER_EXPORT qreal lineDashOffset() const;
     Q_CANVASPAINTER_EXPORT void setGlobalAlpha(qreal alpha);
     Q_CANVASPAINTER_EXPORT void setGlobalCompositeOperation(CompositeOperation operation);
     Q_CANVASPAINTER_EXPORT void setGlobalBrightness(qreal value);
