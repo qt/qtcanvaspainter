@@ -444,8 +444,13 @@ static QCanvasPainter::FillRule qcanvas_fill_rule_from_string(const QString &fil
 
 /*!
   \qmlmethod void Canvas2DContext::closePath()
-   Closes the current subpath by drawing a line to the beginning of the subpath, automatically starting a new path.
-   The current point of the new path is the previous subpath's first point.
+   Closes the current subpath by drawing a line to the beginning of the subpath.
+
+   Unlike in the HTML canvas, this doesn't start a new subpath, and the current
+   point stays at the last point of the subpath. Drawing after this without
+   moveTo(), for example with lineTo(), adds the points to the closed subpath.
+   Call moveTo() to start a new subpath. The same applies after rect(),
+   roundRect(), ellipse() and circle(), which close their subpath.
 
    \sa {http://www.w3.org/TR/2dcontext/#dom-context-2d-closepath}{W3C 2d context standard for closePath}
   */
