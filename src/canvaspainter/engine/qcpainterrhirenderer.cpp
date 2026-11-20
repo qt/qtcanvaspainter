@@ -3472,11 +3472,15 @@ QCCachedPathStrokeProperties QCPainterRhiRenderer::strokeCacheProps(const QCStat
 {
     // See QCCachedPathStrokeProperties::scale and QCPainterEngine::stroke():
     // the antialiasing fringe, the width that is the minimum for the antialiasing
-    // and the maximum width are in device pixels.
+    // and the maximum width are in device pixels. The segments of round caps
+    // and joins are divided with a tolerance in device pixels, so that they are
+    // as smooth at all scales as without a path group.
     const float scale = quantizedScale(getAverageScale(state.transform));
     const float widthInPixels = state.strokeWidth * scale;
     const bool fringe = testFlag(QCPainterRhiRenderer::Antialiasing) && state.antialias > 0.0f;
-    const bool sizedInPixels = fringe || widthInPixels < state.antialias
+    const bool round = state.lineCap == QCanvasPainter::LineCap::Round
+                       || state.lineJoin == QCanvasPainter::LineJoin::Round;
+    const bool sizedInPixels = fringe || round || widthInPixels < state.antialias
                                || widthInPixels > QCPAINTER_MAX_STROKE_WIDTH;
     return { state.antialias, state.strokeWidth, state.lineCap, state.lineJoin, flagsCacheProps(),
              sizedInPixels ? scale : 0.0f };

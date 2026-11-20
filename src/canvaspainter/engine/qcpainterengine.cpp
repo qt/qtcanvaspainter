@@ -918,7 +918,8 @@ void QCPainterEngine::stroke(QCanvasPath *maybePath, int pathGroup, bool cachedP
     // The points of cached paths are not transformed, the vertex shader scales
     // them. So the stroke is expanded in the units of the points, where one
     // device pixel is 1 / scale. The parts of the geometry that are sized in
-    // device pixels (the antialiasing, the minimum and maximum width) are made
+    // device pixels (the antialiasing, the minimum and maximum width, the
+    // segments of round caps and joins, see strokeCacheProps()) are made
     // for the scale rounded to a power of two, so that the cached data is not
     // made again at every zoom step, see quantizedScale(). The points of the
     // other paths are in device pixels already.
