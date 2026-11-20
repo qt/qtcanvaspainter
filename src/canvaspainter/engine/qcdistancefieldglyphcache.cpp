@@ -39,7 +39,7 @@ QList<QGlyphRun> QCDistanceFieldGlyphCache::generateGlyphRuns(
     m_layout.clearLayout();
     m_layout.setTextOption(option);
     m_layout.setFont(font);
-    m_layout.setText(text);
+    m_layout.setText(QCTextLayout::convertLineBreaks(text));
     const int leading = metrics.leading();
     float layoutHeight = 0;
     m_layout.beginLayout();

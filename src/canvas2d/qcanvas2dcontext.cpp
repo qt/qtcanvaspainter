@@ -4087,12 +4087,19 @@ QV4::ReturnedValue QCanvasJSContext2D::method_set_textBaseline(const QV4::Functi
     Holds the current text wrap mode, so how the text is wrapped
     to multiple lines. The possible values are:
 
-    \value "nowrap"        (default) No wrapping will be performed. If the text contains insufficient newlines, then contentWidth will exceed a set width.
+    \value "nowrap"        (default) No wrapping will be performed. Lines are only broken at line breaks, so the text may be wider than a set width.
     \value "wrap"          If possible, wrapping occurs at a word boundary; otherwise it will occur at the appropriate point on the line, even in the middle of a word.
     \value "wordwrap"      Wrapping is done on word boundaries only. If a word is too long, content width will exceed a set width.
     \value "wrapanywhere"  Wrapping is done at any point on a line, even if it occurs in the middle of a word.
 
     The default wrap mode is \c "nowrap".
+
+    Line breaks (\c{"\\n"} or \c{"\\r\\n"}) in the text start a new line
+    in all wrap modes, including \c "nowrap". The line separator U+2028
+    also starts a new line, while other characters, such as a lone
+    \c{"\\r"} or the paragraph separator U+2029, don't.
+
+    \note Unlike in HTML canvas, line breaks are not converted to spaces.
 
     \table
     \row
@@ -4250,7 +4257,10 @@ QV4::ReturnedValue QCanvasJSContext2D::method_set_textDirection(const QV4::Funct
     else than the default \c "nowrap". Optional \a maxWidth parameter
     defaults to \c 0. Meaning that when e.g. \c "wordwrap" has been set,
     text is wrapped on every word. Set the \a maxWidth parameter to
-    preferred row width in pixels.
+    preferred row width in pixels. Line breaks (\c{"\\n"} or \c{"\\r\\n"})
+    in \a text start a new line in all wrap modes. All lines are aligned
+    according to the current textAlign, and the textBaseline positions the
+    whole block of lines.
 
     \table
     \row
@@ -4274,7 +4284,8 @@ QV4::ReturnedValue QCanvasJSContext2D::method_set_textDirection(const QV4::Funct
 
     Draws \a text string inside rect (\a x, \a y, \a width, \a height), with
     current textAlign and textBaseline. Width of the rect parameter is used
-    as maxWidth.
+    as maxWidth. Line breaks (\c{"\\n"} or \c{"\\r\\n"}) in \a text start
+    a new line in all wrap modes.
 
     It is often useful to set the text baseline to \l{QCanvasPainter::TextBaseline::Top}{TextBaseline::Top} or
     \l{QCanvasPainter::TextBaseline::Middle}{TextBaseline::Middle} when painting text with this method.
@@ -4346,7 +4357,8 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_strokeText(const QV4::Fun
 
     Returns an object with a \c width property, whose value is equivalent to
     calling QFontMetricsF::horizontalAdvance() with the given \a text in the
-    current font.
+    current font. When \a text contains line breaks (\c{"\\n"}, \c{"\\r\\n"}
+    or U+2028), the width is that of the widest line.
 */
 QV4::ReturnedValue QCanvasJSContext2DPrototype::method_measureText(const QV4::FunctionObject *b, const QV4::Value *thisObject, const QV4::Value *argv, int argc)
 {
@@ -4356,7 +4368,13 @@ QV4::ReturnedValue QCanvasJSContext2DPrototype::method_measureText(const QV4::Fu
 
     if (argc >= 1) {
         QFontMetricsF fm(r->d()->context()->state.font);
-        qreal width = fm.horizontalAdvance(argv[0].toQStringNoThrow());
+        // Like fillText(), break the lines at "\n", "\r\n" and U+2028
+        QString text = argv[0].toQStringNoThrow();
+        text.replace(QLatin1StringView("\r\n"), QString(QChar::LineSeparator));
+        text.replace(u'\n', QChar::LineSeparator);
+        qreal width = 0;
+        for (const QString &line : text.split(QChar::LineSeparator))
+            width = qMax(width, fm.horizontalAdvance(line));
         QV4::ScopedObject tm(scope, scope.engine->newObject());
         tm->put(QV4::ScopedString(scope, scope.engine->newIdentifier(QStringLiteral("width"))).getPointer(),
                 QV4::ScopedValue(scope, QV4::Value::fromDouble(width)));

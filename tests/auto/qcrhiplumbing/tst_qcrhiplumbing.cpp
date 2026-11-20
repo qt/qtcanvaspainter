@@ -37,6 +37,8 @@
 #define TST_GL
 #endif
 
+using namespace Qt::StringLiterals;
+
 #if QT_CONFIG(vulkan)
 #include <QVulkanInstance>
 #define TST_VK
@@ -112,6 +114,8 @@ private slots:
     void clockwiseFillWithoutWindingEnforce();
     void shapeDirection_data();
     void shapeDirection();
+    void textLineBreaks_data();
+    void textLineBreaks();
 
 private:
     void setWindowType(QWindow *window, QRhi::Implementation impl);
@@ -2847,6 +2851,146 @@ void tst_CanvasRhiRendering::restoreClip()
         QVERIFY(testColor(image, 5, 5, Qt::white));
         QVERIFY(testColor(image, RT_WIDTH / 2, RT_HEIGHT / 2,
                           centerClipped ? Qt::black : Qt::white));
+    }
+}
+
+void tst_CanvasRhiRendering::textLineBreaks_data()
+{
+    rhiTestData();
+}
+
+// Line breaks in the text start a new line in all wrap modes. The text is laid
+// out the same as when it is wrapped by the width at the line break.
+void tst_CanvasRhiRendering::textLineBreaks()
+{
+    QFETCH(QRhi::Implementation, impl);
+    QFETCH(QRhiInitParams *, initParams);
+
+    std::unique_ptr<QRhi> rhi(QRhi::create(impl, initParams, rhiCreateFlags));
+    if (!rhi)
+        QSKIP("Failed to create QRhi, skip");
+
+    RenderTargetPtr rt = createRenderTarget(rhi.get());
+    QVERIFY(rt);
+
+    std::unique_ptr<QCanvasPainterFactory> factory(new QCanvasPainterFactory);
+    QCanvasPainter *painter = factory->create(rhi.get());
+    QVERIFY(painter);
+    QCanvasRhiPaintDriver *pd = factory->paintDriver();
+
+    // The painter state is reset for each frame
+    QFont font;
+    font.setPixelSize(24);
+    QRhiCommandBuffer *cb = nullptr;
+    auto beginFrame = [&]() {
+        rhi->beginOffscreenFrame(&cb);
+        pd->resetForNewFrame();
+        pd->beginPaint(cb, rt->rt);
+        painter->setFont(font);
+        painter->setFillStyle(Qt::white);
+    };
+    auto endFrame = [&]() {
+        pd->endPaint(QCanvasRhiPaintDriver::EndPaintFlag::DoNotRecordRenderPass);
+        cb->beginPass(rt->rt, Qt::black, { 1.0f, 0 });
+        pd->renderPaint();
+        cb->endPass();
+        rhi->endOffscreenFrame();
+        if (impl == QRhi::Null)
+            return QImage();
+        return imageFromReadback(rhi.get(), rt->tex);
+    };
+
+    // Measure in a frame, compare after it
+    beginFrame();
+    // A width where "Hello" fits but "Hello world" does not
+    const qreal helloWidth = painter->textBoundingBox(u"Hello"_s, 0, 0).width();
+    const qreal helloWorldWidth = painter->textBoundingBox(u"Hello world"_s, 0, 0).width();
+    painter->setTextBaseline(QCanvasPainter::TextBaseline::Top);
+    const qreal oneLine = painter->textBoundingBox(u"Hello"_s, 0, 0).height();
+    const qreal twoLines = painter->textBoundingBox(u"Hello\nworld"_s, 0, 0).height();
+    const qreal emptyLine = painter->textBoundingBox(u"Hello\n\nworld"_s, 0, 0).height();
+    const qreal trailing = painter->textBoundingBox(u"Hello\n"_s, 0, 0).height();
+    const qreal lone = painter->textBoundingBox(u"Hello\rworld"_s, 0, 0).height();
+    endFrame();
+    QCOMPARE_GT(helloWorldWidth, helloWidth);
+    const qreal width = (helloWidth + helloWorldWidth) / 2;
+    QCOMPARE_GT(twoLines, 1.5 * oneLine);
+    // Consecutive and trailing line breaks add empty lines. Their height can
+    // differ a bit from that of the text when the text uses a fallback font.
+    const qreal lineStep = twoLines - oneLine;
+    QCOMPARE_LT(qAbs(emptyLine - (twoLines + lineStep)), 0.25 * lineStep);
+    QCOMPARE_LT(qAbs(trailing - twoLines), 0.25 * lineStep);
+    // A lone '\r' is not a line break
+    QCOMPARE(lone, oneLine);
+
+    // The text drawn with each text align and baseline
+    const QCanvasPainter::TextAlign aligns[] = { QCanvasPainter::TextAlign::Left,
+                                                 QCanvasPainter::TextAlign::Center,
+                                                 QCanvasPainter::TextAlign::Right };
+    const QCanvasPainter::TextBaseline baselines[] = { QCanvasPainter::TextBaseline::Top,
+                                                       QCanvasPainter::TextBaseline::Hanging,
+                                                       QCanvasPainter::TextBaseline::Middle,
+                                                       QCanvasPainter::TextBaseline::Alphabetic,
+                                                       QCanvasPainter::TextBaseline::Bottom };
+    auto renderText = [&](QCanvasPainter::WrapMode wrapMode, const QString &text, qreal maxWidth,
+                          QList<QRectF> *boundingBoxes) {
+        beginFrame();
+        painter->setTextWrapMode(wrapMode);
+        for (int a = 0; a < 3; ++a) {
+            for (int b = 0; b < 5; ++b) {
+                painter->setTextAlign(aligns[a]);
+                painter->setTextBaseline(baselines[b]);
+                const QPointF pos(200 + a * 400, 70 + b * 140);
+                painter->fillText(text, pos, maxWidth);
+                boundingBoxes->append(painter->textBoundingBox(text, pos, maxWidth));
+            }
+        }
+        return endFrame();
+    };
+
+    const struct {
+        QCanvasPainter::WrapMode wrapMode;
+        QString text;
+        qreal maxWidth;
+    } variants[] = {
+        { QCanvasPainter::WrapMode::NoWrap, u"Hello\nworld"_s, 0 },
+        { QCanvasPainter::WrapMode::NoWrap, u"Hello\r\nworld"_s, 0 },
+        { QCanvasPainter::WrapMode::NoWrap, u"Hello"_s + QChar(QChar::LineSeparator) + u"world"_s, 0 },
+        { QCanvasPainter::WrapMode::WordWrap, u"Hello\nworld"_s, 0 },
+        { QCanvasPainter::WrapMode::WordWrap, u"Hello\nworld"_s, 1000 },
+        { QCanvasPainter::WrapMode::Wrap, u"Hello\nworld"_s, 1000 },
+        { QCanvasPainter::WrapMode::WrapAnywhere, u"Hello\nworld"_s, 1000 },
+    };
+    QList<QRectF> expectedBoxes;
+    renderText(QCanvasPainter::WrapMode::WordWrap, u"Hello world"_s, width, &expectedBoxes);
+    QCOMPARE(expectedBoxes.first().height(), twoLines);
+
+    for (const auto &variant : variants) {
+        QList<QRectF> boxes;
+        const QImage image = renderText(variant.wrapMode, variant.text, variant.maxWidth, &boxes);
+        // With center align, aligning a line in the maxWidth may round the
+        // position differently by a fraction of a pixel
+        QCOMPARE(boxes.size(), expectedBoxes.size());
+        for (qsizetype i = 0; i < boxes.size(); ++i) {
+            const QRectF &box = boxes.at(i);
+            const QRectF &expectedBox = expectedBoxes.at(i);
+            QCOMPARE_LT(qAbs(box.x() - expectedBox.x()), 0.02);
+            QCOMPARE_LT(qAbs(box.right() - expectedBox.right()), 0.02);
+            QCOMPARE(box.y(), expectedBox.y());
+            QCOMPARE(box.height(), expectedBox.height());
+        }
+        if (impl == QRhi::Null)
+            continue;
+        // Something got drawn in the cell of each align and baseline
+        for (const QRectF &box : std::as_const(boxes)) {
+            const QRect r = box.toAlignedRect();
+            bool found = false;
+            for (int y = r.top(); y <= r.bottom() && !found; ++y) {
+                for (int x = r.left(); x <= r.right() && !found; ++x)
+                    found = qGray(image.pixel(x, y)) > 128;
+            }
+            QVERIFY(found);
+        }
     }
 }
 

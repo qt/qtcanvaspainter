@@ -344,13 +344,16 @@ Q_LOGGING_CATEGORY(QC_INFO, "qt.qcpainter.general")
 
     WrapMode is used to define how the text is wrapped to multiple lines.
 
-    \value NoWrap (default) No wrapping will be performed. If the text contains insufficient newlines, then contentWidth will exceed a set width.
+    \value NoWrap (default) No wrapping will be performed. Lines are only broken at line breaks, so the text may be wider than a set width.
 
     \value Wrap If possible, wrapping occurs at a word boundary; otherwise it will occur at the appropriate point on the line, even in the middle of a word.
 
     \value WordWrap Wrapping is done on word boundaries only. If a word is too long, content width will exceed a set width.
 
     \value WrapAnywhere Wrapping is done at any point on a line, even if it occurs in the middle of a word.
+
+    In all wrap modes, including \c NoWrap, line breaks (\c{'\\n'} or
+    \c{"\\r\\n"}) in the text start a new line.
 
     \sa setTextWrapMode(), fillText()
 */
@@ -2436,6 +2439,9 @@ void QCanvasPainter::setTextDirection(QCanvasPainter::TextDirection direction)
     p->fillText(s, r3);
     \endcode
     \endtable
+
+    Line breaks (\c{'\\n'} or \c{"\\r\\n"}) in the text start a new line
+    in all wrap modes, including \c NoWrap.
 */
 
 void QCanvasPainter::setTextWrapMode(QCanvasPainter::WrapMode wrapMode)
@@ -2534,6 +2540,23 @@ void QCanvasPainter::setTextAntialias(qreal antialias)
     \endcode
     \endtable
 
+    Line breaks (\c{'\\n'} or \c{"\\r\\n"}) in \a text start a new line in
+    all wrap modes, including \c NoWrap. All lines are aligned according
+    to the current textAlign, and the textBaseline positions the whole
+    block of lines, the same way as with text wrapped by \a maxWidth.
+    QChar::LineSeparator (U+2028) also starts a new line, while other
+    characters, such as a lone \c{'\\r'} or QChar::ParagraphSeparator,
+    don't.
+    For example, these produce identical output when "Hello" fits in
+    80 pixels but "Hello world" does not:
+
+    \code
+    p->setTextWrapMode(QCanvasPainter::WrapMode::WordWrap);
+    p->fillText("Hello world", 200, 100, 80);
+    p->setTextWrapMode(QCanvasPainter::WrapMode::NoWrap);
+    p->fillText("Hello\nworld", 200, 100);
+    \endcode
+
     \sa setTextAlign(), setTextBaseline(), setTextWrapMode()
 */
 void QCanvasPainter::fillText(const QString &text, qreal x, qreal y, qreal maxWidth)
@@ -2552,7 +2575,8 @@ void QCanvasPainter::fillText(const QString &text, qreal x, qreal y, qreal maxWi
     else than the default \c NoWrap. Optional \a maxWidth parameter
     defaults to \c 0. Meaning that when e.g. \c WordWrap has been set,
     text is wrapped on every word. Set the \a maxWidth parameter to
-    preferred row width in pixels.
+    preferred row width in pixels. Line breaks (\c{'\\n'} or \c{"\\r\\n"})
+    in \a text start a new line in all wrap modes.
 
     This is an overloaded method using QPointF.
 
@@ -2563,7 +2587,8 @@ void QCanvasPainter::fillText(const QString &text, qreal x, qreal y, qreal maxWi
     \overload
 
     Draws \a text string inside \a rect, with current textAlign and textBaseline.
-    Width of the rect parameter is used as maxWidth.
+    Width of the rect parameter is used as maxWidth. Line breaks (\c{'\\n'}
+    or \c{"\\r\\n"}) in \a text start a new line in all wrap modes.
 
     This is an overloaded method using QRectF. It is often useful to set the
     text baseline to \l TextBaseline::Top or \l TextBaseline::Middle when painting
@@ -2599,7 +2624,8 @@ void QCanvasPainter::fillText(const QString &text, const QRectF &rect)
 
     To measure multi-line text, set the text wrap mode using \l setTextWrapMode()
     to something else than the default \c NoWrap. Also set the optional \a maxWidth
-    parameter to preferred row width in pixels.
+    parameter to preferred row width in pixels. Line breaks (\c{'\\n'} or
+    \c{"\\r\\n"}) in \a text start a new line in all wrap modes.
 
     Returns QRectF with values [xmin, ymin, width, height].
     Measured values are returned in local coordinate space.
@@ -2639,7 +2665,8 @@ QRectF QCanvasPainter::textBoundingBox(const QString &text, qreal x, qreal y, qr
 
     To measure multi-line text, set the text wrap mode using \l setTextWrapMode()
     to something else than the default \c NoWrap. Also set the optional \a maxWidth
-    parameter to preferred row width in pixels.
+    parameter to preferred row width in pixels. Line breaks (\c{'\\n'} or
+    \c{"\\r\\n"}) in \a text start a new line in all wrap modes.
 
     Returns QRectF with values [xmin, ymin, width, height].
     Measured values are returned in local coordinate space.
