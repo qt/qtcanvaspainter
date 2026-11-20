@@ -213,9 +213,10 @@ struct QCCachedPathStrokeProperties
     // The geometry is in the units of the path, which the vertex shader scales.
     // It depends on the scale of the transform only when something in it is
     // sized in device pixels (the antialiasing fringe, a minimum or maximum
-    // width), and then this is the scale rounded by quantizedScale(), otherwise
-    // 0. The data is made again only when the scale changes to another power of
-    // two, so zooming a path does not update it at every step.
+    // width, the segments of round caps and joins), and then this is the scale
+    // rounded by quantizedScale(), otherwise 0. The data is made again only
+    // when the scale changes to another power of two, so zooming a path does
+    // not update it at every step.
     float scale = 0.0f;
 };
 

@@ -2455,6 +2455,66 @@ void tst_CanvasRhiRendering::cachedStrokeScale()
         }
     }
 
+    // The segments of round caps and joins are divided in device pixels, so
+    // also without antialiasing their data is made for the scale. Otherwise
+    // drawing at 0.25 and then at 16 would show at 16 the caps with the few
+    // segments made for 0.25, and a path in small units drawn at a large scale
+    // would have caps of two segments.
+    auto renderRound = [&](qreal scale) {
+        QRhiCommandBuffer *cb;
+        rhi->beginOffscreenFrame(&cb);
+        pd->resetForNewFrame();
+        pd->beginPaint(cb, rt->rt);
+        painter->setAntialias(0.0);
+        painter->resetTransform();
+        painter->scale(scale);
+        painter->setLineWidth(20.0);
+        painter->setLineCap(QCanvasPainter::LineCap::Round);
+        painter->setLineJoin(QCanvasPainter::LineJoin::Round);
+        painter->setStrokeStyle(Qt::white);
+        painter->stroke(path, 0);
+        pd->endPaint();
+        rhi->endOffscreenFrame();
+        engine->syncDebugCounters();
+        return engine->debugCounters().cachedPathVertexDataSize;
+    };
+    painter->removePathGroup(0);
+    const int sizeAtSmall = renderRound(0.25);
+    painter->removePathGroup(0);
+    const int sizeAtLarge = renderRound(16.0);
+    QVERIFY(sizeAtSmall > 0);
+    QCOMPARE_GT(sizeAtLarge, sizeAtSmall);
+    painter->removePathGroup(0);
+    renderRound(0.25);
+    QCOMPARE(renderRound(16.0), sizeAtLarge);
+    QCOMPARE(renderRound(0.25), sizeAtSmall);
+    painter->removePathGroup(0);
+    // Without round caps and joins the data is used at all scales, so drawing
+    // at two scales in a frame makes only one
+    auto renderSquare = [&](std::initializer_list<qreal> scales) {
+        QRhiCommandBuffer *cb;
+        rhi->beginOffscreenFrame(&cb);
+        pd->resetForNewFrame();
+        pd->beginPaint(cb, rt->rt);
+        painter->setAntialias(0.0);
+        painter->setLineWidth(20.0);
+        painter->setLineCap(QCanvasPainter::LineCap::Square);
+        painter->setStrokeStyle(Qt::white);
+        for (qreal scale : scales) {
+            painter->resetTransform();
+            painter->scale(scale);
+            painter->stroke(path, 0);
+        }
+        pd->endPaint();
+        rhi->endOffscreenFrame();
+        engine->syncDebugCounters();
+        return engine->debugCounters().cachedPathVertexDataSize;
+    };
+    const int squareSize = renderSquare({ 0.25 });
+    QVERIFY(squareSize > 0);
+    QCOMPARE(renderSquare({ 0.25, 16.0 }), squareSize);
+    painter->removePathGroup(0);
+
     // The data of other scales of a path is removed, so that zooming does not
     // grow the cache
     int firstSize = -1;
