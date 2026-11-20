@@ -8,6 +8,19 @@
 
 QT_BEGIN_NAMESPACE
 
+// Like QPainter::drawText() with a rect and Qt Quick Text, convert line
+// breaks to QChar::LineSeparator, which QTextLayout breaks the line at in
+// all wrap modes. "\r\n" is a single line break, a lone '\r' is kept as is.
+QString QCTextLayout::convertLineBreaks(const QString &text)
+{
+    if (!text.contains(u'\n'))
+        return text;
+    QString result = text;
+    result.replace(QLatin1StringView("\r\n"), QString(QChar::LineSeparator));
+    result.replace(u'\n', QChar::LineSeparator);
+    return result;
+}
+
 QTextOption::WrapMode QCTextLayout::convertToQtWrapMode(QCanvasPainter::WrapMode mode)
 {
     switch (mode) {

@@ -1293,7 +1293,7 @@ QRectF QCPainterEngine::textBoundingBox(const QString &text, const QRectF &rect)
     auto layout = QTextLayout();
     layout.clearLayout();
     layout.setTextOption(option);
-    layout.setText(text);
+    layout.setText(QCTextLayout::convertLineBreaks(text));
     layout.setFont(font);
     float leading = metrics.leading();
     float layoutHeight = 0;
