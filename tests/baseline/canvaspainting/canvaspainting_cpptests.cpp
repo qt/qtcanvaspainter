@@ -3538,6 +3538,126 @@ void CanvasPainterLancelotCppTests::testTextDirection()
     }
 }
 
+// Fills and strokes with antialias values up to the maximum, each column with
+// a larger value. The fringes of thin and small shapes, and of the corners
+// with a small radius, must not fold over.
+static const float fringeAntialiasValues[] = { 1.0f, 3.0f, 6.0f, 10.0f };
+
+void CanvasPainterLancelotCppTests::testAntialiasingFringes()
+{
+    // Convex paths, which are rendered without stenciling
+    const float cell = width() / 4;
+    for (int col = 0; col < 4; ++col) {
+        painter->setAntialias(fringeAntialiasValues[col]);
+        const float cx = cell * col + cell * 0.5f;
+
+        // Rounded rectangle shadow with small corner radius
+        float cy = cell * 0.5f;
+        painter->setFillStyle(QColor(0, 0, 0, 90));
+        painter->beginPath();
+        painter->roundRect(cx - 60, cy - 35, 120, 70, 6);
+        painter->fill();
+
+        // Translucent circle
+        cy += cell;
+        painter->setFillStyle(QColor(255, 140, 0, 200));
+        painter->beginPath();
+        painter->circle(cx, cy, 40);
+        painter->fill();
+
+        // Flat ellipse and rotated rectangle
+        cy += cell;
+        painter->setFillStyle(QColor(20, 90, 200, 128));
+        painter->beginPath();
+        painter->ellipse(cx, cy - 30, 65, 15);
+        painter->fill();
+        painter->save();
+        painter->translate(cx, cy + 35);
+        painter->rotate(0.5);
+        painter->fillRect(-50, -12, 100, 24);
+        painter->restore();
+
+        // Small circle, thin rectangle and sliver triangle
+        cy += cell;
+        painter->setFillStyle(QColor(200, 20, 60, 160));
+        painter->beginPath();
+        painter->circle(cx - 50, cy, 6);
+        painter->fill();
+        painter->fillRect(cx - 25, cy - 60, 3, 120);
+        painter->beginPath();
+        painter->moveTo(cx - 10, cy + 40);
+        painter->lineTo(cx + 70, cy - 50);
+        painter->lineTo(cx + 70, cy - 30);
+        painter->closePath();
+        painter->fill();
+    }
+}
+
+void CanvasPainterLancelotCppTests::testAntialiasingFringes2()
+{
+    // Non-convex paths, which are rendered with stenciling,
+    // cached paths and strokes
+    const float cell = width() / 4;
+    for (int col = 0; col < 4; ++col) {
+        painter->setAntialias(fringeAntialiasValues[col]);
+        const float cx = cell * col + cell * 0.5f;
+
+        // Concave star
+        float cy = cell * 0.5f;
+        painter->setFillStyle(QColor(20, 90, 200, 128));
+        painter->beginPath();
+        for (int i = 0; i < 10; ++i) {
+            const float a = float(M_PI) * i / 5 - float(M_PI) / 2;
+            const float r = (i % 2) ? 25 : 65;
+            if (i == 0)
+                painter->moveTo(cx + r * std::cos(a), cy + r * std::sin(a));
+            else
+                painter->lineTo(cx + r * std::cos(a), cy + r * std::sin(a));
+        }
+        painter->closePath();
+        painter->fill();
+
+        // Ring with a hole
+        cy += cell;
+        painter->setFillStyle(QColor(0, 150, 80, 160));
+        painter->beginPath();
+        painter->circle(cx, cy, 60);
+        painter->circle(cx, cy, 25);
+        painter->fill(QCanvasPainter::FillRule::EvenOdd);
+
+        // Cached rounded rectangle, scaled
+        cy += cell;
+        QCanvasPath path;
+        path.roundRect(-30, -20, 60, 40, 8);
+        painter->save();
+        painter->translate(cx, cy);
+        painter->scale(1.5f);
+        painter->setFillStyle(QColor(0, 0, 0, 90));
+        painter->fill(path, 0);
+        painter->restore();
+
+        // Strokes
+        cy += cell;
+        painter->setStrokeStyle(QColor(200, 20, 60, 200));
+        painter->setLineWidth(30);
+        painter->setLineCap(QCanvasPainter::LineCap::Round);
+        painter->beginPath();
+        painter->moveTo(cx - 40, cy - 20);
+        painter->lineTo(cx + 40, cy - 40);
+        painter->stroke();
+        painter->setLineCap(QCanvasPainter::LineCap::Butt);
+        painter->setLineWidth(6);
+        painter->setLineJoin(QCanvasPainter::LineJoin::Miter);
+        painter->beginPath();
+        painter->moveTo(cx - 60, cy + 60);
+        painter->lineTo(cx - 30, cy + 30);
+        painter->lineTo(cx, cy + 60);
+        painter->lineTo(cx + 30, cy + 30);
+        painter->lineTo(cx + 60, cy + 60);
+        painter->stroke();
+    }
+}
+
 void CanvasPainterLancelotCppTests::testVectorPathStencilClip()
 {
     auto *painterPriv = QCanvasPainterPrivate::get(painter);

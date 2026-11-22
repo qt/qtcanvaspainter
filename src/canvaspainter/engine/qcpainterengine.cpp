@@ -1761,7 +1761,7 @@ void QCPainterEngine::expandFill(float pixelSize)
                      * pixelSize;
     // Hardcoded miterLimit for fill.
     const float miterLimit = 2.4f;
-    calculateJoins(aa, QCanvasPainter::LineJoin::Miter, miterLimit);
+    calculateJoins(aa, QCanvasPainter::LineJoin::Miter, miterLimit, true);
     const int pCount = ctx.pathsCount;
     const bool useEdgeAA = aa > 0.0f;
 
@@ -1778,6 +1778,67 @@ void QCPainterEngine::expandFill(float pixelSize)
 
     const bool isConvex = (pCount == 1 && ctx.paths.first().isConvex);
     const float halfAA = 0.5f * aa;
+    // setAntialias(1) in the units of the points
+    const float defaultAA = QCPAINTER_ANTIALIAS_MULTIPLIER / ctx.devicePxRatio * pixelSize;
+
+    // The fringe goes from halfAA inside the edges to halfAA outside. Moving
+    // a point along its miter dm moves it towards its neighbors by
+    // dot(dm, dir) per unit, so limit the offset on that side to half of the
+    // shorter edge. Otherwise the fill and the fringe fold over.
+    auto fringeWidths = [halfAA](const QCPoint &p0, const QCPoint &p1,
+                                 float *inner, float *outer) {
+        const float along = p1.dmx * p1.dx + p1.dmy * p1.dy;
+        const float halfLen = 0.5f * std::min(p0.len, p1.len);
+        *inner = halfAA;
+        *outer = halfAA;
+        if (along * halfAA > halfLen)
+            *inner = halfLen / along;
+        else if (-along * halfAA > halfLen && !(p1.flags & PointInnerBevel))
+            *outer = halfLen / -along;
+    };
+
+    // Convex paths are drawn without stenciling, so the fill must stay
+    // convex: inset all points by the smallest limit, and at most by the
+    // distance from the average point to the closest edge. One short edge
+    // with a turn then makes the fringe of the whole shape asymmetric, moving
+    // its edges outward by up to a quarter of the antialias width, which is
+    // accepted to keep drawing it without stenciling.
+    float convexInset = halfAA;
+    if (isConvex && useEdgeAA) {
+        const QCPath &path = ctx.paths.first();
+        float cx = 0.0f;
+        float cy = 0.0f;
+        for (int j = 0; j < path.pointsCount; ++j) {
+            const QCPoint &pt = ctx.points[path.pointsOffset + j];
+            cx += pt.x;
+            cy += pt.y;
+        }
+        if (path.pointsCount > 0) {
+            cx /= path.pointsCount;
+            cy /= path.pointsCount;
+        }
+        int p0Index = path.pointsOffset + path.pointsCount - 1;
+        for (int j = 0; j < path.pointsCount; ++j) {
+            const int p1Index = path.pointsOffset + j;
+            const QCPoint &p0 = ctx.points[p0Index];
+            const QCPoint &p1 = ctx.points[p1Index];
+            float inner, outer;
+            fringeWidths(p0, p1, &inner, &outer);
+            // Distance from the center to the line of the edge
+            const float dist = std::abs((cx - p1.x) * p1.dy - (cy - p1.y) * p1.dx);
+            convexInset = std::min({ convexInset, inner, dist });
+            p0Index = p1Index;
+        }
+    }
+    auto fringeWidthsForPath = [&](const QCPoint &p0, const QCPoint &p1,
+                                   float *inner, float *outer) {
+        if (isConvex) {
+            *inner = convexInset;
+            *outer = halfAA;
+        } else {
+            fringeWidths(p0, p1, inner, outer);
+        }
+    };
 
     for (int i = 0; i < pCount; i++) {
         QCPath &path = ctx.paths[i];
@@ -1790,22 +1851,24 @@ void QCPainterEngine::expandFill(float pixelSize)
             for (int j = 0; j < path.pointsCount; ++j) {
                 const QCPoint &p0 = ctx.points[p0Index];
                 const QCPoint &p1 = ctx.points[p1Index];
+                float inset, outset;
+                fringeWidthsForPath(p0, p1, &inset, &outset);
                 if (p1.flags & PointBevel) {
                     if (p1.flags & PointLeft) {
-                        float lx = p1.x + p1.dmx * halfAA;
-                        float ly = p1.y + p1.dmy * halfAA;
+                        float lx = p1.x + p1.dmx * inset;
+                        float ly = p1.y + p1.dmy * inset;
                         addVert(lx, ly, 0.5f, 1.0f);
                     } else {
-                        float lx0 = p1.x + p0.dy * halfAA;
-                        float ly0 = p1.y - p0.dx * halfAA;
+                        float lx0 = p1.x + p0.dy * inset;
+                        float ly0 = p1.y - p0.dx * inset;
                         addVert(lx0, ly0, 0.5f, 1.0f);
-                        float lx1 = p1.x + p1.dy * halfAA;
-                        float ly1 = p1.y - p1.dx * halfAA;
+                        float lx1 = p1.x + p1.dy * inset;
+                        float ly1 = p1.y - p1.dx * inset;
                         addVert(lx1, ly1, 0.5f, 1.0f);
                     }
                 } else {
-                    float lx = p1.x + p1.dmx * halfAA;
-                    float ly = p1.y + p1.dmy * halfAA;
+                    float lx = p1.x + p1.dmx * inset;
+                    float ly = p1.y + p1.dmy * inset;
                     addVert(lx, ly, 0.5f, 1.0f);
                 }
                 p0Index = path.pointsOffset + j;
@@ -1821,18 +1884,14 @@ void QCPainterEngine::expandFill(float pixelSize)
         path.fillCount = ctx.verticesCount - path.fillOffset;
 
         if (useEdgeAA) {
-            // Calculate antialiasing
-            const float rw = halfAA;
+            // Calculate antialiasing. The fringe is opaque at the fill inset
+            // and transparent outside the shape. For non-convex paths, which
+            // are stenciled, it extends further inside to cover thin parts,
+            // fading out above the default antialias value.
+            const float maxExtension = isConvex
+                    ? 0.0f
+                    : std::max(0.0f, std::min(aa, 2.0f * defaultAA - aa));
             const float ru = 1.0f;
-            float lw = aa + halfAA;
-            float lu = 0;
-
-            // Create only half of aa for convex shapes so that
-            // the shape can be rendered without stenciling.
-            if (isConvex) {
-                lw = halfAA; // This should generate the same vertex as fill inset above.
-                lu = 0.5f; // Set outline fade at middle.
-            }
 
             const int loopIndex = ctx.verticesCount;
             path.strokeOffset = ctx.verticesCount;
@@ -1843,6 +1902,12 @@ void QCPainterEngine::expandFill(float pixelSize)
             for (int j = 0; j < path.pointsCount; ++j) {
                 const QCPoint &p0 = ctx.points[p0Index];
                 const QCPoint &p1 = ctx.points[p1Index];
+                float lw, rw;
+                fringeWidthsForPath(p0, p1, &lw, &rw);
+                // u is 0.5 at the fill inset
+                const float extension = std::min(maxExtension, lw + rw);
+                const float lu = (0.5f * (lw + rw) - 0.5f * extension) / (lw + rw);
+                lw += extension;
                 if ((p1.flags & (PointBevel | PointInnerBevel))) {
                     addBevelJoin(p0, p1, lw, rw, lu, ru);
                 } else {
@@ -1856,7 +1921,7 @@ void QCPainterEngine::expandFill(float pixelSize)
             if (path.pointsCount > 0) {
                 // Loop the fill
                 const auto &verts = ctx.vertices;
-                addVert(verts.at(loopIndex).x, verts.at(loopIndex).y, lu, 1.0f);
+                addVert(verts.at(loopIndex).x, verts.at(loopIndex).y, verts.at(loopIndex).u, 1.0f);
                 addVert(verts.at(loopIndex + 1).x, verts.at(loopIndex + 1).y, ru, 1.0f);
             }
 
@@ -1984,7 +2049,8 @@ void QCPainterEngine::expandStroke(float w, QCanvasPainter::LineCap cap, QCanvas
     }
 }
 
-void QCPainterEngine::calculateJoins(float w, QCanvasPainter::LineJoin join, float miterLimit)
+void QCPainterEngine::calculateJoins(float w, QCanvasPainter::LineJoin join, float miterLimit,
+                                     bool concaveInnerBevelsOnly)
 {
     // Inverse of width
     const float iw = (w > 0.0f) ? 1.0f / w : 0.0f;
@@ -2042,10 +2108,13 @@ void QCPainterEngine::calculateJoins(float w, QCanvasPainter::LineJoin join, flo
                 p1.flags |= PointLeft;
             }
 
-            // Calculate if we should use bevel or miter for inner join.
-            float limit = std::max(1.01f, std::min(p0.len, p1.len) * iw);
-            if ((dmr2 * limit * limit) < 1.0f)
-                p1.flags |= PointInnerBevel;
+            // Calculate if we should use bevel or miter for inner join,
+            // never with zero width.
+            if (w > 0.0f && !(concaveInnerBevelsOnly && (p1.flags & PointLeft))) {
+                float limit = std::max(1.01f, std::min(p0.len, p1.len) * iw);
+                if ((dmr2 * limit * limit) < 1.0f)
+                    p1.flags |= PointInnerBevel;
+            }
 
             // Check if the corner needs to be beveled.
             if (p1.flags & PointCorner) {
@@ -2090,6 +2159,8 @@ static void adjustBevel(bool innerBevel, const QCPoint &p0, const QCPoint &p1, f
 void QCPainterEngine::addBevelJoin(const QCPoint &p0, const QCPoint &p1,
                                       float lw, float rw, float lu, float ru)
 {
+    // The u of the point itself, 0.5 unless the sides differ in width
+    const float pu = (lw + rw) > 0.0f ? lu + (ru - lu) * lw / (lw + rw) : 0.5f;
     float dlx0 = p0.dy;
     float dly0 = -p0.dx;
     float dlx1 = p1.dy;
@@ -2113,7 +2184,7 @@ void QCPainterEngine::addBevelJoin(const QCPoint &p0, const QCPoint &p1,
                 float a = a0 + float(i) * (a1 - a0);
                 float rx = p1.x + std::cos(a) * rw;
                 float ry = p1.y + std::sin(a) * rw;
-                addVert(p1.x, p1.y, 0.5f, 1.0f);
+                addVert(p1.x, p1.y, pu, 1.0f);
                 addVert(rx, ry, ru, 1.0f);
             }
 #endif
@@ -2122,11 +2193,11 @@ void QCPainterEngine::addBevelJoin(const QCPoint &p0, const QCPoint &p1,
         } else {
             float rx0 = p1.x - (p1.dmx * rw);
             float ry0 = p1.y - (p1.dmy * rw);
-            addVert(p1.x, p1.y, 0.5f, 1.0f);
+            addVert(p1.x, p1.y, pu, 1.0f);
             addVert(p1.x - (dlx0 * rw), p1.y - (dly0 * rw), ru, 1.0f);
             addVert(rx0, ry0, ru, 1.0f);
             addVert(rx0, ry0, ru, 1.0f);
-            addVert(p1.x, p1.y, 0.5f, 1.0f);
+            addVert(p1.x, p1.y, pu, 1.0f);
             addVert(p1.x - (dlx1 * rw), p1.y - (dly1 * rw), ru, 1.0f);
         }
         addVert(lx1, ly1, lu, 1.0f);
@@ -2151,7 +2222,7 @@ void QCPainterEngine::addBevelJoin(const QCPoint &p0, const QCPoint &p1,
                 float lx = p1.x + std::cos(a) * lw;
                 float ly = p1.y + std::sin(a) * lw;
                 addVert(lx, ly, lu, 1.0f);
-                addVert(p1.x, p1.y, 0.5f, 1.0f);
+                addVert(p1.x, p1.y, pu, 1.0f);
             }
 #endif
             addVert(p1.x + (dlx1 * lw), p1.y + (dly1 * lw), lu, 1.0f);
@@ -2160,13 +2231,13 @@ void QCPainterEngine::addBevelJoin(const QCPoint &p0, const QCPoint &p1,
             float lx0 = p1.x + (p1.dmx * lw);
             float ly0 = p1.y + (p1.dmy * lw);
             addVert(p1.x + (dlx0 * lw), p1.y + (dly0 * lw), lu, 1.0f);
-            addVert(p1.x, p1.y, 0.5f, 1.0f);
+            addVert(p1.x, p1.y, pu, 1.0f);
 
             addVert(lx0, ly0, lu, 1.0f);
             addVert(lx0, ly0, lu, 1.0f);
 
             addVert(p1.x + (dlx1 * lw), p1.y + (dly1 * lw), lu, 1.0f);
-            addVert(p1.x, p1.y, 0.5f, 1.0f);
+            addVert(p1.x, p1.y, pu, 1.0f);
         }
         addVert(p1.x + (dlx1 * lw), p1.y + (dly1 * lw), lu, 1.0f);
         addVert(rx1, ry1, ru, 1.0f);

@@ -190,7 +190,8 @@ private:
     void expandFill(float pixelSize = 1.0f);
     void expandStroke(float w, QCanvasPainter::LineCap cap, QCanvasPainter::LineJoin join,
                       float miterLimit, float pixelSize = 1.0f);
-    void calculateJoins(float w, QCanvasPainter::LineJoin join, float miterLimit);
+    void calculateJoins(float w, QCanvasPainter::LineJoin join, float miterLimit,
+                        bool concaveInnerBevelsOnly = false);
     void addBevelJoin(const QCPoint &p0, const QCPoint &p1,
                       float lw, float rw, float lu, float ru);
     void addRoundJoin(const QCPoint &p0, const QCPoint &p1,

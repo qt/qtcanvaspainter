@@ -78,6 +78,8 @@ private slots:
     void testGradientCaching();
     void testRadialGradientFocalPoint();
     void testTextDirection();
+    void testAntialiasingFringes();
+    void testAntialiasingFringes2();
     void testVectorPathStencilClip();    
 
 private:
