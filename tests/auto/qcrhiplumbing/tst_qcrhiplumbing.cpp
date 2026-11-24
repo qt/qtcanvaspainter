@@ -2491,7 +2491,7 @@ void tst_CanvasRhiRendering::cachedStrokeScale()
     painter->removePathGroup(0);
     // Without round caps and joins the data is used at all scales, so drawing
     // at two scales in a frame makes only one
-    auto renderSquare = [&](std::initializer_list<qreal> scales) {
+    auto renderSquare = [&](std::initializer_list<qreal> scales, const QList<qreal> &dash = {}) {
         QRhiCommandBuffer *cb;
         rhi->beginOffscreenFrame(&cb);
         pd->resetForNewFrame();
@@ -2499,6 +2499,7 @@ void tst_CanvasRhiRendering::cachedStrokeScale()
         painter->setAntialias(0.0);
         painter->setLineWidth(20.0);
         painter->setLineCap(QCanvasPainter::LineCap::Square);
+        painter->setLineDash(dash);
         painter->setStrokeStyle(Qt::white);
         for (qreal scale : scales) {
             painter->resetTransform();
@@ -2513,6 +2514,16 @@ void tst_CanvasRhiRendering::cachedStrokeScale()
     const int squareSize = renderSquare({ 0.25 });
     QVERIFY(squareSize > 0);
     QCOMPARE(renderSquare({ 0.25, 16.0 }), squareSize);
+    painter->removePathGroup(0);
+    // The dashes of the data are in the units of the path too, so the data is
+    // the same whatever scale it is first made at. The first dash ends 0.02
+    // after the corner at (70, 10), which is within a device pixel tolerance
+    // at 0.25 but not at 16.
+    const QList<qreal> dash = { 60.02, 20.0 };
+    const int dashedSize = renderSquare({ 0.25 }, dash);
+    QVERIFY(dashedSize > 0);
+    painter->removePathGroup(0);
+    QCOMPARE(renderSquare({ 16.0 }, dash), dashedSize);
     painter->removePathGroup(0);
 
     // The data of other scales of a path is removed, so that zooming does not

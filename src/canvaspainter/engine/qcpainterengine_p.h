@@ -193,7 +193,7 @@ private:
     bool enforceWinding(int pointsOffset, int pointsCount, QCanvasPainter::PathWinding winding,
                         bool isClosed);
     void expandFill(float pixelSize = 1.0f);
-    bool dashPaths(bool pointsTransformed, float pixelSize);
+    bool dashPaths(bool pointsTransformed, float pixelSize, float halfWidth);
     void expandStroke(QCPaths &paths, int pathsCount, QCPoints &points,
                       float w, QCanvasPainter::LineCap cap, QCanvasPainter::LineJoin join,
                       float miterLimit, float pixelSize = 1.0f);

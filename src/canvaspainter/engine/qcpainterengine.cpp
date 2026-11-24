@@ -958,19 +958,24 @@ void QCPainterEngine::stroke(QCanvasPath *maybePath, int pathGroup, bool cachedP
         halfWidth = bakedWidth * 0.5f * pixelSize;
     }
 
-    // With a dash pattern, the dashes are stroked instead of the paths
+    // With a dash pattern, the dashes are stroked instead of the paths.
+    // tolerancePixelSize is the size of a device pixel that the tolerances,
+    // the round caps and joins and the antialiasing fringe are made for. For
+    // cached data that is used at all scales it is 1, as nothing in the data
+    // is then sized in device pixels: there is no fringe and no round caps or
+    // joins, and the tolerances don't depend on the scale it is made at first.
     auto expandPaths = [&](float tolerancePixelSize) -> std::pair<QCPaths *, int> {
         commandsToPaths(tolerancePixelSize);
         if (!state.lineDash.isEmpty()) {
             // The points of cached paths are not transformed, the others are
-            if (dashPaths(!usingPathCaching, pixelSize)) {
-                expandStroke(ctx.dashPaths, ctx.dashPathsCount, ctx.dashPoints,
-                             halfWidth, state.lineCap, state.lineJoin, state.miterLimit, pixelSize);
+            if (dashPaths(!usingPathCaching, tolerancePixelSize, halfWidth)) {
+                expandStroke(ctx.dashPaths, ctx.dashPathsCount, ctx.dashPoints, halfWidth,
+                             state.lineCap, state.lineJoin, state.miterLimit, tolerancePixelSize);
                 return { &ctx.dashPaths, ctx.dashPathsCount };
             }
         }
-        expandStroke(ctx.paths, ctx.pathsCount, ctx.points,
-                     halfWidth, state.lineCap, state.lineJoin, state.miterLimit, pixelSize);
+        expandStroke(ctx.paths, ctx.pathsCount, ctx.points, halfWidth,
+                     state.lineCap, state.lineJoin, state.miterLimit, tolerancePixelSize);
         return { &ctx.paths, ctx.pathsCount };
     };
 
@@ -1780,9 +1785,10 @@ static constexpr int QCPAINTER_MAX_DASH_COUNT = 100000;
 // true, the points are transformed with the state transform, and the lengths
 // of the segments are measured in the user space with its inverse, so that the
 // dashes follow also a non-uniform scale or a skew. pixelSize is the size of a
-// device pixel in the units of the points, for the tolerances.
+// device pixel in the units of the points, for the tolerances. halfWidth is
+// half of the stroke width in the units of the points.
 // Returns false when the paths are stroked without dashes.
-bool QCPainterEngine::dashPaths(bool pointsTransformed, float pixelSize)
+bool QCPainterEngine::dashPaths(bool pointsTransformed, float pixelSize, float halfWidth)
 {
     const QList<qreal> &lineDash = state.lineDash;
     if (lineDash.isEmpty())
@@ -1871,9 +1877,10 @@ bool QCPainterEngine::dashPaths(bool pointsTransformed, float pixelSize)
             ctx.dashPathsCount--;
             return;
         }
-        // Two points very close to each other give the direction of the caps
+        // Two points very close to each other give the direction of the caps.
+        // Relative to the width, so that the caps are the same at all scales.
         const QCPoint p = ctx.dashPoints[ctx.dashPointsCount - 1];
-        const float halfLength = 1.0e-3f * pixelSize;
+        const float halfLength = 1.0e-3f * halfWidth;
         ctx.dashPointsCount--;
         dash.pointsCount = 0;
         if (ctx.dashPointsCount + 2 > ctx.dashPoints.size())
