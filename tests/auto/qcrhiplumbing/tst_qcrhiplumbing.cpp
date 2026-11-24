@@ -97,6 +97,8 @@ private slots:
     void cachedPathVariantsUpdate();
     void cachedStrokeScale_data();
     void cachedStrokeScale();
+    void cachedPathMirrored_data();
+    void cachedPathMirrored();
     void cachedPathTransformedClip_data();
     void cachedPathTransformedClip();
     void lineDashRender_data();
@@ -2246,6 +2248,114 @@ void tst_CanvasRhiRendering::cachedStrokeScale_data()
 // The stroke of a cached path is expanded in the units of the path, and the
 // vertex shader scales it. The width of the line and the antialiasing must
 // still be what the stroke has without a path group under the same transform.
+void tst_CanvasRhiRendering::cachedPathMirrored_data()
+{
+    rhiTestData();
+}
+
+// The triangles of cached paths are mirrored in the vertex shader, which
+// must not cull them
+void tst_CanvasRhiRendering::cachedPathMirrored()
+{
+    QFETCH(QRhi::Implementation, impl);
+    QFETCH(QRhiInitParams *, initParams);
+
+    std::unique_ptr<QRhi> rhi(QRhi::create(impl, initParams, rhiCreateFlags));
+    if (!rhi)
+        QSKIP("Failed to create QRhi, skip");
+
+    RenderTargetPtr rt = createRenderTarget(rhi.get());
+    QVERIFY(rt);
+
+    std::unique_ptr<QCanvasPainterFactory> factory(new QCanvasPainterFactory);
+    QCanvasPainter *painter = factory->create(rhi.get());
+    QVERIFY(painter);
+    QCanvasRhiPaintDriver *pd = factory->paintDriver();
+
+    QCanvasPath convex;
+    convex.roundRect(0, 0, 160, 100, 20);
+    QCanvasPath star;
+    for (int i = 0; i < 10; ++i) {
+        const float a = float(M_PI) * i / 5;
+        const float r = (i % 2) ? 25 : 70;
+        if (i == 0)
+            star.moveTo(80 + r * std::cos(a), 50 + r * std::sin(a));
+        else
+            star.lineTo(80 + r * std::cos(a), 50 + r * std::sin(a));
+    }
+    star.closePath();
+    QCanvasPath line;
+    line.moveTo(0, 50);
+    line.lineTo(80, 10);
+    line.lineTo(160, 50);
+
+    // Each row draws the paths uncached on the left and cached on the right
+    auto render = [&](qreal sx, qreal sy) {
+        QRhiCommandBuffer *cb;
+        rhi->beginOffscreenFrame(&cb);
+        pd->resetForNewFrame();
+        pd->beginPaint(cb, rt->rt);
+        painter->setFillStyle(Qt::white);
+        painter->setStrokeStyle(Qt::white);
+        painter->setLineWidth(12);
+        int row = 0;
+        for (const QCanvasPath *path : { &convex, &star, &line }) {
+            for (int cached = 0; cached < 2; ++cached) {
+                painter->resetTransform();
+                painter->translate(cached * 400 + 200, row * 200 + 100);
+                painter->scale(sx, sy);
+                painter->translate(-80, -50);
+                if (path == &line) {
+                    if (cached) {
+                        painter->stroke(*path, 1);
+                    } else {
+                        painter->beginPath();
+                        painter->addPath(*path);
+                        painter->stroke();
+                    }
+                } else if (cached) {
+                    painter->fill(*path, 1);
+                } else {
+                    painter->beginPath();
+                    painter->addPath(*path);
+                    painter->fill();
+                }
+            }
+            ++row;
+        }
+        pd->endPaint(QCanvasRhiPaintDriver::EndPaintFlag::DoNotRecordRenderPass);
+        cb->beginPass(rt->rt, Qt::black, { 1.0f, 0 });
+        pd->renderPaint();
+        cb->endPass();
+        rhi->endOffscreenFrame();
+        return impl != QRhi::Null ? imageFromReadback(rhi.get(), rt->tex) : QImage();
+    };
+    // The amount of ink in a rectangle, as the sum of the gray values
+    auto ink = [](const QImage &image, const QRect &rect) {
+        qreal sum = 0;
+        for (int y = rect.top(); y <= rect.bottom(); ++y) {
+            for (int x = rect.left(); x <= rect.right(); ++x)
+                sum += qGray(image.pixel(x, y));
+        }
+        return sum / 255.0;
+    };
+
+    for (const QPointF &scale : { QPointF(1, 1), QPointF(1, -1), QPointF(-1, 1), QPointF(-1, -1) }) {
+        const QImage image = render(scale.x(), scale.y());
+        if (impl == QRhi::Null)
+            continue;
+        for (int row = 0; row < 3; ++row) {
+            const qreal uncached = ink(image, QRect(100, row * 200, 200, 200));
+            const qreal cached = ink(image, QRect(500, row * 200, 200, 200));
+            const QString message = QStringLiteral("scale %1 %2 row %3: cached %4, uncached %5")
+                                            .arg(scale.x()).arg(scale.y()).arg(row)
+                                            .arg(cached).arg(uncached);
+            QVERIFY2(uncached > 1000, qPrintable(message));
+            QVERIFY2(qAbs(cached - uncached) <= 0.02 * uncached, qPrintable(message));
+        }
+    }
+}
+
 void tst_CanvasRhiRendering::cachedStrokeScale()
 {
     QFETCH(QRhi::Implementation, impl);

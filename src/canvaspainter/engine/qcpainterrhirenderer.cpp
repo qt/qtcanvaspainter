@@ -125,6 +125,8 @@ struct QCRHICall {
     quint8 stencilRef;
     uint simplePathFill : 1;
     uint textTriangleOffsetBakedInToIndices : 1;
+    // A cached path under a mirroring transform, see QCRHIPipelineState
+    uint mirrored : 1;
 };
 
 struct QCRHIPath {
@@ -216,6 +218,9 @@ struct QCRHIPipelineState
 
     int sampleCount = 1;
     quint32 customProgramId = 0;
+    // The vertices of cached paths are transformed in the vertex shader, so a
+    // mirroring transform flips the winding of their triangles
+    bool mirrored = false;
 };
 
 inline bool operator==(const QCRHIPipelineState &a, const QCRHIPipelineState &b) noexcept
@@ -236,6 +241,7 @@ inline bool operator==(const QCRHIPipelineState &a, const QCRHIPipelineState &b)
            && a.stencilReadMask == b.stencilReadMask
            && a.stencilWriteMask == b.stencilWriteMask
            && a.customProgramId == b.customProgramId
+           && a.mirrored == b.mirrored
            // NB! not memcmp
            && a.targetBlend.colorWrite == b.targetBlend.colorWrite
            && a.targetBlend.enable == b.targetBlend.enable
@@ -263,7 +269,8 @@ inline size_t qHash(const QCRHIPipelineState &s, size_t seed) noexcept
            ^ qHashBits(&s.stencilFront, sizeof(QRhiGraphicsPipeline::StencilOpState))
            ^ (s.stencilTestEnable << 3)
            ^ (s.usesStencilRef << 4)
-           ^ (s.targetBlend.enable << 5);
+           ^ (s.targetBlend.enable << 5)
+           ^ (s.mirrored << 6);
 }
 
 struct QCRHIPipelineStateKey
@@ -670,6 +677,7 @@ QRhiGraphicsPipeline *QCPainterRhiRenderer::pipeline(const QCRHIPipelineStateKey
 
     ps->setTopology(key.state.topology);
     ps->setCullMode(key.state.cullMode);
+    ps->setFrontFace(key.state.mirrored ? QRhiGraphicsPipeline::CW : QRhiGraphicsPipeline::CCW);
 
     ps->setTargetBlends({ key.state.targetBlend });
 
@@ -1816,6 +1824,7 @@ void QCPainterRhiRenderer::renderFill(const QCPaint &paint, const QCState &state
 
         call->pathGroup = pti.pathGroup;
         call->pathGroupEntryId = cpf->entryId;
+        call->mirrored = state.transform.determinant() < 0.0;
         call->indexCount = cpf->indexCount;
         call->indexOffset = 0; // will need to be adjusted by cpg.fillIndexBufferOffsetAdjust[id]
         call->stripOffset = cpf->stripOffset; // adjusted like triangleOffset
@@ -1969,6 +1978,7 @@ void QCPainterRhiRenderer::renderStroke(const QCPaint &paint, const QCState &sta
 
         call->pathGroup = pti.pathGroup;
         call->pathGroupEntryId = cps->entryId;
+        call->mirrored = state.transform.determinant() < 0.0;
         call->stripOffset = 0; // adjusted by cpg.strokeVertexBufferOffsetAdjust[id]
         call->stripCount = cps->stripCount;
         call->stripTriangleCount = cps->stripTriangleCount;
@@ -2479,6 +2489,7 @@ void QCPainterRhiRenderer::endPrepare()
             // Custom shader
             const QCanvasBrushProgram *program = call->program.get();
             basePs.customProgramId = program ? program->id() : 0;
+            basePs.mirrored = call->mirrored;
 
             if (call->type == CallFill) {
                 call->srb[0] = srbWithDummyTexture;
