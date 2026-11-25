@@ -15,10 +15,6 @@
 
 QT_BEGIN_NAMESPACE
 
-// Does not really need to be atomic since widgets operate on gui thread, but for consistency with the Quick item.
-QAtomicInt QCanvasPainterWidgetPrivate::m_rendered;
-
-
 /*!
     \class QCanvasPainterWidget
     \since 6.11
@@ -160,8 +156,14 @@ void QCanvasPainterWidget::initialize(QRhiCommandBuffer *)
             d->m_factory = QCanvasPainterFactory::sharedInstance(rhi());
             connect(this, &QRhiWidget::frameSubmitted, this, [this] {
                 Q_D(QCanvasPainterWidget);
-                if (QCanvasPainterWidgetPrivate::m_rendered.testAndSetAcquire(1, 0))
+                // Null after releaseResources() until initialize() succeeds
+                if (!d->m_factory)
+                    return;
+                auto *factoryPriv = QCanvasPainterFactoryPrivate::get(d->m_factory);
+                if (factoryPriv->renderedSinceNewFrame) {
+                    factoryPriv->renderedSinceNewFrame = false;
                     d->m_factory->paintDriver()->resetForNewFrame();
+                }
             });
         }
     }
@@ -226,7 +228,7 @@ void QCanvasPainterWidget::render(QRhiCommandBuffer *cb)
 
     d->m_currentCb = nullptr;
 
-    QCanvasPainterWidgetPrivate::m_rendered.storeRelease(1);
+    QCanvasPainterFactoryPrivate::get(d->m_factory)->renderedSinceNewFrame = true;
 }
 
 /*!

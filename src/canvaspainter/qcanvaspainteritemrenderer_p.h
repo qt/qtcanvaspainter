@@ -58,7 +58,6 @@ public:
     QRhiRenderTarget *m_rt = nullptr;
     bool m_initialized = false;
     bool m_initializeResourcesCalled = false;
-    static QAtomicInt m_rendered;
 };
 
 QT_END_NAMESPACE
