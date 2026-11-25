@@ -32,6 +32,11 @@ public:
     std::unique_ptr<QCanvasRhiPaintDriver> paintDriver;
     std::unique_ptr<QCanvasPainter> painter;
     QCPainterRhiRenderer renderer;
+    // Set when an item or widget sharing this factory has rendered since the
+    // last resetForNewFrame(). Per factory, i.e. per QRhi, so that multiple
+    // windows do not consume each other's reset. Only used on the thread of
+    // the QRhi.
+    bool renderedSinceNewFrame = false;
 };
 
 QT_END_NAMESPACE

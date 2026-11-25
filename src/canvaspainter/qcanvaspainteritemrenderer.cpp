@@ -17,10 +17,6 @@
 
 QT_BEGIN_NAMESPACE
 
-// As in, any item has updated its content since this flag was reset, including
-// all QQuickWindows, and so all render threads.
-QAtomicInt QCanvasPainterItemRendererPrivate::m_rendered;
-
 /*!
     \class QCanvasPainterItemRenderer
     \since 6.11
@@ -309,8 +305,11 @@ void QCanvasPainterItemRenderer::initialize(QRhiCommandBuffer *cb)
             d->m_sharedPainterNewFrameConn = QObject::connect(d->m_window, &QQuickWindow::beforeFrameBegin,
                                                               d->m_window, [this] {
                 Q_D(QCanvasPainterItemRenderer);
-                if (QCanvasPainterItemRendererPrivate::m_rendered.testAndSetAcquire(1, 0))
+                auto *factoryPriv = QCanvasPainterFactoryPrivate::get(d->m_factory);
+                if (factoryPriv->renderedSinceNewFrame) {
+                    factoryPriv->renderedSinceNewFrame = false;
                     d->m_factory->paintDriver()->resetForNewFrame();
+                }
             }, Qt::DirectConnection);
         }
         if (!d->m_factory->isValid())
@@ -407,7 +406,7 @@ void QCanvasPainterItemRenderer::render(QRhiCommandBuffer *cb)
             d->m_debugCounters = engine->debugCounters();
         }
 
-        QCanvasPainterItemRendererPrivate::m_rendered.storeRelease(1);
+        QCanvasPainterFactoryPrivate::get(d->m_factory)->renderedSinceNewFrame = true;
     }
 
     d->m_currentCb = nullptr;

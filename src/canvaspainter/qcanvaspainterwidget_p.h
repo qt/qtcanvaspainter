@@ -21,7 +21,6 @@
 #include "qcanvaspainterwidget.h"
 #include "engine/qcpainterengineutils_p.h"
 #include "qcanvasdebugcountervisualizer_p.h"
-#include <QAtomicInt>
 
 QT_BEGIN_NAMESPACE
 
@@ -38,7 +37,6 @@ public:
     QCanvasDebugCounterVisualizer m_debugVis;
     QCDebugCounters m_debugCounters;
     QRhiCommandBuffer *m_currentCb = nullptr;
-    static QAtomicInt m_rendered;
 };
 
 QT_END_NAMESPACE
