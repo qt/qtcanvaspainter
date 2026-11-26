@@ -33,6 +33,7 @@ class QCanvasPainterWidgetPrivate : public QRhiWidgetPrivate
 public:
     bool m_sharedPainter = true;
     QCanvasPainterFactory *m_factory = nullptr;
+    QMetaObject::Connection m_sharedPainterNewFrameConn;
     QColor m_fillColor = Qt::black;
     QCanvasDebugCounterVisualizer m_debugVis;
     QCDebugCounters m_debugCounters;
