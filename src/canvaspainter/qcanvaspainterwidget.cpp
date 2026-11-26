@@ -64,10 +64,14 @@ void QCanvasPainterWidget::releaseResources()
 
     graphicsResourcesInvalidated();
 
-    if (!d->m_sharedPainter)
-        d->m_factory->destroy();
-    else
+    if (!d->m_sharedPainter) {
+        // Null if initialize() has not been called
+        if (d->m_factory)
+            d->m_factory->destroy();
+    } else {
+        QObject::disconnect(d->m_sharedPainterNewFrameConn);
         d->m_factory = nullptr;
+    }
 }
 
 /*!
@@ -154,11 +158,8 @@ void QCanvasPainterWidget::initialize(QRhiCommandBuffer *)
         } else {
             // m_factory here is not owned by us, and is valid as long as the QRhi lives
             d->m_factory = QCanvasPainterFactory::sharedInstance(rhi());
-            connect(this, &QRhiWidget::frameSubmitted, this, [this] {
+            d->m_sharedPainterNewFrameConn = connect(this, &QRhiWidget::frameSubmitted, this, [this] {
                 Q_D(QCanvasPainterWidget);
-                // Null after releaseResources() until initialize() succeeds
-                if (!d->m_factory)
-                    return;
                 auto *factoryPriv = QCanvasPainterFactoryPrivate::get(d->m_factory);
                 if (factoryPriv->renderedSinceNewFrame) {
                     factoryPriv->renderedSinceNewFrame = false;
